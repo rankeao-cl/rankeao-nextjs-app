@@ -1,0 +1,61 @@
+import { Card, CardContent, Avatar, Chip } from "@heroui/react";
+import type { Tenant } from "@/lib/api";
+
+function renderStars(rating?: number) {
+  if (!rating) return null;
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.5;
+  const stars = [];
+  for (let i = 0; i < full; i++) stars.push("★");
+  if (half) stars.push("☆");
+  return (
+    <span className="text-yellow-400 text-sm tracking-wider">{stars.join("")}</span>
+  );
+}
+
+export default function TenantCard({ tenant }: { tenant: Tenant }) {
+  return (
+    <Card className="surface-card card-hover overflow-hidden">
+      <CardContent className="p-4 gap-3">
+        <div className="flex items-center gap-3">
+          <Avatar
+            size="lg"
+            className="ring-2 ring-purple-500/35 bg-purple-900/30 shrink-0"
+          >
+            <Avatar.Image src={tenant.logo_url || undefined} />
+            <Avatar.Fallback>{tenant.name?.charAt(0)?.toUpperCase()}</Avatar.Fallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-white text-base truncate">{tenant.name}</h3>
+            {tenant.city && (
+              <p className="text-gray-400 text-xs truncate font-medium">
+                📍 {tenant.city}
+                {tenant.region ? `, ${tenant.region}` : ""}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {tenant.rating != null && tenant.rating > 0 && (
+            <div className="flex items-center gap-1">
+              {renderStars(tenant.rating)}
+              <span className="text-gray-300 text-xs font-semibold">
+                ({tenant.review_count ?? 0})
+              </span>
+            </div>
+          )}
+          {tenant.is_public && (
+            <Chip size="sm" color="success" variant="soft" className="text-xs font-semibold">
+              Activa
+            </Chip>
+          )}
+        </div>
+
+        {tenant.description && (
+          <p className="text-gray-400 text-xs line-clamp-2">{tenant.description}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

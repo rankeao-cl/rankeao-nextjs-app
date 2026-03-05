@@ -1,0 +1,212 @@
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  loginAuth,
+  refreshAuth,
+  registerAuth,
+  type LoginPayload,
+  type RegisterPayload,
+} from "@/lib/api";
+
+type AuthStatus = "loading" | "authenticated" | "unauthenticated";
+
+const SESSION_STORAGE_KEY = "rankeao.auth.session";
+
+export interface AuthSession {
+  email: string;
+  username?: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+interface AuthContextValue {
+  session: AuthSession | null;
+  status: AuthStatus;
+  login: (payload: LoginPayload) => Promise<AuthSession>;
+  register: (payload: RegisterPayload) => Promise<AuthSession>;
+  refresh: () => Promise<AuthSession | null>;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value === "object" && value !== null) {
+    return value as Record<string, unknown>;
+  }
+
+  return null;
+}
+
+function readString(record: Record<string, unknown> | null, key: string): string | undefined {
+  const value = record?.[key];
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+
+  return undefined;
+}
+
+function pickString(
+  records: Array<Record<string, unknown> | null>,
+  keys: string[]
+): string | undefined {
+  for (const record of records) {
+    for (const key of keys) {
+      const found = readString(record, key);
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeAuthSession(payload: unknown, fallbackEmail?: string): AuthSession {
+  const root = asRecord(payload);
+  const data = asRecord(root?.data);
+  const user = asRecord(root?.user) ?? asRecord(data?.user);
+
+  const email =
+    pickString([user, data, root], ["email"]) ??
+    (typeof fallbackEmail === "string" ? fallbackEmail.trim() : undefined);
+
+  if (!email) {
+    throw new Error("La API no devolvio un correo valido para la sesion.");
+  }
+
+  const accessToken = pickString([root, data], ["access_token", "accessToken", "token", "jwt"]);
+  const refreshToken = pickString([root, data], ["refresh_token", "refreshToken"]);
+  const username = pickString([user, data, root], ["username", "name"]);
+
+  return {
+    email,
+    username,
+    accessToken,
+    refreshToken,
+  };
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [status, setStatus] = useState<AuthStatus>("loading");
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const rawSession = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (!rawSession) {
+          setStatus("unauthenticated");
+          return;
+        }
+
+        const parsed = JSON.parse(rawSession) as AuthSession;
+        if (!parsed?.email) {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+          setStatus("unauthenticated");
+          return;
+        }
+
+        setSession(parsed);
+        setStatus("authenticated");
+      } catch {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        setStatus("unauthenticated");
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status === "loading") {
+      return;
+    }
+
+    if (session) {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    } else {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  }, [session, status]);
+
+  const login = useCallback(async (payload: LoginPayload) => {
+    const response = await loginAuth(payload);
+    const nextSession = normalizeAuthSession(response, payload.email);
+    setSession(nextSession);
+    setStatus("authenticated");
+    return nextSession;
+  }, []);
+
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const response = await registerAuth(payload);
+    const nextSession = normalizeAuthSession(response, payload.email);
+    setSession(nextSession);
+    setStatus("authenticated");
+    return nextSession;
+  }, []);
+
+  const refresh = useCallback(async () => {
+    if (!session?.refreshToken) {
+      return null;
+    }
+
+    const response = await refreshAuth({ refresh_token: session.refreshToken });
+    const nextSession = normalizeAuthSession(response, session.email);
+    const mergedSession: AuthSession = {
+      ...session,
+      ...nextSession,
+      email: nextSession.email || session.email,
+      refreshToken: nextSession.refreshToken || session.refreshToken,
+    };
+
+    setSession(mergedSession);
+    setStatus("authenticated");
+    return mergedSession;
+  }, [session]);
+
+  const logout = useCallback(() => {
+    setSession(null);
+    setStatus("unauthenticated");
+  }, []);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      session,
+      status,
+      login,
+      register,
+      refresh,
+      logout,
+    }),
+    [session, status, login, register, refresh, logout]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth debe usarse dentro de AuthProvider");
+  }
+
+  return context;
+}

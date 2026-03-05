@@ -1,26 +1,166 @@
 @import "tailwindcss";
+@import "@heroui/styles";
+
+html {
+  scroll-behavior: smooth;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --rk-bg: #050507;
+  --rk-bg-soft: #0d0f17;
+  --rk-panel: #141727;
+  --rk-line: #2a2f4b;
+  --rk-neon: #7c3aed;
+  --rk-cyan: #22d3ee;
+  --rk-red: #ef4444;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.2), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(239, 68, 68, 0.14), transparent 36%),
+    radial-gradient(circle at 62% 84%, rgba(34, 211, 238, 0.12), transparent 38%),
+    var(--rk-bg);
+  color: #e7e8ef;
+  min-height: 100vh;
+  font-family: var(--font-inter), sans-serif;
+  background-attachment: fixed;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-rajdhani), sans-serif;
+  letter-spacing: 0.01em;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0b11;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.45);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.75);
+}
+
+.rk-container {
+  max-width: 78rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .rk-container {
+    padding-inline: 1.5rem;
+  }
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.55);
+  background: rgba(124, 58, 237, 0.14);
+  padding: 0.3rem 0.8rem;
+  color: #d7ccff;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.rk-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.25);
+  background: linear-gradient(180deg, rgba(4, 4, 8, 0.9), rgba(6, 7, 12, 0.98));
+}
+
+.rk-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.75)),
+    radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.28), transparent 36%),
+    radial-gradient(circle at 80% 25%, rgba(239, 68, 68, 0.22), transparent 34%),
+    radial-gradient(circle at 64% 78%, rgba(34, 211, 238, 0.18), transparent 40%);
+}
+
+.section-title {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 2.8vw, 2.3rem);
+  line-height: 1.1;
+}
+
+.section-subtitle {
+  color: #9da3b9;
+  font-size: 0.95rem;
+  max-width: 44rem;
+}
+
+.surface-panel {
+  border-radius: 1rem;
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  background: linear-gradient(180deg, rgba(20, 23, 39, 0.95), rgba(10, 12, 20, 0.94));
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.06), 0 24px 65px rgba(0, 0, 0, 0.45);
+}
+
+.surface-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(124, 58, 237, 0.24);
+  background: linear-gradient(180deg, rgba(19, 21, 35, 0.95), rgba(10, 12, 20, 0.96));
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.surface-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2), 0 14px 34px rgba(34, 211, 238, 0.2);
+}
+
+.hero-title {
+  color: #fff;
+  font-size: clamp(2.2rem, 6vw, 5.4rem);
+  line-height: 0.95;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hero-title-accent {
+  background: linear-gradient(120deg, #f8fafc 10%, #c4b5fd 35%, #22d3ee 68%, #ef4444 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.neon-button {
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.55), 0 12px 28px rgba(124, 58, 237, 0.35);
+}
+
+.section-block {
+  padding-block: 4.5rem;
+}
+
+.card-hover {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+}
+
