@@ -1,7 +1,7 @@
 import { getTournaments, getGames } from "@/lib/api";
 import TournamentCard from "@/components/TournamentCard";
 import TorneosFilters from "./TorneosFilters";
-import { Card, CardContent, Chip } from "@heroui/react";
+import { Card, CardContent, Chip, Tabs } from "@heroui/react";
 import type { Metadata } from "next";
 import type { CatalogGame, Tournament } from "@/lib/api";
 
@@ -14,6 +14,7 @@ interface Props {
     city?: string;
     is_ranked?: string;
     page?: string;
+    tab?: string;
   }>;
 }
 
@@ -34,16 +35,21 @@ export default async function TorneosPage({ searchParams }: Props) {
 
   let tournamentsData, gamesData;
 
+  const tab = params.tab === "past" ? "past" : "active";
+
+  // If tab is past, override status to show finished/closed if not explicitly set
+  const apiStatus = params.status || (tab === "past" ? "FINISHED,CLOSED" : "OPEN,CHECK_IN,ROUND_IN_PROGRESS");
+
   try {
     [tournamentsData, gamesData] = await Promise.all([
       getTournaments({
         q: params.q,
-        status: params.status,
+        status: apiStatus,
         game: params.game,
         format: params.format,
         city: params.city,
         is_ranked: params.is_ranked === "true" ? true : undefined,
-        sort: params.status === "past" ? "recent" : "upcoming",
+        sort: tab === "past" ? "recent" : "upcoming",
         page,
         per_page: 12,
       }).catch(() => null),
@@ -76,6 +82,20 @@ export default async function TorneosPage({ searchParams }: Props) {
       </section>
 
       <section className="surface-panel p-4 sm:p-5">
+        <Tabs aria-label="Filtro de Temporada" selectedKey={tab} className="mb-4">
+          <Tabs.ListContainer>
+            <Tabs.List>
+              <Tabs.Tab id="active" href="?tab=active">
+                Activos
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="past" href="?tab=past">
+                Pasados
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </Tabs>
         <TorneosFilters
           games={games}
           currentFilters={params}

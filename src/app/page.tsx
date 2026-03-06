@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Avatar, Button, Card, CardContent, Chip } from "@heroui/react";
+import { Avatar, Button, Card, CardContent, Chip, ListBox, ListBoxItem } from "@heroui/react";
 import {
   getBadges,
   getGameFormats,
@@ -191,23 +191,27 @@ export default async function HomePage() {
                   <h3 className="text-white text-xl font-bold">XP Global</h3>
                   <Chip color="accent" variant="soft" size="sm">Top {xpEntries.slice(0, 6).length}</Chip>
                 </div>
-                <div className="space-y-2">
-                  {xpEntries.slice(0, 6).map((entry, idx) => {
-                    const rank = entry.rank ?? idx + 1;
-                    return (
-                      <div key={entry.user_id || idx} className="surface-card px-3 py-2.5 flex items-center gap-3">
-                        <span className="text-sm font-extrabold text-zinc-100 w-8">{medals[rank] || `#${rank}`}</span>
-                        <Avatar size="sm" className="ring-2 ring-zinc-500/35">
-                          <Avatar.Image src={entry.avatar_url ?? undefined} />
-                          <Avatar.Fallback>{entry.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
-                        </Avatar>
-                        <span className="text-sm font-semibold text-gray-100 flex-1 truncate">{entry.username || "Anonimo"}</span>
-                        <span className="text-xs text-zinc-200 font-semibold">{rankingMetric(entry, "xp")}</span>
-                      </div>
-                    );
-                  })}
-                  {xpEntries.length === 0 && <p className="text-sm text-gray-500">Sin datos de ranking por ahora.</p>}
-                </div>
+                {xpEntries.length > 0 ? (
+                  <ListBox aria-label="Ranking XP" className="p-0 gap-2">
+                    {xpEntries.slice(0, 6).map((entry, idx) => {
+                      const rank = entry.rank ?? idx + 1;
+                      return (
+                        <ListBoxItem key={entry.user_id || idx} textValue={entry.username || "Anonimo"} className="surface-card px-3 py-2.5">
+                          <div className="flex items-center gap-3 w-full">
+                            <span className="text-sm font-extrabold text-zinc-100 w-8">{medals[rank] || `#${rank}`}</span>
+                            <Avatar size="sm" className="ring-2 ring-zinc-500/35">
+                              <Avatar.Fallback>{entry.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold text-gray-100 flex-1 truncate">{entry.username || "Anonimo"}</span>
+                            <span className="text-xs text-zinc-200 font-semibold">{rankingMetric(entry, "xp")}</span>
+                          </div>
+                        </ListBoxItem>
+                      );
+                    })}
+                  </ListBox>
+                ) : (
+                  <p className="text-sm text-gray-500">Sin datos de ranking por ahora.</p>
+                )}
               </CardContent>
             </Card>
 
@@ -217,25 +221,27 @@ export default async function HomePage() {
                   <h3 className="text-white text-xl font-bold">Rating {selectedGame?.name ? `- ${selectedGame.name}` : ""}</h3>
                   <Chip color="success" variant="soft" size="sm">Top {ratingEntries.slice(0, 6).length}</Chip>
                 </div>
-                <div className="space-y-2">
-                  {ratingEntries.slice(0, 6).map((entry, idx) => {
-                    const rank = entry.rank ?? idx + 1;
-                    return (
-                      <div key={entry.user_id || idx} className="surface-card px-3 py-2.5 flex items-center gap-3">
-                        <span className="text-sm font-extrabold text-zinc-100 w-8">{medals[rank] || `#${rank}`}</span>
-                        <Avatar size="sm" className="ring-2 ring-zinc-400/35">
-                          <Avatar.Image src={entry.avatar_url ?? undefined} />
-                          <Avatar.Fallback>{entry.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
-                        </Avatar>
-                        <span className="text-sm font-semibold text-gray-100 flex-1 truncate">{entry.username || "Anonimo"}</span>
-                        <span className="text-xs text-zinc-100 font-semibold">{rankingMetric(entry, "rating")}</span>
-                      </div>
-                    );
-                  })}
-                  {ratingEntries.length === 0 && (
-                    <p className="text-sm text-gray-500">Aun no hay datos de rating para el juego seleccionado.</p>
-                  )}
-                </div>
+                {ratingEntries.length > 0 ? (
+                  <ListBox aria-label="Ranking Rating" className="p-0 gap-2">
+                    {ratingEntries.slice(0, 6).map((entry, idx) => {
+                      const rank = entry.rank ?? idx + 1;
+                      return (
+                        <ListBoxItem key={entry.user_id || idx} textValue={entry.username || "Anonimo"} className="surface-card px-3 py-2.5">
+                          <div className="flex items-center gap-3 w-full">
+                            <span className="text-sm font-extrabold text-zinc-100 w-8">{medals[rank] || `#${rank}`}</span>
+                            <Avatar size="sm" className="ring-2 ring-zinc-400/35">
+                              <Avatar.Fallback>{entry.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold text-gray-100 flex-1 truncate">{entry.username || "Anonimo"}</span>
+                            <span className="text-xs text-zinc-100 font-semibold">{rankingMetric(entry, "rating")}</span>
+                          </div>
+                        </ListBoxItem>
+                      );
+                    })}
+                  </ListBox>
+                ) : (
+                  <p className="text-sm text-gray-500">Aun no hay datos de rating para el juego seleccionado.</p>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -98,10 +98,18 @@ export default function RankingTabs({
       onSelectionChange={(key) => updateFilter("tab", String(key))}
       className="border-b border-zinc-500/30"
     >
-      <Tabs.List aria-label="Ranking tabs" className="mb-4">
-        <Tabs.Tab id="xp">🏅 XP Global</Tabs.Tab>
-        <Tabs.Tab id="ratings">⚔️ Ratings por Juego</Tabs.Tab>
-      </Tabs.List>
+      <Tabs.ListContainer>
+        <Tabs.List aria-label="Ranking tabs" className="mb-4">
+          <Tabs.Tab id="xp">
+            🏅 XP Global
+            <Tabs.Indicator />
+          </Tabs.Tab>
+          <Tabs.Tab id="ratings">
+            ⚔️ Ratings por Juego
+            <Tabs.Indicator />
+          </Tabs.Tab>
+        </Tabs.List>
+      </Tabs.ListContainer>
 
       <Tabs.Panel id="xp">
         <div className="mt-6">

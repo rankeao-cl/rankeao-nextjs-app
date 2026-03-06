@@ -47,11 +47,10 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === link.href
+              className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${pathname === link.href
                   ? "bg-zinc-500/20 text-white border border-zinc-300/45 shadow-[0_0_14px_rgba(248,250,252,0.35)]"
                   : "text-gray-300 hover:text-zinc-200 hover:bg-zinc-300/10 border border-transparent"
-              }`}
+                }`}
             >
               {link.label}
             </Link>
@@ -64,6 +63,14 @@ export default function Navbar() {
               <p className="max-w-[220px] truncate rounded-full border border-zinc-300/30 bg-zinc-300/10 px-3 py-1 text-xs font-semibold text-zinc-100">
                 {session?.email}
               </p>
+              <Link href="/perfil" prefetch={false}>
+                <Button
+                  size="sm"
+                  className="bg-transparent text-white border border-rankeao-neon-cyan/50 hover:border-rankeao-neon-cyan hover:bg-rankeao-neon-cyan/10"
+                >
+                  Mi Perfil
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"
@@ -110,11 +117,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`py-2 px-3 rounded-lg text-sm font-semibold ${
-                  pathname === link.href
+                className={`py-2 px-3 rounded-lg text-sm font-semibold ${pathname === link.href
                     ? "bg-zinc-500/20 text-white border border-zinc-500/40"
                     : "text-gray-300 hover:bg-white/5"
-                }`}
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
@@ -125,6 +131,14 @@ export default function Navbar() {
                 <p className="rounded-lg border border-zinc-300/30 bg-zinc-300/10 px-3 py-2 text-sm font-semibold text-zinc-100 break-all">
                   {session?.email}
                 </p>
+                <Link href="/perfil" onClick={() => setIsMenuOpen(false)}>
+                  <Button
+                    className="w-full bg-transparent border border-rankeao-neon-cyan/50 text-white hover:border-rankeao-neon-cyan hover:bg-rankeao-neon-cyan/10"
+                    size="sm"
+                  >
+                    Mi Perfil
+                  </Button>
+                </Link>
                 <Button
                   variant="ghost"
                   className="w-full border border-white/15 text-gray-200"

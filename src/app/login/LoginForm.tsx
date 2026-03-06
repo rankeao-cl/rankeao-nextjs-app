@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardContent, Input } from "@heroui/react";
+import { Button, Card, CardContent, Input, Form } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginForm() {
@@ -39,8 +39,18 @@ export default function LoginForm() {
     } catch (submitError) {
       if (submitError instanceof Error) {
         setError(submitError.message);
+      } else if (
+        typeof submitError === "object" &&
+        submitError !== null
+      ) {
+        const maybeError = submitError as { message?: string; error?: string };
+        setError(
+          maybeError.message ||
+          maybeError.error ||
+          JSON.stringify(submitError)
+        );
       } else {
-        setError("No se pudo iniciar sesion.");
+        setError("No se pudo iniciar sesión.");
       }
     } finally {
       setIsSubmitting(false);
@@ -60,7 +70,7 @@ export default function LoginForm() {
             </p>
           ) : null}
 
-          <form className="space-y-3" onSubmit={handleSubmit}>
+          <Form className="space-y-3" onSubmit={handleSubmit}>
             <Input
               placeholder="Correo"
               type="email"
@@ -87,7 +97,7 @@ export default function LoginForm() {
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
-          </form>
+          </Form>
 
           <p className="text-xs text-gray-400">
             No tienes cuenta?{" "}

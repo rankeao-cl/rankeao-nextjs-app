@@ -103,6 +103,77 @@ export async function refreshAuth(payload: RefreshPayload): Promise<unknown> {
   return apiPost<unknown>("/auth/refresh", payload);
 }
 
+export async function forgotPassword(email: string): Promise<unknown> {
+  return apiPost<unknown>("/auth/forgot-password", { email });
+}
+
+export async function resetPassword(token: string, new_password: string): Promise<unknown> {
+  return apiPost<unknown>("/auth/reset-password", { token, new_password });
+}
+
+export async function verifyEmail(token: string): Promise<unknown> {
+  return apiPost<unknown>("/auth/verify-email", { token });
+}
+
+// ---- Social (Friends, Feed, Users, Me) ----
+export async function getFeed(params?: Record<string, any>) {
+  return apiFetch<any>("/social/feed", params);
+}
+export async function getFeedDiscover(params?: Record<string, any>) {
+  return apiFetch<any>("/social/feed/discover", params);
+}
+
+// Friends
+export async function getFriends(params?: Record<string, any>) {
+  return apiFetch<any>("/social/friends", params);
+}
+export async function sendFriendRequest(userId: string) {
+  return apiPost<any>("/social/friends/request", { target_user_id: userId });
+}
+export async function acceptFriendRequest(requestId: string) {
+  return apiPost<any>(`/social/friends/request/${requestId}/accept`, {});
+}
+export async function rejectFriendRequest(requestId: string) {
+  return apiPost<any>(`/social/friends/request/${requestId}/reject`, {});
+}
+export async function getFriendRequests(params?: Record<string, any>) {
+  return apiFetch<any>("/social/friends/requests", params);
+}
+export async function removeFriend(userId: string) {
+  return apiFetch<any>(`/social/friends/${userId}`, undefined, { revalidate: false }); // Needs DELETE or custom fetch if purely DELETE
+}
+
+// Social ME Stats
+export async function getMyCosmetics() {
+  return apiFetch<any>("/social/me/cosmetics", undefined, { cache: "no-store" });
+}
+export async function getMyEquipped() {
+  return apiFetch<any>("/social/me/equipped", undefined, { cache: "no-store" });
+}
+export async function getMyTitles() {
+  return apiFetch<any>("/social/me/titles", undefined, { cache: "no-store" });
+}
+export async function getMyXp() {
+  return apiFetch<any>("/social/me/xp", undefined, { cache: "no-store" });
+}
+
+// Users
+export async function searchUsers(params?: Record<string, any>) {
+  return apiFetch<any>("/social/users/search", params);
+}
+export async function getUserProfile(username: string) {
+  return apiFetch<any>(`/social/users/${encodeURIComponent(username)}`, undefined, { revalidate: 30 });
+}
+export async function getUserActivity(username: string, params?: Record<string, any>) {
+  return apiFetch<any>(`/social/users/${encodeURIComponent(username)}/activity`, params);
+}
+export async function getUserBadges(username: string) {
+  return apiFetch<any>(`/social/users/${encodeURIComponent(username)}/badges`);
+}
+export async function getUserFriends(username: string, params?: Record<string, any>) {
+  return apiFetch<any>(`/social/users/${encodeURIComponent(username)}/friends`, params);
+}
+
 // ---- Tournaments ----
 export interface Tournament {
   id: string;
@@ -362,6 +433,42 @@ export async function getProducts(params?: Record<string, string | number | bool
   );
 }
 
+// ---- Notifications ----
+export async function getNotifications(params?: Record<string, any>) {
+  return apiFetch<any>("/notifications", params, { cache: "no-store" });
+}
+export async function getUnreadNotificationCount() {
+  return apiFetch<any>("/notifications/unread-count", undefined, { cache: "no-store" });
+}
+export async function markAllNotificationsRead() {
+  return apiPost<any>("/notifications/read-all", {});
+}
+
+// ---- Cart & Checkout ----
+export async function getCart(tenantSlug: string) {
+  return apiFetch<any>(`/store/${encodeURIComponent(tenantSlug)}/cart`, undefined, { cache: "no-store" });
+}
+export async function addCartItem(tenantSlug: string, productId: string, quantity: number = 1) {
+  return apiPost<any>(`/store/${encodeURIComponent(tenantSlug)}/cart/items`, { product_id: productId, quantity });
+}
+export async function removeCartItem(tenantSlug: string, itemId: string) {
+  return apiFetch<any>(`/store/${encodeURIComponent(tenantSlug)}/cart/items/${itemId}`, undefined, { revalidate: false }); // Needs DELETE mapping if strictly strictly delete
+}
+export async function createCheckout(tenantSlug: string, payload: Record<string, any>) {
+  return apiPost<any>(`/store/${encodeURIComponent(tenantSlug)}/checkout`, payload);
+}
+export async function payCheckout(checkoutId: string, payload: Record<string, any>) {
+  return apiPost<any>(`/store/checkouts/${encodeURIComponent(checkoutId)}/pay`, payload);
+}
+
+// ---- Orders ----
+export async function getMyOrders(params?: Record<string, any>) {
+  return apiFetch<any>("/store/orders", params, { cache: "no-store" });
+}
+export async function getOrder(orderId: string) {
+  return apiFetch<any>(`/store/orders/${encodeURIComponent(orderId)}`, undefined, { cache: "no-store" });
+}
+
 // ---- Tenants ----
 export interface Tenant {
   id: string;
@@ -422,4 +529,39 @@ export async function getSeasons() {
     undefined,
     { revalidate: 300 }
   );
+}
+
+// ---- Clans ----
+export async function getClans(params?: Record<string, any>) {
+  return apiFetch<any>("/social/clans", params, { revalidate: 60 });
+}
+export async function getClan(clanId: string) {
+  return apiFetch<any>(`/social/clans/${encodeURIComponent(clanId)}`, undefined, { revalidate: 30 });
+}
+
+// ---- Tournament Matches & Disputes ----
+export async function getTournamentMatches(tournamentId: string, params?: Record<string, any>) {
+  return apiFetch<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches`, params, { revalidate: 30 });
+}
+export async function getMyTournamentMatches(tournamentId: string) {
+  return apiFetch<any>(`/tournaments/${encodeURIComponent(tournamentId)}/my-matches`, undefined, { cache: "no-store" });
+}
+export async function reportMatch(tournamentId: string, matchId: string, payload: any) {
+  return apiPost<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/report`, payload);
+}
+export async function disputeMatch(tournamentId: string, matchId: string, payload: any) {
+  return apiPost<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/dispute`, payload);
+}
+
+// ---- Marketplace Offers ----
+export async function getMyOffers(params?: Record<string, any>) {
+  return apiFetch<any>("/marketplace/offers", params, { cache: "no-store" });
+}
+export async function createOffer(listingId: string, payload: any) {
+  return apiPost<any>(`/marketplace/listings/${encodeURIComponent(listingId)}/offers`, payload);
+}
+
+// ---- Chat ----
+export async function getChatChannels(params?: Record<string, any>) {
+  return apiFetch<any>("/social/chat/channels", params, { cache: "no-store" });
 }

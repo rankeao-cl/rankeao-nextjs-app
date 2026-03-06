@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardContent, Input } from "@heroui/react";
+import { Button, Card, CardContent, Input, Form } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterForm() {
@@ -62,7 +62,7 @@ export default function RegisterForm() {
           <p className="kicker">Nuevo jugador</p>
           <h1 className="text-3xl font-bold text-white">Crear cuenta</h1>
 
-          <form className="space-y-3" onSubmit={handleSubmit}>
+          <Form className="space-y-3" onSubmit={handleSubmit}>
             <Input
               placeholder="Nombre de usuario"
               className="w-full"
@@ -104,7 +104,7 @@ export default function RegisterForm() {
             >
               {isSubmitting ? "Registrando..." : "Registrarme gratis"}
             </Button>
-          </form>
+          </Form>
 
           <p className="text-xs text-gray-400">
             Ya tienes cuenta?{" "}
