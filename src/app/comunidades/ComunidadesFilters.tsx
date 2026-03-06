@@ -51,21 +51,21 @@ export default function ComunidadesFilters({ currentFilters, totalPages, current
           placeholder="Buscar tienda o comunidad..."
           defaultValue={currentFilters.q || ""}
           onChange={(e) => updateFilter("q", e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Input
           placeholder="Ciudad"
           defaultValue={currentFilters.city || ""}
           onChange={(e) => updateFilter("city", e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Input
           placeholder="Region"
           defaultValue={currentFilters.region || ""}
           onChange={(e) => updateFilter("region", e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Select
@@ -76,7 +76,7 @@ export default function ComunidadesFilters({ currentFilters, totalPages, current
           placeholder="Rating minimo"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-purple-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
           <Select.Popover>
             <ListBox>
               {ratingOptions.map((opt) => {
@@ -97,7 +97,7 @@ export default function ComunidadesFilters({ currentFilters, totalPages, current
           placeholder="Ordenar"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-purple-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
           <Select.Popover>
             <ListBox>
               {sortOptions.map((opt) => (

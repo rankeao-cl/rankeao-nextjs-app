@@ -35,7 +35,7 @@ export default function JuegosExplorer({ games }: Props) {
           placeholder="Buscar juego o formato..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
         <p className="text-sm text-gray-500 md:text-right">
           {filtered.length} juego{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
@@ -62,7 +62,7 @@ export default function JuegosExplorer({ games }: Props) {
                 <Chip
                   key={format.id || format.slug}
                   variant="secondary"
-                  className="border-purple-700/40 text-purple-300"
+                  className="border-zinc-600/40 text-zinc-200"
                 >
                   {format.name}
                 </Chip>

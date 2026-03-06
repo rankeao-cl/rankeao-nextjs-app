@@ -39,8 +39,8 @@ export default async function JuegosPage() {
   return (
     <div className="rk-container py-10 space-y-7">
       <section className="surface-panel relative overflow-hidden p-6 sm:p-9">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(124,58,237,0.22),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_75%,rgba(34,211,238,0.15),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(248,250,252,0.22),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_75%,rgba(212,212,216,0.15),transparent_40%)]" />
         <div className="relative">
           <Chip color="accent" variant="soft" size="sm" className="mb-3">
             Catalogo TCG

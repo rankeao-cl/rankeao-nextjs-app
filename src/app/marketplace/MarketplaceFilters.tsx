@@ -53,7 +53,7 @@ export default function MarketplaceFilters({ currentFilters, totalPages, current
           placeholder="Buscar carta, juego o tienda..."
           defaultValue={currentFilters.q || ""}
           onChange={(e) => updateFilter("q", e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Select
@@ -64,7 +64,7 @@ export default function MarketplaceFilters({ currentFilters, totalPages, current
           placeholder="Condicion"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-purple-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
           <Select.Popover>
             <ListBox>
               {conditionOptions.map((opt) => {
@@ -83,14 +83,14 @@ export default function MarketplaceFilters({ currentFilters, totalPages, current
           placeholder="Precio minimo"
           defaultValue={currentFilters.min_price || ""}
           onChange={(e) => updateFilter("min_price", e.target.value.replace(/[^\d]/g, ""))}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Input
           placeholder="Precio maximo"
           defaultValue={currentFilters.max_price || ""}
           onChange={(e) => updateFilter("max_price", e.target.value.replace(/[^\d]/g, ""))}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Select
@@ -99,7 +99,7 @@ export default function MarketplaceFilters({ currentFilters, totalPages, current
           placeholder="Ordenar"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-purple-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
           <Select.Popover>
             <ListBox>
               {sortOptions.map((opt) => (

@@ -9,7 +9,7 @@ function renderStars(rating?: number) {
   for (let i = 0; i < full; i++) stars.push("★");
   if (half) stars.push("☆");
   return (
-    <span className="text-yellow-400 text-sm tracking-wider">{stars.join("")}</span>
+    <span className="text-zinc-200 text-sm tracking-wider">{stars.join("")}</span>
   );
 }
 
@@ -20,7 +20,7 @@ export default function TenantCard({ tenant }: { tenant: Tenant }) {
         <div className="flex items-center gap-3">
           <Avatar
             size="lg"
-            className="ring-2 ring-purple-500/35 bg-purple-900/30 shrink-0"
+            className="ring-2 ring-zinc-500/35 bg-zinc-700/30 shrink-0"
           >
             <Avatar.Image src={tenant.logo_url || undefined} />
             <Avatar.Fallback>{tenant.name?.charAt(0)?.toUpperCase()}</Avatar.Fallback>

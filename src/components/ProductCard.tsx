@@ -60,11 +60,11 @@ export default function ProductCard({ listing }: { listing: Listing }) {
           </h3>
 
           <div className="flex items-center justify-between">
-            <span className="text-lg font-extrabold text-cyan-300">
+            <span className="text-lg font-extrabold text-zinc-200">
               {formatPrice(listing.price)}
             </span>
             {listing.card_condition && (
-              <Chip size="sm" variant="secondary" className="text-[10px] text-gray-200 border-purple-500/35">
+              <Chip size="sm" variant="secondary" className="text-[10px] text-gray-200 border-zinc-500/35">
                 {conditionLabels[listing.card_condition] || listing.card_condition}
               </Chip>
             )}

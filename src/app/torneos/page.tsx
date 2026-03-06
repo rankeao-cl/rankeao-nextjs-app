@@ -62,8 +62,8 @@ export default async function TorneosPage({ searchParams }: Props) {
   return (
     <div className="rk-container py-10 space-y-7">
       <section className="surface-panel p-6 sm:p-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(239,68,68,0.16),transparent_35%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_80%,rgba(124,58,237,0.22),transparent_40%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(248,250,252,0.16),transparent_35%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_80%,rgba(248,250,252,0.22),transparent_40%)]" />
         <div className="relative">
           <Chip size="sm" variant="soft" color="accent" className="mb-3">
             Agenda competitiva

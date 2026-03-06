@@ -95,11 +95,11 @@ export default function RegisterForm() {
               required
             />
 
-            {error ? <p className="text-sm text-red-300">{error}</p> : null}
+            {error ? <p className="text-sm text-zinc-200">{error}</p> : null}
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-red-500 text-white font-semibold"
+              className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
               isDisabled={isSubmitting}
             >
               {isSubmitting ? "Registrando..." : "Registrarme gratis"}
@@ -108,7 +108,7 @@ export default function RegisterForm() {
 
           <p className="text-xs text-gray-400">
             Ya tienes cuenta?{" "}
-            <Link href="/login" className="text-cyan-300 hover:text-cyan-200">
+            <Link href="/login" className="text-zinc-200 hover:text-zinc-100">
               Inicia sesion
             </Link>
           </p>

@@ -23,10 +23,10 @@ export default function Navbar() {
   const isAuthenticated = status === "authenticated" && Boolean(session?.email);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-purple-500/25 bg-black/75 backdrop-blur-2xl">
+    <header className="sticky top-0 z-50 border-b border-zinc-500/25 bg-black/75 backdrop-blur-2xl">
       <div className="rk-container h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 rounded-lg overflow-hidden border border-purple-500/40 shadow-[0_0_18px_rgba(124,58,237,0.4)] bg-black/40">
+          <div className="w-8 h-8 rounded-lg overflow-hidden border border-zinc-500/40 shadow-[0_0_18px_rgba(248,250,252,0.4)] bg-black/40">
             <Image
               src="/logo.png"
               alt="Rankeao logo"
@@ -38,7 +38,7 @@ export default function Navbar() {
           </div>
           <div className="leading-none">
             <p className="text-white font-bold tracking-wide text-lg">Rankeao</p>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-purple-300">Chile TCG</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-200">Chile TCG</p>
           </div>
         </Link>
 
@@ -49,8 +49,8 @@ export default function Navbar() {
               href={link.href}
               className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
                 pathname === link.href
-                  ? "bg-purple-500/20 text-white border border-purple-400/45 shadow-[0_0_14px_rgba(124,58,237,0.35)]"
-                  : "text-gray-300 hover:text-cyan-300 hover:bg-cyan-400/10 border border-transparent"
+                  ? "bg-zinc-500/20 text-white border border-zinc-300/45 shadow-[0_0_14px_rgba(248,250,252,0.35)]"
+                  : "text-gray-300 hover:text-zinc-200 hover:bg-zinc-300/10 border border-transparent"
               }`}
             >
               {link.label}
@@ -61,7 +61,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2.5">
           {isAuthenticated ? (
             <>
-              <p className="max-w-[220px] truncate rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+              <p className="max-w-[220px] truncate rounded-full border border-zinc-300/30 bg-zinc-300/10 px-3 py-1 text-xs font-semibold text-zinc-100">
                 {session?.email}
               </p>
               <Button
@@ -83,7 +83,7 @@ export default function Navbar() {
               <Link href="/register" prefetch={false}>
                 <Button
                   size="sm"
-                  className="bg-gradient-to-r from-purple-600 to-red-500 text-white font-bold neon-button"
+                  className="bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-bold neon-button"
                 >
                   Registrate
                 </Button>
@@ -95,7 +95,7 @@ export default function Navbar() {
         <Button
           aria-label={isMenuOpen ? "Cerrar menu" : "Abrir menu"}
           onPress={() => setIsMenuOpen((prev) => !prev)}
-          className="md:hidden min-w-0 w-9 h-9 rounded-lg border border-purple-800/60 text-gray-200"
+          className="md:hidden min-w-0 w-9 h-9 rounded-lg border border-zinc-700/60 text-gray-200"
           isIconOnly
           variant="ghost"
         >
@@ -104,7 +104,7 @@ export default function Navbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden px-4 pb-4 border-t border-purple-900/30 bg-black/95">
+        <div className="md:hidden px-4 pb-4 border-t border-zinc-700/30 bg-black/95">
           <nav className="flex flex-col gap-2 py-3">
             {navLinks.map((link) => (
               <Link
@@ -112,7 +112,7 @@ export default function Navbar() {
                 href={link.href}
                 className={`py-2 px-3 rounded-lg text-sm font-semibold ${
                   pathname === link.href
-                    ? "bg-purple-500/20 text-white border border-purple-500/40"
+                    ? "bg-zinc-500/20 text-white border border-zinc-500/40"
                     : "text-gray-300 hover:bg-white/5"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
@@ -122,7 +122,7 @@ export default function Navbar() {
             ))}
             {isAuthenticated ? (
               <div className="space-y-2 pt-1">
-                <p className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-200 break-all">
+                <p className="rounded-lg border border-zinc-300/30 bg-zinc-300/10 px-3 py-2 text-sm font-semibold text-zinc-100 break-all">
                   {session?.email}
                 </p>
                 <Button
@@ -145,7 +145,7 @@ export default function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-red-500 text-white" size="sm">
+                  <Button className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white" size="sm">
                     Registrate
                   </Button>
                 </Link>

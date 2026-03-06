@@ -115,12 +115,12 @@ export default async function HomePage() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/torneos">
-                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-red-500 text-white font-bold neon-button px-8">
+                <Button size="lg" className="bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-bold neon-button px-8">
                   Ver Torneos Activos
                 </Button>
               </Link>
               <Link href="/ranking">
-                <Button size="lg" variant="outline" className="border-cyan-400/60 text-cyan-300 px-8">
+                <Button size="lg" variant="outline" className="border-zinc-300/60 text-zinc-200 px-8">
                   Ver Ranking Global
                 </Button>
               </Link>
@@ -196,13 +196,13 @@ export default async function HomePage() {
                     const rank = entry.rank ?? idx + 1;
                     return (
                       <div key={entry.user_id || idx} className="surface-card px-3 py-2.5 flex items-center gap-3">
-                        <span className="text-sm font-extrabold text-purple-200 w-8">{medals[rank] || `#${rank}`}</span>
-                        <Avatar size="sm" className="ring-2 ring-purple-500/35">
+                        <span className="text-sm font-extrabold text-zinc-100 w-8">{medals[rank] || `#${rank}`}</span>
+                        <Avatar size="sm" className="ring-2 ring-zinc-500/35">
                           <Avatar.Image src={entry.avatar_url ?? undefined} />
                           <Avatar.Fallback>{entry.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
                         </Avatar>
                         <span className="text-sm font-semibold text-gray-100 flex-1 truncate">{entry.username || "Anonimo"}</span>
-                        <span className="text-xs text-cyan-300 font-semibold">{rankingMetric(entry, "xp")}</span>
+                        <span className="text-xs text-zinc-200 font-semibold">{rankingMetric(entry, "xp")}</span>
                       </div>
                     );
                   })}
@@ -222,13 +222,13 @@ export default async function HomePage() {
                     const rank = entry.rank ?? idx + 1;
                     return (
                       <div key={entry.user_id || idx} className="surface-card px-3 py-2.5 flex items-center gap-3">
-                        <span className="text-sm font-extrabold text-cyan-100 w-8">{medals[rank] || `#${rank}`}</span>
-                        <Avatar size="sm" className="ring-2 ring-cyan-500/35">
+                        <span className="text-sm font-extrabold text-zinc-100 w-8">{medals[rank] || `#${rank}`}</span>
+                        <Avatar size="sm" className="ring-2 ring-zinc-400/35">
                           <Avatar.Image src={entry.avatar_url ?? undefined} />
                           <Avatar.Fallback>{entry.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
                         </Avatar>
                         <span className="text-sm font-semibold text-gray-100 flex-1 truncate">{entry.username || "Anonimo"}</span>
-                        <span className="text-xs text-purple-200 font-semibold">{rankingMetric(entry, "rating")}</span>
+                        <span className="text-xs text-zinc-100 font-semibold">{rankingMetric(entry, "rating")}</span>
                       </div>
                     );
                   })}
@@ -329,7 +329,7 @@ export default async function HomePage() {
               {badges.map((badge) => (
                 <Card key={badge.slug} className="surface-card">
                   <CardContent className="text-center py-4 px-3">
-                    <div className="w-14 h-14 mx-auto rounded-full mb-3 bg-gradient-to-br from-purple-600/25 to-cyan-400/20 grid place-items-center text-2xl">
+                    <div className="w-14 h-14 mx-auto rounded-full mb-3 bg-gradient-to-br from-zinc-700/25 to-zinc-300/20 grid place-items-center text-2xl">
                       🏅
                     </div>
                     <p className="text-sm font-semibold text-white truncate">{badge.name}</p>

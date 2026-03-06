@@ -9,18 +9,19 @@ module.exports = {
       colors: {
         rankeao: {
           bg: "#050507",
-          panel: "#0f1017",
-          panelSoft: "#151827",
-          line: "#2a2f4b",
-          neon: "#7c3aed",
-          cyan: "#22d3ee",
-          red: "#ef4444",
+          panel: "#0a0a0a",
+          panelSoft: "#18181b",
+          line: "#3f3f46",
+          neon: "#f8fafc",
+          amber: "#d4d4d8",
+          white: "#f8fafc",
+          red: "#a1a1aa",
         },
       },
       boxShadow: {
-        "neon-purple": "0 0 0 1px rgba(124,58,237,0.25), 0 10px 35px rgba(124,58,237,0.22)",
-        "neon-cyan": "0 0 0 1px rgba(34,211,238,0.25), 0 10px 35px rgba(34,211,238,0.2)",
-        "neon-red": "0 0 0 1px rgba(239,68,68,0.25), 0 10px 35px rgba(239,68,68,0.2)",
+        "neon-red": "0 0 0 1px rgba(248,250,252,0.25), 0 10px 35px rgba(248,250,252,0.22)",
+        "neon-amber": "0 0 0 1px rgba(212,212,216,0.25), 0 10px 35px rgba(212,212,216,0.2)",
+        "neon-white": "0 0 0 1px rgba(248,250,252,0.2), 0 10px 35px rgba(248,250,252,0.15)",
       },
       fontFamily: {
         heading: ["var(--font-rajdhani)", "sans-serif"],
@@ -28,7 +29,7 @@ module.exports = {
       },
       backgroundImage: {
         "hero-mesh":
-          "radial-gradient(circle at 15% 15%, rgba(124,58,237,0.28), transparent 38%), radial-gradient(circle at 80% 20%, rgba(239,68,68,0.18), transparent 35%), radial-gradient(circle at 60% 80%, rgba(34,211,238,0.2), transparent 36%)",
+          "radial-gradient(circle at 15% 15%, rgba(248,250,252,0.28), transparent 38%), radial-gradient(circle at 80% 20%, rgba(248,250,252,0.14), transparent 35%), radial-gradient(circle at 60% 80%, rgba(212,212,216,0.2), transparent 36%)",
       },
     },
   },

@@ -13,11 +13,11 @@ export default function GlobalError({ reset }: { reset: () => void }) {
           Ocurrio un error inesperado al cargar esta vista. Puedes reintentar o volver al inicio.
         </p>
         <div className="mt-8 flex justify-center gap-3 flex-wrap">
-          <Button onPress={reset} className="bg-gradient-to-r from-purple-600 to-red-500 text-white font-bold">
+          <Button onPress={reset} className="bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-bold">
             Reintentar
           </Button>
           <Link href="/">
-            <Button variant="outline" className="border-cyan-400/60 text-cyan-300">
+            <Button variant="outline" className="border-zinc-300/60 text-zinc-200">
               Ir al inicio
             </Button>
           </Link>

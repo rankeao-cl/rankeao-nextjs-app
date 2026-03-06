@@ -14,7 +14,7 @@ function TopThreeCards({ entries, type }: { entries: LeaderboardEntry[]; type: "
 
   const order = top3.length >= 3 ? [1, 0, 2] : top3.map((_, i) => i);
   const sizes = ["h-32", "h-40", "h-28"];
-  const ringColors = ["ring-gray-400", "ring-yellow-400", "ring-amber-700"];
+  const ringColors = ["ring-gray-400", "ring-zinc-200", "ring-zinc-500"];
 
   return (
     <div className="flex items-end justify-center gap-4 sm:gap-6 mb-8">
@@ -96,7 +96,7 @@ export default function RankingTabs({
       variant="secondary"
       selectedKey={selectedTab}
       onSelectionChange={(key) => updateFilter("tab", String(key))}
-      className="border-b border-purple-500/30"
+      className="border-b border-zinc-500/30"
     >
       <Tabs.List aria-label="Ranking tabs" className="mb-4">
         <Tabs.Tab id="xp">🏅 XP Global</Tabs.Tab>
@@ -130,7 +130,7 @@ export default function RankingTabs({
                 placeholder="Seleccionar juego"
                 className="w-full"
               >
-                <Select.Trigger className="bg-black/35 border border-purple-500/35 rounded-xl min-h-10 text-sm" />
+                <Select.Trigger className="bg-black/35 border border-zinc-500/35 rounded-xl min-h-10 text-sm" />
                 <Select.Popover>
                   <ListBox>
                     {games.map((g) => (
@@ -149,7 +149,7 @@ export default function RankingTabs({
                 placeholder="Seleccionar formato"
                 className="w-full"
               >
-                <Select.Trigger className="bg-black/35 border border-purple-500/35 rounded-xl min-h-10 text-sm" />
+                <Select.Trigger className="bg-black/35 border border-zinc-500/35 rounded-xl min-h-10 text-sm" />
                 <Select.Popover>
                   <ListBox>
                     {formats.map((f) => (

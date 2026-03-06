@@ -48,7 +48,7 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Buscar torneos..."
           defaultValue={currentFilters.q || ""}
           onChange={(e) => updateFilter("q", e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
 
         <Select
@@ -59,7 +59,7 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Estado"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-purple-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
           <Select.Popover>
             <ListBox>
               {statusOptions.map((opt) => {
@@ -82,7 +82,7 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Juego"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-purple-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
           <Select.Popover>
             <ListBox>
               <ListBox.Item id="__all" textValue="Todos los juegos">
@@ -101,7 +101,7 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Ciudad"
           defaultValue={currentFilters.city || ""}
           onChange={(e) => updateFilter("city", e.target.value)}
-          className="w-full rounded-xl border border-purple-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
         />
       </div>
 

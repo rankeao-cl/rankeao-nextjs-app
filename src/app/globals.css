@@ -7,19 +7,20 @@ html {
 
 :root {
   --rk-bg: #050507;
-  --rk-bg-soft: #0d0f17;
-  --rk-panel: #141727;
-  --rk-line: #2a2f4b;
-  --rk-neon: #7c3aed;
-  --rk-cyan: #22d3ee;
-  --rk-red: #ef4444;
+  --rk-bg-soft: #0f0f12;
+  --rk-panel: #16161c;
+  --rk-line: #3f3f46;
+  --rk-neon: #f8fafc;
+  --rk-amber: #d4d4d8;
+  --rk-red: #a1a1aa;
+  --rk-white: #f8fafc;
 }
 
 body {
   background:
-    radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.2), transparent 34%),
-    radial-gradient(circle at 82% 18%, rgba(239, 68, 68, 0.14), transparent 36%),
-    radial-gradient(circle at 62% 84%, rgba(34, 211, 238, 0.12), transparent 38%),
+    radial-gradient(circle at 12% 8%, rgba(248, 250, 252, 0.18), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(212, 212, 216, 0.1), transparent 36%),
+    radial-gradient(circle at 62% 84%, rgba(161, 161, 170, 0.12), transparent 38%),
     var(--rk-bg);
   color: #e7e8ef;
   min-height: 100vh;
@@ -46,12 +47,12 @@ h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.45);
+  background: rgba(161, 161, 170, 0.45);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(124, 58, 237, 0.75);
+  background: rgba(212, 212, 216, 0.75);
 }
 
 .rk-container {
@@ -71,10 +72,10 @@ h6 {
   align-items: center;
   gap: 0.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(124, 58, 237, 0.55);
-  background: rgba(124, 58, 237, 0.14);
+  border: 1px solid rgba(161, 161, 170, 0.55);
+  background: rgba(161, 161, 170, 0.14);
   padding: 0.3rem 0.8rem;
-  color: #d7ccff;
+  color: #f4f4f5;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -84,7 +85,7 @@ h6 {
 .rk-hero {
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.25);
+  border-bottom: 1px solid rgba(161, 161, 170, 0.25);
   background: linear-gradient(180deg, rgba(4, 4, 8, 0.9), rgba(6, 7, 12, 0.98));
 }
 
@@ -95,9 +96,9 @@ h6 {
   pointer-events: none;
   background:
     linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.75)),
-    radial-gradient(circle at 10% 20%, rgba(124, 58, 237, 0.28), transparent 36%),
-    radial-gradient(circle at 80% 25%, rgba(239, 68, 68, 0.22), transparent 34%),
-    radial-gradient(circle at 64% 78%, rgba(34, 211, 238, 0.18), transparent 40%);
+    radial-gradient(circle at 10% 20%, rgba(248, 250, 252, 0.2), transparent 36%),
+    radial-gradient(circle at 80% 25%, rgba(248, 250, 252, 0.14), transparent 34%),
+    radial-gradient(circle at 64% 78%, rgba(161, 161, 170, 0.18), transparent 40%);
 }
 
 .section-title {
@@ -115,22 +116,22 @@ h6 {
 
 .surface-panel {
   border-radius: 1rem;
-  border: 1px solid rgba(124, 58, 237, 0.28);
+  border: 1px solid rgba(161, 161, 170, 0.28);
   background: linear-gradient(180deg, rgba(20, 23, 39, 0.95), rgba(10, 12, 20, 0.94));
-  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.06), 0 24px 65px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 1px rgba(212, 212, 216, 0.08), 0 24px 65px rgba(0, 0, 0, 0.45);
 }
 
 .surface-card {
   border-radius: 0.9rem;
-  border: 1px solid rgba(124, 58, 237, 0.24);
+  border: 1px solid rgba(161, 161, 170, 0.24);
   background: linear-gradient(180deg, rgba(19, 21, 35, 0.95), rgba(10, 12, 20, 0.96));
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
 .surface-card:hover {
   transform: translateY(-3px) scale(1.01);
-  border-color: rgba(34, 211, 238, 0.45);
-  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2), 0 14px 34px rgba(34, 211, 238, 0.2);
+  border-color: rgba(248, 250, 252, 0.45);
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.2), 0 14px 34px rgba(212, 212, 216, 0.2);
 }
 
 .hero-title {
@@ -142,14 +143,14 @@ h6 {
 }
 
 .hero-title-accent {
-  background: linear-gradient(120deg, #f8fafc 10%, #c4b5fd 35%, #22d3ee 68%, #ef4444 100%);
+  background: linear-gradient(120deg, #ffffff 10%, #f4f4f5 35%, #d4d4d8 68%, #a1a1aa 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .neon-button {
-  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.55), 0 12px 28px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.55), 0 12px 28px rgba(212, 212, 216, 0.35);
 }
 
 .section-block {

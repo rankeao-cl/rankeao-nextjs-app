@@ -81,8 +81,8 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
   return (
     <div className="rk-container py-10 space-y-7">
       <section className="surface-panel p-6 sm:p-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(34,211,238,0.16),transparent_35%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_90%,rgba(124,58,237,0.2),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(212,212,216,0.16),transparent_35%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_90%,rgba(248,250,252,0.2),transparent_38%)]" />
         <div className="relative">
           <Chip size="sm" variant="soft" color="accent" className="mb-3">
             Rankings Globales Chile

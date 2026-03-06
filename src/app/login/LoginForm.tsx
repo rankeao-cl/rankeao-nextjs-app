@@ -55,7 +55,7 @@ export default function LoginForm() {
           <h1 className="text-3xl font-bold text-white">Iniciar sesion</h1>
 
           {status === "authenticated" && session?.email ? (
-            <p className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-sm text-cyan-100">
+            <p className="rounded-lg border border-zinc-300/30 bg-zinc-300/10 px-3 py-2 text-sm text-zinc-100">
               Sesion activa como {session.email}
             </p>
           ) : null}
@@ -78,11 +78,11 @@ export default function LoginForm() {
               required
             />
 
-            {error ? <p className="text-sm text-red-300">{error}</p> : null}
+            {error ? <p className="text-sm text-zinc-200">{error}</p> : null}
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-red-500 text-white font-semibold"
+              className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
               isDisabled={isSubmitting}
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
@@ -91,7 +91,7 @@ export default function LoginForm() {
 
           <p className="text-xs text-gray-400">
             No tienes cuenta?{" "}
-            <Link href="/register" className="text-cyan-300 hover:text-cyan-200">
+            <Link href="/register" className="text-zinc-200 hover:text-zinc-100">
               Registrate aqui
             </Link>
           </p>

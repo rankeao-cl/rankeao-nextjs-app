@@ -43,7 +43,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
   return (
     <Card className="surface-card card-hover overflow-hidden">
       <CardContent className="p-0">
-        <div className="h-1.5 w-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-cyan-400" />
+        <div className="h-1.5 w-full bg-gradient-to-r from-zinc-500 via-zinc-400 to-zinc-300" />
 
         <div className="p-4 space-y-4">
           <div className="flex items-start justify-between gap-2">
@@ -62,18 +62,18 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
 
           <div className="flex flex-wrap gap-2">
             {tournament.game && (
-              <Chip size="sm" variant="secondary" className="text-xs border-purple-500/40 text-purple-200">
+              <Chip size="sm" variant="secondary" className="text-xs border-zinc-500/40 text-zinc-100">
                 {tournament.game}
               </Chip>
             )}
             {tournament.format && (
-              <Chip size="sm" variant="secondary" className="text-xs border-cyan-500/30 text-cyan-200">
+              <Chip size="sm" variant="secondary" className="text-xs border-zinc-400/30 text-zinc-100">
                 {tournament.format}
               </Chip>
             )}
             {tournament.is_ranked && (
               <Badge color="warning" size="sm" content="⭐" placement="top-right">
-                <span className="text-[10px] text-amber-200 border border-amber-500/40 rounded-full px-2 py-0.5">
+                <span className="text-[10px] text-zinc-100 border border-zinc-400/40 rounded-full px-2 py-0.5">
                   Ranked
                 </span>
               </Badge>
@@ -104,7 +104,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                 </div>
                 <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-400"
+                    className="h-full bg-gradient-to-r from-zinc-500 to-zinc-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -113,8 +113,8 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
           </div>
 
           {tournament.tenant_name && (
-            <div className="border-t border-purple-500/20 pt-3 text-xs text-gray-400">
-              Organiza: <span className="text-cyan-300 font-semibold">{tournament.tenant_name}</span>
+            <div className="border-t border-zinc-500/20 pt-3 text-xs text-gray-400">
+              Organiza: <span className="text-zinc-200 font-semibold">{tournament.tenant_name}</span>
             </div>
           )}
         </div>

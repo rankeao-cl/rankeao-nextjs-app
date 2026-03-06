@@ -32,12 +32,12 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-purple-900/30 bg-black/70 mt-16">
+    <footer className="border-t border-zinc-700/30 bg-black/70 mt-16">
       <div className="rk-container py-12">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-lg overflow-hidden border border-purple-500/40 shadow-[0_0_16px_rgba(124,58,237,0.4)] bg-black/40">
+              <div className="w-9 h-9 rounded-lg overflow-hidden border border-zinc-500/40 shadow-[0_0_16px_rgba(248,250,252,0.4)] bg-black/40">
                 <Image
                   src="/logo.png"
                   alt="Rankeao logo"
@@ -54,7 +54,7 @@ export default function Footer() {
             </p>
             <div className="mt-5">
               <Link href="/torneos">
-                <Button size="sm" className="bg-gradient-to-r from-purple-600 to-red-500 text-white font-semibold">
+                <Button size="sm" className="bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold">
                   Crear Torneo
                 </Button>
               </Link>
@@ -71,7 +71,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-gray-400 hover:text-cyan-300 text-sm transition-colors"
+                      className="text-gray-400 hover:text-zinc-200 text-sm transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -82,7 +82,7 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-purple-900/20 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="border-t border-zinc-700/20 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
           <p className="text-gray-500 text-xs">
             © {new Date().getFullYear()} Rankeao.cl - Hecho en Chile con pasion TCG
           </p>

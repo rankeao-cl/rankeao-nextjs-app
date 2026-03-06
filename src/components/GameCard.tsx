@@ -20,7 +20,7 @@ export default function GameCard({
     >
       <CardContent className="p-5 gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-purple-600/30 to-cyan-500/30 flex items-center justify-center text-2xl shrink-0">
+          <div className="w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-zinc-700/30 to-zinc-400/30 flex items-center justify-center text-2xl shrink-0">
             {game.logo_url ? (
               <Image src={game.logo_url} alt={game.name} width={48} height={48} className="object-cover w-full h-full" />
             ) : (
@@ -51,7 +51,7 @@ export default function GameCard({
                   key={f.id}
                   size="sm"
                   variant="secondary"
-                  className="border-purple-700/40 text-purple-300 text-xs"
+                  className="border-zinc-600/40 text-zinc-200 text-xs"
                 >
                   {f.name}
                 </Chip>

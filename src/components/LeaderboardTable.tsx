@@ -12,7 +12,7 @@ import {
 } from "@heroui/react";
 import type { LeaderboardEntry } from "@/lib/api";
 
-const medalColors = ["", "text-yellow-400", "text-gray-300", "text-amber-600"];
+const medalColors = ["", "text-zinc-200", "text-gray-300", "text-zinc-500"];
 const medalEmoji = ["", "🥇", "🥈", "🥉"];
 
 export default function LeaderboardTable({
@@ -25,7 +25,7 @@ export default function LeaderboardTable({
   return (
     <Table
       aria-label="Leaderboard"
-      className="surface-panel [&_th]:bg-purple-500/15 [&_th]:text-purple-100 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:text-sm [&_td]:border-b [&_td]:border-b-white/5"
+      className="surface-panel [&_th]:bg-zinc-500/15 [&_th]:text-zinc-100 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:text-sm [&_td]:border-b [&_td]:border-b-white/5"
     >
       <TableHeader>
         <TableColumn>#</TableColumn>
@@ -53,7 +53,7 @@ export default function LeaderboardTable({
           return (
             <TableRow
               key={entry.user_id || i}
-              className={isTop3 ? "bg-purple-500/10" : ""}
+              className={isTop3 ? "bg-zinc-500/10" : ""}
             >
               <TableCell>
                 <span className={`font-extrabold ${isTop3 ? medalColors[rank] : "text-gray-400"}`}>
@@ -64,7 +64,7 @@ export default function LeaderboardTable({
                 <div className="flex items-center gap-2">
                   <Avatar
                     size="sm"
-                    className={isTop3 ? "ring-2 ring-cyan-400/70" : ""}
+                    className={isTop3 ? "ring-2 ring-zinc-300/70" : ""}
                   >
                     <Avatar.Image src={entry.avatar_url ?? undefined} />
                     <Avatar.Fallback>
@@ -84,7 +84,7 @@ export default function LeaderboardTable({
                     </Chip>
                   </TableCell>
                   <TableCell>
-                    <span className="text-purple-400 font-medium">
+                    <span className="text-zinc-300 font-medium">
                       Lv. {entry.level ?? "-"}
                     </span>
                   </TableCell>
