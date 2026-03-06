@@ -1,229 +1,753 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, Card, CardHeader, CardContent, Tabs, Chip } from "@heroui/react";
-import { getMyXp, getFriends, getMyCosmetics } from "@/lib/api";
+import { Avatar, Button, Card, CardContent, CardHeader, Chip, Input, Tabs } from "@heroui/react";
+import {
+  acceptFriendRequest,
+  getChatChannels,
+  getFriendRequests,
+  getFriends,
+  getMyCosmetics,
+  getMyXp,
+  rejectFriendRequest,
+  searchUsers,
+  sendFriendRequest,
+} from "@/lib/api";
+
+function getInitial(value: unknown) {
+  if (typeof value === "string") return value.trim().charAt(0).toUpperCase() || "U";
+  return "U";
+}
+
+function toArray<T>(value: unknown): T[] {
+  if (Array.isArray((value as { data?: T[] })?.data)) return (value as { data: T[] }).data;
+  if (Array.isArray((value as { items?: T[] })?.items)) return (value as { items: T[] }).items;
+  if (Array.isArray((value as { requests?: T[] })?.requests)) return (value as { requests: T[] }).requests;
+  if (Array.isArray((value as { users?: T[] })?.users)) return (value as { users: T[] }).users;
+  if (Array.isArray((value as { channels?: T[] })?.channels)) return (value as { channels: T[] }).channels;
+  return [];
+}
 
 export default function PerfilPage() {
-    const { session, status } = useAuth();
-    const [xpData, setXpData] = useState<any>(null);
-    const [friendsList, setFriendsList] = useState<any[]>([]);
-    const [cosmetics, setCosmetics] = useState<any[]>([]);
-    const [loadingStats, setLoadingStats] = useState(true);
+  const { session, status } = useAuth();
 
-    useEffect(() => {
-        if (status === "authenticated" && session) {
-            Promise.all([
-                getMyXp().catch(() => null),
-                getFriends().catch(() => ({ data: [] })),
-                getMyCosmetics().catch(() => ({ data: [] }))
-            ]).then(([xpRes, friendsRes, cosmeticsRes]) => {
-                if (xpRes) setXpData(xpRes);
-                if (friendsRes?.data) setFriendsList(friendsRes.data);
-                if (cosmeticsRes?.data) setCosmetics(cosmeticsRes.data);
-                setLoadingStats(false);
-            });
-        } else if (status === "unauthenticated") {
-            setLoadingStats(false);
-        }
-    }, [status, session]);
+  type XpData = {
+    level?: number;
+    xp?: number;
+    title?: string;
+    tournaments_played?: number;
+    rating?: number;
+    [key: string]: unknown;
+  };
+  const [xpData, setXpData] = useState<XpData | null>(null);
+  const [friendsList, setFriendsList] = useState<User[]>([]);
+  type Cosmetic = {
+    id?: string | number;
+    name?: string;
+    type?: string;
+    [key: string]: unknown;
+  };
+  const [cosmetics, setCosmetics] = useState<Cosmetic[]>([]);
 
-    if (status === "loading") {
-        return (
-            <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 rounded-full border-t-2 border-r-2 border-rankeao-neon-cyan animate-spin" fill="none" viewBox="0 0 24 24" />
-                <p className="text-zinc-500 font-sans text-sm">Cargando perfil...</p>
-            </div>
-        );
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+  type ChatChannel = {
+    id?: string | number;
+    channel_id?: string | number;
+    name?: string;
+    title?: string;
+    last_message?: { content?: string };
+    last_message_text?: string;
+    preview?: string;
+    unread_count?: number;
+    unread?: number;
+    [key: string]: unknown;
+  };
+
+  const [chatChannels, setChatChannels] = useState<ChatChannel[]>([]);
+
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [socialError, setSocialError] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+
+  const [actingRequestId, setActingRequestId] = useState<string | null>(null);
+  const [sendingRequestTo, setSendingRequestTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      setLoadingProfile(true);
+      setSocialError(null);
+
+      Promise.all([
+        getMyXp().catch(() => null),
+        getFriends().catch(() => ({ data: [] })),
+        getMyCosmetics().catch(() => ({ data: [] })),
+        getFriendRequests().catch(() => ({ data: [] })),
+        getChatChannels().catch(() => ({ data: [] })),
+      ]).then(([xpRes, friendsRes, cosmeticsRes, requestsRes, channelsRes]) => {
+        if (xpRes) setXpData(xpRes);
+        setFriendsList(toArray(friendsRes));
+        setCosmetics(toArray(cosmeticsRes));
+        setFriendRequests(toArray(requestsRes));
+        setChatChannels(toArray(channelsRes));
+        setLoadingProfile(false);
+      });
+    } else if (status === "unauthenticated") {
+      setLoadingProfile(false);
+    }
+  }, [status, session]);
+
+  const email = session?.email;
+  const username = session?.username;
+
+  const pendingRequestsCount = friendRequests.length;
+  const chatChannelsCount = chatChannels.length;
+
+  const friendsCount = friendsList.length;
+  const cosmeticsCount = cosmetics.length;
+
+  const handleSearchUsers = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSocialError(null);
+
+    const query = searchQuery.trim();
+    if (!query) {
+      setSearchResults([]);
+      return;
     }
 
-    if (status === "unauthenticated" || !session) {
-        return (
-            <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-zinc-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <h2 className="text-xl font-bold font-rajdhani text-zinc-300">Acceso Restringido</h2>
-                <p className="text-zinc-500 font-sans">Debes iniciar sesi&oacute;n para ver tu perfil.</p>
-            </div>
-        );
+    try {
+      setSearchingUsers(true);
+      type SearchUsersResult = {
+        data?: User[];
+        items?: User[];
+        users?: User[];
+        [key: string]: unknown;
+      };
+      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 });
+      setSearchResults(toArray(res));
+    } catch (error) {
+      setSocialError(error instanceof Error ? error.message : "No se pudo buscar jugadores.");
+      setSearchResults([]);
+    } finally {
+      setSearchingUsers(false);
     }
+  };
 
-    const email = session?.email;
-    const username = session?.username;
+  const handleAcceptRequest = async (request: FriendRequest) => {
+    const id = request?.id ?? request?.request_id;
+    if (!id) return;
+    const idStr = String(id);
 
-    return (
-        <div className="container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
-            <div className="mb-8">
-                <h1 className="text-3xl lg:text-4xl font-black font-rajdhani text-transparent bg-clip-text bg-gradient-to-r from-rankeao-neon-purple to-rankeao-neon-cyan uppercase tracking-wider">
-                    Mi Perfil
-                </h1>
-                <p className="text-zinc-400 font-sans mt-1">
-                    Gestiona tu progreso, amigos y est&aacute;disticas
-                </p>
-            </div>
+    setSocialError(null);
+    setActingRequestId(idStr);
+    try {
+      await acceptFriendRequest(idStr);
+      setFriendRequests((prev) => prev.filter((r) => String(r?.id ?? r?.request_id) !== idStr));
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Col: User Card */}
-                <div className="lg:col-span-1 space-y-6">
-                    <Card className="bg-rankeao-light/50 border border-rankeao-light shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-rankeao-neon-purple/20 to-transparent" />
-                        <CardContent className="p-6 pt-10 text-center flex flex-col items-center relative z-10 w-full">
-                            <Avatar
-                                size="lg"
-                                className="w-24 h-24 ring-4 ring-[#0f1017] shadow-lg mb-4 text-zinc-200 bg-rankeao-light"
-                            >
-                                <Avatar.Fallback>
-                                    {username?.charAt(0)?.toUpperCase() || "U"}
-                                </Avatar.Fallback>
-                            </Avatar>
-                            <h2 className="text-2xl font-bold font-rajdhani text-white mb-1">
-                                {username}
-                            </h2>
-                            <p className="text-sm font-sans text-zinc-400 mb-4">{email}</p>
+      const newFriend = request?.from_user ?? request?.user ?? request?.sender ?? null;
+      if (newFriend) {
+        setFriendsList((prev) => {
+          const newFriendId = String(newFriend?.id ?? newFriend?.user_id ?? "");
+          if (!newFriendId) return prev;
+          const exists = prev.some((f) => String(f?.id ?? f?.user_id ?? "") === newFriendId);
+          return exists ? prev : [...prev, newFriend];
+        });
+      }
+    } catch (error) {
+      setSocialError(error instanceof Error ? error.message : "No se pudo aceptar la solicitud.");
+    } finally {
+      setActingRequestId(null);
+    }
+  };
 
-                            {/* Quick XP Summary */}
-                            {loadingStats ? (
-                                <div className="w-full h-12 animate-pulse bg-white/5 rounded-xl" />
-                            ) : (
-                                <div className="w-full bg-[#0a0b10] rounded-xl p-4 border border-white/5 shadow-inner">
-                                    <div className="flex justify-between items-end mb-2">
-                                        <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Nivel {xpData?.level || 1}</span>
-                                        <span className="text-sm font-bold text-rankeao-neon-cyan">
-                                            {xpData?.xp || 0} XP
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-zinc-800 rounded-full h-2 mt-2">
-                                        <div
-                                            className="bg-gradient-to-r from-rankeao-neon-purple to-rankeao-neon-cyan h-2 rounded-full"
-                                            style={{ width: `${((xpData?.xp || 0) % 1000) / 10}%` }}
-                                        />
-                                    </div>
-                                    <p className="text-[10px] text-zinc-500 text-left mt-2 tracking-wide truncate">
-                                        TITULO: {xpData?.title || "NOVATO"}
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+  interface FriendRequest {
+    id?: string | number;
+    request_id?: string | number;
+    from_user?: User;
+    user?: User;
+    sender?: User;
+    message?: string;
+    [key: string]: unknown;
+  }
 
-                {/* Right Col: Details via Tabs */}
-                <div className="lg:col-span-2 space-y-6">
-                    <Tabs variant="secondary">
-                        <Tabs.ListContainer>
-                            <Tabs.List>
-                                <Tabs.Tab id="general">
-                                    General
-                                    <Tabs.Indicator />
-                                </Tabs.Tab>
-                                <Tabs.Tab id="social">
-                                    Social ({friendsList?.length || 0})
-                                    <Tabs.Indicator />
-                                </Tabs.Tab>
-                                <Tabs.Tab id="competitivo">
-                                    Competitivo
-                                    <Tabs.Indicator />
-                                </Tabs.Tab>
-                            </Tabs.List>
-                        </Tabs.ListContainer>
+  const handleRejectRequest = async (request: FriendRequest) => {
+    const id = request?.id ?? request?.request_id;
+    if (!id) return;
+    const idStr = String(id);
 
-                        <Tabs.Panel id="general" className="pt-4 space-y-6">
-                            {/* Stats Row */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                    <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-rankeao-neon-purple mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                                        </svg>
-                                        <p className="text-2xl font-black font-rajdhani text-white">{xpData?.tournaments_played || 0}</p>
-                                        <p className="text-xs text-zinc-400 font-sans uppercase">Torneos</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                    <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-rankeao-neon-cyan mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                                        </svg>
-                                        <p className="text-2xl font-black font-rajdhani text-white">{cosmetics?.length || 0}</p>
-                                        <p className="text-xs text-zinc-400 font-sans uppercase">Cosm&eacute;ticos</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                    <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-yellow-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                        </svg>
-                                        <p className="text-2xl font-black font-rajdhani text-white">{xpData?.rating || 1200}</p>
-                                        <p className="text-xs text-zinc-400 font-sans uppercase">Elo Rating</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                    <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-green-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                        </svg>
-                                        <p className="text-2xl font-black font-rajdhani text-white">{friendsList?.length || 0}</p>
-                                        <p className="text-xs text-zinc-400 font-sans uppercase">Amigos</p>
-                                    </CardContent>
-                                </Card>
-                            </div>
+    setSocialError(null);
+    setActingRequestId(idStr);
+    try {
+      await rejectFriendRequest(idStr);
+      setFriendRequests((prev) => prev.filter((r) => String(r?.id ?? r?.request_id) !== idStr));
+    } catch (error) {
+      setSocialError(error instanceof Error ? error.message : "No se pudo rechazar la solicitud.");
+    } finally {
+      setActingRequestId(null);
+    }
+  };
 
-                            {/* Account Settings */}
-                            <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                <CardContent className="p-6 w-full">
-                                    <h3 className="text-lg font-bold font-rajdhani text-white mb-6 uppercase tracking-wider flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-rankeao-neon-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Detalles de mi cuenta
-                                    </h3>
-
-                                    <div className="space-y-4">
-                                        <div className="flex flex-col sm:flex-row sm:justify-between py-3 border-b border-white/5">
-                                            <span className="text-sm text-zinc-500 font-medium">Nombre de Usuario</span>
-                                            <span className="text-sm text-zinc-200 font-medium mt-1 sm:mt-0">{username}</span>
-                                        </div>
-                                        <div className="flex flex-col sm:flex-row sm:justify-between py-3 border-b border-white/5">
-                                            <span className="text-sm text-zinc-500 font-medium">Correo Electr&oacute;nico</span>
-                                            <span className="text-sm text-zinc-300 mt-1 sm:mt-0">{email}</span>
-                                        </div>
-                                        <div className="flex flex-col sm:flex-row sm:justify-between py-3">
-                                            <span className="text-sm text-zinc-500 font-medium">Roles Access</span>
-                                            <span className="text-sm text-zinc-400 mt-1 sm:mt-0 flex gap-2">
-                                                <span className="bg-white/5 px-2 py-1 rounded text-xs border border-white/10">Jugador</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Tabs.Panel>
-
-                        <Tabs.Panel id="social" className="pt-4">
-                            <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                <CardContent className="p-6 text-center text-zinc-400 min-h-[200px] flex items-center justify-center flex-col">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-zinc-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                    El módulo social (mensajes y retos) está en construcción.
-                                </CardContent>
-                            </Card>
-                        </Tabs.Panel>
-
-                        <Tabs.Panel id="competitivo" className="pt-4">
-                            <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                                <CardContent className="p-6 text-center text-zinc-400 min-h-[200px] flex items-center justify-center flex-col">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-zinc-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                    </svg>
-                                    El historial de torneos y elos competitivos se cargarán aquí.
-                                </CardContent>
-                            </Card>
-                        </Tabs.Panel>
-                    </Tabs>
-                </div>
-            </div>
-        </div>
+  const friendIds = useMemo(() => {
+    return new Set(
+      friendsList
+        .map((f) => String(f?.id ?? f?.user_id ?? ""))
+        .filter(Boolean)
     );
+  }, [friendsList]);
+
+  type User = {
+    id?: string | number;
+    user_id?: string | number;
+    username?: string;
+    name?: string;
+    display_name?: string;
+    email?: string;
+    favorite_game?: string;
+    city?: string;
+    bio?: string;
+  };
+
+  const handleSendFriendRequest = async (user: User) => {
+    const userId = user?.id ?? user?.user_id;
+    if (!userId) return;
+    const idStr = String(userId);
+
+    setSocialError(null);
+    setSendingRequestTo(idStr);
+    try {
+      await sendFriendRequest(idStr);
+    } catch (error) {
+      setSocialError(error instanceof Error ? error.message : "No se pudo enviar la solicitud de amistad.");
+    } finally {
+      setSendingRequestTo(null);
+    }
+  };
+
+  if (status === "loading") {
+    return (
+      <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-8 h-8 rounded-full border-t-2 border-r-2 border-rankeao-neon-cyan animate-spin"
+          fill="none"
+          viewBox="0 0 24 24"
+        />
+        <p className="text-zinc-500 font-sans text-sm">Cargando perfil...</p>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || !session) {
+    return (
+      <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-12 h-12 text-zinc-600 mb-2"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
+        </svg>
+        <h2 className="text-xl font-bold font-rajdhani text-zinc-300">Acceso Restringido</h2>
+        <p className="text-zinc-500 font-sans">Debes iniciar sesión para ver tu perfil.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
+      <div className="mb-8">
+        <h1 className="text-3xl lg:text-4xl font-black font-rajdhani text-transparent bg-clip-text bg-gradient-to-r from-rankeao-neon-purple to-rankeao-neon-cyan uppercase tracking-wider">
+          Mi Perfil
+        </h1>
+        <p className="text-zinc-400 font-sans mt-1">Gestiona tu progreso, amigos y estadísticas</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Col */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="bg-rankeao-light/50 border border-rankeao-light shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-rankeao-neon-purple/20 to-transparent" />
+            <CardContent className="p-6 pt-10 text-center flex flex-col items-center relative z-10 w-full">
+              <Avatar
+                size="lg"
+                className="w-24 h-24 ring-4 ring-[#0f1017] shadow-lg mb-4 text-zinc-200 bg-rankeao-light"
+              >
+                <Avatar.Fallback>{getInitial(username)}</Avatar.Fallback>
+              </Avatar>
+              <h2 className="text-2xl font-bold font-rajdhani text-white mb-1">{username}</h2>
+              <p className="text-sm font-sans text-zinc-400 mb-4">{email}</p>
+
+              {loadingProfile ? (
+                <div className="w-full h-16 animate-pulse bg-white/5 rounded-xl" />
+              ) : (
+                <div className="w-full bg-[#0a0b10] rounded-xl p-4 border border-white/5 shadow-inner">
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                      Nivel {xpData?.level || 1}
+                    </span>
+                    <span className="text-sm font-bold text-rankeao-neon-cyan">
+                      {xpData?.xp || 0} XP
+                    </span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2 mt-2">
+                    <div
+                      className="bg-gradient-to-r from-rankeao-neon-purple to-rankeao-neon-cyan h-2 rounded-full"
+                      style={{ width: `${((xpData?.xp || 0) % 1000) / 10}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-500 text-left mt-2 tracking-wide truncate">
+                    TÍTULO: {xpData?.title || "NOVATO"}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Col */}
+        <div className="lg:col-span-2 space-y-6">
+          <Tabs variant="secondary">
+            <Tabs.ListContainer>
+              <Tabs.List>
+                <Tabs.Tab id="general">
+                  General
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="social">
+                  Social ({friendsCount})
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="competitivo">
+                  Competitivo
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+              </Tabs.List>
+            </Tabs.ListContainer>
+
+            <Tabs.Panel id="general" className="pt-4 space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                    <p className="text-2xl font-black font-rajdhani text-white">
+                      {xpData?.tournaments_played || 0}
+                    </p>
+                    <p className="text-xs text-zinc-400 font-sans uppercase">Torneos</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                    <p className="text-2xl font-black font-rajdhani text-white">{cosmeticsCount}</p>
+                    <p className="text-xs text-zinc-400 font-sans uppercase">Cosméticos</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                    <p className="text-2xl font-black font-rajdhani text-white">{xpData?.rating || 1200}</p>
+                    <p className="text-xs text-zinc-400 font-sans uppercase">Elo Rating</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                    <p className="text-2xl font-black font-rajdhani text-white">{friendsCount}</p>
+                    <p className="text-xs text-zinc-400 font-sans uppercase">Amigos</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="social" className="pt-4 space-y-4">
+              {socialError ? (
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                  {socialError}
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Card className="bg-rankeao-light/50 border border-rankeao-light/80">
+                  <CardHeader className="flex items-center justify-between pb-2">
+                    <span className="text-xs uppercase tracking-widest text-zinc-500">Amigos</span>
+                    <Chip size="sm" color="success" variant="soft">
+                      {friendsCount}
+                    </Chip>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-4">
+                    <p className="text-sm text-zinc-300 font-semibold">Tu círculo gamer</p>
+                    <p className="text-[11px] text-zinc-500 mt-1">Conecta y arma equipos para torneos.</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-rankeao-light/50 border border-rankeao-light/80">
+                  <CardHeader className="flex items-center justify-between pb-2">
+                    <span className="text-xs uppercase tracking-widest text-zinc-500">Solicitudes</span>
+                    <Chip
+                      size="sm"
+                      color={pendingRequestsCount > 0 ? "warning" : "default"}
+                      variant={pendingRequestsCount > 0 ? "primary" : "soft"}
+                    >
+                      {pendingRequestsCount}
+                    </Chip>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-4">
+                    <p className="text-sm text-zinc-300 font-semibold">Pendientes</p>
+                    <p className="text-[11px] text-zinc-500 mt-1">Acepta o rechaza invitaciones.</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-rankeao-light/50 border border-rankeao-light/80">
+                  <CardHeader className="flex items-center justify-between pb-2">
+                    <span className="text-xs uppercase tracking-widest text-zinc-500">Chat</span>
+                    <Chip size="sm" color="accent" variant="soft">
+                      {chatChannelsCount}
+                    </Chip>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-4">
+                    <p className="text-sm text-zinc-300 font-semibold">Canales</p>
+                    <p className="text-[11px] text-zinc-500 mt-1">Tus conversaciones activas.</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2 space-y-4">
+                  <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
+                          Lista de amigos
+                        </h3>
+                        <span className="text-[11px] text-zinc-500">{friendsCount} en total</span>
+                      </div>
+
+                      {loadingProfile ? (
+                        <div className="space-y-2">
+                          <div className="h-10 rounded-lg bg-white/5 animate-pulse" />
+                          <div className="h-10 rounded-lg bg-white/5 animate-pulse" />
+                        </div>
+                      ) : friendsCount > 0 ? (
+                        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                          {friendsList.map((friend, index) => {
+                            const friendId = friend?.id ?? friend?.user_id ?? index;
+                            const friendName =
+                              friend?.username ??
+                              friend?.name ??
+                              friend?.display_name ??
+                              friend?.email ??
+                              "Jugador";
+                            const friendSubtitle =
+                              friend?.favorite_game ??
+                              "Jugador de la comunidad";
+
+                            return (
+                              <div
+                                key={String(friendId)}
+                                className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-3 py-2"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <Avatar size="sm" className="bg-rankeao-light text-xs">
+                                    <Avatar.Fallback>{getInitial(friendName)}</Avatar.Fallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-sm text-white font-medium truncate">{friendName}</p>
+                                    <p className="text-[11px] text-zinc-500 truncate">{friendSubtitle}</p>
+                                  </div>
+                                </div>
+
+                                <Chip
+                                  size="sm"
+                                  variant="soft"
+                                  color="success"
+                                  className="text-[10px]"
+                                >
+                                  Amigo
+                                </Chip>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="py-6 text-center text-zinc-500 text-sm">
+                          <p className="mb-1">Aún no tienes amigos agregados.</p>
+                          <p className="text-xs text-zinc-500">Busca jugadores y envía tu primera solicitud.</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
+                          Solicitudes de amistad
+                        </h3>
+                        <span className="text-[11px] text-zinc-500">{pendingRequestsCount} pendientes</span>
+                      </div>
+
+                      {loadingProfile ? (
+                        <div className="space-y-2">
+                          <div className="h-10 rounded-lg bg-white/5 animate-pulse" />
+                        </div>
+                      ) : pendingRequestsCount > 0 ? (
+                        <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                          {friendRequests.map((request, index) => {
+                            const id = request?.id ?? request?.request_id ?? index;
+                            const idStr = String(id);
+                            const user = request?.from_user ?? request?.user ?? request?.sender ?? {};
+                            const name =
+                              user?.username ??
+                              user?.name ??
+                              user?.display_name ??
+                              user?.email ??
+                              "Jugador";
+                            const meta =
+                              request?.message ??
+                              user?.favorite_game ??
+                              "Quiere agregarte como amigo.";
+
+                            const isActing = actingRequestId === idStr;
+
+                            return (
+                              <div
+                                key={idStr}
+                                className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-3 py-2"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <Avatar size="sm" className="bg-rankeao-light text-xs">
+                                    <Avatar.Fallback>{getInitial(name)}</Avatar.Fallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-sm text-white font-medium truncate">{name}</p>
+                                    <p className="text-[11px] text-zinc-500 truncate">{meta}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="text-xs px-2 py-1 h-7"
+                                    isDisabled={isActing}
+                                    onPress={() => handleAcceptRequest(request)}
+                                  >
+                                    {isActing ? "..." : "Aceptar"}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="danger-soft"
+                                    className="text-xs px-2 py-1 h-7"
+                                    isDisabled={isActing}
+                                    onPress={() => handleRejectRequest(request)}
+                                  >
+                                    {isActing ? "..." : "Rechazar"}
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="py-4 text-center text-zinc-500 text-sm">
+                          No tienes solicitudes pendientes por ahora.
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="xl:col-span-1 space-y-4">
+                  <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
+                          Buscar jugadores
+                        </h3>
+                        <Chip size="sm" variant="soft" color="default">
+                          Beta
+                        </Chip>
+                      </div>
+
+                      <form className="space-y-2" onSubmit={handleSearchUsers}>
+                        <Input
+                          aria-label="Buscar jugadores"
+                          variant="secondary"
+                          placeholder="Buscar por nombre o usuario..."
+                          value={searchQuery}
+                          onChange={(event) => setSearchQuery(event.target.value)}
+                          className="w-full text-sm"
+                        />
+                        <Button
+                          type="submit"
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs"
+                          isDisabled={searchingUsers}
+                        >
+                          {searchingUsers ? "Buscando..." : "Buscar"}
+                        </Button>
+                      </form>
+
+                      {searchResults.length > 0 ? (
+                        <div className="mt-3 space-y-2 max-h-64 overflow-y-auto pr-1">
+                          {searchResults.map((user, index) => {
+                            const id = user?.id ?? user?.user_id ?? index;
+                            const idStr = String(id);
+                            const name =
+                              user?.username ??
+                              user?.name ??
+                              user?.display_name ??
+                              user?.email ??
+                              "Jugador";
+                            const subtitle =
+                              user?.favorite_game ??
+                              user?.city ??
+                              user?.bio ??
+                              "Jugador de la comunidad";
+
+                            const alreadyFriend = friendIds.has(String(user?.id ?? user?.user_id ?? ""));
+
+                            return (
+                              <div
+                                key={idStr}
+                                className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/20 px-3 py-2"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <Avatar size="sm" className="bg-rankeao-light text-xs">
+                                    <Avatar.Fallback>{getInitial(name)}</Avatar.Fallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-sm text-white font-medium truncate">{name}</p>
+                                    <p className="text-[11px] text-zinc-500 truncate">{subtitle}</p>
+                                  </div>
+                                </div>
+                                <div className="shrink-0">
+                                  {alreadyFriend ? (
+                                    <Chip size="sm" variant="soft" color="success" className="text-[10px]">
+                                      Amigo
+                                    </Chip>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="text-xs px-2 py-1 h-7"
+                                      isDisabled={sendingRequestTo === idStr}
+                                      onPress={() => handleSendFriendRequest(user)}
+                                    >
+                                      {sendingRequestTo === idStr ? "Enviando..." : "Agregar"}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : searchQuery.trim() && !searchingUsers ? (
+                        <p className="mt-3 text-[11px] text-zinc-500">
+                          No encontramos jugadores para &quot;{searchQuery.trim()}&quot;. Intenta con otro nombre o usuario.
+                        </p>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
+                          Canales de chat
+                        </h3>
+                        <Chip size="sm" variant="soft" color="accent">
+                          {chatChannelsCount}
+                        </Chip>
+                      </div>
+
+                      {loadingProfile ? (
+                        <div className="space-y-2">
+                          <div className="h-9 rounded-lg bg-white/5 animate-pulse" />
+                          <div className="h-9 rounded-lg bg-white/5 animate-pulse" />
+                        </div>
+                      ) : chatChannelsCount > 0 ? (
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                          {chatChannels.map((channel, index) => {
+                            const id = channel?.id ?? channel?.channel_id ?? index;
+                            const name = channel?.name ?? channel?.title ?? "Canal";
+                            const lastMessage =
+                              channel?.last_message?.content ??
+                              channel?.last_message_text ??
+                              channel?.preview ??
+                              "Aún no hay mensajes.";
+                            const unread = Number(channel?.unread_count ?? channel?.unread ?? 0);
+
+                            return (
+                              <div
+                                key={String(id)}
+                                className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-black/25 px-3 py-2"
+                              >
+                                <div className="min-w-0">
+                                  <p className="text-sm text-white font-medium truncate">{name}</p>
+                                  <p className="text-[11px] text-zinc-500 truncate">{lastMessage}</p>
+                                </div>
+                                {unread > 0 ? (
+                                  <Chip
+                                    size="sm"
+                                    variant="soft"
+                                    color="danger"
+                                    className="text-[10px]"
+                                  >
+                                    {unread} nuevo{unread > 1 ? "s" : ""}
+                                  </Chip>
+                                ) : (
+                                  <span className="text-[10px] text-zinc-500">Sin nuevos</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="py-4 text-xs text-zinc-500">
+                          Todavía no tienes canales de chat activos.
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="competitivo" className="pt-4">
+              <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                <CardContent className="p-6 text-center text-zinc-400 min-h-[200px] flex items-center justify-center flex-col">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-12 h-12 text-zinc-600 mb-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014.158 20H9.843a3.374 3.374 0 00-2.384-5.657l-.548-.547z"
+                    />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-white mb-1">Próximamente</h3>
+                  <p className="text-sm text-zinc-500">
+                    Estamos trabajando en esta sección para traerte estadísticas detalladas de tu desempeño competitivo, historial de partidas y análisis de rendimiento. ¡Mantente atento a las actualizaciones!
+                  </p>
+                </CardContent>
+              </Card>
+            </Tabs.Panel>
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  );
 }
