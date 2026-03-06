@@ -4,8 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Button } from "@heroui/react";
+import { Avatar, Button, Badge, Dropdown, Label } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { ArrowRightFromSquare, Person } from "@gravity-ui/icons";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
@@ -37,8 +38,12 @@ export default function Navbar() {
             />
           </div>
           <div className="leading-none">
-            <p className="text-white font-bold tracking-wide text-lg">Rankeao</p>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-200">Chile TCG</p>
+            <p className="text-white font-bold tracking-wide text-lg">
+              Rankeao
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-200">
+              Chile TCG
+            </p>
           </div>
         </Link>
 
@@ -47,10 +52,11 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${pathname === link.href
+              className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === link.href
                   ? "bg-zinc-500/20 text-white border border-zinc-300/45 shadow-[0_0_14px_rgba(248,250,252,0.35)]"
                   : "text-gray-300 hover:text-zinc-200 hover:bg-zinc-300/10 border border-transparent"
-                }`}
+              }`}
             >
               {link.label}
             </Link>
@@ -60,30 +66,83 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2.5">
           {isAuthenticated ? (
             <>
-              <p className="max-w-[220px] truncate rounded-full border border-zinc-300/30 bg-zinc-300/10 px-3 py-1 text-xs font-semibold text-zinc-100">
-                {session?.email}
-              </p>
-              <Link href="/perfil" prefetch={false}>
-                <Button
-                  size="sm"
-                  className="bg-transparent text-white border border-rankeao-neon-cyan/50 hover:border-rankeao-neon-cyan hover:bg-rankeao-neon-cyan/10"
-                >
-                  Mi Perfil
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-100 border border-white/15"
-                onPress={logout}
-              >
-                Salir
-              </Button>
+              <Dropdown>
+                <Dropdown.Trigger className="rounded-full">
+                  <Badge.Anchor>
+                    <Avatar>
+                      <Avatar.Image
+                        alt="User Image"
+                        src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
+                      />
+                      <Avatar.Fallback delayMs={600}>
+                        {session?.username}
+                      </Avatar.Fallback>
+                    </Avatar>
+                    <Badge color="success" placement="bottom-right" size="sm" />
+                  </Badge.Anchor>
+                </Dropdown.Trigger>
+                <Dropdown.Popover>
+                  <div className="px-3 pt-3 pb-1">
+                    <div className="flex items-center gap-2">
+                      <Avatar size="sm">
+                        <Avatar.Image
+                          alt="User Image"
+                          src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
+                        />
+                        <Avatar.Fallback delayMs={600}>
+                          {session?.username}
+                        </Avatar.Fallback>
+                      </Avatar>
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm leading-5 font-medium">
+                          {session?.username}
+                        </p>
+                        <p className="text-xs leading-none text-muted">
+                          {session?.email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <Dropdown.Menu>
+                    <Dropdown.Item
+                      id="profile"
+                      textValue="Profile"
+                      onPress={() => {
+                        window.location.href = "/perfil";
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <Label>Perfil</Label>
+                        <Person className="size-3.5 text-gray-400" />
+                      </div>
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      id="logout"
+                      textValue="Logout"
+                      variant="danger"
+                      onPress={() => {
+                        logout();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <Label>Cerrar Sesion</Label>
+                        <ArrowRightFromSquare className="size-3.5 text-danger" />
+                      </div>
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown>
             </>
           ) : (
             <>
               <Link href="/login" prefetch={false}>
-                <Button variant="ghost" size="sm" className="text-gray-100 border border-white/15">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-100 border border-white/15"
+                >
                   Login
                 </Button>
               </Link>
@@ -117,10 +176,11 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`py-2 px-3 rounded-lg text-sm font-semibold ${pathname === link.href
+                className={`py-2 px-3 rounded-lg text-sm font-semibold ${
+                  pathname === link.href
                     ? "bg-zinc-500/20 text-white border border-zinc-500/40"
                     : "text-gray-300 hover:bg-white/5"
-                  }`}
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
@@ -154,12 +214,19 @@ export default function Navbar() {
             ) : (
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full border border-white/15 text-gray-200" size="sm">
+                  <Button
+                    variant="ghost"
+                    className="w-full border border-white/15 text-gray-200"
+                    size="sm"
+                  >
                     Login
                   </Button>
                 </Link>
                 <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white" size="sm">
+                  <Button
+                    className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white"
+                    size="sm"
+                  >
                     Registrate
                   </Button>
                 </Link>

@@ -3,7 +3,8 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardContent, Input, Form } from "@heroui/react";
+import { Envelope, Eye, EyeSlash, Lock } from "@gravity-ui/icons";
+import { Button, Card, CardContent, Form, TextField, Label, InputGroup,  } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginForm() {
@@ -13,6 +14,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -71,22 +73,51 @@ export default function LoginForm() {
           ) : null}
 
           <Form className="space-y-3" onSubmit={handleSubmit}>
-            <Input
-              placeholder="Correo"
-              type="email"
-              className="w-full"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-            <Input
-              placeholder="Contrasena"
-              type="password"
-              className="w-full"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
+            <TextField fullWidth name="email">
+              <Label>Email</Label>
+              <InputGroup>
+                <InputGroup.Prefix>
+                <Envelope className="size-4 text-muted" />
+                </InputGroup.Prefix>
+                <InputGroup.Input 
+                className="w-full max-w-[280px]" 
+                placeholder="usuario@rankeao.cl"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required/>
+
+                <InputGroup.Prefix>
+                </InputGroup.Prefix>
+              </InputGroup>
+
+              <Label>Contraseña</Label>
+              <InputGroup>
+                <InputGroup.Prefix>
+                  <Lock className="size-4 text-muted" />
+                </InputGroup.Prefix>
+                <InputGroup.Input
+                  className="w-full max-w-[280px]"
+                  placeholder="••••••••"
+                  type={isVisible ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+                <InputGroup.Suffix className="pr-0">
+                  <Button
+                    isIconOnly
+                    aria-label={isVisible ? "Hide password" : "Show password"}
+                    size="sm"
+                    variant="ghost"
+                    onPress={() => setIsVisible(!isVisible)}
+                  >
+                    {isVisible ? <Eye className="size-4" /> : <EyeSlash className="size-4" />}
+                  </Button>
+                </InputGroup.Suffix>
+              </InputGroup>
+
+            </TextField>
 
             {error ? <p className="text-sm text-zinc-200">{error}</p> : null}
 
