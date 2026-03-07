@@ -89,8 +89,10 @@ function normalizeAuthSession(payload: unknown, fallbackEmail?: string): AuthSes
     throw new Error("La API no devolvio un correo valido para la sesion.");
   }
 
-  const accessToken = pickString([root, data], ["access_token", "accessToken", "token", "jwt"]);
-  const refreshToken = pickString([root, data], ["refresh_token", "refreshToken"]);
+  const tokens = asRecord(data?.tokens) ?? asRecord(root?.tokens);
+
+  const accessToken = pickString([tokens, root, data], ["access_token", "accessToken", "token", "jwt"]);
+  const refreshToken = pickString([tokens, root, data], ["refresh_token", "refreshToken"]);
   const username = pickString([user, data, root], ["username", "name"]);
 
   return {
@@ -115,10 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const parsed = JSON.parse(rawSession) as AuthSession;
-        if (!parsed?.email) {
-          localStorage.removeItem(SESSION_STORAGE_KEY);
-          setStatus("unauthenticated");
-          return;
+        const legacyToken = (parsed as any).token || (parsed as any).access_token || (parsed as any).jwt;
+        if (legacyToken && !parsed.accessToken) {
+          parsed.accessToken = legacyToken;
         }
 
         setSession(parsed);

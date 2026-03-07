@@ -82,11 +82,11 @@ export default function PerfilPage() {
       setSocialError(null);
 
       Promise.all([
-        getMyXp().catch(() => null),
-        getFriends().catch(() => ({ data: [] })),
-        getMyCosmetics().catch(() => ({ data: [] })),
-        getFriendRequests().catch(() => ({ data: [] })),
-        getChatChannels().catch(() => ({ data: [] })),
+        getMyXp(session.accessToken).catch(() => null),
+        getFriends(undefined, session.accessToken).catch(() => ({ data: [] })),
+        getMyCosmetics(session.accessToken).catch(() => ({ data: [] })),
+        getFriendRequests(undefined, session.accessToken).catch(() => ({ data: [] })),
+        getChatChannels(undefined, session.accessToken).catch(() => ({ data: [] })),
       ]).then(([xpRes, friendsRes, cosmeticsRes, requestsRes, channelsRes]) => {
         if (xpRes) setXpData(xpRes);
         setFriendsList(toArray(friendsRes));
@@ -127,7 +127,7 @@ export default function PerfilPage() {
         users?: User[];
         [key: string]: unknown;
       };
-      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 });
+      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 }, session?.accessToken);
       setSearchResults(toArray(res));
     } catch (error) {
       setSocialError(error instanceof Error ? error.message : "No se pudo buscar jugadores.");
@@ -145,7 +145,8 @@ export default function PerfilPage() {
     setSocialError(null);
     setActingRequestId(idStr);
     try {
-      await acceptFriendRequest(idStr);
+      if (!session?.accessToken) throw new Error("Sin sesión activa");
+      await acceptFriendRequest(idStr, session.accessToken);
       setFriendRequests((prev) => prev.filter((r) => String(r?.id ?? r?.request_id) !== idStr));
 
       const newFriend = request?.from_user ?? request?.user ?? request?.sender ?? null;
@@ -182,7 +183,8 @@ export default function PerfilPage() {
     setSocialError(null);
     setActingRequestId(idStr);
     try {
-      await rejectFriendRequest(idStr);
+      if (!session?.accessToken) throw new Error("Sin sesión activa");
+      await rejectFriendRequest(idStr, session.accessToken);
       setFriendRequests((prev) => prev.filter((r) => String(r?.id ?? r?.request_id) !== idStr));
     } catch (error) {
       setSocialError(error instanceof Error ? error.message : "No se pudo rechazar la solicitud.");
@@ -219,7 +221,8 @@ export default function PerfilPage() {
     setSocialError(null);
     setSendingRequestTo(idStr);
     try {
-      await sendFriendRequest(idStr);
+      if (!session?.accessToken) throw new Error("Sin sesión activa");
+      await sendFriendRequest(idStr, session.accessToken);
     } catch (error) {
       setSocialError(error instanceof Error ? error.message : "No se pudo enviar la solicitud de amistad.");
     } finally {

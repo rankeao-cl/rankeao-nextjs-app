@@ -15,6 +15,7 @@ const navLinks = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/juegos", label: "Juegos" },
   { href: "/comunidades", label: "Comunidades" },
+  { href: "/chat", label: "Chat" }
 ];
 
 export default function Navbar() {
@@ -52,11 +53,10 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === link.href
-                  ? "bg-zinc-500/20 text-white border border-zinc-300/45 shadow-[0_0_14px_rgba(248,250,252,0.35)]"
-                  : "text-gray-300 hover:text-zinc-200 hover:bg-zinc-300/10 border border-transparent"
-              }`}
+              className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${pathname === link.href
+                ? "bg-zinc-500/20 text-white border border-zinc-300/45 shadow-[0_0_14px_rgba(248,250,252,0.35)]"
+                : "text-gray-300 hover:text-zinc-200 hover:bg-zinc-300/10 border border-transparent"
+                }`}
             >
               {link.label}
             </Link>
@@ -176,11 +176,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`py-2 px-3 rounded-lg text-sm font-semibold ${
-                  pathname === link.href
-                    ? "bg-zinc-500/20 text-white border border-zinc-500/40"
-                    : "text-gray-300 hover:bg-white/5"
-                }`}
+                className={`py-2 px-3 rounded-lg text-sm font-semibold ${pathname === link.href
+                  ? "bg-zinc-500/20 text-white border border-zinc-500/40"
+                  : "text-gray-300 hover:bg-white/5"
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}

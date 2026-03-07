@@ -1,18 +1,45 @@
+import { toast } from "@heroui/react";
+
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   "https://rankeao-go-gateway-production.up.railway.app/api/v1"
 ).replace(/\/+$/, "");
 
+function showErrorToast(errMessage: string) {
+  if (typeof window !== "undefined") {
+    toast.danger("Error", { description: errMessage });
+  }
+}
+
 interface FetchOptions {
   revalidate?: number | false;
   cache?: RequestCache;
+  token?: string;
+}
+
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const rawSession = localStorage.getItem("rankeao.auth.session");
+    if (rawSession) {
+      const parsed = JSON.parse(rawSession);
+      const token = parsed.accessToken || parsed.token;
+      if (token) {
+        return { Authorization: `Bearer ${token}` };
+      }
+    }
+  } catch (error) {
+    // ignore
+  }
+  return {};
 }
 
 async function apiFetch<T>(
   endpoint: string,
   params?: Record<string, string | number | boolean | undefined>,
-  options: FetchOptions = { revalidate: 60 }
+  options: FetchOptions = {}
 ): Promise<T> {
+  const { revalidate = 60, cache, token } = options;
   const url = new URL(`${BASE_URL}${endpoint}`);
 
   if (params) {
@@ -23,17 +50,39 @@ async function apiFetch<T>(
     });
   }
 
-  const fetchOptions: RequestInit & { next?: { revalidate: number } } = {};
-  if (options.cache) {
-    fetchOptions.cache = options.cache;
-  } else if (options.revalidate !== undefined && options.revalidate !== false) {
-    fetchOptions.next = { revalidate: options.revalidate };
+  const headers: Record<string, string> = { ...getAuthHeaders() };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
+    headers,
+  };
+  if (cache) {
+    fetchOptions.cache = cache;
+  } else if (revalidate !== undefined && revalidate !== false) {
+    fetchOptions.next = { revalidate };
   }
 
   const res = await fetch(url.toString(), fetchOptions);
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText}`);
+    console.error(`apiFetch ERROR ${res.status} to ${url.toString()} with token:`, token?.substring(0, 10) + "...");
+    let message = `API error: ${res.status} ${res.statusText}`;
+    try {
+      const errorPayload = await res.json();
+      if (typeof errorPayload === "object" && errorPayload !== null) {
+        if (typeof errorPayload.message === "string") {
+          message = errorPayload.message;
+        } else if (typeof errorPayload.error === "string") {
+          message = errorPayload.error;
+        } else {
+          message = JSON.stringify(errorPayload);
+        }
+      }
+    } catch { }
+    showErrorToast(message);
+    throw new Error(message);
   }
 
   return res.json();
@@ -41,31 +90,42 @@ async function apiFetch<T>(
 
 async function apiPost<T>(
   endpoint: string,
-  body: unknown
+  body: unknown,
+  options?: { token?: string }
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...getAuthHeaders(),
+  };
+  if (options?.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
+
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(body),
     cache: "no-store",
   });
 
   if (!res.ok) {
+    console.error(`apiPost ERROR ${res.status} to ${endpoint} with token:`, options?.token?.substring(0, 10) + "...");
     let message = `API error: ${res.status} ${res.statusText}`;
 
     try {
-      const errorPayload = (await res.json()) as { message?: string; error?: string };
-      if (errorPayload.message) {
-        message = errorPayload.message;
-      } else if (errorPayload.error) {
-        message = errorPayload.error;
+      const errorPayload = await res.json();
+      if (errorPayload && typeof errorPayload === "object") {
+        if (typeof errorPayload.message === "string") {
+          message = errorPayload.message;
+        } else if (typeof errorPayload.error === "string") {
+          message = errorPayload.error;
+        } else {
+          message = JSON.stringify(errorPayload);
+        }
       }
-    } catch {
-      // Ignore JSON parse errors and keep default error message.
-    }
+    } catch { }
 
+    showErrorToast(message);
     throw new Error(message);
   }
 
@@ -124,42 +184,42 @@ export async function getFeedDiscover(params?: Record<string, any>) {
 }
 
 // Friends
-export async function getFriends(params?: Record<string, any>) {
-  return apiFetch<any>("/social/friends", params);
+export async function getFriends(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/friends", params, { token });
 }
-export async function sendFriendRequest(userId: string) {
-  return apiPost<any>("/social/friends/request", { target_user_id: userId });
+export async function sendFriendRequest(userId: string, token?: string) {
+  return apiPost<any>("/social/friends/request", { target_user_id: userId }, { token });
 }
-export async function acceptFriendRequest(requestId: string) {
-  return apiPost<any>(`/social/friends/request/${requestId}/accept`, {});
+export async function acceptFriendRequest(requestId: string, token?: string) {
+  return apiPost<any>(`/social/friends/request/${requestId}/accept`, {}, { token });
 }
-export async function rejectFriendRequest(requestId: string) {
-  return apiPost<any>(`/social/friends/request/${requestId}/reject`, {});
+export async function rejectFriendRequest(requestId: string, token?: string) {
+  return apiPost<any>(`/social/friends/request/${requestId}/reject`, {}, { token });
 }
-export async function getFriendRequests(params?: Record<string, any>) {
-  return apiFetch<any>("/social/friends/requests", params);
+export async function getFriendRequests(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/friends/requests", params, { token });
 }
-export async function removeFriend(userId: string) {
-  return apiFetch<any>(`/social/friends/${userId}`, undefined, { revalidate: false }); // Needs DELETE or custom fetch if purely DELETE
+export async function removeFriend(userId: string, token?: string) {
+  return apiFetch<any>(`/social/friends/${userId}`, undefined, { revalidate: false, token }); // Needs DELETE or custom fetch if purely DELETE
 }
 
 // Social ME Stats
-export async function getMyCosmetics() {
-  return apiFetch<any>("/social/me/cosmetics", undefined, { cache: "no-store" });
+export async function getMyCosmetics(token?: string) {
+  return apiFetch<any>("/social/me/cosmetics", undefined, { cache: "no-store", token });
 }
-export async function getMyEquipped() {
-  return apiFetch<any>("/social/me/equipped", undefined, { cache: "no-store" });
+export async function getMyEquipped(token?: string) {
+  return apiFetch<any>("/social/me/equipped", undefined, { cache: "no-store", token });
 }
-export async function getMyTitles() {
-  return apiFetch<any>("/social/me/titles", undefined, { cache: "no-store" });
+export async function getMyTitles(token?: string) {
+  return apiFetch<any>("/social/me/titles", undefined, { cache: "no-store", token });
 }
-export async function getMyXp() {
-  return apiFetch<any>("/social/me/xp", undefined, { cache: "no-store" });
+export async function getMyXp(token?: string) {
+  return apiFetch<any>("/social/me/xp", undefined, { cache: "no-store", token });
 }
 
 // Users
-export async function searchUsers(params?: Record<string, any>) {
-  return apiFetch<any>("/social/users/search", params);
+export async function searchUsers(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/users/search", params, { token });
 }
 export async function getUserProfile(username: string) {
   return apiFetch<any>(`/social/users/${encodeURIComponent(username)}`, undefined, { revalidate: 30 });
@@ -562,6 +622,91 @@ export async function createOffer(listingId: string, payload: any) {
 }
 
 // ---- Chat ----
-export async function getChatChannels(params?: Record<string, any>) {
-  return apiFetch<any>("/social/chat/channels", params, { cache: "no-store" });
+export async function getChatChannels(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/chat/channels", params, { cache: "no-store", token });
+}
+export async function getChatMessages(channelId: string, params?: Record<string, any>, token?: string) {
+  return apiFetch<any>(`/social/chat/channels/${encodeURIComponent(channelId)}/messages`, params, { cache: "no-store", token });
+}
+export async function sendChatMessage(channelId: string, payload: { content: string; reply_to_id?: string }, token?: string) {
+  return apiPost<any>(`/social/chat/channels/${encodeURIComponent(channelId)}/messages`, payload, { token });
+}
+
+export async function editChatMessage(messageId: string, payload: { content: string }, token?: string) {
+  return apiPatch<any>(`/social/chat/messages/${encodeURIComponent(messageId)}`, payload, { token });
+}
+
+export async function deleteChatMessage(messageId: string, token?: string) {
+  return apiDelete<any>(`/social/chat/messages/${encodeURIComponent(messageId)}`, { token });
+}
+
+async function apiPatch<T>(
+  endpoint: string,
+  body: unknown,
+  options?: { token?: string }
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...getAuthHeaders(),
+  };
+  if (options?.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    let message = `API error: ${res.status} ${res.statusText}`;
+    try {
+      const errorPayload = (await res.json()) as { message?: string; error?: string };
+      if (errorPayload.message) message = errorPayload.message;
+      else if (errorPayload.error) message = errorPayload.error;
+    } catch { }
+    showErrorToast(message);
+    throw new Error(message);
+  }
+
+  return res.json();
+}
+
+async function apiDelete<T>(
+  endpoint: string,
+  options?: { token?: string }
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...getAuthHeaders(),
+  };
+  if (options?.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method: "DELETE",
+    headers,
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    let message = `API error: ${res.status} ${res.statusText}`;
+    try {
+      const errorPayload = (await res.json()) as { message?: string; error?: string };
+      if (errorPayload.message) message = errorPayload.message;
+      else if (errorPayload.error) message = errorPayload.error;
+    } catch { }
+    showErrorToast(message);
+    throw new Error(message);
+  }
+
+  // Handle 204 No Content
+  if (res.status === 204) {
+    return {} as T;
+  }
+
+  return res.json();
 }
