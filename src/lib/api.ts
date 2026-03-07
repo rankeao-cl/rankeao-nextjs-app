@@ -23,7 +23,7 @@ function getAuthHeaders(): Record<string, string> {
     const rawSession = localStorage.getItem("rankeao.auth.session");
     if (rawSession) {
       const parsed = JSON.parse(rawSession);
-      const token = parsed.accessToken || parsed.token || parsed.access_token || parsed.jwt;
+      const token = parsed.accessToken || parsed.token;
       if (token) {
         return { Authorization: `Bearer ${token}` };
       }
@@ -184,8 +184,8 @@ export async function getFeedDiscover(params?: Record<string, any>) {
 }
 
 // Friends
-export async function getFriends(params?: Record<string, any>, options?: { token?: string }) {
-  return apiFetch<any>("/social/friends", params, options);
+export async function getFriends(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/friends", params, { token });
 }
 export async function sendFriendRequest(userId: string, token?: string) {
   return apiPost<any>("/social/friends/request", { target_user_id: userId }, { token });
@@ -196,8 +196,8 @@ export async function acceptFriendRequest(requestId: string, token?: string) {
 export async function rejectFriendRequest(requestId: string, token?: string) {
   return apiPost<any>(`/social/friends/request/${requestId}/reject`, {}, { token });
 }
-export async function getFriendRequests(params?: Record<string, any>, options?: { token?: string }) {
-  return apiFetch<any>("/social/friends/requests", params, options);
+export async function getFriendRequests(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/friends/requests", params, { token });
 }
 export async function removeFriend(userId: string, token?: string) {
   return apiFetch<any>(`/social/friends/${userId}`, undefined, { revalidate: false, token }); // Needs DELETE or custom fetch if purely DELETE
@@ -218,8 +218,8 @@ export async function getMyXp(token?: string) {
 }
 
 // Users
-export async function searchUsers(params?: Record<string, any>, options?: { token?: string }) {
-  return apiFetch<any>("/social/users/search", params, options);
+export async function searchUsers(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/users/search", params, { token });
 }
 export async function getUserProfile(username: string) {
   return apiFetch<any>(`/social/users/${encodeURIComponent(username)}`, undefined, { revalidate: 30 });
@@ -622,8 +622,8 @@ export async function createOffer(listingId: string, payload: any) {
 }
 
 // ---- Chat ----
-export async function getChatChannels(params?: Record<string, any>, options?: { token?: string }) {
-  return apiFetch<any>("/social/chat/channels", params, { cache: "no-store", ...options });
+export async function getChatChannels(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/social/chat/channels", params, { cache: "no-store", token });
 }
 export async function getChatMessages(channelId: string, params?: Record<string, any>, token?: string) {
   return apiFetch<any>(`/social/chat/channels/${encodeURIComponent(channelId)}/messages`, params, { cache: "no-store", token });

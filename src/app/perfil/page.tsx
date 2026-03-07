@@ -80,7 +80,6 @@ export default function PerfilPage() {
     if (status === "authenticated" && session) {
       setLoadingProfile(true);
       setSocialError(null);
-      console.error("Token in PerfilPage before requests:", session.accessToken);
 
       Promise.all([
         getMyXp(session.accessToken).catch(() => null),
