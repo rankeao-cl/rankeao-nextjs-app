@@ -45,7 +45,7 @@ export default function ChatPage() {
     if (status !== "authenticated" || !session?.accessToken) return;
 
     setLoadingChannels(true);
-    getChatChannels(undefined, session.accessToken)
+    getChatChannels(undefined, { token: session.accessToken })
       .then((res: any) => {
         if (res.channels) {
           setChannels(res.channels);

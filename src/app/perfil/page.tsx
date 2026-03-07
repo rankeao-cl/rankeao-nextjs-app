@@ -80,13 +80,14 @@ export default function PerfilPage() {
     if (status === "authenticated" && session) {
       setLoadingProfile(true);
       setSocialError(null);
+      console.error("Token in PerfilPage before requests:", session.accessToken);
 
       Promise.all([
         getMyXp(session.accessToken).catch(() => null),
-        getFriends(undefined, session.accessToken).catch(() => ({ data: [] })),
+        getFriends({}, { token: session.accessToken }).catch(() => ({ data: [] })),
         getMyCosmetics(session.accessToken).catch(() => ({ data: [] })),
-        getFriendRequests(undefined, session.accessToken).catch(() => ({ data: [] })),
-        getChatChannels(undefined, session.accessToken).catch(() => ({ data: [] })),
+        getFriendRequests({}, { token: session.accessToken }).catch(() => ({ data: [] })),
+        getChatChannels({}, { token: session.accessToken }).catch(() => ({ data: [] })),
       ]).then(([xpRes, friendsRes, cosmeticsRes, requestsRes, channelsRes]) => {
         if (xpRes) setXpData(xpRes);
         setFriendsList(toArray(friendsRes));
@@ -127,7 +128,7 @@ export default function PerfilPage() {
         users?: User[];
         [key: string]: unknown;
       };
-      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 }, session?.accessToken);
+      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 }, { token: session?.accessToken });
       setSearchResults(toArray(res));
     } catch (error) {
       setSocialError(error instanceof Error ? error.message : "No se pudo buscar jugadores.");
