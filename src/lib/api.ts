@@ -234,6 +234,16 @@ export async function getUserFriends(username: string, params?: Record<string, a
   return apiFetch<any>(`/social/users/${encodeURIComponent(username)}/friends`, params);
 }
 
+export async function getProfile(token: string) {
+  const res = await fetch("/api/v1/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("No se pudo cargar el perfil");
+  return res.json();
+}
+
+
 // ---- Tournaments ----
 export interface Tournament {
   id: string;
