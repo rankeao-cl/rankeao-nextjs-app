@@ -79,22 +79,30 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
     : [];
 
   return (
-    <div className="rk-container py-10 space-y-7">
-      <section className="surface-panel p-6 sm:p-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(212,212,216,0.16),transparent_35%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_90%,rgba(248,250,252,0.2),transparent_38%)]" />
+    <div className="p-4 lg:p-6 space-y-6 max-w-5xl mx-auto">
+      {/* Header */}
+      <section
+        className="p-5 sm:p-6 rounded-xl relative overflow-hidden"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
         <div className="relative">
-          <Chip size="sm" variant="soft" color="accent" className="mb-3">
+          <Chip size="sm" variant="soft" color="accent" className="mb-2">
             Rankings Globales Chile
           </Chip>
-          <h1 className="section-title mb-2">Sube en XP, domina en ELO</h1>
-          <p className="section-subtitle">
-            Consulta el leaderboard global y compara rendimiento por juego y formato competitivo.
+          <h1 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+            Sube en XP, domina en ELO
+          </h1>
+          <p className="text-sm mt-1 max-w-2xl" style={{ color: "var(--muted)" }}>
+            Consulta el leaderboard global, compara tu rendimiento, sube de rango y obtén badges exclusivos.
           </p>
         </div>
       </section>
 
-      <section className="surface-panel p-4 sm:p-6">
+      {/* Tabs Layout */}
+      <section
+        className="p-4 sm:p-5 rounded-xl"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
         <RankingTabs
           xpEntries={xpEntries}
           ratingEntries={ratingEntries}

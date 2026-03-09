@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, Button, Card, CardContent, CardHeader, Chip, Input, Tabs } from "@heroui/react";
+import { Avatar, Button, Card, Chip, Input, Tabs } from "@heroui/react";
+import { RankedAvatar } from "@/components/RankedAvatar";
 import {
   acceptFriendRequest,
   getChatChannels,
@@ -14,6 +15,7 @@ import {
   searchUsers,
   sendFriendRequest,
 } from "@/lib/api";
+import { StarFill, Person, Envelope } from "@gravity-ui/icons";
 
 function getInitial(value: unknown) {
   if (typeof value === "string") return value.trim().charAt(0).toUpperCase() || "U";
@@ -83,10 +85,10 @@ export default function PerfilPage() {
 
       Promise.all([
         getMyXp(session.accessToken).catch(() => null),
-        getFriends({}, { token: session.accessToken }).catch(() => ({ data: [] })),
+        getFriends({}, session.accessToken).catch(() => ({ data: [] })),
         getMyCosmetics(session.accessToken).catch(() => ({ data: [] })),
-        getFriendRequests({}, { token: session.accessToken }).catch(() => ({ data: [] })),
-        getChatChannels({}, { token: session.accessToken }).catch(() => ({ data: [] })),
+        getFriendRequests({}, session.accessToken).catch(() => ({ data: [] })),
+        getChatChannels({}, session.accessToken).catch(() => ({ data: [] })),
       ]).then(([xpRes, friendsRes, cosmeticsRes, requestsRes, channelsRes]) => {
         if (xpRes) setXpData(xpRes);
         setFriendsList(toArray(friendsRes));
@@ -127,7 +129,7 @@ export default function PerfilPage() {
         users?: User[];
         [key: string]: unknown;
       };
-      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 }, { token: session?.accessToken });
+      const res: SearchUsersResult = await searchUsers({ q: query, limit: 12 }, session?.accessToken);
       setSearchResults(toArray(res));
     } catch (error) {
       setSocialError(error instanceof Error ? error.message : "No se pudo buscar jugadores.");
@@ -281,15 +283,50 @@ export default function PerfilPage() {
         <div className="lg:col-span-1 space-y-6">
           <Card className="bg-rankeao-light/50 border border-rankeao-light shadow-xl relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-rankeao-neon-purple/20 to-transparent" />
-            <CardContent className="p-6 pt-10 text-center flex flex-col items-center relative z-10 w-full">
-              <Avatar
+            <Card.Content className="p-6 pt-10 text-center flex flex-col items-center relative z-10 w-full">
+              <RankedAvatar
+                elo={xpData?.rating || 1200}
                 size="lg"
-                className="w-24 h-24 ring-4 ring-[#0f1017] shadow-lg mb-4 text-zinc-200 bg-rankeao-light"
-              >
-                <Avatar.Fallback>{getInitial(username)}</Avatar.Fallback>
-              </Avatar>
-              <h2 className="text-2xl font-bold font-rajdhani text-white mb-1">{username}</h2>
-              <p className="text-sm font-sans text-zinc-400 mb-4">{email}</p>
+                className="w-24 h-24 mb-4"
+                fallback={getInitial(username)}
+              />
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <h2 className="text-2xl font-bold font-rajdhani text-white">{username}</h2>
+                <Chip size="sm" variant="soft" className="bg-yellow-500/20 text-yellow-500 font-bold border-none px-1">
+                  <div className="flex items-center gap-1"><StarFill width={12} /> Premium</div>
+                </Chip>
+              </div>
+              <p className="text-xs font-sans text-zinc-400 mb-3">{email}</p>
+              <p className="text-sm text-zinc-300 italic mb-4">"Jugador competitivo de TCG chileno. Principalmente Magic y Mitos."</p>
+
+              {/* Stats Ribbon */}
+              <div className="flex flex-wrap justify-between gap-2 mb-5 border-y border-white/10 py-3 w-full px-2">
+                <div className="text-center">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">ELO</p>
+                  <p className="text-sm font-bold text-rankeao-neon-cyan">{xpData?.rating || 1200}</p>
+                </div>
+                <div className="w-[1px] bg-white/10"></div>
+                <div className="text-center">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Ranking</p>
+                  <p className="text-sm font-bold text-white">#42</p>
+                </div>
+                <div className="w-[1px] bg-white/10"></div>
+                <div className="text-center">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">W/L</p>
+                  <p className="text-sm font-bold text-green-400">72%</p>
+                </div>
+                <div className="w-[1px] bg-white/10"></div>
+                <div className="text-center">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Torneos</p>
+                  <p className="text-sm font-bold text-white">{xpData?.tournaments_played || 0}</p>
+                </div>
+              </div>
+
+              {/* Juegos Chips */}
+              <div className="flex gap-2 justify-center mb-6 w-full">
+                <Chip size="sm" variant="secondary" className="bg-zinc-800 text-zinc-300 border-none">Magic</Chip>
+                <Chip size="sm" variant="secondary" className="bg-zinc-800 text-zinc-300 border-none">Mitos y Leyendas</Chip>
+              </div>
 
               {loadingProfile ? (
                 <div className="w-full h-16 animate-pulse bg-white/5 rounded-xl" />
@@ -314,7 +351,18 @@ export default function PerfilPage() {
                   </p>
                 </div>
               )}
-            </CardContent>
+
+              {/* Acciones de Perfil */}
+              <div className="flex gap-3 w-full mt-6">
+                <Button variant="primary" className="flex-1 font-bold">
+                  <Person width={16} /> Seguir
+                </Button>
+                <Button variant="secondary" className="flex-1 font-bold">
+                  <Envelope width={16} /> Mensaje
+                </Button>
+              </div>
+
+            </Card.Content>
           </Card>
         </div>
 
@@ -324,15 +372,31 @@ export default function PerfilPage() {
             <Tabs.ListContainer>
               <Tabs.List>
                 <Tabs.Tab id="general">
-                  General
+                  Métricas
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="actividad">
+                  Feed
                   <Tabs.Indicator />
                 </Tabs.Tab>
                 <Tabs.Tab id="social">
-                  Social ({friendsCount})
+                  Comunidad ({friendsCount})
                   <Tabs.Indicator />
                 </Tabs.Tab>
                 <Tabs.Tab id="competitivo">
-                  Competitivo
+                  Historial
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="coleccion">
+                  Colección
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="marketplace">
+                  En Venta
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab id="logros">
+                  Logros
                   <Tabs.Indicator />
                 </Tabs.Tab>
               </Tabs.List>
@@ -341,30 +405,30 @@ export default function PerfilPage() {
             <Tabs.Panel id="general" className="pt-4 space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                  <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
                     <p className="text-2xl font-black font-rajdhani text-white">
                       {xpData?.tournaments_played || 0}
                     </p>
                     <p className="text-xs text-zinc-400 font-sans uppercase">Torneos</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
                 <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                  <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
                     <p className="text-2xl font-black font-rajdhani text-white">{cosmeticsCount}</p>
                     <p className="text-xs text-zinc-400 font-sans uppercase">Cosméticos</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
                 <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                  <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
                     <p className="text-2xl font-black font-rajdhani text-white">{xpData?.rating || 1200}</p>
                     <p className="text-xs text-zinc-400 font-sans uppercase">Elo Rating</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
                 <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center w-full">
+                  <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
                     <p className="text-2xl font-black font-rajdhani text-white">{friendsCount}</p>
                     <p className="text-xs text-zinc-400 font-sans uppercase">Amigos</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
               </div>
             </Tabs.Panel>
@@ -378,20 +442,20 @@ export default function PerfilPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Card className="bg-rankeao-light/50 border border-rankeao-light/80">
-                  <CardHeader className="flex items-center justify-between pb-2">
+                  <Card.Header className="flex items-center justify-between pb-2">
                     <span className="text-xs uppercase tracking-widest text-zinc-500">Amigos</span>
                     <Chip size="sm" color="success" variant="soft">
                       {friendsCount}
                     </Chip>
-                  </CardHeader>
-                  <CardContent className="pt-0 pb-4">
+                  </Card.Header>
+                  <Card.Content className="pt-0 pb-4">
                     <p className="text-sm text-zinc-300 font-semibold">Tu círculo gamer</p>
                     <p className="text-[11px] text-zinc-500 mt-1">Conecta y arma equipos para torneos.</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
 
                 <Card className="bg-rankeao-light/50 border border-rankeao-light/80">
-                  <CardHeader className="flex items-center justify-between pb-2">
+                  <Card.Header className="flex items-center justify-between pb-2">
                     <span className="text-xs uppercase tracking-widest text-zinc-500">Solicitudes</span>
                     <Chip
                       size="sm"
@@ -400,31 +464,31 @@ export default function PerfilPage() {
                     >
                       {pendingRequestsCount}
                     </Chip>
-                  </CardHeader>
-                  <CardContent className="pt-0 pb-4">
+                  </Card.Header>
+                  <Card.Content className="pt-0 pb-4">
                     <p className="text-sm text-zinc-300 font-semibold">Pendientes</p>
                     <p className="text-[11px] text-zinc-500 mt-1">Acepta o rechaza invitaciones.</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
 
                 <Card className="bg-rankeao-light/50 border border-rankeao-light/80">
-                  <CardHeader className="flex items-center justify-between pb-2">
+                  <Card.Header className="flex items-center justify-between pb-2">
                     <span className="text-xs uppercase tracking-widest text-zinc-500">Chat</span>
                     <Chip size="sm" color="accent" variant="soft">
                       {chatChannelsCount}
                     </Chip>
-                  </CardHeader>
-                  <CardContent className="pt-0 pb-4">
+                  </Card.Header>
+                  <Card.Content className="pt-0 pb-4">
                     <p className="text-sm text-zinc-300 font-semibold">Canales</p>
                     <p className="text-[11px] text-zinc-500 mt-1">Tus conversaciones activas.</p>
-                  </CardContent>
+                  </Card.Content>
                 </Card>
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div className="xl:col-span-2 space-y-4">
                   <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                    <CardContent className="p-5 space-y-3">
+                    <Card.Content className="p-5 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
                           Lista de amigos
@@ -484,11 +548,11 @@ export default function PerfilPage() {
                           <p className="text-xs text-zinc-500">Busca jugadores y envía tu primera solicitud.</p>
                         </div>
                       )}
-                    </CardContent>
+                    </Card.Content>
                   </Card>
 
                   <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                    <CardContent className="p-5 space-y-3">
+                    <Card.Content className="p-5 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
                           Solicitudes de amistad
@@ -562,13 +626,13 @@ export default function PerfilPage() {
                           No tienes solicitudes pendientes por ahora.
                         </div>
                       )}
-                    </CardContent>
+                    </Card.Content>
                   </Card>
                 </div>
 
                 <div className="xl:col-span-1 space-y-4">
                   <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                    <CardContent className="p-5 space-y-3">
+                    <Card.Content className="p-5 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
                           Buscar jugadores
@@ -657,11 +721,11 @@ export default function PerfilPage() {
                           No encontramos jugadores para &quot;{searchQuery.trim()}&quot;. Intenta con otro nombre o usuario.
                         </p>
                       ) : null}
-                    </CardContent>
+                    </Card.Content>
                   </Card>
 
                   <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                    <CardContent className="p-5 space-y-3">
+                    <Card.Content className="p-5 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold text-white uppercase tracking-wide">
                           Canales de chat
@@ -718,7 +782,7 @@ export default function PerfilPage() {
                           Todavía no tienes canales de chat activos.
                         </p>
                       )}
-                    </CardContent>
+                    </Card.Content>
                   </Card>
                 </div>
               </div>
@@ -726,7 +790,7 @@ export default function PerfilPage() {
 
             <Tabs.Panel id="competitivo" className="pt-4">
               <Card className="bg-rankeao-light/50 border border-rankeao-light">
-                <CardContent className="p-6 text-center text-zinc-400 min-h-[200px] flex items-center justify-center flex-col">
+                <Card.Content className="p-6 text-center text-zinc-400 min-h-[200px] flex items-center justify-center flex-col">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-12 h-12 text-zinc-600 mb-2"
@@ -745,8 +809,40 @@ export default function PerfilPage() {
                   <p className="text-sm text-zinc-500">
                     Estamos trabajando en esta sección para traerte estadísticas detalladas de tu desempeño competitivo, historial de partidas y análisis de rendimiento. ¡Mantente atento a las actualizaciones!
                   </p>
-                </CardContent>
+                </Card.Content>
               </Card>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="actividad" className="pt-4">
+              <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl mx-auto">
+                <div className="text-4xl mb-4 text-zinc-500">📰</div>
+                <h3 className="text-lg font-bold mb-2">Feed Personal</h3>
+                <p className="text-[var(--muted)]">Tus publicaciones y actividad reciente aparecerán aquí.</p>
+              </div>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="coleccion" className="pt-4">
+              <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl mx-auto">
+                <div className="text-4xl mb-4 text-zinc-500">🎴</div>
+                <h3 className="text-lg font-bold mb-2">Cartas y Mazos</h3>
+                <p className="text-[var(--muted)]">Gestiona tu colección y listas de mazos públicamente.</p>
+              </div>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="marketplace" className="pt-4">
+              <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl mx-auto">
+                <div className="text-4xl mb-4 text-zinc-500">🛒</div>
+                <h3 className="text-lg font-bold mb-2">Mis Listados</h3>
+                <p className="text-[var(--muted)]">Cartas y productos que tienes a la venta en el Marketplace.</p>
+              </div>
+            </Tabs.Panel>
+
+            <Tabs.Panel id="logros" className="pt-4">
+              <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl mx-auto">
+                <div className="text-4xl mb-4 text-zinc-500">🏆</div>
+                <h3 className="text-lg font-bold mb-2">Galería de Logros</h3>
+                <p className="text-[var(--muted)]">Gana medallas por tu desempeño en torneos y participaciones en Rankeao.</p>
+              </div>
             </Tabs.Panel>
           </Tabs>
         </div>

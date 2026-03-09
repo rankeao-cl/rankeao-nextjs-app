@@ -1,4 +1,4 @@
-import { Card, CardContent, Avatar, Chip } from "@heroui/react";
+import { Card, Avatar, Chip } from "@heroui/react";
 import type { Tenant } from "@/lib/api";
 
 function renderStars(rating?: number) {
@@ -16,13 +16,13 @@ function renderStars(rating?: number) {
 export default function TenantCard({ tenant }: { tenant: Tenant }) {
   return (
     <Card className="surface-card card-hover overflow-hidden">
-      <CardContent className="p-4 gap-3">
+      <Card.Content className="p-4 gap-3">
         <div className="flex items-center gap-3">
           <Avatar
             size="lg"
             className="ring-2 ring-zinc-500/35 bg-zinc-700/30 shrink-0"
           >
-            <Avatar.Image src={tenant.logo_url || undefined} />
+            <Avatar.Image src={tenant.logo_url || undefined} alt={tenant.name || "Tienda"} />
             <Avatar.Fallback>{tenant.name?.charAt(0)?.toUpperCase()}</Avatar.Fallback>
           </Avatar>
           <div className="flex-1 min-w-0">
@@ -55,7 +55,7 @@ export default function TenantCard({ tenant }: { tenant: Tenant }) {
         {tenant.description && (
           <p className="text-gray-400 text-xs line-clamp-2">{tenant.description}</p>
         )}
-      </CardContent>
+      </Card.Content>
     </Card>
   );
 }

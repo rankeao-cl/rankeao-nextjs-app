@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, CardContent, Chip, Input } from "@heroui/react";
-import GameCard from "@/components/GameCard";
+import { Card, Chip, Input } from "@heroui/react";
+import { GameCard } from "@/components/cards";
 import type { CatalogGame } from "@/lib/api";
 
 interface Props {
@@ -29,54 +29,66 @@ export default function JuegosExplorer({ games }: Props) {
   const selectedFormats = Array.isArray(selectedGame?.formats) ? selectedGame.formats : [];
 
   return (
-    <div className="space-y-6">
-      <div className="surface-panel p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+    <div className="space-y-5">
+      {/* Search */}
+      <div
+        className="p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-3 items-end"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
         <Input
           placeholder="Buscar juego o formato..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full"
+          style={{
+            background: "var(--field-background)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.75rem",
+            color: "var(--field-foreground)",
+          }}
         />
-        <p className="text-sm text-gray-500 md:text-right">
+        <p className="text-sm sm:text-right" style={{ color: "var(--muted)" }}>
           {filtered.length} juego{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
         </p>
       </div>
 
+      {/* Selected game detail */}
       {selectedGame && (
-        <Card className="surface-panel">
-          <CardContent className="p-5 sm:p-6">
+        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <Card.Content className="p-5">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{selectedGame.name}</h3>
-                <p className="text-gray-400 text-sm max-w-3xl">
-                  {selectedGame.description || "Juego disponible para torneos, rankings y actividad competitiva en Rankeao."}
+                <h3 className="text-xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
+                  {selectedGame.name}
+                </h3>
+                <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  {selectedGame.description || "Juego disponible para torneos, rankings y actividad competitiva."}
                 </p>
               </div>
-              <Chip color="accent" variant="soft" className="mt-1">
+              <Chip color="accent" variant="soft">
                 {selectedFormats.length} formato{selectedFormats.length !== 1 ? "s" : ""}
               </Chip>
             </div>
 
-            <div className="flex flex-wrap gap-2 mt-5">
+            <div className="flex flex-wrap gap-2 mt-4">
               {selectedFormats.map((format) => (
-                <Chip
-                  key={format.id || format.slug}
-                  variant="secondary"
-                  className="border-zinc-600/40 text-zinc-200"
-                >
+                <Chip key={format.id || format.slug} variant="secondary">
                   {format.name}
                 </Chip>
               ))}
               {selectedFormats.length === 0 && (
-                <span className="text-sm text-gray-500">Este juego aun no tiene formatos cargados.</span>
+                <span className="text-sm" style={{ color: "var(--muted)" }}>
+                  Este juego aún no tiene formatos cargados.
+                </span>
               )}
             </div>
-          </CardContent>
+          </Card.Content>
         </Card>
       )}
 
+      {/* Game grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((game) => (
             <GameCard
               key={game.id}
@@ -86,11 +98,11 @@ export default function JuegosExplorer({ games }: Props) {
           ))}
         </div>
       ) : (
-        <Card className="surface-panel">
-          <CardContent className="py-14 text-center text-gray-500">
+        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <Card.Content className="py-14 text-center">
             <p className="text-3xl mb-3">🎮</p>
-            <p>No hay juegos que coincidan con la busqueda.</p>
-          </CardContent>
+            <p style={{ color: "var(--muted)" }}>No hay juegos que coincidan con la búsqueda.</p>
+          </Card.Content>
         </Card>
       )}
     </div>

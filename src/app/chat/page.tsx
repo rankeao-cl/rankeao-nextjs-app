@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, Button, Input, ScrollShadow, Skeleton, toast } from "@heroui/react";
-import { PaperPlane, Gear, Magnifier, ShieldExclamation, Comment } from "@gravity-ui/icons";
+import { PaperPlane, Gear, Magnifier, ShieldExclamation, Comment, ShoppingCart, Headphones, Persons, Person } from "@gravity-ui/icons";
 import { getChatChannels, getChatMessages, sendChatMessage } from "@/lib/api";
+import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
 
 type Channel = {
   id: string; // Public ID string
@@ -154,7 +155,7 @@ export default function ChatPage() {
         <div className="p-5 border-b border-zinc-800/60 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white tracking-wide">Tus Chats</h2>
-            <Button isIconOnly variant="ghost" className="text-zinc-400 min-w-8 w-8 h-8 rounded-lg border-transparent">
+            <Button isIconOnly variant="tertiary" className="text-zinc-400 min-w-8 w-8 h-8 rounded-lg border-transparent">
               <Gear width={18} />
             </Button>
           </div>
@@ -206,8 +207,12 @@ export default function ChatPage() {
                   <p className="text-sm font-bold truncate text-zinc-100">
                     {channel.name || (channel.type === "DM" ? "Mensaje Directo" : "Sala Global")}
                   </p>
-                  <p className="text-xs text-zinc-500 truncate mt-0.5 font-medium">
-                    {channel.type === "GROUP" ? "Grupo" : channel.type} • {channel.message_count} mensajes
+                  <p className="text-xs text-zinc-500 truncate mt-0.5 font-medium flex items-center gap-1">
+                    {channel.type === "GROUP" ? <Persons className="size-3" /> :
+                      channel.type === "STORE" ? <ShoppingCart className="size-3" /> :
+                        channel.type === "SUPPORT" ? <Headphones className="size-3" /> :
+                          <Person className="size-3" />}
+                    {channel.type === "GROUP" ? "Grupo" : channel.type === "STORE" ? "Tienda" : channel.type === "SUPPORT" ? "Soporte" : "Directo"} • {channel.message_count} mensajes
                   </p>
                 </div>
               </button>
@@ -266,7 +271,7 @@ export default function ChatPage() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex gap - 3 max - w - [90 %] md: max - w - [75 %] ${isMine ? "self-end flex-row-reverse" : "self-start"} `}
+                      className={`flex gap-3 max-w-[90%] md:max-w-[75%] ${isMine ? "self-end flex-row-reverse" : "self-start"}`}
                     >
                       {!isMine && (
                         <div className="w-8 flex-shrink-0 flex flex-col justify-end pb-1">
@@ -279,24 +284,43 @@ export default function ChatPage() {
                         </div>
                       )}
 
-                      <div className={`flex flex - col group ${isMine ? "items-end" : "items-start"} `}>
+                      <div className={`flex flex-col group ${isMine ? "items-end" : "items-start"}`}>
                         {!isMine && showHeader && (
-                          <span className="text-[11px] text-zinc-400 ml-1 mb-1 font-semibold tracking-wide">
-                            {msg.sender.username}
-                          </span>
+                          <div className="ml-1 mb-1">
+                            <UserDisplayName
+                              user={getUserRoleData(msg.sender)}
+                              className="text-[11px] text-zinc-400 tracking-wide"
+                            />
+                          </div>
                         )}
                         <div
-                          className={`px - 4 py - 2.5 shadow - sm text - [15px] whitespace - pre - wrap leading - relaxed relative
+                          className={`px-4 py-2.5 shadow-sm text-[15px] whitespace-pre-wrap leading-relaxed relative
                             ${isMine
                               ? "bg-gradient-to-br from-rankeao-neon-cyan/90 to-blue-600/90 text-white rounded-2xl rounded-tr-sm shadow-[0_4px_15px_rgba(34,211,238,0.15)]"
                               : "bg-zinc-800 text-zinc-200 border border-zinc-700/60 rounded-2xl rounded-tl-sm"
-                            } `}
+                            }`}
                         >
-                          {msg.content}
+                          {/* Basic URL parsing for MVP Rich Embeds */}
+                          {msg.content.includes("http") ? (
+                            <div>
+                              <p>{msg.content.split(/https?:\/\/[^\s]+/)[0]}</p>
+                              {msg.content.match(/https?:\/\/[^\s]+/g)?.map((url, idx) => (
+                                <a key={idx} href={url} target="_blank" rel="noreferrer" className="block mt-2 p-2 bg-black/30 rounded-lg border border-white/10 text-sm hover:bg-black/50 transition">
+                                  🔗 {url.length > 35 ? url.substring(0, 35) + "..." : url}
+                                </a>
+                              ))}
+                              <p>{msg.content.split(/https?:\/\/[^\s]+/)[1]}</p>
+                            </div>
+                          ) : (
+                            msg.content
+                          )}
                         </div>
-                        <span className={`text - [10px] text - zinc - 600 mt - 1 mx - 1 font - medium transition - opacity opacity - 0 group - hover: opacity - 100`}>
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
+                        <div className={`flex items-center gap-1 text-[10px] mt-1 mx-1 font-medium transition-opacity opacity-0 group-hover:opacity-100 ${isMine ? "justify-end" : "justify-start text-zinc-600"}`}>
+                          <span className={isMine ? "text-white/70" : ""}>
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          {isMine && <span className="text-rankeao-neon-cyan/80">✓✓</span>}
+                        </div>
                       </div>
                     </div>
                   );

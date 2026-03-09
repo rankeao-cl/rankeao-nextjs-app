@@ -14,12 +14,12 @@ export default function NotFound() {
         </p>
         <div className="mt-8 flex justify-center gap-3 flex-wrap">
           <Link href="/">
-            <Button className="bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-bold">
+            <Button variant="primary" className="font-bold">
               Ir al inicio
             </Button>
           </Link>
           <Link href="/torneos">
-            <Button variant="outline" className="border-zinc-300/60 text-zinc-200">
+            <Button variant="secondary">
               Ver torneos
             </Button>
           </Link>

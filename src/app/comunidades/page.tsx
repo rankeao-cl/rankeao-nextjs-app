@@ -1,6 +1,6 @@
-import { Card, CardContent, Chip } from "@heroui/react";
+import { Card, Chip } from "@heroui/react";
 import TenantCard from "@/components/TenantCard";
-import { getTenants } from "@/lib/api";
+import { getTenants, type Tenant } from "@/lib/api";
 import ComunidadesFilters from "./ComunidadesFilters";
 
 export const metadata = {
@@ -35,13 +35,23 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
 
   let tenantsData;
   try {
-    tenantsData = await getTenants(filters).catch(() => null);
+    const raw = await getTenants(filters).catch(() => null);
+    // The API wraps response as { data: { tenants: [...] }, meta: {...} }
+    if (raw && typeof raw === "object" && "data" in raw) {
+      const inner = (raw as Record<string, unknown>).data as Record<string, unknown> | undefined;
+      tenantsData = {
+        tenants: (inner?.tenants ?? (raw as Record<string, unknown>).tenants ?? []) as Tenant[],
+        meta: (raw as Record<string, unknown>).meta as Record<string, unknown> | undefined,
+      };
+    } else {
+      tenantsData = raw;
+    }
   } catch {
     // silent
   }
 
   const tenants = tenantsData?.tenants ?? [];
-  const meta = tenantsData?.meta;
+  const meta = tenantsData?.meta as Record<string, number> | undefined;
   const totalPages = meta?.total_pages ?? 1;
 
   return (
@@ -90,10 +100,10 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
           </div>
         ) : (
           <Card className="surface-panel">
-            <CardContent className="py-16 text-center text-gray-500">
+            <Card.Content className="py-16 text-center text-gray-500">
               <p className="text-3xl mb-3">🏪</p>
               <p>No hay comunidades que coincidan con los filtros actuales.</p>
-            </CardContent>
+            </Card.Content>
           </Card>
         )}
       </section>

@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardContent, Input, Form } from "@heroui/react";
+import { Button, Card, Input, Form } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterForm() {
@@ -58,7 +58,7 @@ export default function RegisterForm() {
   return (
     <div className="rk-container py-14">
       <Card className="surface-panel max-w-md mx-auto">
-        <CardContent className="p-6 space-y-4">
+        <Card.Content className="p-6 space-y-4">
           <p className="kicker">Nuevo jugador</p>
           <h1 className="text-3xl font-bold text-white">Crear cuenta</h1>
 
@@ -112,7 +112,7 @@ export default function RegisterForm() {
               Inicia sesion
             </Link>
           </p>
-        </CardContent>
+        </Card.Content>
       </Card>
     </div>
   );

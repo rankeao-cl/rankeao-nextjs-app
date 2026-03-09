@@ -1,7 +1,7 @@
 import { getTournaments, getGames } from "@/lib/api";
-import TournamentCard from "@/components/TournamentCard";
+import { TournamentCard } from "@/components/cards";
 import TorneosFilters from "./TorneosFilters";
-import { Card, CardContent, Chip, Tabs } from "@heroui/react";
+import { Card, Chip, Tabs } from "@heroui/react";
 import type { Metadata } from "next";
 import type { CatalogGame, Tournament } from "@/lib/api";
 
@@ -29,16 +29,21 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   };
 }
 
+const tabConfig: Record<string, { apiStatus: string; sort: string; title: string }> = {
+  live: { apiStatus: "ROUND_IN_PROGRESS", sort: "recent", title: "En Curso" },
+  upcoming: { apiStatus: "OPEN,CHECK_IN", sort: "upcoming", title: "Próximos" },
+  past: { apiStatus: "FINISHED,CLOSED", sort: "recent", title: "Pasados" },
+};
+
 export default async function TorneosPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
+  const tab = (params.tab && tabConfig[params.tab]) ? params.tab : "upcoming";
+  const config = tabConfig[tab];
 
   let tournamentsData, gamesData;
 
-  const tab = params.tab === "past" ? "past" : "active";
-
-  // If tab is past, override status to show finished/closed if not explicitly set
-  const apiStatus = params.status || (tab === "past" ? "FINISHED,CLOSED" : "OPEN,CHECK_IN,ROUND_IN_PROGRESS");
+  const apiStatus = params.status || config.apiStatus;
 
   try {
     [tournamentsData, gamesData] = await Promise.all([
@@ -49,7 +54,7 @@ export default async function TorneosPage({ searchParams }: Props) {
         format: params.format,
         city: params.city,
         is_ranked: params.is_ranked === "true" ? true : undefined,
-        sort: tab === "past" ? "recent" : "upcoming",
+        sort: config.sort,
         page,
         per_page: 12,
       }).catch(() => null),
@@ -66,31 +71,43 @@ export default async function TorneosPage({ searchParams }: Props) {
   const games: CatalogGame[] = Array.isArray(rawGames) ? rawGames : [];
 
   return (
-    <div className="rk-container py-10 space-y-7">
-      <section className="surface-panel p-6 sm:p-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(248,250,252,0.16),transparent_35%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_80%,rgba(248,250,252,0.22),transparent_40%)]" />
+    <div className="p-4 lg:p-6 space-y-5 max-w-4xl mx-auto">
+      {/* Header */}
+      <section
+        className="p-5 sm:p-6 rounded-xl relative overflow-hidden"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
         <div className="relative">
-          <Chip size="sm" variant="soft" color="accent" className="mb-3">
+          <Chip size="sm" variant="soft" color="accent" className="mb-2">
             Agenda competitiva
           </Chip>
-          <h1 className="section-title mb-2">/ Torneos Activos y Proximos</h1>
-          <p className="section-subtitle">
-            Explora eventos en tiendas y comunidades locales. Filtra por juego, formato, ciudad y estado.
+          <h1 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+            Torneos
+          </h1>
+          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+            Torneos TCG activos, próximos y pasados en tiendas y comunidades de Chile.
           </p>
         </div>
       </section>
 
-      <section className="surface-panel p-4 sm:p-5">
-        <Tabs aria-label="Filtro de Temporada" selectedKey={tab} className="mb-4">
+      {/* Tabs + Filters */}
+      <section
+        className="p-4 rounded-xl"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
+        <Tabs aria-label="Tipo de Torneo" selectedKey={tab} className="mb-4">
           <Tabs.ListContainer>
             <Tabs.List>
-              <Tabs.Tab id="active" href="?tab=active">
-                Activos
+              <Tabs.Tab id="live" href="?tab=live">
+                🔴 En Curso
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="upcoming" href="?tab=upcoming">
+                📅 Próximos
                 <Tabs.Indicator />
               </Tabs.Tab>
               <Tabs.Tab id="past" href="?tab=past">
-                Pasados
+                🏆 Pasados
                 <Tabs.Indicator />
               </Tabs.Tab>
             </Tabs.List>
@@ -104,24 +121,30 @@ export default async function TorneosPage({ searchParams }: Props) {
         />
       </section>
 
+      {/* Results */}
       {tournaments.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {tournaments.map((t) => (
             <TournamentCard key={t.id} tournament={t} />
           ))}
         </div>
       ) : (
-        <Card className="surface-panel">
-          <CardContent className="py-16 text-center text-gray-500">
+        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <Card.Content className="py-16 text-center">
             <p className="text-4xl mb-4">🔍</p>
-            <p className="text-lg font-medium">No se encontraron torneos</p>
-            <p className="text-sm mt-1">Intenta ajustar los filtros de búsqueda</p>
-          </CardContent>
+            <p className="text-lg font-medium" style={{ color: "var(--foreground)" }}>
+              No se encontraron torneos
+            </p>
+            <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+              Intenta ajustar los filtros de búsqueda
+            </p>
+          </Card.Content>
         </Card>
       )}
 
+      {/* Pagination info */}
       {meta && meta.total > 0 && (
-        <p className="text-center text-gray-500 text-sm">
+        <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
           Mostrando página {meta.page} de {meta.total_pages} ({meta.total} torneos)
         </p>
       )}

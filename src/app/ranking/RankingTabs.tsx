@@ -2,8 +2,10 @@
 
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Tabs, Card, CardContent, Avatar, Chip, Select, ListBox } from "@heroui/react";
+import { Tabs, Card, Chip, Select, ListBox } from "@heroui/react";
 import LeaderboardTable from "@/components/LeaderboardTable";
+import { RankedAvatar } from "@/components/RankedAvatar";
+import { RankBadge } from "@/components/RankBadge";
 import type { LeaderboardEntry, CatalogFormat, CatalogGame } from "@/lib/api";
 
 const medals = ["", "🥇", "🥈", "🥉"];
@@ -14,10 +16,9 @@ function TopThreeCards({ entries, type }: { entries: LeaderboardEntry[]; type: "
 
   const order = top3.length >= 3 ? [1, 0, 2] : top3.map((_, i) => i);
   const sizes = ["h-32", "h-40", "h-28"];
-  const ringColors = ["ring-gray-400", "ring-zinc-200", "ring-zinc-500"];
 
   return (
-    <div className="flex items-end justify-center gap-4 sm:gap-6 mb-8">
+    <div className="flex items-end justify-center gap-2 sm:gap-6 mb-8">
       {order.map((idx, pos) => {
         const entry = top3[idx];
         if (!entry) return null;
@@ -25,26 +26,34 @@ function TopThreeCards({ entries, type }: { entries: LeaderboardEntry[]; type: "
         return (
           <div
             key={entry.user_id || idx}
-            className={`flex flex-col items-center ${sizes[pos]} justify-end`}
+            className={`flex flex-col items-center ${sizes[pos]} justify-end relative`}
           >
-            <span className="text-2xl mb-2">{medals[rank] || rank}</span>
-            <Avatar
-              size="lg"
-              className={`ring-2 ${ringColors[pos]} mb-2`}
-            >
-              <Avatar.Image src={entry.avatar_url ?? undefined} />
-              <Avatar.Fallback>
-                {entry.username?.charAt(0)?.toUpperCase()}
-              </Avatar.Fallback>
-            </Avatar>
-            <span className="text-white font-semibold text-sm truncate max-w-[80px] sm:max-w-[120px]">
+            <span className="text-2xl mb-2 drop-shadow-md">{medals[rank] || rank}</span>
+            <div className="mb-2">
+              <RankedAvatar
+                src={entry.avatar_url ?? undefined}
+                fallback={entry.username?.charAt(0)?.toUpperCase()}
+                elo={type === "rating" ? entry.rating : undefined}
+                size="lg"
+              />
+            </div>
+            <span className="font-bold text-sm truncate max-w-[80px] sm:max-w-[120px]" style={{ color: "var(--foreground)" }}>
               {entry.username}
             </span>
-            <Chip size="sm" color={type === "xp" ? "accent" : "success"} variant="soft" className="mt-1">
-              {type === "xp"
-                ? `${(entry.total_xp ?? 0).toLocaleString()} XP`
-                : `${entry.rating ?? "-"}`}
-            </Chip>
+            {type === "rating" ? (
+              <div className="mt-1">
+                <RankBadge elo={entry.rating} size="sm" showIcon={false} />
+              </div>
+            ) : (
+              <Chip size="sm" color="accent" variant="soft" className="mt-1 font-bold">
+                {(entry.total_xp ?? 0).toLocaleString()} XP
+              </Chip>
+            )}
+            {type === "rating" && (
+              <span className="text-xs font-bold mt-1" style={{ color: "var(--accent)" }}>
+                {entry.rating} ELO
+              </span>
+            )}
           </div>
         );
       })}
@@ -96,16 +105,16 @@ export default function RankingTabs({
       variant="secondary"
       selectedKey={selectedTab}
       onSelectionChange={(key) => updateFilter("tab", String(key))}
-      className="border-b border-zinc-500/30"
+      className="w-full"
     >
       <Tabs.ListContainer>
-        <Tabs.List aria-label="Ranking tabs" className="mb-4">
+        <Tabs.List aria-label="Ranking tabs">
           <Tabs.Tab id="xp">
             🏅 XP Global
             <Tabs.Indicator />
           </Tabs.Tab>
           <Tabs.Tab id="ratings">
-            ⚔️ Ratings por Juego
+            ⚔️ Ratings ELO
             <Tabs.Indicator />
           </Tabs.Tab>
         </Tabs.List>
@@ -118,11 +127,11 @@ export default function RankingTabs({
           {xpEntries.length > 0 ? (
             <LeaderboardTable entries={xpEntries} type="xp" />
           ) : (
-            <Card className="surface-panel">
-              <CardContent className="py-14 text-center text-gray-500">
+            <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <Card.Content className="py-14 text-center">
                 <p className="text-3xl mb-3">📊</p>
-                <p>No hay datos de leaderboard disponibles.</p>
-              </CardContent>
+                <p style={{ color: "var(--muted)" }}>No hay datos de leaderboard disponibles.</p>
+              </Card.Content>
             </Card>
           )}
         </div>
@@ -131,14 +140,17 @@ export default function RankingTabs({
       <Tabs.Panel id="ratings">
         <div className="mt-6 space-y-6">
           {games.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
               <Select
                 selectedKey={selectedGameSlug ?? null}
                 onSelectionChange={(key) => updateFilter("game", String(key ?? ""), true)}
                 placeholder="Seleccionar juego"
                 className="w-full"
               >
-                <Select.Trigger className="bg-black/35 border border-zinc-500/35 rounded-xl min-h-10 text-sm" />
+                <Select.Trigger
+                  className="min-h-10 text-sm rounded-xl"
+                  style={{ background: "var(--field-background)", border: "1px solid var(--border)" }}
+                />
                 <Select.Popover>
                   <ListBox>
                     {games.map((g) => (
@@ -157,7 +169,10 @@ export default function RankingTabs({
                 placeholder="Seleccionar formato"
                 className="w-full"
               >
-                <Select.Trigger className="bg-black/35 border border-zinc-500/35 rounded-xl min-h-10 text-sm" />
+                <Select.Trigger
+                  className="min-h-10 text-sm rounded-xl"
+                  style={{ background: "var(--field-background)", border: "1px solid var(--border)" }}
+                />
                 <Select.Popover>
                   <ListBox>
                     {formats.map((f) => (
@@ -176,11 +191,13 @@ export default function RankingTabs({
           {ratingEntries.length > 0 ? (
             <LeaderboardTable entries={ratingEntries} type="rating" />
           ) : (
-            <Card className="surface-panel">
-              <CardContent className="py-14 text-center text-gray-500">
+            <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <Card.Content className="py-14 text-center">
                 <p className="text-3xl mb-3">⚔️</p>
-                <p>Selecciona un juego y formato para ver el leaderboard de ratings.</p>
-              </CardContent>
+                <p style={{ color: "var(--muted)" }}>
+                  Selecciona un juego y formato para ver el leaderboard de ratings.
+                </p>
+              </Card.Content>
             </Card>
           )}
         </div>

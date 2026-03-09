@@ -3,7 +3,7 @@ import { Inter, Rajdhani } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import AppShell from "@/components/AppShell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const rajdhani = Rajdhani({
@@ -44,12 +44,12 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark" data-theme="dark">
       <body
-        className={`${inter.variable} ${rajdhani.variable} antialiased min-h-screen flex flex-col bg-rankeao-bg text-gray-100`}
+        className={`${inter.variable} ${rajdhani.variable} antialiased min-h-screen flex flex-col`}
+        style={{ background: "var(--background)", color: "var(--foreground)" }}
       >
         <Providers>
           <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

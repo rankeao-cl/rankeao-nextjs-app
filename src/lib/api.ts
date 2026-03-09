@@ -583,6 +583,14 @@ export async function getTenants(
   );
 }
 
+export async function getTenant(idOrSlug: string): Promise<{ tenant: Tenant }> {
+  return apiFetch<{ tenant: Tenant }>(
+    `/tenants/${idOrSlug}`,
+    undefined,
+    { revalidate: 60 }
+  );
+}
+
 // ---- Seasons ----
 export interface Season {
   id: string;

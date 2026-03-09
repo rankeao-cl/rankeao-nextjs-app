@@ -54,7 +54,7 @@ export default function Footer() {
             </p>
             <div className="mt-5">
               <Link href="/torneos">
-                <Button size="sm" className="bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold">
+                <Button variant="primary" size="sm" className="font-semibold">
                   Crear Torneo
                 </Button>
               </Link>

@@ -48,7 +48,13 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Buscar torneos..."
           defaultValue={currentFilters.q || ""}
           onChange={(e) => updateFilter("q", e.target.value)}
-          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full"
+          style={{
+            background: "var(--field-background)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.75rem",
+            color: "var(--field-foreground)",
+          }}
         />
 
         <Select
@@ -59,7 +65,10 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Estado"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger
+            className="min-h-10 text-sm rounded-xl"
+            style={{ background: "var(--field-background)", border: "1px solid var(--border)" }}
+          />
           <Select.Popover>
             <ListBox>
               {statusOptions.map((opt) => {
@@ -82,7 +91,10 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Juego"
           className="w-full"
         >
-          <Select.Trigger className="bg-black/30 border border-zinc-500/25 rounded-xl min-h-10 text-sm" />
+          <Select.Trigger
+            className="min-h-10 text-sm rounded-xl"
+            style={{ background: "var(--field-background)", border: "1px solid var(--border)" }}
+          />
           <Select.Popover>
             <ListBox>
               <ListBox.Item id="__all" textValue="Todos los juegos">
@@ -101,7 +113,13 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
           placeholder="Ciudad"
           defaultValue={currentFilters.city || ""}
           onChange={(e) => updateFilter("city", e.target.value)}
-          className="w-full rounded-xl border border-zinc-500/25 bg-black/30 px-3 text-sm text-gray-100"
+          className="w-full"
+          style={{
+            background: "var(--field-background)",
+            border: "1px solid var(--border)",
+            borderRadius: "0.75rem",
+            color: "var(--field-foreground)",
+          }}
         />
       </div>
 
@@ -109,7 +127,7 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
         <Checkbox
           isSelected={currentFilters.is_ranked === "true"}
           onChange={(checked) => updateFilter("is_ranked", checked ? "true" : "")}
-          className="text-gray-200 text-sm"
+          className="text-sm"
         >
           Solo Ranked ⭐
         </Checkbox>
@@ -136,7 +154,7 @@ export default function TorneosFilters({ games, currentFilters, totalPages, curr
             >
               Anterior
             </Button>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm" style={{ color: "var(--muted)" }}>
               {currentPage} / {totalPages}
             </span>
             <Button
