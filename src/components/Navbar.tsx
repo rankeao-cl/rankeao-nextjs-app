@@ -36,8 +36,8 @@ export default function Navbar() {
   useEffect(() => {
     if (status === "authenticated" && session?.accessToken) {
       Promise.all([
-        getNotifications({ limit: 10, token: session.accessToken }).catch(() => null),
-        getUnreadNotificationCount().catch(() => null),
+        getNotifications({ limit: 10 }, session.accessToken).catch(() => null),
+        getUnreadNotificationCount(session.accessToken).catch(() => null),
       ]).then(([notifRes, countRes]) => {
         if (notifRes && Array.isArray(notifRes.notifications)) {
           setNotifications(notifRes.notifications);
@@ -55,7 +55,7 @@ export default function Navbar() {
   const handleMarkAllRead = async () => {
     try {
       if (session?.accessToken) {
-        await markAllNotificationsRead();
+        await markAllNotificationsRead(session.accessToken);
         setUnreadCount(0);
         setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       }

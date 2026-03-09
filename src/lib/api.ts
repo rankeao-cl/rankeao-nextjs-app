@@ -23,9 +23,10 @@ function getAuthHeaders(): Record<string, string> {
     const rawSession = localStorage.getItem("rankeao.auth.session");
     if (rawSession) {
       const parsed = JSON.parse(rawSession);
-      const token = parsed.accessToken || parsed.token;
+      const token = parsed.accessToken || parsed.token || parsed.access_token;
       if (token) {
-        return { Authorization: `Bearer ${token}` };
+        const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+        return { Authorization: `Bearer ${cleanToken}` };
       }
     }
   } catch (error) {
@@ -51,8 +52,16 @@ async function apiFetch<T>(
   }
 
   const headers: Record<string, string> = { ...getAuthHeaders() };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+
+  let finalToken = token;
+  if (params && params.token && typeof params.token === "string") {
+    finalToken = params.token;
+    delete params.token;
+  }
+
+  if (finalToken) {
+    const cleanToken = finalToken.startsWith("Bearer ") ? finalToken.substring(7) : finalToken;
+    headers.Authorization = `Bearer ${cleanToken}`;
   }
 
   const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
@@ -235,12 +244,7 @@ export async function getUserFriends(username: string, params?: Record<string, a
 }
 
 export async function getProfile(token: string) {
-  const res = await fetch("/api/v1/users/me", {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("No se pudo cargar el perfil");
-  return res.json();
+  return apiFetch<any>("/social/users/me", undefined, { token, cache: "no-store" });
 }
 
 
@@ -504,14 +508,14 @@ export async function getProducts(params?: Record<string, string | number | bool
 }
 
 // ---- Notifications ----
-export async function getNotifications(params?: Record<string, any>) {
-  return apiFetch<any>("/notifications", params, { cache: "no-store" });
+export async function getNotifications(params?: Record<string, any>, token?: string) {
+  return apiFetch<any>("/notifications", params, { cache: "no-store", token });
 }
-export async function getUnreadNotificationCount() {
-  return apiFetch<any>("/notifications/unread-count", undefined, { cache: "no-store" });
+export async function getUnreadNotificationCount(token?: string) {
+  return apiFetch<any>("/notifications/unread-count", undefined, { cache: "no-store", token });
 }
-export async function markAllNotificationsRead() {
-  return apiPost<any>("/notifications/read-all", {});
+export async function markAllNotificationsRead(token?: string) {
+  return apiPost<any>("/notifications/read-all", {}, { token });
 }
 
 // ---- Cart & Checkout ----
