@@ -1,9 +1,6 @@
 import { toast } from "@heroui/react";
 
-const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "https://rankeao-go-gateway-production.up.railway.app/api/v1"
-).replace(/\/+$/, "");
+const BASE_URL = "https://api.rankeao.cl/api/v1";
 
 function showErrorToast(errMessage: string) {
   if (typeof window !== "undefined") {
@@ -64,6 +61,18 @@ async function apiFetch<T>(
     headers.Authorization = `Bearer ${cleanToken}`;
   }
 
+  if (typeof window !== "undefined") {
+    // Log básico para depuración de token en el cliente
+    // Muestra solo los primeros caracteres para no exponerlo completo
+    // eslint-disable-next-line no-console
+    console.log("[apiFetch] Request", {
+      endpoint,
+      url: url.toString(),
+      hasAuthorizationHeader: Boolean(headers.Authorization),
+      authorizationPreview: headers.Authorization?.slice(0, 25),
+    });
+  }
+
   const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
     headers,
   };
@@ -81,10 +90,13 @@ async function apiFetch<T>(
     try {
       const errorPayload = await res.json();
       if (typeof errorPayload === "object" && errorPayload !== null) {
-        if (typeof errorPayload.message === "string") {
-          message = errorPayload.message;
-        } else if (typeof errorPayload.error === "string") {
-          message = errorPayload.error;
+        const anyPayload = errorPayload as any;
+        if (typeof anyPayload.message === "string") {
+          message = anyPayload.message;
+        } else if (typeof anyPayload.error === "string") {
+          message = anyPayload.error;
+        } else if (anyPayload.error && typeof anyPayload.error.message === "string") {
+          message = anyPayload.error.message;
         } else {
           message = JSON.stringify(errorPayload);
         }
@@ -107,7 +119,8 @@ async function apiPost<T>(
     ...getAuthHeaders(),
   };
   if (options?.token) {
-    headers.Authorization = `Bearer ${options.token}`;
+    const cleanToken = options.token.startsWith("Bearer ") ? options.token.substring(7) : options.token;
+    headers.Authorization = `Bearer ${cleanToken}`;
   }
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
@@ -124,10 +137,13 @@ async function apiPost<T>(
     try {
       const errorPayload = await res.json();
       if (errorPayload && typeof errorPayload === "object") {
-        if (typeof errorPayload.message === "string") {
-          message = errorPayload.message;
-        } else if (typeof errorPayload.error === "string") {
-          message = errorPayload.error;
+        const anyPayload = errorPayload as any;
+        if (typeof anyPayload.message === "string") {
+          message = anyPayload.message;
+        } else if (typeof anyPayload.error === "string") {
+          message = anyPayload.error;
+        } else if (anyPayload.error && typeof anyPayload.error.message === "string") {
+          message = anyPayload.error.message;
         } else {
           message = JSON.stringify(errorPayload);
         }
@@ -672,7 +688,8 @@ async function apiPatch<T>(
     ...getAuthHeaders(),
   };
   if (options?.token) {
-    headers.Authorization = `Bearer ${options.token}`;
+    const cleanToken = options.token.startsWith("Bearer ") ? options.token.substring(7) : options.token;
+    headers.Authorization = `Bearer ${cleanToken}`;
   }
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
@@ -685,9 +702,14 @@ async function apiPatch<T>(
   if (!res.ok) {
     let message = `API error: ${res.status} ${res.statusText}`;
     try {
-      const errorPayload = (await res.json()) as { message?: string; error?: string };
-      if (errorPayload.message) message = errorPayload.message;
-      else if (errorPayload.error) message = errorPayload.error;
+      const errorPayload = (await res.json()) as { message?: string; error?: string | { message?: string } };
+      if (errorPayload.message) {
+        message = errorPayload.message;
+      } else if (typeof errorPayload.error === "string") {
+        message = errorPayload.error;
+      } else if (errorPayload.error && typeof (errorPayload.error as any).message === "string") {
+        message = (errorPayload.error as any).message;
+      }
     } catch { }
     showErrorToast(message);
     throw new Error(message);
@@ -705,7 +727,8 @@ async function apiDelete<T>(
     ...getAuthHeaders(),
   };
   if (options?.token) {
-    headers.Authorization = `Bearer ${options.token}`;
+    const cleanToken = options.token.startsWith("Bearer ") ? options.token.substring(7) : options.token;
+    headers.Authorization = `Bearer ${cleanToken}`;
   }
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
@@ -717,9 +740,14 @@ async function apiDelete<T>(
   if (!res.ok) {
     let message = `API error: ${res.status} ${res.statusText}`;
     try {
-      const errorPayload = (await res.json()) as { message?: string; error?: string };
-      if (errorPayload.message) message = errorPayload.message;
-      else if (errorPayload.error) message = errorPayload.error;
+      const errorPayload = (await res.json()) as { message?: string; error?: string | { message?: string } };
+      if (errorPayload.message) {
+        message = errorPayload.message;
+      } else if (typeof errorPayload.error === "string") {
+        message = errorPayload.error;
+      } else if (errorPayload.error && typeof (errorPayload.error as any).message === "string") {
+        message = (errorPayload.error as any).message;
+      }
     } catch { }
     showErrorToast(message);
     throw new Error(message);

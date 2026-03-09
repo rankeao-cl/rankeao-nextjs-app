@@ -76,6 +76,16 @@ function pickString(
   return undefined;
 }
 
+function cleanTokenString(token: string | undefined): string | undefined {
+  if (!token) return undefined;
+  const trimmed = token.trim();
+  if (trimmed.startsWith("Bearer ")) {
+    const withoutPrefix = trimmed.substring(7).trim();
+    return withoutPrefix.length > 0 ? withoutPrefix : undefined;
+  }
+  return trimmed;
+}
+
 function normalizeAuthSession(payload: unknown, fallbackEmail?: string): AuthSession {
   const root = asRecord(payload);
   const data = asRecord(root?.data);
@@ -91,8 +101,10 @@ function normalizeAuthSession(payload: unknown, fallbackEmail?: string): AuthSes
 
   const tokens = asRecord(data?.tokens) ?? asRecord(root?.tokens);
 
-  const accessToken = pickString([tokens, root, data], ["access_token", "accessToken", "token", "jwt"]);
-  const refreshToken = pickString([tokens, root, data], ["refresh_token", "refreshToken"]);
+  const rawAccessToken = pickString([tokens, root, data], ["access_token", "accessToken", "token", "jwt"]);
+  const rawRefreshToken = pickString([tokens, root, data], ["refresh_token", "refreshToken"]);
+  const accessToken = cleanTokenString(rawAccessToken);
+  const refreshToken = cleanTokenString(rawRefreshToken);
   const username = pickString([user, data, root], ["username", "name"]);
 
   return {
