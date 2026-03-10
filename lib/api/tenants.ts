@@ -64,3 +64,9 @@ export async function acceptStaffInvitation(invitationId: string, token?: string
 export async function declineStaffInvitation(invitationId: string, token?: string) {
     return apiPost<any>(`/tenants/staff/invitations/${invitationId}/decline`, {}, { token });
 }
+
+// ── Members (Community Features) ──
+
+export async function getTenantMembers(slug: string, params?: Params) {
+    return apiFetch<any>(`/tenants/${encodeURIComponent(slug)}/members`, params, { revalidate: 30 });
+}

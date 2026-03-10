@@ -15,6 +15,7 @@ export interface Tenant {
     banner_url?: string;
     is_public?: boolean;
     description?: string;
+    rules?: string;
     email?: string;
     phone?: string;
     website?: string;

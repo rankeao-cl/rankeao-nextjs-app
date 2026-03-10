@@ -357,9 +357,6 @@ export default function PerfilPage() {
                 <Button variant="primary" className="flex-1 font-bold">
                   <Person width={16} /> Editar Perfil
                 </Button>
-                <Button variant="secondary" className="font-bold flex-1" onPress={() => window.location.href = '/perfil/ajustes'}>
-                  ⚙️ Ajustes
-                </Button>
               </div>
 
             </Card.Content>

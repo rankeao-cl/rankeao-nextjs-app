@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { Avatar, Button, Card, Chip, Tabs } from "@heroui/react";
 import { RankedAvatar } from "@/components/RankedAvatar";
+import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
 import PostCard from "@/components/cards/PostCard";
 import DeckCard from "@/components/cards/DeckCard";
 import CollectionCard from "@/components/cards/CollectionCard";
@@ -13,7 +14,12 @@ import {
     getUserDecks,
     getUserCollection,
     getUserFriends,
+    getUserRatingHistory,
+    searchUsers,
 } from "@/lib/api/social";
+import { getListings } from "@/lib/api/marketplace";
+import { getUserStats } from "@/lib/api/gamification";
+import SaleCard from "@/components/cards/SaleCard";
 import { StarFill, Person, Envelope, Check, Cup } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -24,12 +30,18 @@ function getInitial(value: unknown) {
 }
 
 function toArray<T>(value: unknown): T[] {
-    if (Array.isArray((value as { data?: T[] })?.data)) return (value as { data: T[] }).data;
-    if (Array.isArray((value as { items?: T[] })?.items)) return (value as { items: T[] }).items;
-    if (Array.isArray((value as { activity?: T[] })?.activity)) return (value as { activity: T[] }).activity;
-    if (Array.isArray((value as { badges?: T[] })?.badges)) return (value as { badges: T[] }).badges;
-    if (Array.isArray((value as { decks?: T[] })?.decks)) return (value as { decks: T[] }).decks;
-    if (Array.isArray((value as { friends?: T[] })?.friends)) return (value as { friends: T[] }).friends;
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    const v = value as any;
+    if (Array.isArray(v.data)) return v.data;
+    if (Array.isArray(v.items)) return v.items;
+    if (Array.isArray(v.users)) return v.users;
+    if (Array.isArray(v.activity)) return v.activity;
+    if (Array.isArray(v.decks)) return v.decks;
+    if (Array.isArray(v.listings)) return v.listings;
+    if (Array.isArray(v.badges)) return v.badges;
+    if (Array.isArray(v.history)) return v.history;
+    if (Array.isArray(v.friends)) return v.friends;
     return [];
 }
 
@@ -50,31 +62,64 @@ export default function PublicProfilePage({
     const [collection, setCollection] = useState<any[]>([]);
     const [badges, setBadges] = useState<any[]>([]);
     const [friends, setFriends] = useState<any[]>([]);
+    const [listings, setListings] = useState<any[]>([]);
+    const [ratingHistory, setRatingHistory] = useState<any[]>([]);
+    const [gamiStats, setGamiStats] = useState<any>(null);
 
     useEffect(() => {
-        // Si somos el mismo usuario, redirigir a /perfil/me
-        if (session?.username?.toLowerCase() === usernameParam.toLowerCase()) {
-            router.replace("/perfil/me");
-            return;
-        }
-
         setLoading(true);
-        Promise.all([
-            getUserProfile(usernameParam).catch(() => null),
-            getUserActivity(usernameParam).catch(() => ({ activity: [] })),
-            getUserDecks(usernameParam).catch(() => ({ decks: [] })),
-            getUserCollection(usernameParam).catch(() => ({ items: [] })),
-            getUserBadges(usernameParam).catch(() => ({ badges: [] })),
-            getUserFriends(usernameParam).catch(() => ({ friends: [] })),
-        ]).then(([profileRes, activityRes, decksRes, colRes, badgesRes, friendsRes]) => {
-            if (profileRes) setProfile(profileRes);
-            setActivity(toArray(activityRes));
-            setDecks(toArray(decksRes));
-            setCollection(toArray(colRes));
-            setBadges(toArray(badgesRes));
-            setFriends(toArray(friendsRes));
-            setLoading(false);
-        });
+
+        const fetchData = async () => {
+            try {
+                // 1. Fetch profile first to get the UUID
+                const profileRes = await getUserProfile(usernameParam).catch(async (err) => {
+                    // Fallback: Si el perfil directo falla (ej. 500 con 'admin'), probar buscar por query
+                    const searchRes = await searchUsers({ q: usernameParam }).catch(() => ({ users: [] }));
+                    const found = toArray<any>(searchRes).find(u => u.username?.toLowerCase() === usernameParam.toLowerCase());
+                    return found || null;
+                });
+
+                if (!profileRes) {
+                    setProfile(null);
+                    setLoading(false);
+                    return;
+                }
+
+                setProfile(profileRes);
+                const userId = profileRes.id || profileRes.user_id;
+
+                // 2. Fetch all metadata using the UUID to avoid 404/500 router issues with usernames
+                const [activityRes, decksRes, colRes, badgesRes, friendsRes, historyRes, statsRes] = await Promise.all([
+                    getUserActivity(userId).catch(() => ({ data: [] })),
+                    getUserDecks(userId).catch(() => ({ data: [] })),
+                    getUserCollection(userId).catch(() => ({ data: [] })),
+                    getUserBadges(userId).catch(() => ({ badges: [] })),
+                    getUserFriends(userId).catch(() => ({ friends: [] })),
+                    getUserRatingHistory(userId).catch(() => ({ history: [] })),
+                    getUserStats(userId).catch(() => null),
+                ]);
+
+                setActivity(toArray(activityRes));
+                setDecks(toArray(decksRes));
+                setCollection(toArray(colRes));
+                setBadges(toArray(badgesRes));
+                setFriends(toArray(friendsRes));
+                setRatingHistory(historyRes?.history || historyRes?.data || []);
+                setGamiStats(statsRes);
+
+                // 3. Fetch listings (already uses ID but we use the confirmed one)
+                getListings({ seller_id: userId } as any)
+                    .then(res => setListings(res.listings || []))
+                    .catch(() => setListings([]));
+
+            } catch (error) {
+                console.error("Critical Profile Fetch Error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, [usernameParam, session, router]);
 
     if (loading) {
@@ -105,22 +150,28 @@ export default function PublicProfilePage({
 
     const name = profile?.name || profile?.username || usernameParam;
     const rawBio = profile?.bio || "Jugador competitivo de TCG chileno.";
-    const rating = profile?.rating || 1200;
+    const rating = gamiStats?.rating || profile?.rating || 1200;
+    const ranking = gamiStats?.ranking || profile?.ranking || "-";
+    const winrate = gamiStats?.winrate || profile?.winrate || "50";
+    const tournaments = gamiStats?.tournaments_played || profile?.tournaments_played || 0;
+
     const isPremium = profile?.is_premium || false;
     const bannerUrl = profile?.banner_url || "https://images.unsplash.com/photo-1616423640778-28d1b53229bd?auto=format&fit=crop&q=80&w=1200";
+
+    const isOwnProfile = session?.username === usernameParam;
 
     return (
         <div className="container mx-auto px-4 py-8 lg:py-12 max-w-5xl">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Columna Izquierda: HEADER DEL PERFIL */}
                 <div className="lg:col-span-1 space-y-6">
-                    <Card className="bg-rankeao-light/50 border border-rankeao-light shadow-xl relative overflow-hidden">
+                    <Card className="bg-[var(--surface)] border border-[var(--border)] shadow-xl relative overflow-hidden">
                         {/* Banner Personalizable */}
                         <div
                             className="absolute top-0 inset-x-0 h-32 bg-cover bg-center"
                             style={{ backgroundImage: `url('${bannerUrl}')` }}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-rankeao-light/95" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-[var(--surface)]" />
                         </div>
 
                         <Card.Content className="p-6 pt-16 text-center flex flex-col items-center relative z-10 w-full">
@@ -128,68 +179,98 @@ export default function PublicProfilePage({
                             <RankedAvatar
                                 elo={rating}
                                 size="lg"
-                                className="w-24 h-24 mb-4 ring-4 ring-black"
+                                className="w-24 h-24 mb-4 ring-4 ring-[var(--surface)] bg-[var(--surface)]"
                                 fallback={getInitial(name)}
                                 src={profile?.avatar_url}
                             />
-
                             {/* Nombre y Badges destacadas */}
-                            <div className="flex flex-col items-center gap-1 mb-2">
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-xl font-bold font-rajdhani text-white">{name}</h2>
-                                    {profile?.is_verified && <Check width={14} className="text-blue-400" />}
-                                </div>
-                                {isPremium && (
-                                    <Chip size="sm" variant="soft" className="bg-yellow-500/20 text-yellow-500 font-bold border-none px-1">
-                                        <div className="flex items-center gap-1"><StarFill width={12} /> Premium</div>
-                                    </Chip>
-                                )}
+                            <div className="flex flex-col items-center gap-1 mb-2 mt-1">
+                                <UserDisplayName
+                                    user={getUserRoleData(profile)}
+                                    className="text-2xl font-rajdhani"
+                                />
                             </div>
 
+                            {/* Chips de Juegos */}
+                            {profile?.games && profile.games.length > 0 ? (
+                                <div className="flex gap-2 justify-center mb-6 w-full flex-wrap">
+                                    {profile.games.map((game: any) => (
+                                        <Chip key={typeof game === 'string' ? game : game.id} size="sm" className="bg-[var(--surface-tertiary)] text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)]/50 transition-colors cursor-default">
+                                            {typeof game === 'string' ? game : game.name}
+                                        </Chip>
+                                    ))}
+                                </div>
+                            ) : null}
                             {/* Bio corta */}
-                            <p className="text-sm text-zinc-300 italic mb-4">"{rawBio}"</p>
+                            <p className="text-sm text-[var(--muted)] italic mb-4 max-w-[250px] leading-snug">"{rawBio}"</p>
 
                             {/* Tira de Estadísticas Rápidas */}
-                            <div className="flex flex-wrap justify-between gap-2 mb-5 border-y border-white/10 py-3 w-full px-2">
-                                <div className="text-center">
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">ELO</p>
-                                    <p className="text-sm font-bold text-rankeao-neon-cyan">{rating}</p>
+                            <div className="flex justify-between gap-1 mb-5 border-y border-[var(--border)] py-3 w-full px-1">
+                                <div className="text-center flex-1">
+                                    <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-0.5">ELO</p>
+                                    <p className="text-lg font-black font-rajdhani text-[var(--accent)]">{rating}</p>
                                 </div>
-                                <div className="w-[1px] bg-white/10"></div>
-                                <div className="text-center">
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Ranking</p>
-                                    <p className="text-sm font-bold text-white">#{profile?.ranking || 42}</p>
+                                <div className="w-[1px] bg-[var(--border)] my-1"></div>
+                                <div className="text-center flex-1">
+                                    <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-0.5">Ranking</p>
+                                    <p className="text-lg font-black font-rajdhani text-[var(--foreground)]">{ranking !== "-" ? `#${ranking}` : "-"}</p>
                                 </div>
-                                <div className="w-[1px] bg-white/10"></div>
-                                <div className="text-center">
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">W/L</p>
-                                    <p className="text-sm font-bold text-green-400">{profile?.winrate || "50"}%</p>
+                                <div className="w-[1px] bg-[var(--border)] my-1"></div>
+                                <div className="text-center flex-1">
+                                    <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-0.5">W/L</p>
+                                    <p className="text-lg font-black font-rajdhani text-green-500">{winrate}%</p>
                                 </div>
-                                <div className="w-[1px] bg-white/10"></div>
-                                <div className="text-center">
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Torneos</p>
-                                    <p className="text-sm font-bold text-white">{profile?.tournaments_played || 0}</p>
+                                <div className="w-[1px] bg-[var(--border)] my-1"></div>
+                                <div className="text-center flex-1">
+                                    <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-0.5">Torneos</p>
+                                    <p className="text-lg font-black font-rajdhani text-[var(--foreground)]">{tournaments}</p>
                                 </div>
                             </div>
 
-                            {/* Chips de Juegos (Íconos simulados por ahora usando tags simples) */}
-                            <div className="flex gap-2 justify-center mb-6 w-full flex-wrap">
-                                <Chip size="sm" variant="secondary" className="bg-zinc-800 text-zinc-300 border-none">
-                                    Pokemon
-                                </Chip>
-                                <Chip size="sm" variant="secondary" className="bg-zinc-800 text-zinc-300 border-none">
-                                    Magic
-                                </Chip>
-                            </div>
+                            {/* Chips de Juegos */}
+                            {profile?.games && profile.games.length > 0 ? (
+                                <div className="flex gap-2 justify-center mb-6 w-full flex-wrap">
+                                    {profile.games.map((game: string) => (
+                                        <Chip key={game} size="sm" className="bg-[var(--surface-tertiary)] text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)]/50 transition-colors cursor-default">
+                                            {game}
+                                        </Chip>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex gap-2 justify-center mb-6 w-full flex-wrap">
+                                    <Chip size="sm" className="bg-[var(--surface-tertiary)] text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)]/50 transition-colors font-semibold">
+                                        Pokémon
+                                    </Chip>
+                                    <Chip size="sm" className="bg-[var(--surface-tertiary)] text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)]/50 transition-colors font-semibold">
+                                        Magic
+                                    </Chip>
+                                </div>
+                            )}
 
                             {/* Botones de Acción */}
-                            <div className="flex gap-3 w-full mt-2">
-                                <Button variant="primary" className="flex-1 font-bold text-xs" onPress={() => { }}>
-                                    <Person width={14} /> {profile?.is_following ? "Dejar de seguir" : "Seguir"}
-                                </Button>
-                                <Button variant="secondary" className="flex-1 font-bold text-xs" onPress={() => { }}>
-                                    <Envelope width={14} /> Mensaje
-                                </Button>
+                            <div className="flex gap-2 w-full mt-2">
+                                {isOwnProfile ? (
+                                    <>
+                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-white hover:saturate-150 transition-all rounded-xl" onPress={() => router.push('/perfil/me')}>
+                                            <Person width={16} /> Dashboard
+                                        </Button>
+                                        <Button className="flex-1 font-bold bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl" onPress={() => router.push('/perfil/ajustes')}>
+                                            ⚙️ Ajustes
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-white hover:saturate-150 transition-all rounded-xl" onPress={() => { }}>
+                                            <Person width={16} /> Seguir
+                                        </Button>
+                                        <Button className="flex-1 font-bold bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl" onPress={() => { }}>
+                                            <Envelope width={16} /> Mensaje
+                                        </Button>
+                                        <Button isIconOnly className="bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl font-bold pb-2 text-xl">
+                                            ...
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </Card.Content>
                     </Card>
@@ -216,6 +297,10 @@ export default function PublicProfilePage({
                                     Torneos & Stats
                                     <Tabs.Indicator />
                                 </Tabs.Tab>
+                                <Tabs.Tab id="marketplace">
+                                    Marketplace
+                                    <Tabs.Indicator />
+                                </Tabs.Tab>
                                 <Tabs.Tab id="logros">
                                     Logros
                                     <Tabs.Indicator />
@@ -230,7 +315,7 @@ export default function PublicProfilePage({
                                     <PostCard key={post.id || i} post={post} />
                                 ))
                             ) : (
-                                <div className="text-center text-zinc-500 py-10 bg-rankeao-light/20 rounded-xl border border-white/5">
+                                <div className="text-center text-[var(--muted)] py-10 bg-[var(--surface-secondary)]/20 rounded-xl border border-[var(--border)]">
                                     <p>Aún no hay actividad reciente.</p>
                                 </div>
                             )}
@@ -244,7 +329,7 @@ export default function PublicProfilePage({
                                         <DeckCard key={deck.id || i} deck={deck} />
                                     ))
                                 ) : (
-                                    <div className="col-span-full text-center text-zinc-500 py-10 bg-rankeao-light/20 rounded-xl border border-white/5">
+                                    <div className="col-span-full text-center text-[var(--muted)] py-10 bg-[var(--surface-secondary)]/20 rounded-xl border border-[var(--border)]">
                                         <p>No ha publicado mazos todavía.</p>
                                     </div>
                                 )}
@@ -260,7 +345,7 @@ export default function PublicProfilePage({
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center text-zinc-500 py-10 bg-rankeao-light/20 rounded-xl border border-white/5">
+                                <div className="text-center text-[var(--muted)] py-10 bg-[var(--surface-secondary)]/20 rounded-xl border border-[var(--border)]">
                                     <p>Su colección es privada o no tiene cartas públicas.</p>
                                 </div>
                             )}
@@ -268,68 +353,83 @@ export default function PublicProfilePage({
 
                         {/* TAB: TORNEOS Y STATS */}
                         <Tabs.Panel id="stats" className="pt-4 space-y-6">
-                            <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                            <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                 <Card.Content className="p-6">
-                                    <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-4">
+                                    <h3 className="text-sm font-semibold text-[var(--foreground)] uppercase tracking-wide mb-4">
                                         Evolución ELO Histórica
                                     </h3>
-                                    <div className="min-h-[150px] flex items-center justify-center flex-col text-zinc-500 bg-black/30 rounded-lg p-4">
+                                    <div className="min-h-[150px] flex items-center justify-center flex-col text-[var(--muted)] bg-[var(--surface-secondary)]/30 rounded-lg p-4 border border-[var(--border)]">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 opacity-50 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                                         </svg>
-                                        <p className="text-xs text-center max-w-xs">(Gráfico analítico de evolución ELO y Winrate disponible en próxima versión)</p>
+                                        <p className="text-xs text-center max-w-xs">{ratingHistory.length > 0 ? "Historial cargado. Gráficos interactivos en desarrollo." : "(Sin historial de ranking disponible)"}</p>
                                     </div>
                                 </Card.Content>
                             </Card>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                                <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                     <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <p className="text-xl font-black font-rajdhani text-white">{profile?.tournaments_played || 0}</p>
-                                        <p className="text-[10px] text-zinc-400 font-sans uppercase">Participaciones</p>
+                                        <p className="text-xl font-black font-rajdhani text-[var(--foreground)]">{tournaments}</p>
+                                        <p className="text-[10px] text-[var(--muted)] font-sans uppercase">Participaciones</p>
                                     </Card.Content>
                                 </Card>
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                                <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                     <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <p className="text-xl font-black font-rajdhani text-white">{profile?.tournaments_won || 0}</p>
-                                        <p className="text-[10px] text-zinc-400 font-sans uppercase">Victorias</p>
+                                        <p className="text-xl font-black font-rajdhani text-[var(--foreground)]">{gamiStats?.tournaments_won || profile?.tournaments_won || 0}</p>
+                                        <p className="text-[10px] text-[var(--muted)] font-sans uppercase">Victorias</p>
                                     </Card.Content>
                                 </Card>
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                                <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                     <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <p className="text-xl font-black font-rajdhani text-white">{profile?.top_8 || 0}</p>
-                                        <p className="text-[10px] text-zinc-400 font-sans uppercase">Top 8</p>
+                                        <p className="text-xl font-black font-rajdhani text-[var(--foreground)]">{gamiStats?.top_8 || profile?.top_8 || 0}</p>
+                                        <p className="text-[10px] text-[var(--muted)] font-sans uppercase">Top 8</p>
                                     </Card.Content>
                                 </Card>
-                                <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                                <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                     <Card.Content className="p-4 flex flex-col items-center justify-center text-center w-full">
-                                        <p className="text-xl font-black font-rajdhani text-white">{profile?.winrate || "0"}%</p>
-                                        <p className="text-[10px] text-zinc-400 font-sans uppercase">WinRate Global</p>
+                                        <p className="text-xl font-black font-rajdhani text-[var(--foreground)]">{winrate}%</p>
+                                        <p className="text-[10px] text-[var(--muted)] font-sans uppercase">WinRate Global</p>
                                     </Card.Content>
                                 </Card>
                             </div>
                         </Tabs.Panel>
 
+                        {/* TAB: MARKETPLACE */}
+                        <Tabs.Panel id="marketplace" className="pt-4">
+                            {listings.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {listings.map((item, i) => (
+                                        <SaleCard key={item.id || i} listing={item} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center text-[var(--muted)] py-10 bg-[var(--surface-secondary)]/20 rounded-xl border border-[var(--border)]">
+                                    <p>No tiene productos en venta actualmente.</p>
+                                </div>
+                            )}
+                        </Tabs.Panel>
+
                         {/* TAB: LOGROS */}
                         <Tabs.Panel id="logros" className="pt-4">
-                            <Card className="bg-rankeao-light/50 border border-rankeao-light">
+                            <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                 <Card.Content className="p-6">
                                     {badges.length > 0 ? (
                                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                                             {badges.map((badge, i) => (
-                                                <div key={badge.id || i} className="flex flex-col items-center justify-center gap-2 p-3 bg-black/20 rounded-xl border border-white/5 hover:bg-black/40 transition">
-                                                    <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center overflow-hidden border-2 border-zinc-700">
+                                                <div key={badge.id || i} className="flex flex-col items-center justify-center gap-2 p-3 bg-[var(--surface-secondary)]/50 rounded-xl border border-[var(--border)] hover:bg-[var(--surface-secondary)] transition cursor-default">
+                                                    <div className="w-12 h-12 bg-[var(--surface-tertiary)] rounded-full flex items-center justify-center overflow-hidden border border-[var(--border)]">
                                                         {badge.icon_url ? <img src={badge.icon_url} alt={badge.name} className="w-full h-full object-cover" /> : <Cup />}
                                                     </div>
-                                                    <p className="text-[10px] text-white text-center font-bold tracking-tight">{badge.name || "Logro"}</p>
+                                                    <p className="text-[10px] text-[var(--foreground)] text-center font-bold tracking-tight">{badge.name || "Logro"}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center text-zinc-500 py-8 flex flex-col items-center gap-3">
-                                            <Cup className="w-8 h-8 opacity-40 mx-auto" />
-                                            <p className="text-sm">Aún no ha desbloqueado medallas u honores.</p>
-                                            <p className="text-[10px] text-zinc-500 max-w-sm">Los logros se obtienen al alcanzar hitos como "Primer Top 8", "Win Streak de 5 partidas" o participando en Pre-releases.</p>
+                                        <div className="text-center text-[var(--muted)] py-8 flex flex-col items-center gap-3">
+                                            <Cup className="w-8 h-8 opacity-40 mx-auto text-[var(--muted)]" />
+                                            <p className="text-sm font-semibold text-[var(--foreground)]">Aún no ha desbloqueado medallas u honores.</p>
+                                            <p className="text-[10px] text-[var(--muted)] max-w-sm">Los logros se obtienen al alcanzar hitos como "Primer Top 8", "Racha de 5 victorias" o participando en eventos.</p>
                                         </div>
                                     )}
                                 </Card.Content>
