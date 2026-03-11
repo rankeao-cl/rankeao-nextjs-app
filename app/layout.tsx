@@ -42,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark" data-theme="dark">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${rajdhani.variable} antialiased min-h-screen flex flex-col`}
         style={{ background: "var(--background)", color: "var(--foreground)" }}

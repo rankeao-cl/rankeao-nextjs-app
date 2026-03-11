@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, Button, Card, Chip, Input, Switch, Select, TextField, Label, Description, ListBox } from "@heroui/react";
+import { Avatar, Button, Card, Chip, Input, Switch, Select, TextField, Label, Description, ListBox, Form, toast } from "@heroui/react";
 import { Gear, ShieldExclamation, Person, Palette, Briefcase, Bell } from "@gravity-ui/icons";
+import { useTheme } from "next-themes";
+import { changePassword } from "@/lib/api/auth";
+import { getNotificationPreferences, updateNotificationPreferences } from "@/lib/api/notifications";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const TABS = [
     { id: "account", label: "Cuenta", icon: <Person className="size-4" /> },
@@ -15,7 +19,62 @@ const TABS = [
 
 export default function ConfigPage() {
     const { session, status } = useAuth();
+    const token = session?.accessToken;
     const [activeTab, setActiveTab] = useState("account");
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    const queryClient = useQueryClient();
+
+    // Passwords state
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+    // Notifications state
+    const { data: notifPrefs, isLoading: isLoadingPrefs } = useQuery({
+        queryKey: ["notificationPreferences"],
+        queryFn: () => getNotificationPreferences(token!),
+        enabled: !!token && activeTab === "notifications"
+    });
+
+    const updatePrefsMutation = useMutation({
+        mutationFn: (newPrefs: any) => updateNotificationPreferences(newPrefs, token!),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["notificationPreferences"] });
+            toast.success("Preferencias actualizadas");
+        },
+        onError: () => toast.danger("Error al actualizar preferencias")
+    });
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            toast.danger("Las contraseñas nuevas no coinciden");
+            return;
+        }
+        if (newPassword.length < 8) {
+            toast.danger("La nueva contraseña debe tener al menos 8 caracteres");
+            return;
+        }
+        try {
+            setIsChangingPassword(true);
+            await changePassword(currentPassword, newPassword, token!);
+            toast.success("Contraseña actualizada exitosamente");
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (err: any) {
+            toast.danger("Error al actualizar contraseña");
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
+
 
     if (status === "loading") {
         return (
@@ -118,29 +177,35 @@ export default function ConfigPage() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Select placeholder="Selecciona un tema" isDisabled defaultSelectedKey="dark">
-                                        <Label>Tema (WIP)</Label>
-                                        <Select.Trigger>
-                                            <Select.Value />
-                                            <Select.Indicator />
-                                        </Select.Trigger>
-                                        <Select.Popover>
-                                            <ListBox>
-                                                <ListBox.Item id="dark" textValue="Oscuro">
-                                                    Oscuro (Predeterminado)
-                                                    <ListBox.ItemIndicator />
-                                                </ListBox.Item>
-                                                <ListBox.Item id="light" textValue="Claro">
-                                                    Claro
-                                                    <ListBox.ItemIndicator />
-                                                </ListBox.Item>
-                                                <ListBox.Item id="system" textValue="Sistema">
-                                                    Igual al Sistema
-                                                    <ListBox.ItemIndicator />
-                                                </ListBox.Item>
-                                            </ListBox>
-                                        </Select.Popover>
-                                    </Select>
+                                    {mounted && (
+                                        <Select
+                                            placeholder="Selecciona un tema"
+                                            selectedKey={theme || "system"}
+                                            onSelectionChange={(key) => setTheme(key as string)}
+                                        >
+                                            <Label>Tema</Label>
+                                            <Select.Trigger>
+                                                <Select.Value />
+                                                <Select.Indicator />
+                                            </Select.Trigger>
+                                            <Select.Popover>
+                                                <ListBox>
+                                                    <ListBox.Item id="dark" textValue="Oscuro">
+                                                        Oscuro (Predeterminado)
+                                                        <ListBox.ItemIndicator />
+                                                    </ListBox.Item>
+                                                    <ListBox.Item id="light" textValue="Claro">
+                                                        Claro
+                                                        <ListBox.ItemIndicator />
+                                                    </ListBox.Item>
+                                                    <ListBox.Item id="system" textValue="Sistema">
+                                                        Igual al Sistema
+                                                        <ListBox.ItemIndicator />
+                                                    </ListBox.Item>
+                                                </ListBox>
+                                            </Select.Popover>
+                                        </Select>
+                                    )}
 
                                     <div className="p-4 rounded-xl flex items-center justify-between" style={{ background: "var(--surface-secondary)" }}>
                                         <div>
@@ -162,33 +227,40 @@ export default function ConfigPage() {
                                         <h2 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>Seguridad</h2>
                                         <p className="text-sm" style={{ color: "var(--muted)" }}>Protege el acceso a tu cuenta.</p>
                                     </div>
-                                    <Chip size="sm" color="warning" variant="soft">WIP</Chip>
                                 </div>
 
-                                <div className="space-y-4 opacity-50 pointer-events-none">
-                                    <TextField>
+                                <Form onSubmit={handleChangePassword} className="space-y-4">
+                                    <TextField isRequired>
                                         <Label>Contraseña Actual</Label>
                                         <Input
                                             type="password"
                                             variant="secondary"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
                                         />
                                     </TextField>
-                                    <TextField>
+                                    <TextField isRequired>
                                         <Label>Nueva Contraseña</Label>
                                         <Input
                                             type="password"
                                             variant="secondary"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
                                         />
                                     </TextField>
-                                    <TextField>
+                                    <TextField isRequired>
                                         <Label>Confirmar Contraseña</Label>
                                         <Input
                                             type="password"
                                             variant="secondary"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
                                         />
                                     </TextField>
-                                    <Button variant="secondary">Actualizar Contraseña</Button>
-                                </div>
+                                    <Button type="submit" variant="secondary" isDisabled={isChangingPassword}>
+                                        {isChangingPassword ? "Actualizando..." : "Actualizar Contraseña"}
+                                    </Button>
+                                </Form>
 
                                 <div className="pt-4 border-t" style={{ borderColor: "var(--border)" }}>
                                     <h3 className="text-danger font-bold text-sm mb-2">Zona de Riesgo</h3>
@@ -238,37 +310,70 @@ export default function ConfigPage() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--surface-secondary)" }}>
-                                        <div>
-                                            <span className="text-sm font-medium block">Torneos y Rondas</span>
-                                            <span className="text-xs text-[var(--muted)]">Cuándo te toca jugar y resultados.</span>
-                                        </div>
-                                        <Switch defaultSelected />
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--surface-secondary)" }}>
-                                        <div>
-                                            <span className="text-sm font-medium block">Marketplace</span>
-                                            <span className="text-xs text-[var(--muted)]">Ofertas recibidas y ventas.</span>
-                                        </div>
-                                        <Switch defaultSelected />
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--surface-secondary)" }}>
-                                        <div>
-                                            <span className="text-sm font-medium block">Social</span>
-                                            <span className="text-xs text-[var(--muted)]">Solicitudes de amistad y chat.</span>
-                                        </div>
-                                        <Switch defaultSelected />
-                                    </div>
-
-                                    <div className="pt-4 border-t border-[var(--separator)]">
-                                        <div className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)]">
-                                            <div>
-                                                <span className="text-sm font-bold block text-danger">Modo 'No Molestar'</span>
-                                                <span className="text-xs text-[var(--muted)]">Silencia todas las notificaciones temporales.</span>
+                                    {isLoadingPrefs ? (
+                                        <div className="flex justify-center p-4"><div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" /></div>
+                                    ) : (
+                                        <>
+                                            <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--surface-secondary)" }}>
+                                                <div>
+                                                    <span className="text-sm font-medium block">Torneos y Rondas</span>
+                                                    <span className="text-xs text-[var(--muted)]">Cuándo te toca jugar y resultados.</span>
+                                                </div>
+                                                <Switch
+                                                    isSelected={notifPrefs?.tournament_updates ?? true}
+                                                    onChange={(isSelected) => updatePrefsMutation.mutate({ tournament_updates: isSelected, match_reminders: isSelected })}
+                                                    isDisabled={updatePrefsMutation.isPending}
+                                                />
                                             </div>
-                                            <Switch />
-                                        </div>
-                                    </div>
+                                            <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--surface-secondary)" }}>
+                                                <div>
+                                                    <span className="text-sm font-medium block">Marketplace</span>
+                                                    <span className="text-xs text-[var(--muted)]">Ofertas recibidas y ventas.</span>
+                                                </div>
+                                                <Switch
+                                                    isSelected={notifPrefs?.marketplace_offers ?? true}
+                                                    onChange={(isSelected) => updatePrefsMutation.mutate({ marketplace_offers: isSelected, price_alerts: isSelected })}
+                                                    isDisabled={updatePrefsMutation.isPending}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: "var(--surface-secondary)" }}>
+                                                <div>
+                                                    <span className="text-sm font-medium block">Social</span>
+                                                    <span className="text-xs text-[var(--muted)]">Interacciones y solicitudes de amistad.</span>
+                                                </div>
+                                                <Switch
+                                                    isSelected={notifPrefs?.social_interactions ?? true}
+                                                    onChange={(isSelected) => updatePrefsMutation.mutate({ social_interactions: isSelected, clan_activity: isSelected })}
+                                                    isDisabled={updatePrefsMutation.isPending}
+                                                />
+                                            </div>
+
+                                            <div className="pt-4 border-t border-[var(--separator)]">
+                                                <div className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)]">
+                                                    <div>
+                                                        <span className="text-sm font-bold block text-danger">Modo 'No Molestar'</span>
+                                                        <span className="text-xs text-[var(--muted)]">Silencia todas las notificaciones.</span>
+                                                    </div>
+                                                    <Switch
+                                                        isSelected={notifPrefs && (!notifPrefs.tournament_updates && !notifPrefs.marketplace_offers && !notifPrefs.social_interactions && !notifPrefs.system_announcements)}
+                                                        onChange={(isSelected) => {
+                                                            const val = !isSelected;
+                                                            updatePrefsMutation.mutate({
+                                                                tournament_updates: val,
+                                                                match_reminders: val,
+                                                                marketplace_offers: val,
+                                                                price_alerts: val,
+                                                                social_interactions: val,
+                                                                clan_activity: val,
+                                                                system_announcements: val
+                                                            });
+                                                        }}
+                                                        isDisabled={updatePrefsMutation.isPending}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </Card.Content>
                         </Card>
