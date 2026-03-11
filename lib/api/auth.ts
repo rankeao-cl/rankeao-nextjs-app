@@ -30,6 +30,10 @@ export async function verifyEmail(token: string): Promise<unknown> {
     return apiPost<unknown>("/auth/verify-email", { token });
 }
 
+export async function resendVerification(email: string): Promise<unknown> {
+    return apiPost<unknown>("/auth/resend-verification", { email });
+}
+
 export async function changePassword(current_password: string, new_password: string, token?: string): Promise<unknown> {
     return apiPost<unknown>("/auth/change-password", { current_password, new_password }, { token });
 }

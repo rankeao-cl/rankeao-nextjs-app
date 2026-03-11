@@ -114,12 +114,17 @@ export default function LoginForm() {
             </Button>
           </Form>
 
-          <p className="text-xs text-gray-400">
-            No tienes cuenta?{" "}
-            <Link href="/register" className="text-zinc-200 hover:text-zinc-100">
-              Registrate aqui
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-gray-400">
+              No tienes cuenta?{" "}
+              <Link href="/register" className="text-zinc-200 hover:text-zinc-100">
+                Registrate aqui
+              </Link>
+            </p>
+            <Link href="/forgot-password" className="text-xs text-zinc-200 hover:text-zinc-100">
+              Olvide mi contrasena
             </Link>
-          </p>
+          </div>
         </Card.Content>
       </Card>
     </div>
