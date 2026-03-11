@@ -2,18 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { Avatar, Input, ScrollShadow, Skeleton, Button } from "@heroui/react";
-import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy } from "@gravity-ui/icons";
+import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy, Plus } from "@gravity-ui/icons";
 import type { Channel } from "@/lib/types/chat";
+import NewChatModal from "./NewChatModal";
 
 interface ChatSidebarProps {
     channels: Channel[];
     loading: boolean;
     selectedChannel: Channel | null;
     onSelectChannel: (channel: Channel) => void;
+    onChannelCreated: (channel: Channel) => void;
 }
 
-export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel }: ChatSidebarProps) {
+export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated }: ChatSidebarProps) {
     const [search, setSearch] = useState("");
+    const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
     const filteredChannels = useMemo(() => {
         if (!search.trim()) return channels;
@@ -70,9 +73,14 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
             <div className="p-5 border-b border-[var(--border)] flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-[var(--foreground)] tracking-wide">Tus Chats</h2>
-                    <Button isIconOnly variant="tertiary" className="text-[var(--muted)] min-w-8 w-8 h-8 rounded-lg">
-                        <Gear width={18} />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button isIconOnly variant="secondary" size="sm" className="w-8 h-8 rounded-lg text-white" onPress={() => setIsNewChatOpen(true)} aria-label="Nuevo Chat">
+                            <Plus width={18} />
+                        </Button>
+                        <Button isIconOnly variant="tertiary" size="sm" className="text-[var(--muted)] min-w-8 w-8 h-8 rounded-lg" aria-label="Ajustes de Chat">
+                            <Gear width={18} />
+                        </Button>
+                    </div>
                 </div>
                 <Input
                     placeholder="Buscar chats..."
@@ -125,6 +133,12 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     </>
                 )}
             </ScrollShadow>
+
+            <NewChatModal 
+                isOpen={isNewChatOpen} 
+                onOpenChange={setIsNewChatOpen} 
+                onChannelCreated={onChannelCreated} 
+            />
         </div>
     );
 }
