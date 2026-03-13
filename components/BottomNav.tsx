@@ -4,19 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     House,
-    Cup,
-    ShoppingCart,
-    Comment,
+    Medal,
+    ShoppingBag,
+    Bell,
     Person,
 } from "@gravity-ui/icons";
 
 import { useAuth } from "@/context/AuthContext";
 
 const tabs = [
-    { href: "/", label: "Feed", icon: House },
-    { href: "/torneos", label: "Torneos", icon: Cup },
-    { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
-    { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
+    { href: "/", label: "Home", icon: House },
+    { href: "/torneos", label: "Torneos", icon: Medal },
+    { href: "/comunidades", label: "Comunidades", icon: ShoppingBag },
+    { href: "/notificaciones", label: "Notificaciones", icon: Bell },
     { href: "/perfil/me", label: "Perfil", icon: Person, authRequired: true },
 ];
 
@@ -33,41 +33,52 @@ export default function BottomNav() {
 
     return (
         <nav
-            className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around border-t backdrop-blur-xl"
+            className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around rounded-t-2xl"
             style={{
-                background: "oklch(from var(--surface) l c h / 0.85)",
-                borderColor: "var(--border)",
+                background: "oklch(from var(--surface) l c h / 0.92)",
+                borderTop: "1px solid oklch(from var(--border) l c h / 0.5)",
+                backdropFilter: "blur(20px) saturate(1.4)",
+                WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+                boxShadow: "0 -2px 20px oklch(0% 0 0 / 0.06)",
             }}
         >
-            {filteredTabs.map((tab) => {
-                const Icon = tab.icon;
-                const active = isActive(tab.href);
+                {filteredTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const active = isActive(tab.href);
 
-                return (
-                    <Link
-                        key={tab.href}
-                        href={tab.href}
-                        className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 min-w-[56px] min-h-[44px] transition-colors ${active
-                            ? "text-[var(--accent)]"
-                            : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                            }`}
-                    >
-                        <Icon className={`size-5 ${active ? "drop-shadow-[0_0_6px_var(--accent)]" : ""}`} />
-                        <span
-                            className={`text-[10px] font-medium leading-tight ${active ? "font-semibold" : ""
-                                }`}
+                    return (
+                        <Link
+                            key={tab.href}
+                            href={tab.href}
+                            className="flex flex-col items-center justify-center gap-0.5 py-2.5 px-2 min-w-[52px] transition-colors relative"
+                            style={{
+                                color: active
+                                    ? "var(--accent)"
+                                    : "var(--muted)",
+                            }}
                         >
-                            {tab.label}
-                        </span>
-                        {active && (
-                            <div
-                                className="absolute top-0 h-[2px] w-8 rounded-b-full"
-                                style={{ background: "var(--accent)" }}
+                            <Icon
+                                className="size-[22px] transition-all duration-200"
+                                style={
+                                    active
+                                        ? {
+                                              filter: "drop-shadow(0 0 6px oklch(from var(--accent) l c h / 0.45))",
+                                          }
+                                        : undefined
+                                }
                             />
-                        )}
-                    </Link>
-                );
-            })}
+                            <span
+                                className="leading-tight whitespace-nowrap"
+                                style={{
+                                    fontSize: "10px",
+                                    fontWeight: active ? 600 : 500,
+                                }}
+                            >
+                                {tab.label}
+                            </span>
+                        </Link>
+                    );
+                })}
         </nav>
     );
 }

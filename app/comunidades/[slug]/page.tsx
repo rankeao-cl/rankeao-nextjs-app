@@ -217,7 +217,7 @@ export default async function StorePage({ params }: PageProps) {
                         <div className="flex flex-row sm:flex-col gap-3 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
                             <Button
                                 variant="primary"
-                                className="bg-[var(--accent)] text-white font-bold flex-1 sm:flex-none shadow-lg shadow-[var(--accent)]/30 hover:shadow-[var(--accent)]/50 transition-all hover:-translate-y-0.5"
+                                className="bg-[var(--accent)] text-[var(--accent-foreground)] font-bold flex-1 sm:flex-none shadow-lg shadow-[var(--accent)]/30 hover:shadow-[var(--accent)]/50 transition-all hover:-translate-y-0.5"
                             >
                                 <span className="flex items-center gap-2"><Plus className="size-4" /> Seguir</span>
                             </Button>
@@ -339,7 +339,7 @@ export default async function StorePage({ params }: PageProps) {
                                     <div className="flex justify-between items-center">
                                         <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Catálogo Destacado</h2>
                                         <Link href={`/marketplace?tenant=${storeSlug}`}>
-                                            <Button size="sm" variant="primary" className="font-semibold bg-[var(--accent)] text-white">
+                                            <Button size="sm" variant="primary" className="font-semibold bg-[var(--accent)] text-[var(--accent-foreground)]">
                                                 Ver todo <span className="hidden sm:inline">el inventario</span> &rarr;
                                             </Button>
                                         </Link>

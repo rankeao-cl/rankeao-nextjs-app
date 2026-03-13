@@ -79,7 +79,7 @@ export default function ConfigPage() {
     if (status === "loading") {
         return (
             <div className="flex justify-center items-center h-full min-h-[50vh]">
-                <div className="animate-pulse bg-zinc-800 rounded-xl w-32 h-32" />
+                <div className="animate-pulse bg-[var(--default)] rounded-xl w-32 h-32" />
             </div>
         );
     }
@@ -87,9 +87,9 @@ export default function ConfigPage() {
     if (status === "unauthenticated") {
         return (
             <div className="flex flex-col justify-center items-center h-full min-h-[50vh] space-y-4">
-                <ShieldExclamation className="size-16 text-zinc-500" />
+                <ShieldExclamation className="size-16 text-[var(--muted)]" />
                 <h2 className="text-xl font-bold">Inicia sesión</h2>
-                <p className="text-zinc-400">Debes iniciar sesión para editar tu configuración.</p>
+                <p className="text-[var(--muted)]">Debes iniciar sesión para editar tu configuración.</p>
             </div>
         );
     }

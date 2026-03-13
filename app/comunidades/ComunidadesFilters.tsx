@@ -180,7 +180,7 @@ export default function ComunidadesFilters({ currentFilters, totalPages, current
             >
               Anterior
             </Button>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-[var(--muted)]">
               {currentPage} / {totalPages}
             </span>
             <Button

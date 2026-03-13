@@ -32,7 +32,7 @@ export default function RulesModal({ rules }: RulesModalProps) {
                         </Modal.Body>
                         <Modal.Footer className="flex justify-end pt-4 border-t border-[var(--border)]">
                             <Modal.CloseTrigger>
-                                <Button variant="primary" className="bg-[var(--accent)] text-white font-bold">
+                                <Button variant="primary" className="bg-[var(--accent)] text-[var(--accent-foreground)] font-bold">
                                     Entendido
                                 </Button>
                             </Modal.CloseTrigger>
