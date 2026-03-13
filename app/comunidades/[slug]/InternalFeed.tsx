@@ -46,7 +46,7 @@ export default function InternalFeed({ posts }: FeedProps) {
                     </Select.Popover>
                 </Select>
 
-                <Button variant="primary" className="bg-[var(--accent)] text-white font-bold w-full sm:w-auto shadow-md">
+                <Button variant="primary" className="bg-[var(--accent)] text-[var(--accent-foreground)] font-bold w-full sm:w-auto shadow-md">
                     <Plus className="size-4 mr-1" />
                     Nueva Publicación
                 </Button>

@@ -10,7 +10,7 @@ function renderStars(rating?: number) {
   for (let i = 0; i < full; i++) stars.push("★");
   if (half) stars.push("☆");
   return (
-    <span className="text-zinc-200 text-sm tracking-wider">{stars.join("")}</span>
+    <span className="text-[var(--foreground)] text-sm tracking-wider">{stars.join("")}</span>
   );
 }
 
@@ -22,15 +22,15 @@ export default function TenantCard({ tenant }: { tenant: Tenant }) {
           <div className="flex items-center gap-3">
             <Avatar
               size="lg"
-              className="ring-2 ring-zinc-500/35 bg-zinc-700/30 shrink-0"
+              className="ring-2 ring-[var(--border)] bg-[var(--surface-secondary)] shrink-0"
             >
               <Avatar.Image src={tenant.logo_url || undefined} alt={tenant.name || "Tienda"} />
               <Avatar.Fallback>{tenant.name?.charAt(0)?.toUpperCase()}</Avatar.Fallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-white text-base truncate">{tenant.name}</h3>
+              <h3 className="font-bold text-[var(--foreground)] text-base truncate">{tenant.name}</h3>
               {tenant.city && (
-                <p className="text-gray-400 text-xs truncate font-medium">
+                <p className="text-[var(--muted)] text-xs truncate font-medium">
                   📍 {tenant.city}
                   {tenant.region ? `, ${tenant.region}` : ""}
                 </p>
@@ -42,7 +42,7 @@ export default function TenantCard({ tenant }: { tenant: Tenant }) {
             {tenant.rating != null && tenant.rating > 0 && (
               <div className="flex items-center gap-1">
                 {renderStars(tenant.rating)}
-                <span className="text-gray-300 text-xs font-semibold">
+                <span className="text-[var(--muted)] text-xs font-semibold">
                   ({tenant.review_count ?? 0})
                 </span>
               </div>
@@ -55,7 +55,7 @@ export default function TenantCard({ tenant }: { tenant: Tenant }) {
           </div>
 
           {tenant.description && (
-            <p className="text-gray-400 text-xs line-clamp-2">{tenant.description}</p>
+            <p className="text-[var(--muted)] text-xs line-clamp-2">{tenant.description}</p>
           )}
         </Card.Content>
       </Card>

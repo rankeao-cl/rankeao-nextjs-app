@@ -100,7 +100,7 @@ export default function PastTournamentCard({
                 </div>
 
                 {/* Podium */}
-                <div className="bg-black/20 rounded-xl p-3 space-y-2 border border-white/5">
+                <div className="bg-[var(--surface-secondary)] rounded-xl p-3 space-y-2 border border-[var(--border)]">
                     <p className="text-xs font-semibold" style={{ color: "var(--muted)" }}>Podio Final</p>
                     {loading ? (
                         <div className="flex justify-center py-4"><Spinner size="sm" /></div>

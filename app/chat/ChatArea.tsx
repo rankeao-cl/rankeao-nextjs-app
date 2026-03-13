@@ -184,7 +184,7 @@ export default function ChatArea({ selectedChannel }: ChatAreaProps) {
                         isIconOnly
                         type="submit"
                         isDisabled={!inputValue.trim() || isSending}
-                        className="rounded-xl w-12 h-12 min-w-12 bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white data-[disabled=true]:bg-[var(--surface-secondary)] data-[disabled=true]:text-[var(--muted)] transition-all shadow-lg"
+                        className="rounded-xl w-12 h-12 min-w-12 bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] data-[disabled=true]:bg-[var(--surface-secondary)] data-[disabled=true]:text-[var(--muted)] transition-all shadow-lg"
                     >
                         <PaperPlane width={18} />
                     </Button>

@@ -9,7 +9,7 @@ export default function NotFound() {
         <h1 className="hero-title text-4xl sm:text-6xl mb-4">
           TE PERDISTE EN <span className="hero-title-accent">EL META?</span>
         </h1>
-        <p className="text-gray-300 max-w-xl mx-auto">
+        <p className="text-[var(--muted)] max-w-xl mx-auto">
           Esta pagina no existe o fue rotada del formato actual. Vuelve al inicio y sigue compitiendo.
         </p>
         <div className="mt-8 flex justify-center gap-3 flex-wrap">

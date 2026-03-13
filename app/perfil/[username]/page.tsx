@@ -71,13 +71,42 @@ export default function PublicProfilePage({
 
         const fetchData = async () => {
             try {
-                // 1. Fetch profile first to get the UUID
-                const profileRes = await getUserProfile(usernameParam).catch(async (err) => {
-                    // Fallback: Si el perfil directo falla (ej. 500 con 'admin'), probar buscar por query
-                    const searchRes = await searchUsers({ q: usernameParam }).catch(() => ({ users: [] }));
-                    const found = toArray<any>(searchRes).find(u => u.username?.toLowerCase() === usernameParam.toLowerCase());
-                    return found || null;
-                });
+                // Helper to extract user object from various API response shapes
+                const extractUser = (json: any): any => {
+                    if (!json) return null;
+                    if (json.data?.user) return json.data.user;
+                    if (json.user) return json.user;
+                    if (json.data?.id) return json.data;
+                    if (json.id) return json;
+                    return null;
+                };
+
+                const API = "https://api.rankeao.cl/api/v1";
+
+                // Resolve the correctly-cased username first via search (public endpoint, no auth needed)
+                let resolvedUsername = usernameParam;
+                try {
+                    const searchRes = await fetch(`${API}/social/users/search?q=${encodeURIComponent(usernameParam)}`);
+                    if (searchRes.ok) {
+                        const json = await searchRes.json();
+                        const users = json.users || json.data?.users || json.data || [];
+                        const match = (Array.isArray(users) ? users : []).find(
+                            (u: any) => u.username?.toLowerCase() === usernameParam.toLowerCase()
+                        );
+                        if (match?.username) {
+                            resolvedUsername = match.username;
+                        }
+                    }
+                } catch { /* search failed, proceed with original */ }
+
+                // Fetch full profile with correctly-cased username
+                let profile: any = null;
+                try {
+                    const raw = await getUserProfile(resolvedUsername);
+                    profile = extractUser(raw);
+                } catch { /* profile fetch failed */ }
+
+                const profileRes = profile;
 
                 if (!profileRes) {
                     setProfile(null);
@@ -86,17 +115,21 @@ export default function PublicProfilePage({
                 }
 
                 setProfile(profileRes);
-                const userId = profileRes.id || profileRes.user_id;
+                const username = profileRes.username || resolvedUsername;
+                const userUUID = profileRes.id || profileRes.user_id;
 
-                // 2. Fetch all metadata using the UUID to avoid 404/500 router issues with usernames
+                // 2. Fetch all metadata (social endpoints use username, gamification uses UUID)
                 const [activityRes, decksRes, colRes, badgesRes, friendsRes, historyRes, statsRes] = await Promise.all([
-                    getUserActivity(userId).catch(() => ({ data: [] })),
-                    getUserDecks(userId).catch(() => ({ data: [] })),
-                    getUserCollection(userId).catch(() => ({ data: [] })),
-                    getUserBadges(userId).catch(() => ({ badges: [] })),
-                    getUserFriends(userId).catch(() => ({ friends: [] })),
-                    getUserRatingHistory(userId).catch(() => ({ history: [] })),
-                    getUserStats(userId).catch(() => null),
+                    getUserActivity(username).catch(() => ({ data: [] })),
+                    getUserDecks(username).catch(() => ({ data: [] })),
+                    getUserCollection(username).catch(() => ({ data: [] })),
+                    getUserBadges(username).catch(() => ({ badges: [] })),
+                    getUserFriends(username).catch(() => ({ friends: [] })),
+                    getUserRatingHistory(username).catch(() => ({ history: [] })),
+                    // Gamification uses UUID — use silent fetch to avoid error toast on 500
+                    userUUID
+                        ? fetch(`${API}/gamification/users/${userUUID}/stats`).then(r => r.ok ? r.json() : null).catch(() => null)
+                        : Promise.resolve(null),
                 ]);
 
                 setActivity(toArray(activityRes));
@@ -107,10 +140,12 @@ export default function PublicProfilePage({
                 setRatingHistory(historyRes?.history || historyRes?.data || []);
                 setGamiStats(statsRes);
 
-                // 3. Fetch listings (already uses ID but we use the confirmed one)
-                getListings({ seller_id: userId } as any)
-                    .then(res => setListings(res.listings || []))
-                    .catch(() => setListings([]));
+                // 3. Fetch listings (uses UUID for seller_id)
+                if (userUUID) {
+                    getListings({ seller_id: userUUID } as any)
+                        .then(res => setListings(res.listings || []))
+                        .catch(() => setListings([]));
+                }
 
             } catch (error) {
                 console.error("Critical Profile Fetch Error:", error);
@@ -131,7 +166,7 @@ export default function PublicProfilePage({
                     fill="none"
                     viewBox="0 0 24 24"
                 />
-                <p className="text-zinc-500 font-sans text-sm">Cargando perfil de {usernameParam}...</p>
+                <p className="text-[var(--muted)] font-sans text-sm">Cargando perfil de {usernameParam}...</p>
             </div>
         );
     }
@@ -139,8 +174,8 @@ export default function PublicProfilePage({
     if (!profile) {
         return (
             <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
-                <h2 className="text-xl font-bold font-rajdhani text-zinc-300">Usuario no encontrado</h2>
-                <p className="text-zinc-500 font-sans">El perfil al que intentas acceder no existe o es privado.</p>
+                <h2 className="text-xl font-bold font-rajdhani text-[var(--foreground)]">Usuario no encontrado</h2>
+                <p className="text-[var(--muted)] font-sans">El perfil al que intentas acceder no existe o es privado.</p>
                 <Button variant="secondary" onPress={() => router.push("/")}>
                     Volver al Inicio
                 </Button>
@@ -218,7 +253,7 @@ export default function PublicProfilePage({
                                 <div className="w-[1px] bg-[var(--border)] my-1"></div>
                                 <div className="text-center flex-1">
                                     <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-bold mb-0.5">W/L</p>
-                                    <p className="text-lg font-black font-rajdhani text-green-500">{winrate}%</p>
+                                    <p className="text-lg font-black font-rajdhani text-[var(--success)]">{winrate}%</p>
                                 </div>
                                 <div className="w-[1px] bg-[var(--border)] my-1"></div>
                                 <div className="text-center flex-1">
@@ -251,7 +286,7 @@ export default function PublicProfilePage({
                             <div className="flex gap-2 w-full mt-2">
                                 {isOwnProfile ? (
                                     <>
-                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-white hover:saturate-150 transition-all rounded-xl" onPress={() => router.push('/perfil/me')}>
+                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-[var(--accent-foreground)] hover:saturate-150 transition-all rounded-xl" onPress={() => router.push('/perfil/me')}>
                                             <Person width={16} /> Dashboard
                                         </Button>
                                         <Button className="flex-1 font-bold bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl" onPress={() => router.push('/perfil/ajustes')}>
@@ -260,7 +295,7 @@ export default function PublicProfilePage({
                                     </>
                                 ) : (
                                     <>
-                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-white hover:saturate-150 transition-all rounded-xl" onPress={() => { }}>
+                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-[var(--accent-foreground)] hover:saturate-150 transition-all rounded-xl" onPress={() => { }}>
                                             <Person width={16} /> Seguir
                                         </Button>
                                         <Button className="flex-1 font-bold bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl" onPress={() => { }}>

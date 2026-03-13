@@ -49,7 +49,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     </Avatar>
                     {(channel.unread_count ?? 0) > 0 && (
                         <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 rounded-full border-2 border-black flex items-center justify-center shadow-lg">
-                            <span className="text-[10px] font-bold text-white">{(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}</span>
+                            <span className="text-[10px] font-bold text-[var(--accent-foreground)]">{(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}</span>
                         </div>
                     )}
                 </div>
@@ -74,7 +74,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-[var(--foreground)] tracking-wide">Tus Chats</h2>
                     <div className="flex items-center gap-1">
-                        <Button isIconOnly variant="secondary" size="sm" className="w-8 h-8 rounded-lg text-white" onPress={() => setIsNewChatOpen(true)} aria-label="Nuevo Chat">
+                        <Button isIconOnly variant="secondary" size="sm" className="w-8 h-8 rounded-lg text-[var(--foreground)]" onPress={() => setIsNewChatOpen(true)} aria-label="Nuevo Chat">
                             <Plus width={18} />
                         </Button>
                         <Button isIconOnly variant="tertiary" size="sm" className="text-[var(--muted)] min-w-8 w-8 h-8 rounded-lg" aria-label="Ajustes de Chat">

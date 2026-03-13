@@ -42,7 +42,7 @@ export function RankedAvatar({ src, fallback, elo, rank: propRank, size = "md", 
             </Avatar>
             {/* Small rank icon overlay at the bottom right */}
             <div
-                className={`absolute -bottom-1 -right-1 z-10 bg-black/80 rounded-full border border-zinc-700 flex items-center justify-center shadow-sm ${isHighRank ? "animate-bounce-subtle" : ""}`}
+                className={`absolute -bottom-1 -right-1 z-10 bg-[var(--surface)] rounded-full border border-[var(--border)] flex items-center justify-center shadow-sm ${isHighRank ? "animate-bounce-subtle" : ""}`}
                 style={{ width: size === "sm" ? "16px" : size === "md" ? "20px" : "24px", height: size === "sm" ? "16px" : size === "md" ? "20px" : "24px", fontSize: size === "sm" ? "10px" : size === "md" ? "12px" : "14px" }}
             >
                 {rank.icon}

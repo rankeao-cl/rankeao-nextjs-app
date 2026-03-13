@@ -7,7 +7,7 @@ import { RankBadge } from "./RankBadge";
 import { UserDisplayName, getUserRoleData } from "./UserIdentity";
 import Link from "next/link";
 
-const medalColors = ["", "text-yellow-400", "text-zinc-300", "text-amber-700"];
+const medalColors = ["", "text-yellow-400", "text-[var(--muted)]", "text-amber-700"];
 const medalEmoji = ["", "🥇", "🥈", "🥉"];
 
 interface Props {

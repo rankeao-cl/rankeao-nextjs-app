@@ -36,7 +36,7 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar carta, juego o tienda..."
-                className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border)] shadow-none text-white px-3 py-2 rounded-xl"
+                className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border)] shadow-none text-[var(--foreground)] px-3 py-2 rounded-xl"
             />
             <Button
                 type="submit"

@@ -83,7 +83,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader }: ChatM
                 <div
                     className={`px-4 py-2.5 shadow-sm text-[15px] leading-relaxed relative
             ${isMine
-                            ? "bg-[var(--accent)] text-white rounded-2xl rounded-tr-sm shadow-[0_4px_15px_rgba(var(--accent-rgb),0.2)]"
+                            ? "bg-[var(--accent)] text-[var(--accent-foreground)] rounded-2xl rounded-tr-sm shadow-[0_4px_15px_rgba(var(--accent-rgb),0.2)]"
                             : "bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl rounded-tl-sm"
                         }`}
                 >
