@@ -185,6 +185,20 @@ export default function Navbar() {
                 >
                   {mounted && (isDark ? <Sun className="size-4" /> : <Moon className="size-4" />)}
                 </Button>
+
+                {/* Logout (mobile) */}
+                {isAuthenticated && (
+                  <Button
+                    isIconOnly
+                    variant="tertiary"
+                    size="sm"
+                    className="text-[var(--muted)]"
+                    onPress={logout}
+                    aria-label="Cerrar sesión"
+                  >
+                    <ArrowRightFromSquare className="size-4" />
+                  </Button>
+                )}
               </div>
 
               {/* Desktop actions (md+) */}

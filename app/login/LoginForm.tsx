@@ -64,11 +64,11 @@ export default function LoginForm() {
       <Card className="surface-panel max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Acceso</p>
-          <h1 className="text-3xl font-bold text-white">Iniciar sesion</h1>
+          <h1 className="text-3xl font-bold text-foreground">Iniciar sesión</h1>
 
           {status === "authenticated" && session?.email ? (
-            <p className="rounded-lg border border-zinc-300/30 bg-zinc-300/10 px-3 py-2 text-sm text-zinc-100">
-              Sesion activa como {session.email}
+            <p className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-secondary)] px-3 py-2 text-sm text-foreground">
+              Sesión activa como {session.email}
             </p>
           ) : null}
 
@@ -99,31 +99,31 @@ export default function LoginForm() {
                 className="absolute right-1 top-1/2 -translate-y-1/2"
                 onPress={() => setIsVisible(!isVisible)}
               >
-                {isVisible ? <Eye className="size-4" /> : <EyeSlash className="size-4" />}
+                {isVisible ? <Eye className="size-4 text-foreground" /> : <EyeSlash className="size-4 text-foreground" />}
               </Button>
             </div>
 
-            {error ? <p className="text-sm text-zinc-200">{error}</p> : null}
+            {error ? <p className="text-sm text-danger">{error}</p> : null}
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
+              className="w-full font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
               isDisabled={isSubmitting}
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
           </Form>
 
-          <div className="flex justify-between items-center">
-            <p className="text-xs text-gray-400">
-              No tienes cuenta?{" "}
-              <Link href="/register" className="text-zinc-200 hover:text-zinc-100">
-                Registrate aqui
-              </Link>
-            </p>
-            <Link href="/forgot-password" className="text-xs text-zinc-200 hover:text-zinc-100">
-              Olvide mi contrasena
+          <div className="flex flex-col gap-2 mt-6 items-center w-full">
+            <Link href="/forgot-password" className="text-xs text-accent-glow hover:underline font-semibold text-center">
+              Olvidé mi contraseña
             </Link>
+            <div className="text-xs text-muted text-center">
+              No tienes cuenta?{' '}
+              <Link href="/register" className="text-accent-glow hover:underline font-semibold">
+                Regístrate
+              </Link>
+            </div>
           </div>
         </Card.Content>
       </Card>

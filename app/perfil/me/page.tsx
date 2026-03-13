@@ -59,10 +59,16 @@ export default function PerfilMePage() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="flex flex-col items-center gap-4 text-center px-4">
-        <p className="text-lg font-semibold text-[var(--foreground)]">Inicia sesión para ver tu perfil</p>
-        <a href="/login" className="text-sm font-semibold text-[var(--accent)] hover:underline">
-          Ir al login →
-        </a>
+        <p className="text-lg font-semibold text-[var(--foreground)]">Inicia sesión o regístrate para ver tu perfil</p>
+        <div className="flex gap-3">
+          <a href="/login" className="text-sm font-semibold text-[var(--accent)] hover:underline">
+            Iniciar sesión
+          </a>
+          <span className="text-sm text-[var(--muted)]">|</span>
+          <a href="/register" className="text-sm font-semibold text-[var(--accent)] hover:underline">
+            Registrarse
+          </a>
+        </div>
       </div>
     </div>
   );

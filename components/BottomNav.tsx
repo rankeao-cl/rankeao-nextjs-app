@@ -17,7 +17,7 @@ const tabs = [
     { href: "/torneos", label: "Torneos", icon: Medal },
     { href: "/comunidades", label: "Comunidades", icon: ShoppingBag },
     { href: "/notificaciones", label: "Notificaciones", icon: Bell, authRequired: true },
-    { href: "/perfil/me", label: "Perfil", icon: Person, authRequired: true },
+    { href: "/perfil/me", label: "Perfil", icon: Person, },
 ];
 
 export default function BottomNav() {

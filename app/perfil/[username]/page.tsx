@@ -83,7 +83,6 @@ export default function PublicProfilePage({
 
                 const API = "https://api.rankeao.cl/api/v1";
 
-                // Resolve the correctly-cased username first via search (public endpoint, no auth needed)
                 let resolvedUsername = usernameParam;
                 try {
                     const searchRes = await fetch(`${API}/social/users/search?q=${encodeURIComponent(usernameParam)}`);
@@ -140,7 +139,6 @@ export default function PublicProfilePage({
                 setRatingHistory(historyRes?.history || historyRes?.data || []);
                 setGamiStats(statsRes);
 
-                // 3. Fetch listings (uses UUID for seller_id)
                 if (userUUID) {
                     getListings({ seller_id: userUUID } as any)
                         .then(res => setListings(res.listings || []))
@@ -311,7 +309,6 @@ export default function PublicProfilePage({
                     </Card>
                 </div>
 
-                {/* Columna Derecha: TABS DEL PERFIL */}
                 <div className="lg:col-span-2 space-y-6">
                     <Tabs variant="secondary">
                         <Tabs.ListContainer className="overflow-x-auto overflow-y-hidden pb-1 no-scrollbar">
@@ -343,7 +340,6 @@ export default function PublicProfilePage({
                             </Tabs.List>
                         </Tabs.ListContainer>
 
-                        {/* TAB: ACTIVIDAD (FEED PERSONAL) */}
                         <Tabs.Panel id="actividad" className="pt-4 space-y-4">
                             {activity.length > 0 ? (
                                 activity.map((post, i) => (
@@ -356,7 +352,6 @@ export default function PublicProfilePage({
                             )}
                         </Tabs.Panel>
 
-                        {/* TAB: MAZOS */}
                         <Tabs.Panel id="mazos" className="pt-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {decks.length > 0 ? (
@@ -371,7 +366,6 @@ export default function PublicProfilePage({
                             </div>
                         </Tabs.Panel>
 
-                        {/* TAB: COLECCION */}
                         <Tabs.Panel id="coleccion" className="pt-4">
                             {collection.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -386,7 +380,6 @@ export default function PublicProfilePage({
                             )}
                         </Tabs.Panel>
 
-                        {/* TAB: TORNEOS Y STATS */}
                         <Tabs.Panel id="stats" className="pt-4 space-y-6">
                             <Card className="bg-[var(--surface)] border border-[var(--border)]">
                                 <Card.Content className="p-6">
