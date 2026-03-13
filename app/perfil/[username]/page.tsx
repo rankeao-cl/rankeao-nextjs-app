@@ -284,11 +284,11 @@ export default function PublicProfilePage({
                             <div className="flex gap-2 w-full mt-2">
                                 {isOwnProfile ? (
                                     <>
-                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-[var(--accent-foreground)] hover:saturate-150 transition-all rounded-xl" onPress={() => router.push('/perfil/me')}>
-                                            <Person width={16} /> Dashboard
+                                        <Button className="flex-1 font-bold bg-[var(--accent)] text-[var(--accent-foreground)] hover:saturate-150 transition-all rounded-xl">
+                                            <Person width={16} /> Editar Perfil
                                         </Button>
-                                        <Button className="flex-1 font-bold bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl" onPress={() => router.push('/perfil/ajustes')}>
-                                            ⚙️ Ajustes
+                                        <Button className="flex-1 font-bold bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-tertiary)] rounded-xl" onPress={() => router.push('/config')}>
+                                            Ajustes
                                         </Button>
                                     </>
                                 ) : (

@@ -72,15 +72,6 @@ export default function NotificacionesPage() {
               Aquí encontrarás todas las actualizaciones relevantes, desde interacciones sociales hasta novedades de torneos y el marketplace.
             </p>
           </div>
-
-          <div className="hidden md:flex flex-col gap-2 min-w-[200px]">
-            {/* Destacados placeholder */}
-            <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
-              <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Destacados</p>
-              <p className="text-sm font-medium text-[var(--foreground)]">Próximos lanzamientos <span className="text-[var(--accent)] inline-block ml-1">&rarr;</span></p>
-            </div>
-          </div>
         </div>
       </section>
       <div className="p-5 sm:p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
@@ -103,7 +94,17 @@ export default function NotificacionesPage() {
                   {!notif.is_read && (
                     <div className="absolute top-3 left-1 w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
                   )}
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${notif.type === "social" ? "bg-blue-500/15 text-blue-500" : notif.type === "marketplace" ? "bg-orange-500/15 text-orange-500" : notif.type === "tournament" ? "bg-purple-500/15 text-purple-500" : "bg-[var(--default)] text-[var(--muted)]"}`}>
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
+                      ${notif.type === "social"
+                        ? "bg-[var(--accent)]/15 text-[var(--accent)]"
+                        : notif.type === "marketplace"
+                        ? "bg-[var(--success)]/15 text-[var(--success)]"
+                        : notif.type === "tournament"
+                        ? "bg-[var(--warning)]/15 text-[var(--warning)]"
+                        : "bg-[var(--default)] text-[var(--muted)]"}
+                    `}
+                  >
                     {notif.type === "social" && <Person className="size-4" />}
                     {notif.type === "marketplace" && <ShoppingCart className="size-4" />}
                     {notif.type === "tournament" && <StarFill className="size-4" />}

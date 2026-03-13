@@ -51,19 +51,19 @@ export default function VerifyEmailForm() {
       <Card className="surface-panel max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Verificacion</p>
-          <h1 className="text-3xl font-bold text-white">Verificar email</h1>
+          <h1 className="text-3xl font-bold text-foreground">Verificar email</h1>
 
           {status === "loading" && (
-            <p className="text-sm text-gray-400">Verificando...</p>
+            <p className="text-sm text-muted">Verificando...</p>
           )}
 
           {status === "success" && (
             <>
-              <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-300">
+              <p className="rounded-lg border border-[color:var(--success)]/30 bg-[color:var(--success)]/10 px-3 py-2 text-sm text-success">
                 Tu email ha sido verificado exitosamente.
               </p>
               <Link href="/">
-                <Button className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold">
+                <Button className="w-full font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]">
                   Ir al inicio
                 </Button>
               </Link>
@@ -72,12 +72,12 @@ export default function VerifyEmailForm() {
 
           {status === "error" && (
             <>
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+              <p className="rounded-lg border border-[color:var(--danger)]/30 bg-[color:var(--danger)]/10 px-3 py-2 text-sm text-danger">
                 {error || "El enlace es invalido o ha expirado."}
               </p>
               {session?.email && !resendDone && (
                 <Button
-                  className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
+                  className="w-full font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
                   isDisabled={resending}
                   onPress={handleResend}
                 >
@@ -85,7 +85,7 @@ export default function VerifyEmailForm() {
                 </Button>
               )}
               {resendDone && (
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted">
                   Se envio un nuevo enlace a tu correo.
                 </p>
               )}
@@ -94,12 +94,12 @@ export default function VerifyEmailForm() {
 
           {status === "no-token" && (
             <>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-muted">
                 No se encontro un token de verificacion. Revisa el enlace que recibiste por email.
               </p>
               {session?.email && !resendDone && (
                 <Button
-                  className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
+                  className="w-full font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
                   isDisabled={resending}
                   onPress={handleResend}
                 >
@@ -107,7 +107,7 @@ export default function VerifyEmailForm() {
                 </Button>
               )}
               {resendDone && (
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-muted">
                   Se envio un nuevo enlace a tu correo.
                 </p>
               )}

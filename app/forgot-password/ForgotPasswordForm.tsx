@@ -40,22 +40,22 @@ export default function ForgotPasswordForm() {
       <Card className="surface-panel max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Recuperacion</p>
-          <h1 className="text-3xl font-bold text-white">Recuperar contrasena</h1>
+          <h1 className="text-3xl font-bold text-[var(--foreground)]">Recuperar contrasena</h1>
 
           {sent ? (
             <>
-              <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-300">
+              <p className="rounded-lg border border-[var(--success)]/30 bg-[var(--success)]/10 px-3 py-2 text-sm text-[var(--success-foreground)]">
                 Si el correo esta registrado, recibiras instrucciones para restablecer tu contrasena.
               </p>
               <Link href="/login">
-                <Button className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold">
+                <Button className="w-full" variant="primary">
                   Volver al login
                 </Button>
               </Link>
             </>
           ) : (
             <>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-[var(--muted)]">
                 Ingresa tu correo y te enviaremos un enlace para restablecer tu contrasena.
               </p>
 
@@ -69,23 +69,23 @@ export default function ForgotPasswordForm() {
                   required
                 />
 
-                {error ? <p className="text-sm text-zinc-200">{error}</p> : null}
+                {error ? <p className="text-sm text-[var(--muted)]">{error}</p> : null}
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
+                  className="w-full"
+                  variant="primary"
                   isDisabled={isSubmitting}
                 >
                   {isSubmitting ? "Enviando..." : "Enviar enlace"}
                 </Button>
               </Form>
 
-              <p className="text-xs text-gray-400">
-                Recordaste tu contrasena?{" "}
-                <Link href="/login" className="text-zinc-200 hover:text-zinc-100">
-                  Inicia sesion
+              <div className="flex flex-col gap-2 mt-6 items-center w-full">
+                <Link href="/login" className="text-xs text-accent-glow hover:underline font-semibold text-center">
+                  Recordaste tu contraseña? Inicia sesión
                 </Link>
-              </p>
+              </div>
             </>
           )}
         </Card.Content>
