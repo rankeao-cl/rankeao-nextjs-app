@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Avatar, Input, Button, ScrollShadow, Skeleton, toast } from "@heroui/react";
-import { PaperPlane, Comment } from "@gravity-ui/icons";
+import { PaperPlane, Comment, ChevronLeft } from "@gravity-ui/icons";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
 import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
@@ -11,9 +11,10 @@ import ChatMessageBubble from "./ChatMessageBubble";
 
 interface ChatAreaProps {
     selectedChannel: Channel | null;
+    onBack?: () => void;
 }
 
-export default function ChatArea({ selectedChannel }: ChatAreaProps) {
+export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const { session } = useAuth();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
@@ -132,6 +133,18 @@ export default function ChatArea({ selectedChannel }: ChatAreaProps) {
             {/* Header del chat */}
             <div className="h-[73px] border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--surface-secondary)]/80 backdrop-blur-xl relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
+                    {/* Back button for mobile */}
+                    <Button
+                        isIconOnly
+                        variant="tertiary"
+                        size="sm"
+                        className="md:hidden -ml-2 text-[var(--foreground)]"
+                        onPress={onBack}
+                        aria-label="Volver"
+                    >
+                        <ChevronLeft className="size-5" />
+                    </Button>
+                    
                     <div className="relative">
                         <Avatar className="w-10 h-10 border border-[var(--border)] bg-[var(--surface-tertiary)] text-sm">
                             <Avatar.Image src={displayAvatar} alt={displayName} />

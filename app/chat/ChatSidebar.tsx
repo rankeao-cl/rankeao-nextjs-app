@@ -89,7 +89,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     };
 
     return (
-        <div className="w-full md:w-[320px] border-r border-[var(--border)] flex flex-col bg-[var(--surface)] shrink-0 transition-transform">
+        <div className="w-full h-full flex flex-col bg-[var(--surface)] shrink-0 transition-transform">
             <div className="p-5 border-b border-[var(--border)] flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-[var(--foreground)] tracking-wide">Tus Chats</h2>
