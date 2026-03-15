@@ -26,9 +26,17 @@ export default function ChatArea({ selectedChannel }: ChatAreaProps) {
     const fetchMessages = async (channelId: string) => {
         if (!session?.accessToken) return;
         try {
-            const res = await getChatMessages(channelId, { limit: 50 }, session.accessToken);
-            if (res.messages && Array.isArray(res.messages)) {
-                setMessages([...res.messages].reverse());
+            const val = await getChatMessages(channelId, { limit: 50 }, session.accessToken) as any;
+            const rawMessages = val?.data?.messages || val?.messages || (Array.isArray(val) ? val : []);
+            
+            if (Array.isArray(rawMessages)) {
+                const formattedMessages = rawMessages.map((msg: any) => ({
+                    ...msg,
+                    sender_id: msg.sender?.id || msg.sender_id,
+                    sender_username: msg.sender?.username || msg.sender_username,
+                    sender_avatar_url: msg.sender?.avatar_url || msg.sender_avatar_url
+                }));
+                setMessages([...formattedMessages].reverse());
             }
         } catch (err: any) {
             console.error("Error obteniendo mensajes:", err);
@@ -107,6 +115,18 @@ export default function ChatArea({ selectedChannel }: ChatAreaProps) {
         ? selectedChannel.members?.some(m => m.username !== session?.username && m.is_online)
         : false;
 
+    // Resolve DM name and avatar
+    let displayName = selectedChannel.name || (selectedChannel.type === "DM" ? "Mensaje Directo" : "Sala de Chat");
+    let displayAvatar = selectedChannel.name === "Soporte Rankeao" ? undefined : selectedChannel.name;
+
+    if (selectedChannel.type === "DM" && session?.username) {
+        const otherMember = selectedChannel.members?.find(m => m.username !== session.username);
+        if (otherMember) {
+            displayName = otherMember.username;
+            displayAvatar = otherMember.avatar_url;
+        }
+    }
+
     return (
         <div className="flex-1 flex flex-col min-w-0 relative bg-[var(--surface)]">
             {/* Header del chat */}
@@ -114,15 +134,16 @@ export default function ChatArea({ selectedChannel }: ChatAreaProps) {
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <Avatar className="w-10 h-10 border border-[var(--border)] bg-[var(--surface-tertiary)] text-sm">
-                            <Avatar.Fallback>{selectedChannel.name?.slice(0, 2).toUpperCase() || "CH"}</Avatar.Fallback>
+                            <Avatar.Image src={displayAvatar} alt={displayName} />
+                            <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || "CH"}</Avatar.Fallback>
                         </Avatar>
                         {isOnline && (
-                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--surface)] rounded-full"></span>
+                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--surface-secondary)] shadow-[0_0_10px_rgba(34,197,94,0.4)]"></span>
                         )}
                     </div>
                     <div>
                         <h3 className="font-bold text-[var(--foreground)] leading-tight">
-                            {selectedChannel.name || (selectedChannel.type === "DM" ? "Mensaje Directo" : "Sala de Chat")}
+                            {displayName}
                         </h3>
                         <p className="text-[11px] text-[var(--muted)] font-medium tracking-wide uppercase mt-0.5 flex items-center gap-1">
                             {selectedChannel.type === "GROUP" ? "Chat Grupal" : selectedChannel.type}

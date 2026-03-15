@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
+import { RankeaoLogo } from "./icons/RankeaoLogo";
 import NavbarSearch from "./NavbarSearch";
 
 import { Avatar, Button, Badge, Popover, ScrollShadow } from "@heroui/react";
@@ -85,13 +87,13 @@ export default function Navbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 border-b backdrop-blur-2xl h-16"
+      className="sticky top-0 z-50 border-b h-16"
       style={{
         borderColor: "var(--border)",
-        background: "oklch(from var(--background) l c h / 0.8)",
+        background: "var(--surface)",
       }}
     >
-      <div className="rk-container h-full flex items-center justify-between gap-4">
+      <div className="w-full h-full px-4 flex items-center justify-between relative">
         {/* Mobile Expanded Search */}
         {isSearchExpanded ? (
           <div className="flex-1 flex items-center gap-2 animate-appearance-in">
@@ -109,30 +111,38 @@ export default function Navbar() {
           </div>
         ) : (
           <>
-            {/* Logo */}
-            <Link href="/" className="flex items-center shrink-0">
-              <span
-                className="text-xl font-extrabold uppercase tracking-wide"
-                style={{
-                  background: "linear-gradient(135deg, var(--accent) 0%, var(--brand) 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Rankeao
-              </span>
-            </Link>
-
-            {/* Search bar — desktop */}
-            <div className="hidden md:flex flex-1 max-w-md">
-              <NavbarSearch />
+            {/* Left side: Logo */}
+            <div className="flex items-center z-10">
+              <Link href="/" className="flex items-center shrink-0">
+                <RankeaoLogo
+                  className={`h-7 w-auto transition-colors ${isDark ? "text-white" : "text-zinc-700"}`}
+                />
+              </Link>
             </div>
 
-            {/* Right actions */}
-            <div className="flex items-center gap-2">
+            {/* Center: Search bar — 100% Centered absolutely */}
+            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm lg:max-w-md pointer-events-none justify-center">
+              <div className="w-full pointer-events-auto">
+                <NavbarSearch />
+              </div>
+            </div>
+
+            {/* Right side: Actions */}
+            <div className="flex items-center gap-2 z-10">
               {/* Mobile actions bar */}
-              <div className="flex md:hidden items-center gap-1 flex-1 justify-end">
+              <div className="flex md:hidden items-center gap-1">
+                {/* Search icon (mobile) */}
+                <Button
+                  isIconOnly
+                  variant="tertiary"
+                  size="sm"
+                  className="text-[var(--muted)]"
+                  onPress={() => setIsSearchExpanded(true)}
+                  aria-label="Abrir búsqueda"
+                >
+                  <Magnifier className="size-4" />
+                </Button>
+
                 {/* Botón + para crear post (mobile) */}
                 {isAuthenticated && (
                   <Link href="/feed/new" className="flex items-center">
@@ -147,18 +157,6 @@ export default function Navbar() {
                     </Button>
                   </Link>
                 )}
-
-                {/* Search icon (mobile) */}
-                <Button
-                  isIconOnly
-                  variant="tertiary"
-                  size="sm"
-                  className="text-[var(--muted)]"
-                  onPress={() => setIsSearchExpanded(true)}
-                  aria-label="Abrir búsqueda"
-                >
-                  <Magnifier className="size-4" />
-                </Button>
 
                 {/* Chat bubble (mobile) */}
                 {isAuthenticated && (
@@ -419,17 +417,18 @@ export default function Navbar() {
                   <>
                     <Link href="/login" prefetch={false}>
                       <Button
-                        variant="secondary"
-                        size="sm"
+                        variant="ghost"
+                        size="md"
+                        className="font-bold px-5 h-9 min-w-0"
                       >
-                        Login
+                        Iniciar sesión
                       </Button>
                     </Link>
                     <Link href="/register" prefetch={false} className="hidden sm:block">
                       <Button
                         variant="primary"
-                        size="sm"
-                        className="font-bold"
+                        size="md"
+                        className="font-bold px-5 h-9 rounded-full bg-[var(--brand)] text-white shadow-none"
                       >
                         Regístrate
                       </Button>

@@ -54,14 +54,10 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             if (!session?.accessToken) return;
             setIsLoading(true);
             try {
-                const res = await autocompleteUsers(search, session.accessToken);
-                if (res && res.users) {
-                    const filtered = res.users.filter((u: UserSuggestion) => u.username !== session.username);
-                    setSuggestions(filtered);
-                } else if (Array.isArray(res)) {
-                    const filtered = res.filter((u: UserSuggestion) => u.username !== session.username);
-                    setSuggestions(filtered);
-                }
+                const val = await autocompleteUsers(search, session.accessToken) as any;
+                const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
+                const filtered = users.filter((u: UserSuggestion) => u.username !== session.username);
+                setSuggestions(filtered);
             } catch (error) {
                 console.error("Error searching users", error);
             } finally {
@@ -79,7 +75,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
         try {
             const res = await createChannel({
                 type: "DM",
-                member_ids: [selectedUserId]
+                user_ids: [selectedUserId]
             }, session.accessToken);
 
             toast.success("Chat creado exitosamente");

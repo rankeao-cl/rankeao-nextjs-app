@@ -89,24 +89,24 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Users
       if (usersRes.status === "fulfilled") {
-        const users = usersRes.value?.users || usersRes.value || [];
-        if (Array.isArray(users)) {
-          users.slice(0, 4).forEach((u: any) => {
-            items.push({
-              id: u.id || u.username,
-              type: "user",
-              title: u.username || u.display_name || "Usuario",
-              subtitle: u.display_name && u.display_name !== u.username ? u.display_name : undefined,
-              image: u.avatar_url,
-              href: `/perfil/${encodeURIComponent(u.username)}`,
-            });
+        const val = usersRes.value as any;
+        const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
+        users.slice(0, 4).forEach((u: any) => {
+          items.push({
+            id: u.id || u.username,
+            type: "user",
+            title: u.username || u.display_name || "Usuario",
+            subtitle: u.display_name && u.display_name !== u.username ? u.display_name : undefined,
+            image: u.avatar_url,
+            href: `/perfil/${encodeURIComponent(u.username)}`,
           });
-        }
+        });
       }
 
       // Tournaments
       if (tournamentsRes.status === "fulfilled") {
-        const tournaments = tournamentsRes.value?.tournaments || [];
+        const val = tournamentsRes.value as any;
+        const tournaments = val?.data?.tournaments || val?.tournaments || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
         tournaments.slice(0, 4).forEach((t: any) => {
           items.push({
             id: t.id,
@@ -120,7 +120,8 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Communities / Tenants
       if (tenantsRes.status === "fulfilled") {
-        const tenants = tenantsRes.value?.tenants || [];
+        const val = tenantsRes.value as any;
+        const tenants = val?.data?.tenants || val?.tenants || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
         tenants.slice(0, 4).forEach((t: any) => {
           items.push({
             id: t.id || t.slug,
@@ -135,7 +136,8 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Listings
       if (listingsRes.status === "fulfilled") {
-        const listings = listingsRes.value?.listings || [];
+        const val = listingsRes.value as any;
+        const listings = val?.data?.listings || val?.listings || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
         listings.slice(0, 4).forEach((l: any) => {
           items.push({
             id: l.id,

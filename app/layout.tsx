@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Rajdhani } from "next/font/google";
+import { Poppins, Reddit_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
 import AppShell from "@/components/AppShell";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const rajdhani = Rajdhani({
+const poppins = Poppins({ 
+  subsets: ["latin"], 
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-poppins" 
+});
+
+const redditSans = Reddit_Sans({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-rajdhani",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-reddit"
 });
 
 export const metadata: Metadata = {
@@ -44,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${rajdhani.variable} antialiased min-h-screen flex flex-col`}
+        className={`${poppins.variable} ${redditSans.variable} antialiased min-h-screen flex flex-col`}
         style={{ background: "var(--background)", color: "var(--foreground)" }}
       >
         <Providers>

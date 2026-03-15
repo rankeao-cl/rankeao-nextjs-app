@@ -46,7 +46,7 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r transition-all duration-200 ${collapsed ? "w-[72px]" : "w-[220px]"
+            className={`hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r transition-all duration-200 ${collapsed ? "w-[72px]" : "w-[239px]"
                 }`}
             style={{
                 borderColor: "var(--border)",
@@ -54,7 +54,7 @@ export default function Sidebar() {
             }}
         >
             {/* Navigation */}
-            <nav className="flex-1 flex flex-col gap-1 p-2 pt-4 overflow-y-auto">
+            <nav className="flex-1 flex flex-col gap-2 p-4 pt-6 overflow-y-auto">
                 {filteredNavItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.href);

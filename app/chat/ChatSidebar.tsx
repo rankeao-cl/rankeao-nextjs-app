@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Avatar, Input, ScrollShadow, Skeleton, Button } from "@heroui/react";
+import { Avatar, Input, ScrollShadow, Skeleton, Button, Badge } from "@heroui/react";
 import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy, Plus } from "@gravity-ui/icons";
 import type { Channel } from "@/lib/types/chat";
+import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";
 
 interface ChatSidebarProps {
@@ -15,6 +16,7 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated }: ChatSidebarProps) {
+    const { session } = useAuth();
     const [search, setSearch] = useState("");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
@@ -33,6 +35,22 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
 
     const renderChannel = (channel: Channel) => {
         const isSelected = selectedChannel?.id === channel.id;
+        
+        // DEBUG: Inspect channel structure
+        if (isSelected) console.log("Canal seleccionado:", channel);
+
+        // Resolve DM name and avatar
+        let displayName = channel.name || (channel.type === "DM" ? "Mensaje Directo" : "Sala Global");
+        let displayAvatar = channel.name === "Soporte Rankeao" ? undefined : channel.name; // Fallback to existing logic if any
+
+        if (channel.type === "DM" && session?.username) {
+            const otherMember = channel.members?.find(m => m.username !== session.username);
+            if (otherMember) {
+                displayName = otherMember.username;
+                displayAvatar = otherMember.avatar_url;
+            }
+        }
+
         return (
             <button
                 key={channel.id}
@@ -43,19 +61,21 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         : "hover:bg-[var(--surface-secondary)] border border-transparent"}`}
             >
                 <div className="relative shrink-0">
-                    <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
-                        <Avatar.Image src={channel.name === "Soporte Rankeao" ? undefined : channel.name} alt={channel.name} />
-                        <Avatar.Fallback>{channel.name?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
-                    </Avatar>
-                    {(channel.unread_count ?? 0) > 0 && (
-                        <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 rounded-full border-2 border-black flex items-center justify-center shadow-lg">
-                            <span className="text-[10px] font-bold text-[var(--accent-foreground)]">{(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}</span>
-                        </div>
-                    )}
+                    <Badge.Anchor>
+                        <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
+                            <Avatar.Image src={displayAvatar} alt={displayName} />
+                            <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
+                        </Avatar>
+                        {(channel.unread_count ?? 0) > 0 && (
+                            <Badge color="danger" size="sm" className="border-2 border-[var(--surface)]">
+                                {(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}
+                            </Badge>
+                        )}
+                    </Badge.Anchor>
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate text-[var(--foreground)]">
-                        {channel.name || (channel.type === "DM" ? "Mensaje Directo" : "Sala Global")}
+                        {displayName}
                     </p>
                     <p className="text-xs text-[var(--muted)] truncate mt-0.5 font-medium flex items-center gap-1">
                         {channel.type === "GROUP" ? <Persons className="size-3" /> :

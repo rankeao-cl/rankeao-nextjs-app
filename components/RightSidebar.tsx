@@ -60,7 +60,7 @@ export default function RightSidebar() {
 
     return (
         <aside
-            className="hidden xl:flex flex-col w-[280px] h-[calc(100vh-4rem)] sticky top-16 border-l overflow-y-auto p-4 gap-4"
+            className="hidden xl:flex flex-col w-[239px] h-[calc(100vh-4rem)] sticky top-16 border-l overflow-y-auto p-4 gap-4"
             style={{
                 borderColor: "var(--border)",
                 background: "var(--surface)",

@@ -349,7 +349,7 @@ export default async function StorePage({ params }: PageProps) {
                                         <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Catálogo Destacado</h2>
                                         <Link href={`/marketplace?tenant=${storeSlug}`}>
                                             <Button size="sm" variant="primary" className="font-semibold bg-[var(--accent)] text-[var(--accent-foreground)]">
-                                                Ver todo <span className="hidden sm:inline">el inventario</span> &rarr;
+                                                Ver todo el inventario &rarr;
                                             </Button>
                                         </Link>
                                     </div>

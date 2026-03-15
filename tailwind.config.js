@@ -8,28 +8,33 @@ module.exports = {
     extend: {
       colors: {
         rankeao: {
-          bg: "#050507",
-          panel: "#0a0a0a",
-          panelSoft: "#18181b",
-          line: "#3f3f46",
-          neon: "#f8fafc",
-          amber: "#d4d4d8",
-          white: "#f8fafc",
-          red: "#a1a1aa",
+          bg: "var(--background)",
+          surface: "var(--surface)",
+          panel: "var(--surface-secondary)",
+          line: "var(--border)",
+          neon: "var(--foreground)",
+          amber: "var(--accent)",
+          white: "#ffffff",
+          red: "var(--danger)",
         },
       },
+      borderRadius: {
+        "3xl": "0.75rem",
+        "4xl": "1rem",
+        "5xl": "1.25rem",
+      },
       boxShadow: {
-        "neon-red": "0 0 0 1px rgba(248,250,252,0.25), 0 10px 35px rgba(248,250,252,0.22)",
-        "neon-amber": "0 0 0 1px rgba(212,212,216,0.25), 0 10px 35px rgba(212,212,216,0.2)",
-        "neon-white": "0 0 0 1px rgba(248,250,252,0.2), 0 10px 35px rgba(248,250,252,0.15)",
+        "soft-xl": "0 20px 25px -5px oklch(0% 0 0 / 0.1), 0 8px 10px -6px oklch(0% 0 0 / 0.1)",
       },
       fontFamily: {
-        heading: ["var(--font-rajdhani)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        sans: ["var(--font-poppins)", "sans-serif"],
+        heading: ["var(--font-poppins)", "sans-serif"],
+        body: ["var(--font-poppins)", "sans-serif"],
+        reddit: ["var(--font-reddit)", "sans-serif"],
       },
       backgroundImage: {
         "hero-mesh":
-          "radial-gradient(circle at 15% 15%, rgba(248,250,252,0.28), transparent 38%), radial-gradient(circle at 80% 20%, rgba(248,250,252,0.14), transparent 35%), radial-gradient(circle at 60% 80%, rgba(212,212,216,0.2), transparent 36%)",
+          "radial-gradient(circle at 15% 15%, oklch(from var(--brand) l c h / 0.15), transparent 38%), radial-gradient(circle at 80% 20%, oklch(from var(--accent) l c h / 0.1), transparent 35%)",
       },
     },
   },

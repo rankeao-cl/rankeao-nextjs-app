@@ -26,6 +26,11 @@ export interface ChannelMember {
 export interface ChatMessage {
     id: string;
     channel_id: string;
+    sender?: {
+        id: string;
+        username: string;
+        avatar_url?: string;
+    };
     sender_id: string;
     sender_username?: string;
     sender_avatar_url?: string;
@@ -46,7 +51,7 @@ export interface SendMessagePayload {
 export interface CreateChannelPayload {
     type: ChannelType;
     name?: string;
-    member_ids: string[];
+    user_ids: string[];
 }
 
 export interface ReportMessagePayload {

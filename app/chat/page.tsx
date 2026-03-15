@@ -20,12 +20,9 @@ export default function ChatPage() {
 
     setLoadingChannels(true);
     getChatChannels(undefined, session.accessToken)
-      .then((res: any) => {
-        if (res.channels) {
-          setChannels(res.channels);
-        } else if (Array.isArray(res)) {
-          setChannels(res);
-        }
+      .then((val: any) => {
+        const channels = val?.data?.channels || val?.channels || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
+        setChannels(channels);
       })
       .catch((err: any) => {
         console.error("Error obteniendo canales:", err);
@@ -62,7 +59,12 @@ export default function ChatPage() {
         channels={channels}
         loading={loadingChannels}
         selectedChannel={selectedChannel}
-        onSelectChannel={setSelectedChannel}
+        onSelectChannel={(channel) => {
+          setSelectedChannel(channel);
+          if (channel.unread_count && channel.unread_count > 0) {
+            setChannels(prev => prev.map(c => c.id === channel.id ? { ...c, unread_count: 0 } : c));
+          }
+        }}
         onChannelCreated={(newChannel) => {
           setChannels(prev => [newChannel, ...prev.filter(c => c.id !== newChannel.id)]);
           setSelectedChannel(newChannel);
