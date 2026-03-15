@@ -110,7 +110,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 />
             </div>
 
-            <ScrollShadow className="flex-1 p-3 flex flex-col gap-4">
+            <ScrollShadow className="flex-1 min-h-0 p-3 flex flex-col gap-4">
                 {loading ? (
                     Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="flex gap-3 p-2">

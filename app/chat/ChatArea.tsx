@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
-import { Avatar, Input, Button, ScrollShadow, Skeleton, toast } from "@heroui/react";
-import { PaperPlane, Comment, ChevronLeft } from "@gravity-ui/icons";
+import { Avatar, Input, Button, ScrollShadow, Skeleton, toast, Badge } from "@heroui/react";
+import { PaperPlane, Comment, ChevronLeft, ChevronsDown } from "@gravity-ui/icons";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
 import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
@@ -20,24 +18,47 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const [inputValue, setInputValue] = useState("");
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [newMessagesCount, setNewMessagesCount] = useState(0);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const isAtBottomRef = useRef(true);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesRef = useRef<ChatMessage[]>([]); // To avoid stale closures in comparison
     const pollInterval = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchMessages = async (channelId: string) => {
+    const fetchMessages = async (channelId: string, isInitial = false) => {
         if (!session?.accessToken) return;
         try {
             const val = await getChatMessages(channelId, { limit: 50 }, session.accessToken) as any;
             const rawMessages = val?.data?.messages || val?.messages || (Array.isArray(val) ? val : []);
             
             if (Array.isArray(rawMessages)) {
-                const formattedMessages = rawMessages.map((msg: any) => ({
+                const formattedMessages = [...rawMessages].map((msg: any) => ({
                     ...msg,
                     sender_id: msg.sender?.id || msg.sender_id,
                     sender_username: msg.sender?.username || msg.sender_username,
                     sender_avatar_url: msg.sender?.avatar_url || msg.sender_avatar_url
-                }));
-                setMessages([...formattedMessages].reverse());
+                })).reverse();
+
+                // 1. Calculate new messages before updating state
+                if (!isInitial && messagesRef.current.length > 0) {
+                    const newMsgs = formattedMessages.filter(msg => !messagesRef.current.some(p => p.id === msg.id));
+                    
+                    if (newMsgs.length > 0) {
+                        const lastMsg = formattedMessages[formattedMessages.length - 1];
+                        const isMyMessage = lastMsg.sender_username === session?.username;
+
+                        if (isMyMessage || isAtBottomRef.current) {
+                            setTimeout(scrollToBottom, 50);
+                        } else {
+                            setNewMessagesCount(prev => prev + newMsgs.length);
+                        }
+                    }
+                }
+
+                // 2. Update state and ref
+                setMessages(formattedMessages);
+                messagesRef.current = formattedMessages;
             }
         } catch (err: any) {
             console.error("Error obteniendo mensajes:", err);
@@ -47,8 +68,12 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     useEffect(() => {
         if (!selectedChannel) return;
 
+        setNewMessagesCount(0);
+        setIsAtBottom(true);
+        isAtBottomRef.current = true;
+        messagesRef.current = []; // Reset reference list
         setLoadingMessages(true);
-        fetchMessages(selectedChannel.id).finally(() => {
+        fetchMessages(selectedChannel.id, true).finally(() => {
             setLoadingMessages(false);
             setTimeout(scrollToBottom, 100);
         });
@@ -63,14 +88,21 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         };
     }, [selectedChannel?.id]);
 
-    useEffect(() => {
-        if (messages.length > 0 && !loadingMessages) {
-            scrollToBottom();
-        }
-    }, [messages, loadingMessages]);
-
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        setNewMessagesCount(0);
+        setIsAtBottom(true);
+        isAtBottomRef.current = true;
+    };
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.currentTarget;
+        const isBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 80;
+        setIsAtBottom(isBottom);
+        isAtBottomRef.current = isBottom;
+        if (isBottom) {
+            setNewMessagesCount(0);
+        }
     };
 
     const handleSend = async (e?: React.FormEvent) => {
@@ -129,7 +161,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     }
 
     return (
-        <div className="flex-1 flex flex-col min-w-0 relative bg-[var(--surface)]">
+        <div className="flex-1 flex flex-col min-w-0 h-full max-h-full overflow-hidden relative bg-[var(--surface)]">
             {/* Header del chat */}
             <div className="h-[73px] border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--surface-secondary)]/80 backdrop-blur-xl relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
@@ -167,42 +199,68 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
             </div>
 
             {/* Historial de Mensajes */}
-            <ScrollShadow className="flex-1 px-4 md:px-8 py-6 flex flex-col gap-5 overflow-y-auto w-full max-w-5xl mx-auto custom-scrollbar">
-                {loadingMessages && messages.length === 0 ? (
-                    <div className="space-y-6">
-                        <div className="flex gap-3 w-full max-w-[80%]">
-                            <Skeleton className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] shrink-0" />
-                            <Skeleton className="w-56 h-16 rounded-2xl rounded-tl-sm bg-[var(--surface-secondary)]" />
+            <div className="flex-1 relative min-h-0">
+                <ScrollShadow 
+                    onScroll={handleScroll}
+                    className="h-full px-4 md:px-8 py-6 flex flex-col gap-5 overflow-y-auto w-full max-w-5xl mx-auto custom-scrollbar"
+                >
+                    {loadingMessages && messages.length === 0 ? (
+                        <div className="space-y-6">
+                            <div className="flex gap-3 w-full max-w-[80%]">
+                                <Skeleton className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] shrink-0" />
+                                <Skeleton className="w-56 h-16 rounded-2xl rounded-tl-sm bg-[var(--surface-secondary)]" />
+                            </div>
+                            <div className="flex gap-3 w-full max-w-[80%] self-end flex-row-reverse">
+                                <Skeleton className="w-48 h-12 rounded-2xl rounded-tr-sm bg-[var(--surface-secondary)]" />
+                            </div>
                         </div>
-                        <div className="flex gap-3 w-full max-w-[80%] self-end flex-row-reverse">
-                            <Skeleton className="w-48 h-12 rounded-2xl rounded-tr-sm bg-[var(--surface-secondary)]" />
+                    ) : messages.length === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center opacity-60">
+                            <div className="w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center mb-4 border border-[var(--border)] text-3xl">
+                                <Comment />
+                            </div>
+                            <p className="text-sm font-medium text-[var(--foreground)]">Aún no hay mensajes</p>
+                            <p className="text-xs text-[var(--muted)] mt-1">Sé el primero en saludar.</p>
                         </div>
-                    </div>
-                ) : messages.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center opacity-60">
-                        <div className="w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center mb-4 border border-[var(--border)] text-3xl">
-                            <Comment />
-                        </div>
-                        <p className="text-sm font-medium text-[var(--foreground)]">Aún no hay mensajes</p>
-                        <p className="text-xs text-[var(--muted)] mt-1">Sé el primero en saludar.</p>
-                    </div>
-                ) : (
-                    messages.map((msg, i) => {
-                        const isMine = msg.sender_username === session?.username;
-                        const showHeader = i === 0 || messages[i - 1].sender_id !== msg.sender_id;
+                    ) : (
+                        messages.map((msg, i) => {
+                            const isMine = msg.sender_username === session?.username;
+                            const showHeader = i === 0 || messages[i - 1].sender_id !== msg.sender_id;
 
-                        return (
-                            <ChatMessageBubble
-                                key={msg.id}
-                                message={msg}
-                                isMine={isMine}
-                                showHeader={showHeader}
-                            />
-                        );
-                    })
+                            return (
+                                <ChatMessageBubble
+                                    key={msg.id}
+                                    message={msg}
+                                    isMine={isMine}
+                                    showHeader={showHeader}
+                                />
+                            );
+                        })
+                    )}
+                    <div ref={messagesEndRef} className="h-1" />
+                </ScrollShadow>
+
+                {/* Floating "Scroll to Bottom" Button (WhatsApp Style) */}
+                {!isAtBottom && (
+                    <div className="absolute bottom-4 right-4 md:right-8 z-20 animate-appearance-in">
+                        <Button
+                            isIconOnly
+                            onPress={scrollToBottom}
+                            className={`rounded-full shadow-xl border border-[var(--border)] font-bold transition-all duration-300 w-10 h-10 min-w-10
+                                ${newMessagesCount > 0 
+                                    ? "bg-white text-black border-gray-300 scale-110" 
+                                    : "bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-secondary)]"
+                                }`}
+                        >
+                            {newMessagesCount > 0 ? (
+                                <span className="text-xs">{newMessagesCount}</span>
+                            ) : (
+                                <ChevronsDown className="size-5" />
+                            )}
+                        </Button>
+                    </div>
                 )}
-                <div ref={messagesEndRef} className="h-1" />
-            </ScrollShadow>
+            </div>
 
             {/* Área de Input */}
             <div className="p-4 md:p-5 bg-[var(--surface)] backdrop-blur-xl border-t border-[var(--border)] relative z-10 shrink-0">
