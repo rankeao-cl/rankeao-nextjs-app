@@ -337,7 +337,7 @@ function ActionBar({
                     {role === "spectator" && isOpen && (
                         <Button
                             size="sm"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => registerForTournament(tournament.id), "Te has registrado al torneo")}
                             style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
                         >
@@ -349,7 +349,7 @@ function ActionBar({
                         <Button
                             size="sm"
                             variant="danger-soft"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => unregisterFromTournament(tournament.id), "Te has desinscrito del torneo")}
                         >
                             Cancelar inscripción
@@ -359,7 +359,7 @@ function ActionBar({
                     {role === "player" && isCheckIn && isRegistered && !isCheckedIn && (
                         <Button
                             size="sm"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => checkInTournament(tournament.id), "Check-in realizado")}
                             style={{ background: "var(--success)", color: "var(--success-foreground)" }}
                         >
@@ -375,7 +375,7 @@ function ActionBar({
                         <Button
                             size="sm"
                             variant="danger-soft"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => dropFromTournament(tournament.id), "Has abandonado el torneo")}
                         >
                             Abandonar torneo
@@ -386,7 +386,7 @@ function ActionBar({
                     {role === "organizer" && (isOpen || isCheckIn) && (
                         <Button
                             size="sm"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => startTournament(tournament.id), "Torneo iniciado")}
                             style={{ background: "var(--success)", color: "var(--success-foreground)" }}
                         >
@@ -397,7 +397,7 @@ function ActionBar({
                     {role === "organizer" && tournament.status === "ROUND_COMPLETE" && (
                         <Button
                             size="sm"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => nextRound(tournament.id), "Nueva ronda generada")}
                             style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
                         >
@@ -409,7 +409,7 @@ function ActionBar({
                         <Button
                             size="sm"
                             variant="danger-soft"
-                            disabled={loading}
+                            isDisabled={loading}
                             onPress={() => onAction(() => finishTournament(tournament.id), "Torneo finalizado")}
                         >
                             Finalizar torneo
@@ -801,14 +801,14 @@ function MatchCard({
 
                     {/* Player: confirm opponent's report */}
                     {canConfirm && (
-                        <Button size="sm" disabled={submitting} onPress={handleConfirm} style={{ background: "var(--success)", color: "var(--success-foreground)" }}>
+                        <Button size="sm" isDisabled={submitting} onPress={handleConfirm} style={{ background: "var(--success)", color: "var(--success-foreground)" }}>
                             Confirmar resultado
                         </Button>
                     )}
 
                     {/* Player: dispute opponent's report */}
                     {canDispute && (
-                        <Button size="sm" variant="danger-soft" disabled={submitting} onPress={handleDispute}>
+                        <Button size="sm" variant="danger-soft" isDisabled={submitting} onPress={handleDispute}>
                             Disputar
                         </Button>
                     )}
@@ -847,7 +847,7 @@ function MatchCard({
                         <div className="flex gap-2">
                             <Button
                                 size="sm"
-                                disabled={submitting}
+                                isDisabled={submitting}
                                 onPress={() => canResolveDispute ? handleResolve() : handleReport(isJudgeOrOrganizer)}
                                 style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
                             >
