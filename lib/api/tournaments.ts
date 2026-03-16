@@ -27,7 +27,8 @@ export async function getTournaments(
 
 export async function getTournament(id: string): Promise<{ tournament: Tournament }> {
     const res = await apiFetch<any>(`/tournaments/${encodeURIComponent(id)}`);
-    const tournament = res.data || res.tournament || res;
+    const unwrapped = res.data || res;
+    const tournament = unwrapped.tournament || unwrapped;
     return { tournament };
 }
 
