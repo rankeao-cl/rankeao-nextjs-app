@@ -91,6 +91,14 @@ export async function disputeMatch(tournamentId: string, matchId: string, payloa
     return apiPost<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/dispute`, payload);
 }
 
+export async function confirmMatch(tournamentId: string, matchId: string) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/confirm`, {});
+}
+
+export async function resolveDispute(tournamentId: string, matchId: string, payload: any) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/resolve-dispute`, payload);
+}
+
 // ── Invitations ──
 
 export async function sendTournamentInvitations(id: string, payload: { user_ids?: string[]; emails?: string[] }) {
@@ -113,6 +121,10 @@ export async function finishTournament(id: string) {
 
 export async function closeTournament(id: string) {
     return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/close`, {});
+}
+
+export async function nextRound(id: string) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/next-round`, {});
 }
 
 // ── My History ──
