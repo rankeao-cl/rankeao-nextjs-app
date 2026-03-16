@@ -9,9 +9,10 @@ const statusOptions = [
   { value: "", label: "Todos los estados" },
   { value: "OPEN", label: "Abierto" },
   { value: "CHECK_IN", label: "Check-in" },
-  { value: "ROUND_IN_PROGRESS", label: "En curso" },
+  { value: "STARTED", label: "Iniciado" },
+  { value: "ROUND_IN_PROGRESS", label: "Ronda en curso" },
   { value: "FINISHED", label: "Finalizado" },
-  { value: "CLOSED", label: "Cerrado" },
+  { value: "CANCELLED", label: "Cancelado" },
 ];
 
 interface Props {

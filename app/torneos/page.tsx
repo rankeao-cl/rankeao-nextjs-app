@@ -36,9 +36,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 const tabConfig: Record<string, { apiStatus: string; sort: string; title: string }> = {
-  live: { apiStatus: "ROUND_IN_PROGRESS", sort: "recent", title: "En Curso" },
+  live: { apiStatus: "STARTED,CHECK_IN,ROUND_IN_PROGRESS,ROUND_COMPLETE", sort: "recent", title: "En Curso" },
   upcoming: { apiStatus: "OPEN", sort: "upcoming", title: "Próximos" },
-  past: { apiStatus: "FINISHED", sort: "recent", title: "Pasados" },
+  past: { apiStatus: "FINISHED,CLOSED", sort: "recent", title: "Pasados" },
 };
 
 function TournamentsSkeleton() {
