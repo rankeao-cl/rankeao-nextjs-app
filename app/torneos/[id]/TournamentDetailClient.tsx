@@ -766,7 +766,7 @@ function MatchCard({
                         name={match.player2_username || "Jugador 2"}
                         wins={match.player2_wins}
                         isWinner={match.winner_id === match.player2_id}
-                        isMe={!iAmPlayer1 && isMyMatch}
+                        isMe={!iAmPlayer1 && !!isMyMatch}
                     />
                     {(match.draws ?? 0) > 0 && (
                         <p className="text-xs text-center" style={{ color: "var(--muted)" }}>Empates: {match.draws}</p>
