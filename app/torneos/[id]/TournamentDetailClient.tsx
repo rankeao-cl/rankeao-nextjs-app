@@ -86,8 +86,8 @@ function formatDate(iso?: string) {
     });
 }
 
-/** Extract user public_id (sub) from JWT access token */
-function getUserIdFromToken(accessToken?: string): string | undefined {
+/** Extract username from JWT access token */
+function getUsernameFromToken(accessToken?: string): string | undefined {
     if (!accessToken) return undefined;
     try {
         const parts = accessToken.split(".");
@@ -97,19 +97,18 @@ function getUserIdFromToken(accessToken?: string): string | undefined {
             window.atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
         );
         const payload = JSON.parse(json);
-        return payload.sub || payload.user_id || payload.public_id;
+        return payload.usr || payload.username;
     } catch {
         return undefined;
     }
 }
 
-function getUserRole(tournament: any, userId?: string): "organizer" | "judge" | "player" | "spectator" {
-    if (!userId) return "spectator";
-    // Check organizer by username since API doesn't return organizer_id
+function getUserRole(tournament: any, username?: string): "organizer" | "judge" | "player" | "spectator" {
+    if (!username) return "spectator";
+    if (tournament.organizer_name === username) return "organizer";
     const judges: any[] = tournament.judges || [];
-    if (judges.some((j) => j.user_id === userId)) return "judge";
+    if (judges.some((j) => j.username === username)) return "judge";
     if (tournament.my_registration) return "player";
-    // organizer_name matches are handled by username comparison
     return "spectator";
 }
 
@@ -125,18 +124,18 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     const [actionLoading, setActionLoading] = useState(false);
 
     const isAuthenticated = authStatus === "authenticated" && Boolean(session?.accessToken);
-    const userId = useMemo(() => getUserIdFromToken(session?.accessToken), [session?.accessToken]);
-    const username = session?.username;
+    const currentUsername = useMemo(
+        () => session?.username || getUsernameFromToken(session?.accessToken),
+        [session?.username, session?.accessToken]
+    );
 
     const detail = tournament as any;
     const st = statusConfig[tournament.status] || statusConfig.DRAFT;
 
-    // Role detection: organizer by username match, judge by user_id in judges array
     const role = useMemo(() => {
-        if (!isAuthenticated || !userId) return "spectator" as const;
-        if (username && detail.organizer_name === username) return "organizer" as const;
-        return getUserRole(detail, userId);
-    }, [isAuthenticated, userId, username, detail]);
+        if (!isAuthenticated || !currentUsername) return "spectator" as const;
+        return getUserRole(detail, currentUsername);
+    }, [isAuthenticated, currentUsername, detail]);
 
     const isLive = ["STARTED", "ROUND_IN_PROGRESS", "ROUND_COMPLETE"].includes(tournament.status);
     const isOpen = tournament.status === "OPEN";
@@ -354,7 +353,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                     rounds={rounds}
                     loading={loading}
                     role={role}
-                    userId={userId}
+                    currentUsername={currentUsername}
                     onRefresh={loadRounds}
                 />
             )}
@@ -589,14 +588,14 @@ function RoundsTab({
     rounds,
     loading,
     role,
-    userId,
+    currentUsername,
     onRefresh,
 }: {
     tournament: Tournament;
     rounds: Round[];
     loading: boolean;
     role: string;
-    userId?: string;
+    currentUsername?: string;
     onRefresh: () => void;
 }) {
     const [selectedRound, setSelectedRound] = useState<number | null>(null);
@@ -693,7 +692,7 @@ function RoundsTab({
                             match={match}
                             tournamentId={tournament.id}
                             role={role}
-                            userId={userId}
+                            currentUsername={currentUsername}
                             onUpdate={refreshMatches}
                         />
                     ))}
@@ -709,13 +708,13 @@ function MatchCard({
     match,
     tournamentId,
     role,
-    userId,
+    currentUsername,
     onUpdate,
 }: {
     match: ApiMatch;
     tournamentId: string;
     role: string;
-    userId?: string;
+    currentUsername?: string;
     onUpdate: () => void;
 }) {
     const [showReport, setShowReport] = useState(false);
@@ -724,15 +723,13 @@ function MatchCard({
     const [draws, setDraws] = useState(match.draws ?? 0);
     const [submitting, setSubmitting] = useState(false);
 
-    const p1Id = match.player1?.user_id;
-    const p2Id = match.player2?.user_id;
     const p1Name = match.player1?.username || "Jugador 1";
     const p2Name = match.player2?.username || "Jugador 2";
 
-    const isMyMatch = userId && (p1Id === userId || p2Id === userId);
-    const iAmPlayer1 = userId === p1Id;
-    const iReported = match.reported_by === userId;
-    const opponentReported = match.status === "REPORTED" && !iReported && isMyMatch;
+    const isMyMatch = currentUsername && (p1Name === currentUsername || p2Name === currentUsername);
+    const iAmPlayer1 = currentUsername === p1Name;
+    // reported_by could be a user_id UUID — we can't compare directly, so check if I'm in this match and reported status
+    const opponentReported = match.status === "REPORTED" && isMyMatch;
     const canReport = isMyMatch && match.status === "PENDING" && !match.is_bye;
     const canConfirm = isMyMatch && opponentReported;
     const canDispute = isMyMatch && opponentReported;
@@ -841,7 +838,7 @@ function MatchCard({
                     <PlayerRow
                         name={p1Name}
                         wins={match.player1_wins}
-                        isWinner={match.winner_id === p1Id}
+                        isWinner={match.winner_id === match.player1?.user_id}
                         isMe={iAmPlayer1}
                     />
                     <div className="flex items-center gap-2">
@@ -852,7 +849,7 @@ function MatchCard({
                     <PlayerRow
                         name={p2Name}
                         wins={match.player2_wins}
-                        isWinner={match.winner_id === p2Id}
+                        isWinner={match.winner_id === match.player2?.user_id}
                         isMe={!iAmPlayer1 && !!isMyMatch}
                     />
                     {(match.draws ?? 0) > 0 && (
@@ -861,14 +858,9 @@ function MatchCard({
                 </div>
 
                 {/* Status messages */}
-                {match.status === "REPORTED" && iReported && (
+                {match.status === "REPORTED" && isMyMatch && (
                     <p className="text-xs" style={{ color: "var(--warning)" }}>
-                        Reportaste el resultado. Esperando confirmación del oponente.
-                    </p>
-                )}
-                {opponentReported && (
-                    <p className="text-xs" style={{ color: "var(--warning)" }}>
-                        Tu oponente reportó: {match.player1_wins}-{match.player2_wins}. Confirma o disputa.
+                        Resultado reportado: {match.player1_wins}-{match.player2_wins}. Esperando confirmación.
                     </p>
                 )}
                 {match.status === "DISPUTED" && (
