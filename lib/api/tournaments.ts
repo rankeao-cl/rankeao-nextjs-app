@@ -15,11 +15,12 @@ import type { Params } from "@/lib/types/api";
 export async function getTournaments(
     filters: TournamentFilters = {}
 ): Promise<TournamentListResponse> {
-    return apiFetch<TournamentListResponse>(
+    const res = await apiFetch<any>(
         "/tournaments",
         filters as Params,
         { revalidate: 30 }
     );
+    return res.data || res;
 }
 
 // ── Detail ──
