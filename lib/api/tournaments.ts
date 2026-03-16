@@ -80,6 +80,16 @@ export async function getTournamentMatches(tournamentId: string, params?: Params
     return apiFetch<any>(`/tournaments/${encodeURIComponent(tournamentId)}/matches`, params, { revalidate: 30 });
 }
 
+export async function getRoundMatches(tournamentId: string, roundNumber: number) {
+    const res = await apiFetch<any>(
+        `/tournaments/${encodeURIComponent(tournamentId)}/rounds/${roundNumber}/matches`,
+        undefined,
+        { cache: "no-store" }
+    );
+    const unwrapped = res.data || res;
+    return Array.isArray(unwrapped.matches) ? unwrapped.matches : Array.isArray(unwrapped) ? unwrapped : [];
+}
+
 export async function getMyTournamentMatches(tournamentId: string) {
     return apiFetch<any>(`/tournaments/${encodeURIComponent(tournamentId)}/my-matches`, undefined, { cache: "no-store" });
 }

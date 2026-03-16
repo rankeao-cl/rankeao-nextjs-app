@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, Chip, Button, Avatar, toast } from "@heroui/react";
 import { Clock, MapPin, Persons, Cup, Person, ShieldCheck } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
-import type { Tournament, Round, Match, Standing } from "@/lib/types/tournament";
+import type { Tournament, Round, Standing } from "@/lib/types/tournament";
 import {
     getTournamentRounds,
     getTournamentStandings,
+    getRoundMatches,
     registerForTournament,
     unregisterFromTournament,
     checkInTournament,
@@ -20,6 +21,32 @@ import {
     disputeMatch,
     resolveDispute,
 } from "@/lib/api/tournaments";
+
+// ── Types for API match shape ──
+
+interface ApiPlayer {
+    user_id: string;
+    username: string;
+}
+
+interface ApiMatch {
+    id: string;
+    round_number: number;
+    table_number?: number;
+    player1: ApiPlayer;
+    player2?: ApiPlayer;
+    player1_wins: number;
+    player2_wins: number;
+    draws: number;
+    winner_id?: string;
+    status: string;
+    is_bye: boolean;
+    reported_by?: string;
+    reported_at?: string;
+    confirmed_at?: string;
+    disputed_by?: string;
+    disputed_at?: string;
+}
 
 // ── Status config ──
 
@@ -37,10 +64,10 @@ const statusConfig: Record<string, { color: "success" | "warning" | "danger" | "
 
 const matchStatusLabels: Record<string, string> = {
     PENDING: "Pendiente",
+    IN_PROGRESS: "En curso",
     REPORTED: "Reportado",
     CONFIRMED: "Confirmado",
     DISPUTED: "Disputado",
-    BYE: "BYE",
 };
 
 type Tab = "info" | "rounds" | "standings";
@@ -59,12 +86,30 @@ function formatDate(iso?: string) {
     });
 }
 
-function getUserRole(tournament: Tournament, userId?: string): "organizer" | "judge" | "player" | "spectator" {
+/** Extract user public_id (sub) from JWT access token */
+function getUserIdFromToken(accessToken?: string): string | undefined {
+    if (!accessToken) return undefined;
+    try {
+        const parts = accessToken.split(".");
+        if (parts.length !== 3) return undefined;
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const json = decodeURIComponent(
+            window.atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
+        );
+        const payload = JSON.parse(json);
+        return payload.sub || payload.user_id || payload.public_id;
+    } catch {
+        return undefined;
+    }
+}
+
+function getUserRole(tournament: any, userId?: string): "organizer" | "judge" | "player" | "spectator" {
     if (!userId) return "spectator";
-    if (tournament.organizer_id === userId) return "organizer";
-    const detail = tournament as any;
-    if (detail.judges?.some((j: any) => j.user_id === userId)) return "judge";
-    if (detail.my_registration) return "player";
+    // Check organizer by username since API doesn't return organizer_id
+    const judges: any[] = tournament.judges || [];
+    if (judges.some((j) => j.user_id === userId)) return "judge";
+    if (tournament.my_registration) return "player";
+    // organizer_name matches are handled by username comparison
     return "spectator";
 }
 
@@ -79,11 +124,19 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
 
-    const isAuthenticated = authStatus === "authenticated" && Boolean(session?.email);
-    const userId = (session as any)?.userId || (session as any)?.user_id || (session as any)?.id;
-    const role = getUserRole(tournament, userId);
+    const isAuthenticated = authStatus === "authenticated" && Boolean(session?.accessToken);
+    const userId = useMemo(() => getUserIdFromToken(session?.accessToken), [session?.accessToken]);
+    const username = session?.username;
+
     const detail = tournament as any;
     const st = statusConfig[tournament.status] || statusConfig.DRAFT;
+
+    // Role detection: organizer by username match, judge by user_id in judges array
+    const role = useMemo(() => {
+        if (!isAuthenticated || !userId) return "spectator" as const;
+        if (username && detail.organizer_name === username) return "organizer" as const;
+        return getUserRole(detail, userId);
+    }, [isAuthenticated, userId, username, detail]);
 
     const isLive = ["STARTED", "ROUND_IN_PROGRESS", "ROUND_COMPLETE"].includes(tournament.status);
     const isOpen = tournament.status === "OPEN";
@@ -121,7 +174,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         if (tab === "standings") loadStandings();
     }, [tab, loadRounds, loadStandings]);
 
-    // Auto-select rounds tab if tournament is live
+    // Auto-select tab based on tournament status
     useEffect(() => {
         if (isLive) setTab("rounds");
         else if (isFinished) setTab("standings");
@@ -141,8 +194,6 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         setActionLoading(false);
     }
 
-    // ── Render ──
-
     const tabs: { key: Tab; label: string }[] = [
         { key: "info", label: "Info" },
         { key: "rounds", label: "Rondas" },
@@ -154,7 +205,6 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
             {/* ── Header Card ── */}
             <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <Card.Content className="p-0">
-                    {/* Status bar */}
                     <div
                         className={`h-1.5 w-full ${isLive ? "animate-pulse" : ""}`}
                         style={{
@@ -178,9 +228,9 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                                     <h1 className="text-xl sm:text-2xl font-bold truncate" style={{ color: "var(--foreground)" }}>
                                         {tournament.name}
                                     </h1>
-                                    {tournament.tenant_name && (
+                                    {(tournament.tenant_name || detail.organizer_name) && (
                                         <p className="text-sm mt-0.5" style={{ color: "var(--muted)" }}>
-                                            Organizado por {tournament.tenant_name}
+                                            Organizado por {tournament.tenant_name || detail.organizer_name}
                                         </p>
                                     )}
                                 </div>
@@ -191,14 +241,14 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                         </div>
 
                         {/* Live round indicator */}
-                        {isLive && tournament.current_round && (
+                        {isLive && (tournament.current_round || detail.current_round) && (
                             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--success)]/10 border border-[var(--success)]/20">
                                 <span className="relative flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75" />
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]" />
                                 </span>
                                 <span className="text-sm font-semibold text-[var(--success)]">
-                                    Ronda {tournament.current_round}
+                                    Ronda {tournament.current_round || detail.current_round}
                                     {tournament.total_rounds ? ` de ${tournament.total_rounds}` : ""}
                                 </span>
                             </div>
@@ -206,9 +256,15 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-1.5">
-                            {tournament.game && <Chip variant="secondary" size="sm">{tournament.game_name || tournament.game}</Chip>}
-                            {tournament.format && <Chip variant="secondary" size="sm">{tournament.format_name || tournament.format}</Chip>}
-                            {tournament.structure && <Chip variant="secondary" size="sm">{tournament.structure}</Chip>}
+                            {(detail.game_name || tournament.game) && (
+                                <Chip variant="secondary" size="sm">{detail.game_name || tournament.game}</Chip>
+                            )}
+                            {(detail.format_name || tournament.format) && (
+                                <Chip variant="secondary" size="sm">{detail.format_name || tournament.format}</Chip>
+                            )}
+                            {(detail.format_type || tournament.structure) && (
+                                <Chip variant="secondary" size="sm">{detail.format_type || tournament.structure}</Chip>
+                            )}
                             {tournament.best_of && <Chip variant="secondary" size="sm">Bo{tournament.best_of}</Chip>}
                             {tournament.is_ranked && <Chip color="warning" variant="soft" size="sm">Ranked</Chip>}
                             {tournament.is_online && <Chip variant="secondary" size="sm">Online</Chip>}
@@ -223,26 +279,28 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                             )}
                             {tournament.city && (
                                 <span className="flex items-center gap-1.5">
-                                    <MapPin className="size-4" /> {tournament.venue_name ? `${tournament.venue_name}, ${tournament.city}` : tournament.city}
+                                    <MapPin className="size-4" />
+                                    {(detail.venue_name || tournament.venue_name) ? `${detail.venue_name || tournament.venue_name}, ${tournament.city}` : tournament.city}
                                 </span>
                             )}
                             <span className="flex items-center gap-1.5">
                                 <Persons className="size-4" />
-                                {tournament.registered_count || 0}{tournament.max_players ? `/${tournament.max_players}` : ""} jugadores
+                                {detail.current_players || tournament.registered_count || 0}
+                                {tournament.max_players ? `/${tournament.max_players}` : ""} jugadores
                             </span>
                         </div>
 
                         {/* Prize / Fee */}
-                        {(tournament.prize_pool || tournament.entry_fee) && (
+                        {(detail.prize_pool || detail.entry_fee) && (
                             <div className="flex items-center gap-4">
-                                {tournament.prize_pool && (
+                                {detail.prize_pool && (
                                     <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: "var(--accent)" }}>
-                                        <Cup className="size-4" /> {tournament.prize_pool}
+                                        <Cup className="size-4" /> ${Number(detail.prize_pool).toLocaleString("es-CL")} {detail.currency || "CLP"}
                                     </span>
                                 )}
-                                {tournament.entry_fee && (
+                                {detail.entry_fee && (
                                     <span className="text-sm" style={{ color: "var(--muted)" }}>
-                                        Entrada: {tournament.entry_fee}
+                                        Entrada: ${Number(detail.entry_fee).toLocaleString("es-CL")} {detail.currency || "CLP"}
                                     </span>
                                 )}
                             </div>
@@ -325,15 +383,21 @@ function ActionBar({
     const isCheckIn = tournament.status === "CHECK_IN";
     const isLive = ["STARTED", "ROUND_IN_PROGRESS", "ROUND_COMPLETE"].includes(tournament.status);
     const isRegistered = !!detail.my_registration;
-    const isCheckedIn = detail.my_registration?.checked_in;
+    const isCheckedIn = detail.my_registration?.checked_in || detail.my_registration?.checked_in_at;
 
     if (!isAuthenticated) return null;
+
+    const hasActions =
+        (role === "spectator" && isOpen) ||
+        (role === "player" && (isOpen || isCheckIn || isLive)) ||
+        (role === "organizer" && (isOpen || isCheckIn || isLive));
+
+    if (!hasActions) return null;
 
     return (
         <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <Card.Content className="p-4">
                 <div className="flex flex-wrap gap-2">
-                    {/* Player actions */}
                     {role === "spectator" && isOpen && (
                         <Button
                             size="sm"
@@ -382,7 +446,6 @@ function ActionBar({
                         </Button>
                     )}
 
-                    {/* Organizer actions */}
                     {role === "organizer" && (isOpen || isCheckIn) && (
                         <Button
                             size="sm"
@@ -428,7 +491,6 @@ function InfoTab({ tournament }: { tournament: Tournament }) {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Description */}
             {tournament.description && (
                 <Card className="md:col-span-2" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <Card.Content className="p-5">
@@ -438,7 +500,6 @@ function InfoTab({ tournament }: { tournament: Tournament }) {
                 </Card>
             )}
 
-            {/* Rules */}
             {tournament.rules && (
                 <Card className="md:col-span-2" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <Card.Content className="p-5">
@@ -448,37 +509,35 @@ function InfoTab({ tournament }: { tournament: Tournament }) {
                 </Card>
             )}
 
-            {/* Details grid */}
             <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <Card.Content className="p-5 space-y-3">
                     <h3 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Detalles</h3>
-                    <DetailRow label="Juego" value={tournament.game_name || tournament.game} />
-                    <DetailRow label="Formato" value={tournament.format_name || tournament.format} />
-                    <DetailRow label="Estructura" value={tournament.structure} />
+                    <DetailRow label="Juego" value={detail.game_name || tournament.game} />
+                    <DetailRow label="Formato" value={detail.format_name || tournament.format} />
+                    <DetailRow label="Estructura" value={detail.format_type || tournament.structure} />
                     <DetailRow label="Best of" value={tournament.best_of ? `${tournament.best_of}` : undefined} />
                     <DetailRow label="Rondas máx." value={tournament.max_rounds ? `${tournament.max_rounds}` : undefined} />
                     <DetailRow label="Timer por ronda" value={tournament.round_timer_min ? `${tournament.round_timer_min} min` : undefined} />
-                    <DetailRow label="Modalidad" value={tournament.modality} />
-                    <DetailRow label="Tier" value={tournament.tier} />
-                    <DetailRow label="Visibilidad" value={tournament.visibility} />
+                    <DetailRow label="Modalidad" value={detail.modality} />
+                    <DetailRow label="Tier" value={detail.tier} />
+                    <DetailRow label="Visibilidad" value={detail.visibility || tournament.visibility} />
                 </Card.Content>
             </Card>
 
-            {/* Venue */}
             <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <Card.Content className="p-5 space-y-3">
                     <h3 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Ubicación</h3>
-                    <DetailRow label="Lugar" value={tournament.venue_name} />
+                    <DetailRow label="Lugar" value={detail.venue_name || tournament.venue_name} />
                     <DetailRow label="Dirección" value={tournament.venue_address} />
                     <DetailRow label="Ciudad" value={tournament.city} />
-                    <DetailRow label="País" value={tournament.country} />
+                    <DetailRow label="Región" value={detail.region} />
+                    <DetailRow label="País" value={detail.country_code || tournament.country} />
                     {tournament.is_online && (
                         <p className="text-sm text-[var(--accent)] font-medium">Torneo online</p>
                     )}
                 </Card.Content>
             </Card>
 
-            {/* Judges */}
             {detail.judges && detail.judges.length > 0 && (
                 <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <Card.Content className="p-5 space-y-3">
@@ -487,20 +546,19 @@ function InfoTab({ tournament }: { tournament: Tournament }) {
                             <div key={j.user_id} className="flex items-center gap-2">
                                 <ShieldCheck className="size-4" style={{ color: "var(--warning)" }} />
                                 <span className="text-sm" style={{ color: "var(--foreground)" }}>{j.username}</span>
-                                <Chip size="sm" variant="secondary">{j.role}</Chip>
+                                {j.is_head_judge && <Chip size="sm" color="warning" variant="soft">Head Judge</Chip>}
                             </div>
                         ))}
                     </Card.Content>
                 </Card>
             )}
 
-            {/* Prizes */}
             {detail.prizes && detail.prizes.length > 0 && (
                 <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <Card.Content className="p-5 space-y-3">
                         <h3 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Premios</h3>
-                        {detail.prizes.map((p: any) => (
-                            <div key={p.position} className="flex items-center justify-between">
+                        {detail.prizes.map((p: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between">
                                 <span className="text-sm" style={{ color: "var(--foreground)" }}>
                                     {p.position === 1 ? "1er" : p.position === 2 ? "2do" : p.position === 3 ? "3er" : `${p.position}to`} lugar
                                 </span>
@@ -542,14 +600,32 @@ function RoundsTab({
     onRefresh: () => void;
 }) {
     const [selectedRound, setSelectedRound] = useState<number | null>(null);
+    const [matches, setMatches] = useState<ApiMatch[]>([]);
+    const [matchesLoading, setMatchesLoading] = useState(false);
 
     useEffect(() => {
         if (rounds.length > 0 && selectedRound === null) {
-            // Select latest active round, or the last one
-            const active = rounds.find((r) => r.status === "IN_PROGRESS" || r.status === "ACTIVE");
+            const active = rounds.find((r) => r.status === "IN_PROGRESS");
             setSelectedRound(active?.round_number ?? rounds[rounds.length - 1].round_number);
         }
     }, [rounds, selectedRound]);
+
+    // Load matches when round is selected
+    useEffect(() => {
+        if (selectedRound === null) return;
+        setMatchesLoading(true);
+        getRoundMatches(tournament.id, selectedRound)
+            .then((m) => setMatches(m))
+            .catch(() => setMatches([]))
+            .finally(() => setMatchesLoading(false));
+    }, [tournament.id, selectedRound]);
+
+    const refreshMatches = useCallback(() => {
+        if (selectedRound === null) return;
+        getRoundMatches(tournament.id, selectedRound)
+            .then((m) => setMatches(m))
+            .catch(() => setMatches([]));
+    }, [tournament.id, selectedRound]);
 
     if (loading) {
         return (
@@ -571,16 +647,13 @@ function RoundsTab({
         );
     }
 
-    const currentRound = rounds.find((r) => r.round_number === selectedRound);
-    const matches = currentRound?.matches || [];
-
     return (
         <div className="space-y-4">
             {/* Round selector */}
             <div className="flex gap-1.5 flex-wrap">
                 {rounds.map((r) => {
                     const isActive = r.round_number === selectedRound;
-                    const isInProgress = r.status === "IN_PROGRESS" || r.status === "ACTIVE";
+                    const isInProgress = r.status === "IN_PROGRESS";
                     return (
                         <button
                             key={r.round_number}
@@ -600,7 +673,13 @@ function RoundsTab({
             </div>
 
             {/* Matches */}
-            {matches.length === 0 ? (
+            {matchesLoading ? (
+                <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                    <Card.Content className="p-8 text-center">
+                        <p className="text-sm animate-pulse" style={{ color: "var(--muted)" }}>Cargando partidas...</p>
+                    </Card.Content>
+                </Card>
+            ) : matches.length === 0 ? (
                 <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <Card.Content className="py-8 text-center">
                         <p className="text-sm" style={{ color: "var(--muted)" }}>No hay partidas en esta ronda.</p>
@@ -612,10 +691,10 @@ function RoundsTab({
                         <MatchCard
                             key={match.id}
                             match={match}
-                            tournament={tournament}
+                            tournamentId={tournament.id}
                             role={role}
                             userId={userId}
-                            onUpdate={onRefresh}
+                            onUpdate={refreshMatches}
                         />
                     ))}
                 </div>
@@ -628,13 +707,13 @@ function RoundsTab({
 
 function MatchCard({
     match,
-    tournament,
+    tournamentId,
     role,
     userId,
     onUpdate,
 }: {
-    match: Match;
-    tournament: Tournament;
+    match: ApiMatch;
+    tournamentId: string;
     role: string;
     userId?: string;
     onUpdate: () => void;
@@ -645,22 +724,26 @@ function MatchCard({
     const [draws, setDraws] = useState(match.draws ?? 0);
     const [submitting, setSubmitting] = useState(false);
 
-    const isMyMatch = userId && (match.player1_id === userId || match.player2_id === userId);
-    const iAmPlayer1 = userId === match.player1_id;
+    const p1Id = match.player1?.user_id;
+    const p2Id = match.player2?.user_id;
+    const p1Name = match.player1?.username || "Jugador 1";
+    const p2Name = match.player2?.username || "Jugador 2";
+
+    const isMyMatch = userId && (p1Id === userId || p2Id === userId);
+    const iAmPlayer1 = userId === p1Id;
     const iReported = match.reported_by === userId;
-    const opponentReported = match.status === "REPORTED" && match.reported_by && match.reported_by !== userId;
+    const opponentReported = match.status === "REPORTED" && !iReported && isMyMatch;
     const canReport = isMyMatch && match.status === "PENDING" && !match.is_bye;
     const canConfirm = isMyMatch && opponentReported;
     const canDispute = isMyMatch && opponentReported;
     const isJudgeOrOrganizer = role === "judge" || role === "organizer";
     const canJudgeReport = isJudgeOrOrganizer && (match.status === "PENDING" || match.status === "DISPUTED");
     const canResolveDispute = isJudgeOrOrganizer && match.status === "DISPUTED";
-    const isConfirmed = match.status === "CONFIRMED";
 
     async function handleReport(asJudge = false) {
         setSubmitting(true);
         try {
-            await reportMatch(tournament.id, match.id, {
+            await reportMatch(tournamentId, match.id, {
                 player1_wins: p1Wins,
                 player2_wins: p2Wins,
                 draws,
@@ -677,7 +760,7 @@ function MatchCard({
     async function handleConfirm() {
         setSubmitting(true);
         try {
-            await confirmMatch(tournament.id, match.id);
+            await confirmMatch(tournamentId, match.id);
             toast.success("Resultado confirmado");
             onUpdate();
         } catch (e: any) {
@@ -689,7 +772,7 @@ function MatchCard({
     async function handleDispute() {
         setSubmitting(true);
         try {
-            await disputeMatch(tournament.id, match.id, { reason: "Resultado incorrecto" });
+            await disputeMatch(tournamentId, match.id, { reason: "Resultado incorrecto" });
             toast.warning("Resultado disputado. Un juez revisará la partida.");
             onUpdate();
         } catch (e: any) {
@@ -701,7 +784,7 @@ function MatchCard({
     async function handleResolve() {
         setSubmitting(true);
         try {
-            await resolveDispute(tournament.id, match.id, {
+            await resolveDispute(tournamentId, match.id, {
                 player1_wins: p1Wins,
                 player2_wins: p2Wins,
                 draws,
@@ -722,10 +805,10 @@ function MatchCard({
                 <Card.Content className="p-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
-                                {match.player1_username || "Jugador"}
-                            </p>
-                            <p className="text-xs" style={{ color: "var(--muted)" }}>Mesa {match.table_number}</p>
+                            <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{p1Name}</p>
+                            {match.table_number && (
+                                <p className="text-xs" style={{ color: "var(--muted)" }}>Mesa {match.table_number}</p>
+                            )}
                         </div>
                         <Chip size="sm" variant="secondary">BYE</Chip>
                     </div>
@@ -734,16 +817,20 @@ function MatchCard({
         );
     }
 
-    const matchStatusColor = match.status === "CONFIRMED" ? "success" : match.status === "DISPUTED" ? "danger" : match.status === "REPORTED" ? "warning" : "default";
+    const matchStatusColor =
+        match.status === "CONFIRMED" ? "success" :
+        match.status === "DISPUTED" ? "danger" :
+        match.status === "REPORTED" ? "warning" :
+        "default";
 
     return (
         <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <Card.Content className="p-4 space-y-3">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    {match.table_number && (
+                    {match.table_number ? (
                         <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>Mesa {match.table_number}</span>
-                    )}
+                    ) : <span />}
                     <Chip size="sm" color={matchStatusColor} variant="soft">
                         {matchStatusLabels[match.status] || match.status}
                     </Chip>
@@ -752,9 +839,9 @@ function MatchCard({
                 {/* Players & Score */}
                 <div className="space-y-2">
                     <PlayerRow
-                        name={match.player1_username || "Jugador 1"}
+                        name={p1Name}
                         wins={match.player1_wins}
-                        isWinner={match.winner_id === match.player1_id}
+                        isWinner={match.winner_id === p1Id}
                         isMe={iAmPlayer1}
                     />
                     <div className="flex items-center gap-2">
@@ -763,9 +850,9 @@ function MatchCard({
                         <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
                     </div>
                     <PlayerRow
-                        name={match.player2_username || "Jugador 2"}
+                        name={p2Name}
                         wins={match.player2_wins}
-                        isWinner={match.winner_id === match.player2_id}
+                        isWinner={match.winner_id === p2Id}
                         isMe={!iAmPlayer1 && !!isMyMatch}
                     />
                     {(match.draws ?? 0) > 0 && (
@@ -773,47 +860,40 @@ function MatchCard({
                     )}
                 </div>
 
-                {/* Reported info */}
+                {/* Status messages */}
                 {match.status === "REPORTED" && iReported && (
                     <p className="text-xs" style={{ color: "var(--warning)" }}>
                         Reportaste el resultado. Esperando confirmación del oponente.
                     </p>
                 )}
-                {match.status === "REPORTED" && opponentReported && (
+                {opponentReported && (
                     <p className="text-xs" style={{ color: "var(--warning)" }}>
-                        Tu oponente reportó el resultado. Confirma o disputa.
+                        Tu oponente reportó: {match.player1_wins}-{match.player2_wins}. Confirma o disputa.
                     </p>
                 )}
                 {match.status === "DISPUTED" && (
                     <p className="text-xs" style={{ color: "var(--danger)" }}>
-                        Este resultado está en disputa. Un juez debe resolverlo.
+                        Resultado en disputa. Un juez debe resolverlo.
                     </p>
                 )}
 
                 {/* Action buttons */}
                 <div className="flex flex-wrap gap-2">
-                    {/* Player: report */}
                     {canReport && !showReport && (
                         <Button size="sm" onPress={() => setShowReport(true)} style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}>
                             Reportar resultado
                         </Button>
                     )}
-
-                    {/* Player: confirm opponent's report */}
                     {canConfirm && (
                         <Button size="sm" isDisabled={submitting} onPress={handleConfirm} style={{ background: "var(--success)", color: "var(--success-foreground)" }}>
                             Confirmar resultado
                         </Button>
                     )}
-
-                    {/* Player: dispute opponent's report */}
                     {canDispute && (
                         <Button size="sm" variant="danger-soft" isDisabled={submitting} onPress={handleDispute}>
                             Disputar
                         </Button>
                     )}
-
-                    {/* Judge/Organizer: report or resolve */}
                     {canJudgeReport && !showReport && (
                         <Button size="sm" onPress={() => setShowReport(true)} style={{ background: "var(--warning)", color: "#000" }}>
                             {canResolveDispute ? "Resolver disputa" : "Reportar como juez"}
@@ -828,21 +908,9 @@ function MatchCard({
                             {canResolveDispute ? "Resolver disputa" : "Reportar resultado"}
                         </p>
                         <div className="grid grid-cols-3 gap-2">
-                            <ScoreInput
-                                label={match.player1_username || "J1"}
-                                value={p1Wins}
-                                onChange={setP1Wins}
-                            />
-                            <ScoreInput
-                                label={match.player2_username || "J2"}
-                                value={p2Wins}
-                                onChange={setP2Wins}
-                            />
-                            <ScoreInput
-                                label="Empates"
-                                value={draws}
-                                onChange={setDraws}
-                            />
+                            <ScoreInput label={p1Name} value={p1Wins} onChange={setP1Wins} />
+                            <ScoreInput label={p2Name} value={p2Wins} onChange={setP2Wins} />
+                            <ScoreInput label="Empates" value={draws} onChange={setDraws} />
                         </div>
                         <div className="flex gap-2">
                             <Button
@@ -876,7 +944,7 @@ function PlayerRow({ name, wins, isWinner, isMe }: { name: string; wins?: number
                 </span>
                 {isMe && <Chip size="sm" variant="soft" color="accent">Tú</Chip>}
             </div>
-            <span className={`text-lg font-bold ${isWinner ? "text-[var(--accent)]" : ""}`} style={{ color: isWinner ? undefined : "var(--foreground)" }}>
+            <span className={`text-lg font-bold`} style={{ color: isWinner ? "var(--accent)" : "var(--foreground)" }}>
                 {wins ?? "-"}
             </span>
         </div>
@@ -931,8 +999,6 @@ function StandingsTab({ standings, loading }: { standings: Standing[]; loading: 
         );
     }
 
-    const medals: Record<number, string> = { 1: "1er", 2: "2do", 3: "3er" };
-
     return (
         <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <Card.Content className="p-0">
@@ -953,14 +1019,14 @@ function StandingsTab({ standings, loading }: { standings: Standing[]; loading: 
                             </tr>
                         </thead>
                         <tbody>
-                            {standings.map((s) => (
+                            {standings.map((s, i) => (
                                 <tr
-                                    key={s.user_id}
+                                    key={s.user_id || i}
                                     className="transition-colors hover:bg-[var(--surface-secondary)]"
                                     style={{ borderBottom: "1px solid var(--border)" }}
                                 >
                                     <td className="px-4 py-3 font-bold" style={{ color: s.rank <= 3 ? "var(--accent)" : "var(--foreground)" }}>
-                                        {medals[s.rank] || s.rank}
+                                        {s.rank}
                                     </td>
                                     <td className="px-4 py-3 font-medium" style={{ color: "var(--foreground)" }}>
                                         {s.username}
@@ -988,8 +1054,8 @@ function StandingsTab({ standings, loading }: { standings: Standing[]; loading: 
 
                 {/* Mobile cards */}
                 <div className="sm:hidden divide-y" style={{ borderColor: "var(--border)" }}>
-                    {standings.map((s) => (
-                        <div key={s.user_id} className="p-4 flex items-center gap-3">
+                    {standings.map((s, i) => (
+                        <div key={s.user_id || i} className="p-4 flex items-center gap-3">
                             <span
                                 className="text-lg font-bold w-8 text-center"
                                 style={{ color: s.rank <= 3 ? "var(--accent)" : "var(--muted)" }}
