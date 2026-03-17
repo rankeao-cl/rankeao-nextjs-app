@@ -3,130 +3,120 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Envelope, Eye, EyeSlash, Lock } from "@gravity-ui/icons";
-import { Button, Card, Form, Input } from "@heroui/react";
+import { Eye, EyeSlash, Envelope, Lock } from "@gravity-ui/icons";
+import { Button, Form, Input } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
+import { useTheme } from "next-themes";
 
 export default function LoginForm() {
   const router = useRouter();
-  const { login, session, status } = useAuth();
+  const { login, status } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isDark = mounted && resolvedTheme === "dark";
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
+    if (status === "authenticated") router.replace("/");
   }, [status, router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-
     if (!email.trim() || !password.trim()) {
-      setError("Debes ingresar correo y contrasena.");
+      setError("Ingresa tu correo y contraseña.");
       return;
     }
-
     try {
       setIsSubmitting(true);
-      await login({
-        email: email.trim(),
-        password,
-      });
+      await login({ email: email.trim(), password });
       router.replace("/");
-    } catch (submitError) {
-      if (submitError instanceof Error) {
-        setError(submitError.message);
-      } else if (
-        typeof submitError === "object" &&
-        submitError !== null
-      ) {
-        const maybeError = submitError as { message?: string; error?: string };
-        setError(
-          maybeError.message ||
-          maybeError.error ||
-          JSON.stringify(submitError)
-        );
-      } else {
-        setError("No se pudo iniciar sesión.");
-      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo iniciar sesión.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="rk-container py-14">
-      <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
-        <Card.Content className="p-6 space-y-4">
-          <p className="kicker">Acceso</p>
-          <h1 className="text-3xl font-bold text-foreground">Iniciar sesión</h1>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "var(--background)" }}>
+      <div className="w-full max-w-sm space-y-8">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3">
+          <RankeaoLogo className={`h-8 w-auto ${isDark ? "text-white" : "text-zinc-800"}`} />
+          <p className="text-sm text-[var(--muted)]">Inicia sesión en tu cuenta</p>
+        </div>
 
-          {status === "authenticated" && session?.email ? (
-            <p className="rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-secondary)] px-3 py-2 text-sm text-foreground">
-              Sesión activa como {session.email}
-            </p>
-          ) : null}
-
-          <Form className="space-y-3" onSubmit={handleSubmit}>
-            <Input
-              placeholder="usuario@rankeao.cl"
-              type="email"
-              className="w-full [&_input]:h-12"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-
-            <div className="relative">
+        {/* Card */}
+        <div className="glass p-6 sm:p-8 space-y-6">
+          <Form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="relative w-full">
+              <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
               <Input
-                placeholder="••••••••"
-                type={isVisible ? "text" : "password"}
-                className="w-full pr-10 [&_input]:h-12"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                placeholder="correo@rankeao.cl"
+                type="email"
+                className="w-full [&_input]:h-12 [&_input]:pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <Button
-                isIconOnly
-                aria-label={isVisible ? "Hide password" : "Show password"}
-                size="sm"
-                variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-                onPress={() => setIsVisible(!isVisible)}
-              >
-                {isVisible ? <Eye className="size-4 text-foreground" /> : <EyeSlash className="size-4 text-foreground" />}
-              </Button>
             </div>
 
-            {error ? <p className="text-sm text-danger">{error}</p> : null}
+            <div className="relative w-full">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
+              <Input
+                placeholder="Contraseña"
+                type={isVisible ? "text" : "password"}
+                className="w-full [&_input]:h-12 [&_input]:pl-10 [&_input]:pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors z-10 cursor-pointer"
+                onClick={() => setIsVisible(!isVisible)}
+              >
+                {isVisible ? <Eye className="size-4" /> : <EyeSlash className="size-4" />}
+              </button>
+            </div>
+
+            <div className="flex justify-end w-full">
+              <Link href="/forgot-password" className="text-xs text-[var(--accent)] hover:underline font-medium">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
+            {error && (
+              <div className="w-full px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                <p className="text-sm text-red-500">{error}</p>
+              </div>
+            )}
 
             <Button
               type="submit"
-              className="w-full h-12 font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
+              className="w-full h-12 font-semibold rounded-xl bg-[var(--accent)] text-[var(--accent-foreground)]"
               isDisabled={isSubmitting}
             >
-              {isSubmitting ? "Entrando..." : "Entrar"}
+              {isSubmitting ? "Entrando..." : "Iniciar sesión"}
             </Button>
           </Form>
+        </div>
 
-          <div className="flex flex-col gap-2 mt-6 items-center w-full">
-            <Link href="/forgot-password" className="text-sm py-2 text-accent-glow hover:underline font-semibold text-center">
-              Olvidé mi contraseña
-            </Link>
-            <div className="text-sm text-muted text-center">
-              No tienes cuenta?{' '}
-              <Link href="/register" className="py-2 text-accent-glow hover:underline font-semibold">
-                Regístrate
-              </Link>
-            </div>
-          </div>
-        </Card.Content>
-      </Card>
+        {/* Footer */}
+        <p className="text-center text-sm text-[var(--muted)]">
+          ¿No tienes cuenta?{" "}
+          <Link href="/register" className="text-[var(--accent)] hover:underline font-semibold">
+            Regístrate gratis
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
