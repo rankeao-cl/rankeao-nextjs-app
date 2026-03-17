@@ -7,6 +7,8 @@ import { Gear, ShieldExclamation, Person, Palette, Briefcase, Bell } from "@grav
 import { useTheme } from "next-themes";
 import { changePassword } from "@/lib/api/auth";
 import { getNotificationPreferences, updateNotificationPreferences } from "@/lib/api/notifications";
+import { getUserProfile, updateProfile } from "@/lib/api/social";
+import { uploadMarketplaceImage } from "@/lib/api/marketplace";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const TABS = [
@@ -24,6 +26,11 @@ export default function ConfigPage() {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const queryClient = useQueryClient();
+
+    // Avatar state
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const avatarInputRef = typeof window !== "undefined" ? { current: null as HTMLInputElement | null } : { current: null };
 
     // Passwords state
     const [currentPassword, setCurrentPassword] = useState("");
@@ -49,7 +56,36 @@ export default function ConfigPage() {
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        if (session?.username) {
+            getUserProfile(session.username).then((res: any) => {
+                const profile = res?.data ?? res;
+                if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+            }).catch(() => {});
+        }
+    }, [session?.username]);
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !token) return;
+        if (!file.type.startsWith("image/")) { toast.danger("Solo se permiten imágenes"); return; }
+        if (file.size > 5 * 1024 * 1024) { toast.danger("La imagen no puede superar los 5MB"); return; }
+        setIsUploadingAvatar(true);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            const uploadRes = await uploadMarketplaceImage(formData);
+            const newUrl = uploadRes?.url || uploadRes?.data?.url;
+            if (newUrl) {
+                await updateProfile({ avatar_url: newUrl }, token);
+                setAvatarUrl(newUrl);
+                toast.success("Avatar actualizado");
+            }
+        } catch {
+            toast.danger("Error al subir el avatar");
+        } finally {
+            setIsUploadingAvatar(false);
+        }
+    };
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,10 +174,26 @@ export default function ConfigPage() {
 
                                 <div className="flex items-center gap-6">
                                     <Avatar size="lg">
-                                        <Avatar.Image src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg" />
+                                        <Avatar.Image src={avatarUrl || undefined} />
                                         <Avatar.Fallback>{session?.username?.[0]?.toUpperCase() || "U"}</Avatar.Fallback>
                                     </Avatar>
-                                    <Button variant="secondary" size="sm">Cambiar Avatar</Button>
+                                    <div>
+                                        <input
+                                            ref={(el) => { avatarInputRef.current = el; }}
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            onChange={handleAvatarChange}
+                                            className="hidden"
+                                        />
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            isPending={isUploadingAvatar}
+                                            onPress={() => avatarInputRef.current?.click()}
+                                        >
+                                            Cambiar Avatar
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <div className="grid gap-4 sm:grid-cols-2">

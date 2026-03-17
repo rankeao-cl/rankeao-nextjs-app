@@ -7,7 +7,7 @@ import Image from "next/image";
 import { RankeaoLogo } from "./icons/RankeaoLogo";
 import NavbarSearch from "./NavbarSearch";
 
-import { Avatar, Button, Badge, Popover, ScrollShadow } from "@heroui/react";
+import { Avatar, Button, Popover, ScrollShadow } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 import {
   ArrowRightFromSquare,
@@ -28,6 +28,7 @@ import {
 } from "@gravity-ui/icons";
 import { useTheme } from "next-themes";
 import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
+import { getUserProfile } from "@/lib/api/social";
 import type { Notification } from "@/lib/types/notification";
 
 function timeAgo(dateStr: string): string {
@@ -62,6 +63,7 @@ export default function Navbar() {
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
@@ -71,7 +73,6 @@ export default function Navbar() {
         getNotifications({ per_page: 10 }, session.accessToken).catch(() => null),
         getUnreadNotificationCount(session.accessToken).catch(() => null),
       ]).then(([notifRes, countRes]) => {
-        // Parse notifications from various API response shapes
         const raw = notifRes?.data?.notifications
           ?? notifRes?.data
           ?? notifRes?.notifications
@@ -85,6 +86,14 @@ export default function Navbar() {
           setUnreadCount(total);
         }
       });
+
+      // Fetch user avatar
+      if (session.username) {
+        getUserProfile(session.username).then((res: any) => {
+          const profile = res?.data ?? res;
+          if (profile?.avatar_url) setUserAvatarUrl(profile.avatar_url);
+        }).catch(() => {});
+      }
     }
   }, [status, session]);
 
@@ -195,16 +204,12 @@ export default function Navbar() {
                       <Popover.Trigger
                         className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-[var(--muted)] cursor-pointer hover:bg-[var(--default)] rounded-lg transition-colors"
                       >
-                        <Badge color="danger" size="sm">
-                          <Badge.Anchor>
-                            <Bell className="size-[18px]" />
-                          </Badge.Anchor>
-                          {unreadCount > 0 && (
-                            <Badge.Label className="scale-80 border-2 border-[var(--background)]">
-                              {unreadCount > 9 ? "+9" : unreadCount}
-                            </Badge.Label>
-                          )}
-                        </Badge>
+                        <Bell className="size-[18px]" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 border-2 border-[var(--background)]">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </span>
+                        )}
                       </Popover.Trigger>
                       <Popover.Content className="w-[340px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
                         <div className="flex flex-col w-full">
@@ -343,7 +348,7 @@ export default function Navbar() {
                           <Avatar size="sm">
                             <Avatar.Image
                               alt="Avatar"
-                              src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
+                              src={userAvatarUrl || undefined}
                             />
                             <Avatar.Fallback delayMs={600}>
                               {session?.username?.[0]?.toUpperCase() || "U"}
@@ -358,7 +363,7 @@ export default function Navbar() {
                               <Avatar size="sm" className="ring-2 ring-[var(--accent)]/30">
                                 <Avatar.Image
                                   alt="Avatar"
-                                  src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
+                                  src={userAvatarUrl || undefined}
                                 />
                                 <Avatar.Fallback delayMs={600}>
                                   {session?.username?.[0]?.toUpperCase() || "U"}

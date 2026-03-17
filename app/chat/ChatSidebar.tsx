@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Avatar, Input, ScrollShadow, Skeleton, Button, Badge } from "@heroui/react";
+import { Avatar, Input, ScrollShadow, Skeleton, Button } from "@heroui/react";
 import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy, Plus } from "@gravity-ui/icons";
 import type { Channel, ChannelMember } from "@/lib/types/chat";
 import { useAuth } from "@/context/AuthContext";
@@ -85,31 +85,27 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         ? "bg-[var(--accent)]/10 border border-[var(--accent)]/25"
                         : "hover:bg-[var(--surface-secondary)] border border-transparent"}`}
             >
-                <div className="relative shrink-0">
-                    <Badge color="danger" size="sm">
-                        <Badge.Anchor>
-                            {isGroup ? (
-                                <div className="w-11 h-11 rounded-full border border-[var(--border)] bg-[var(--surface-tertiary)] flex items-center justify-center text-[var(--muted)]">
-                                    <Persons className="size-5" />
-                                </div>
-                            ) : (
-                                <div className="relative">
-                                    <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
-                                        <Avatar.Image src={displayAvatar} alt={displayName} />
-                                        <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
-                                    </Avatar>
-                                    {channel.type === "DM" && (
-                                        <OnlineIndicator isOnline={isOnline} size="sm" />
-                                    )}
-                                </div>
+                <div className="relative shrink-0 w-11 h-11">
+                    {isGroup ? (
+                        <div className="w-11 h-11 rounded-full border border-[var(--border)] bg-[var(--surface-tertiary)] flex items-center justify-center text-[var(--muted)]">
+                            <Persons className="size-5" />
+                        </div>
+                    ) : (
+                        <>
+                            <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
+                                <Avatar.Image src={displayAvatar} alt={displayName} />
+                                <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
+                            </Avatar>
+                            {channel.type === "DM" && (
+                                <OnlineIndicator isOnline={isOnline} size="sm" />
                             )}
-                        </Badge.Anchor>
-                        {(channel.unread_count ?? 0) > 0 && (
-                            <Badge.Label className="border-2 border-[var(--surface)]">
-                                {(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}
-                            </Badge.Label>
-                        )}
-                    </Badge>
+                        </>
+                    )}
+                    {(channel.unread_count ?? 0) > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 border-2 border-[var(--surface)]">
+                            {(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}
+                        </span>
+                    )}
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate text-[var(--foreground)]">
