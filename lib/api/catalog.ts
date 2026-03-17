@@ -13,7 +13,10 @@ export async function getGames(): Promise<GamesResponse> {
 }
 
 export async function getGameDetail(slug: string) {
-    return apiFetch<{ success?: boolean; data?: CatalogGame }>(`/catalog/games/${encodeURIComponent(slug)}`);
+    const payload = await apiFetch<any>(`/catalog/games/${encodeURIComponent(slug)}`);
+    // API returns { data: { game: {...} } } — normalize to { data: CatalogGame }
+    const game = payload?.data?.game ?? payload?.game ?? payload?.data;
+    return { data: game as CatalogGame | undefined, success: payload?.success };
 }
 
 export async function getGameFormats(slug: string) {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Chip } from "@heroui/react";
-import { ArrowUpRightFromSquare, Flame, Cup } from "@gravity-ui/icons";
+import { Chip } from "@heroui/react";
+import { Flame, Cup, Persons, ArrowRight } from "@gravity-ui/icons";
 import Link from "next/link";
 import Image from "next/image";
 import { getTournaments } from "@/lib/api/tournaments";
@@ -11,164 +11,205 @@ import { getTenants } from "@/lib/api/tenants";
 import type { Tournament } from "@/lib/types/tournament";
 import type { CatalogGame } from "@/lib/types/catalog";
 import type { Tenant } from "@/lib/types/tenant";
+import { getGameBrand } from "@/lib/gameLogos";
+
+function SidebarSection({ title, icon, children, viewAllHref }: {
+    title: string;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+    viewAllHref?: string;
+}) {
+    return (
+        <div className="space-y-2.5">
+            <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                    {icon}
+                    <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider">{title}</h3>
+                </div>
+                {viewAllHref && (
+                    <Link href={viewAllHref} className="text-[10px] font-semibold text-[var(--accent)] hover:underline flex items-center gap-0.5">
+                        Ver todo <ArrowRight className="size-3" />
+                    </Link>
+                )}
+            </div>
+            {children}
+        </div>
+    );
+}
 
 export default function RightSidebar() {
-    const [ongoingTournaments, setOngoingTournaments] = useState<Tournament[]>([]);
-    const [trendingGames, setTrendingGames] = useState<CatalogGame[]>([]);
-    const [suggestedTenants, setSuggestedTenants] = useState<Tenant[]>([]);
+    const [tournaments, setTournaments] = useState<Tournament[]>([]);
+    const [games, setGames] = useState<CatalogGame[]>([]);
+    const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [tournamentsT, gamesT, tenantsT] = await Promise.all([
-                    getTournaments({ status: "ROUND_IN_PROGRESS", per_page: 2 }).catch(() => null),
-                    getGames().catch(() => null),
-                    getTenants({ per_page: 3 }).catch(() => null),
-                ]);
-
-                if (tournamentsT?.tournaments?.length) {
-                    setOngoingTournaments(tournamentsT.tournaments);
-                } else {
-                    // Fallback: show upcoming if no live tournaments
-                    const upcomingRes = await getTournaments({ status: "OPEN", per_page: 2 }).catch(() => null);
-                    if (upcomingRes?.tournaments) {
-                        setOngoingTournaments(upcomingRes.tournaments);
-                    }
-                }
-
-                if (gamesT?.data) {
-                    setTrendingGames(gamesT.data.slice(0, 3));
-                } else if (gamesT?.games) {
-                    setTrendingGames(gamesT.games.slice(0, 3));
-                }
-
-                if (tenantsT?.tenants) {
-                    setSuggestedTenants(tenantsT.tenants);
-                } else if ((tenantsT as any)?.data?.tenants) {
-                    setSuggestedTenants((tenantsT as any).data.tenants);
-                }
-            } catch (error) {
-                console.error("Error fetching RightSidebar data:", error);
-            } finally {
-                setLoading(false);
+        Promise.all([
+            getTournaments({ status: "ROUND_IN_PROGRESS", per_page: 3 }).catch(() => null),
+            getGames().catch(() => null),
+            getTenants({ per_page: 3 }).catch(() => null),
+        ]).then(async ([tournamentsRes, gamesRes, tenantsRes]) => {
+            // Tournaments: prefer live, fallback to upcoming
+            let t = tournamentsRes?.tournaments;
+            if (!t?.length) {
+                const upcoming = await getTournaments({ status: "OPEN", per_page: 3 }).catch(() => null);
+                t = upcoming?.tournaments;
             }
-        };
+            if (Array.isArray(t)) setTournaments(t);
 
-        fetchData();
+            // Games
+            const rawG = gamesRes as any;
+            const g = rawG?.data?.games ?? rawG?.games ?? rawG?.data;
+            if (Array.isArray(g)) setGames(g.slice(0, 4));
+
+            // Tenants
+            const tn = tenantsRes?.tenants ?? (tenantsRes as any)?.data?.tenants;
+            if (Array.isArray(tn)) setTenants(tn.slice(0, 3));
+
+            setLoading(false);
+        });
     }, []);
 
     return (
         <aside
-            className="hidden xl:flex flex-col w-[239px] h-[calc(100vh-4rem)] sticky top-16 border-l overflow-y-auto p-4 gap-4"
-            style={{
-                borderColor: "var(--border)",
-                background: "var(--surface)",
-                backdropFilter: "blur(32px) saturate(1.5)",
-                WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-            }}
+            className="hidden xl:flex flex-col w-[260px] h-full sticky top-16 border-l overflow-y-auto p-4 gap-5"
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
         >
             {/* Trending Games */}
-            <Card className="surface-card rounded-[22px] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                    <Flame className="size-4 text-[var(--warning)]" />
-                    <h3 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                        Trending
-                    </h3>
-                </div>
-                <div className="flex flex-col gap-2">
-                    {trendingGames.map((game) => (
-                        <Link
-                            key={game.slug}
-                            href={`/juegos/${game.slug}`}
-                            className="text-xs px-2.5 py-1.5 rounded-lg transition-colors hover:bg-[var(--surface-tertiary)]"
-                            style={{
-                                background: "var(--surface-secondary)",
-                                color: "var(--foreground)",
-                            }}
-                        >
-                            {game.name}
-                        </Link>
-                    ))}
-                    {!loading && trendingGames.length === 0 && (
-                        <span className="text-xs text-[var(--muted)] italic px-1">No hay juegos tendencia</span>
+            <SidebarSection
+                title="Juegos"
+                icon={<Flame className="size-3.5 text-orange-500" />}
+                viewAllHref="/juegos"
+            >
+                <div className="space-y-1">
+                    {games.map((game) => {
+                        const brand = getGameBrand(game.slug);
+                        return (
+                            <Link
+                                key={game.slug}
+                                href={`/juegos/${game.slug}`}
+                                className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[var(--surface-secondary)] transition-colors group"
+                            >
+                                <div
+                                    className="w-8 h-8 rounded-lg overflow-hidden border shrink-0"
+                                    style={{ borderColor: `${brand.color}25` }}
+                                >
+                                    {game.logo_url ? (
+                                        <Image src={game.logo_url} alt={game.name} width={32} height={32} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div
+                                            className="w-full h-full flex items-center justify-center text-[9px] font-black"
+                                            style={{ background: `${brand.bg}`, color: brand.color }}
+                                        >
+                                            {game.short_name || game.slug.slice(0, 3).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
+                                        {game.name}
+                                    </p>
+                                    {game.formats_count != null && (
+                                        <p className="text-[10px] text-[var(--muted)]">{game.formats_count} formatos</p>
+                                    )}
+                                </div>
+                            </Link>
+                        );
+                    })}
+                    {!loading && games.length === 0 && (
+                        <p className="text-[11px] text-[var(--muted)] italic px-2">Sin datos</p>
                     )}
                 </div>
-            </Card>
+            </SidebarSection>
 
             {/* Tournaments */}
-            <Card className="surface-card rounded-[22px] p-4">
-                <div className="flex items-center gap-2 mb-3">
-                    <Cup className="size-4 text-[var(--accent)]" />
-                    <h3 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                        Torneos en Curso
-                    </h3>
-                </div>
-                <div className="flex flex-col gap-2">
-                    {ongoingTournaments.map((t) => (
-                        <Link
-                            key={t.id}
-                            href={`/torneos?id=${t.id}`} // Or actual tournament page if available
-                            className="text-xs p-2 rounded-lg transition-colors hover:bg-[var(--surface-tertiary)]"
-                            style={{ background: "var(--surface-secondary)" }}
-                        >
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium truncate max-w-[120px]" style={{ color: "var(--foreground)" }}>
-                                    {t.name}
-                                </span>
-                                <Chip size="sm" color={t.status === "ROUND_IN_PROGRESS" ? "success" : "warning"} variant="soft">
-                                    {t.status === "ROUND_IN_PROGRESS" ? "En vivo" : "Próximo"}
-                                </Chip>
-                            </div>
-                            <span style={{ color: "var(--muted)" }}>
-                                {t.registered_count || 0} inscritos {t.current_round ? `• Ronda ${t.current_round}` : ""}
-                            </span>
-                        </Link>
-                    ))}
-                    {!loading && ongoingTournaments.length === 0 && (
-                        <div className="text-xs p-4 text-center rounded-xl bg-[var(--surface-secondary)]/50 border border-dashed border-[var(--border)]">
-                            <p style={{ color: "var(--muted)" }}>No hay torneos activos ahora.</p>
+            <SidebarSection
+                title="Torneos"
+                icon={<Cup className="size-3.5 text-[var(--accent)]" />}
+                viewAllHref="/torneos"
+            >
+                <div className="space-y-1.5">
+                    {tournaments.map((t) => {
+                        const isLive = t.status === "ROUND_IN_PROGRESS" || t.status === "STARTED";
+                        return (
+                            <Link
+                                key={t.id}
+                                href={`/torneos/${t.id}`}
+                                className="block p-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--accent)]/30 bg-[var(--surface-secondary)] hover:bg-[var(--surface-secondary)] transition-colors"
+                            >
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-xs font-bold text-[var(--foreground)] truncate flex-1 mr-2">{t.name}</span>
+                                    <Chip size="sm" color={isLive ? "success" : "warning"} variant="soft" className="text-[9px] shrink-0">
+                                        {isLive ? "En vivo" : "Abierto"}
+                                    </Chip>
+                                </div>
+                                <div className="flex items-center gap-2 text-[10px] text-[var(--muted)]">
+                                    <span>{t.game}</span>
+                                    <span>·</span>
+                                    <span className="flex items-center gap-0.5">
+                                        <Persons className="size-3" /> {t.registered_count || 0}
+                                    </span>
+                                    {t.current_round && (
+                                        <>
+                                            <span>·</span>
+                                            <span className="text-[var(--success)] font-semibold">R{t.current_round}</span>
+                                        </>
+                                    )}
+                                </div>
+                            </Link>
+                        );
+                    })}
+                    {!loading && tournaments.length === 0 && (
+                        <div className="text-center py-4 px-2 rounded-xl border border-dashed border-[var(--border)]">
+                            <p className="text-[11px] text-[var(--muted)]">Sin torneos activos</p>
                         </div>
                     )}
                 </div>
-            </Card>
+            </SidebarSection>
 
-            {/* Suggestions */}
-            <Card className="surface-card rounded-[22px] p-4">
-                <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--foreground)" }}>
-                    Sugerencias
-                </h3>
-                <div className="flex flex-col gap-3">
-                    {suggestedTenants.map((tenant) => (
+            {/* Communities */}
+            <SidebarSection
+                title="Comunidades"
+                icon={<Persons className="size-3.5 text-emerald-500" />}
+                viewAllHref="/comunidades"
+            >
+                <div className="space-y-1">
+                    {tenants.map((tenant) => (
                         <Link
                             key={tenant.id}
                             href={`/comunidades/${tenant.slug || tenant.id}`}
-                            className="flex items-center gap-2 p-1.5 rounded-lg transition-colors hover:bg-[var(--surface-secondary)]"
+                            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[var(--surface-secondary)] transition-colors group"
                         >
-                            <div className="size-6 rounded bg-[var(--surface-tertiary)] flex items-center justify-center text-[11px] shrink-0 overflow-hidden">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-center text-[11px] shrink-0 overflow-hidden">
                                 {tenant.logo_url ? (
-                                    <Image src={tenant.logo_url} alt={tenant.name} width={24} height={24} className="w-full h-full object-cover" loading="lazy" />
-                                ) : "🏠"}
+                                    <Image src={tenant.logo_url} alt={tenant.name} width={32} height={32} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="font-bold text-[var(--accent)]">{tenant.name?.charAt(0)?.toUpperCase()}</span>
+                                )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[11px] font-bold truncate text-[var(--foreground)]">{tenant.name}</p>
-                                <p className="text-[11px] text-[var(--muted)] truncate">{tenant.city || "Comunidad"}</p>
+                                <p className="text-xs font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
+                                    {tenant.name}
+                                </p>
+                                <p className="text-[10px] text-[var(--muted)] truncate">
+                                    {tenant.city || "Comunidad"}
+                                </p>
                             </div>
                         </Link>
                     ))}
-
-                    <div className="pt-2 border-t flex flex-col gap-1" style={{ borderColor: 'var(--border)' }}>
-                        <Link
-                            href="/comunidades"
-                            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--surface-secondary)] text-[11px]"
-                            style={{ color: "var(--muted)" }}
-                        >
-                            <ArrowUpRightFromSquare className="size-3" />
-                            <span>Explora todas las tiendas</span>
-                        </Link>
-                    </div>
                 </div>
-            </Card>
+            </SidebarSection>
+
+            {/* Footer */}
+            <div className="mt-auto pt-3 border-t border-[var(--border)] px-1">
+                <p className="text-[10px] text-[var(--muted)] leading-relaxed">
+                    <Link href="/terminos" className="hover:underline">Términos</Link>
+                    {" · "}
+                    <Link href="/privacidad" className="hover:underline">Privacidad</Link>
+                    {" · "}
+                    <span>Rankeao.cl © 2026</span>
+                </p>
+            </div>
         </aside>
     );
 }

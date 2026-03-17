@@ -79,7 +79,7 @@ export default function ForgotPasswordForm() {
                   <Input
                     placeholder="correo@rankeao.cl"
                     type="email"
-                    className="w-full [&_input]:h-12 [&_input]:pl-10"
+                    className="w-full h-12 pl-10"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

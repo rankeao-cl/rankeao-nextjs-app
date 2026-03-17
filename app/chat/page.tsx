@@ -70,6 +70,12 @@ export default function ChatPage() {
             setChannels(prev => [newChannel, ...prev.filter(c => c.id !== newChannel.id)]);
             setSelectedChannel(newChannel);
           }}
+          onChannelLeft={() => {
+            if (selectedChannel) {
+              setChannels(prev => prev.filter(c => c.id !== selectedChannel.id));
+              setSelectedChannel(null);
+            }
+          }}
         />
       </div>
       <div className={`${selectedChannel ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 flex-col h-full`}>

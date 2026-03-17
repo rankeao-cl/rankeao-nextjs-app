@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Button } from "@heroui/react";
 import {
     House,
     Cup,
@@ -29,7 +27,7 @@ const navItems = [
     { href: "/comunidades", label: "Comunidades", icon: Persons },
     { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
     { href: "/perfil/me", label: "Perfil", icon: Person, authRequired: true },
-    { href: "/config", label: "Configuración", icon: Gear, authRequired: true },
+    { href: "/config", label: "Ajustes", icon: Gear, authRequired: true },
 ];
 
 export default function Sidebar() {
@@ -46,61 +44,57 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r transition-all duration-500 ease-out ${collapsed ? "w-[72px]" : "w-[239px]"
-                }`}
-            style={{
-                borderColor: "var(--border)",
-                background: "var(--surface)",
-                backdropFilter: "blur(32px) saturate(1.5)",
-                WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-            }}
+            className={`hidden lg:flex flex-col h-full sticky top-16 border-r transition-all duration-300 ${
+                collapsed ? "w-[68px]" : "w-[220px]"
+            }`}
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
         >
-            {/* Navigation */}
-            <nav className="flex-1 flex flex-col gap-2 p-4 pt-6 overflow-y-auto">
+            <nav className="flex-1 flex flex-col gap-0.5 p-3 pt-4 overflow-y-auto">
                 {filteredNavItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.href);
 
                     return (
-                        <Link key={item.href} href={item.href}>
-                            <Button
-                                variant={active ? "secondary" : "ghost"}
-                                className={`w-full justify-start gap-3 font-medium transition-colors rounded-2xl ${active
-                                    ? "text-accent-glow"
-                                    : "text-muted hover:text-foreground"
-                                    } ${collapsed ? "justify-center px-0" : ""}`}
-                                size="md"
-                                aria-label={item.label}
-                            >
-                                <Icon className={`size-[18px] shrink-0 ${active ? "text-[var(--accent)]" : ""}`} />
-                                {!collapsed && (
-                                    <span className="truncate text-sm">{item.label}</span>
-                                )}
-                            </Button>
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                                collapsed ? "justify-center px-0" : ""
+                            } ${
+                                active
+                                    ? "bg-[var(--accent)]/10 text-[var(--accent)]"
+                                    : "text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]"
+                            }`}
+                            aria-label={item.label}
+                        >
+                            <Icon className={`size-[18px] shrink-0 ${active ? "text-[var(--accent)]" : ""}`} />
+                            {!collapsed && <span className="truncate">{item.label}</span>}
+                            {active && !collapsed && (
+                                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+                            )}
                         </Link>
                     );
                 })}
             </nav>
 
             {/* Collapse toggle */}
-            <div className="p-2 border-t" style={{ borderColor: "var(--border)" }}>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`w-full text-muted hover:text-foreground ${collapsed ? "justify-center" : "justify-start gap-3"
-                        }`}
-                    onPress={() => setCollapsed(!collapsed)}
-                    aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            <div className="p-2 border-t border-[var(--border)]">
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] transition-colors cursor-pointer ${
+                        collapsed ? "justify-center" : ""
+                    }`}
+                    aria-label={collapsed ? "Expandir" : "Colapsar"}
                 >
                     {collapsed ? (
                         <LayoutColumns className="size-4" />
                     ) : (
                         <>
                             <ChevronsCollapseToLine className="size-4" />
-                            <span className="text-xs">Colapsar</span>
+                            <span>Colapsar</span>
                         </>
                     )}
-                </Button>
+                </button>
             </div>
         </aside>
     );

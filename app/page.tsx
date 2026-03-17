@@ -4,6 +4,7 @@ import type { Listing } from "@/lib/types/marketplace";
 import type { Tournament } from "@/lib/types/tournament";
 import { FeedListingCard, FeedTournamentCard } from "@/components/cards";
 import FeedHeader from "./FeedClient";
+import FeedTabs from "./FeedTabs";
 
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
@@ -41,19 +42,26 @@ export default async function HomePage() {
   ].sort((a, b) => b.timestamp - a.timestamp);
 
   return (
-    <div className="w-full p-4 space-y-4">
+    <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+      {/* Create post */}
       <FeedHeader />
 
+      {/* Filter tabs */}
+      <FeedTabs />
+
+      {/* Feed items */}
       {feedItems.length > 0 ? (
-        feedItems.map((item) => {
-          if (item.type === "tournament") {
-            return <FeedTournamentCard key={item.id} tournament={item.data} />;
-          }
-          if (item.type === "sale") {
-            return <FeedListingCard key={item.id} listing={item.data} />;
-          }
-          return null;
-        })
+        <div className="space-y-4">
+          {feedItems.map((item) => {
+            if (item.type === "tournament") {
+              return <FeedTournamentCard key={item.id} tournament={item.data} />;
+            }
+            if (item.type === "sale") {
+              return <FeedListingCard key={item.id} listing={item.data} />;
+            }
+            return null;
+          })}
+        </div>
       ) : (
         <div className="glass py-16 text-center">
           <div className="w-14 h-14 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center mx-auto mb-3">

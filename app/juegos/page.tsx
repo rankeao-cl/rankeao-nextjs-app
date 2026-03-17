@@ -41,12 +41,10 @@ export default async function JuegosPage() {
   return (
     <div className="max-w-7xl mx-auto flex flex-col pt-4">
       <section className="px-4 lg:px-6 mb-6">
-        <div
-          className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-        >
+        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="relative z-10 flex-1">
             <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
-              Catálogo TCG
+              Catalogo TCG
             </Chip>
             <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
               Todos los juegos y formatos
@@ -58,11 +56,11 @@ export default async function JuegosPage() {
           </div>
 
           <div className="flex flex-row md:flex-col gap-2 min-w-0 md:min-w-[200px]">
-            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
+            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
               <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos</p>
               <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{enrichedGames.length}</p>
             </div>
-            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
+            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
               <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Formatos</p>
               <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{totalFormats}</p>
             </div>

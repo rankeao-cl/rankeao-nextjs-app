@@ -8,51 +8,56 @@ import { UserDisplayName, getUserRoleData } from "./UserIdentity";
 import Link from "next/link";
 
 const medalColors = ["", "text-yellow-400", "text-[var(--muted)]", "text-amber-700"];
-const medalEmoji = ["", "🥇", "🥈", "🥉"];
+const medalEmoji = ["", "\u{1F947}", "\u{1F948}", "\u{1F949}"];
 
 interface Props {
   entries: LeaderboardEntry[];
   type?: "xp" | "rating";
 }
 
+function XpColumns() {
+  return (
+    <>
+      <Table.Column id="pos">Pos</Table.Column>
+      <Table.Column id="player" isRowHeader>Jugador</Table.Column>
+      <Table.Column id="level">Nivel</Table.Column>
+      <Table.Column id="xp">Total XP</Table.Column>
+    </>
+  );
+}
+
+function RatingColumns() {
+  return (
+    <>
+      <Table.Column id="pos">Pos</Table.Column>
+      <Table.Column id="player" isRowHeader>Jugador</Table.Column>
+      <Table.Column id="elo">ELO</Table.Column>
+      <Table.Column id="wl">W/L</Table.Column>
+      <Table.Column id="tourneys" className="hidden sm:table-cell">Torneos</Table.Column>
+      <Table.Column id="streak" className="hidden sm:table-cell">Racha</Table.Column>
+    </>
+  );
+}
+
 export default function LeaderboardTable({ entries, type = "xp" }: Props) {
+  const isXp = type === "xp";
+
   return (
     <Table
       aria-label="Leaderboard"
       className="surface-panel border border-[var(--border)] rounded-[22px] overflow-hidden [&_table]:p-0 [&_table]:bg-transparent [&_th]:bg-[var(--surface-secondary)] [&_th]:text-[var(--muted)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_th]:border-b [&_th]:border-[var(--border)] [&_td]:text-sm [&_td]:border-b [&_td]:border-[var(--border)] [&_td]:py-4"
     >
-      <Table.Header>
-        <Table.Column>Pos</Table.Column>
-        <Table.Column>Jugador</Table.Column>
-        {type === "xp" ? (
-          <>
-            <Table.Column>Nivel</Table.Column>
-            <Table.Column>Total XP</Table.Column>
-          </>
-        ) : (
-          <>
-            <Table.Column>ELO</Table.Column>
-            <Table.Column>W/L</Table.Column>
-            <Table.Column className="hidden sm:table-cell">Torneos</Table.Column>
-            <Table.Column className="hidden sm:table-cell">Racha</Table.Column>
-          </>
-        )}
-      </Table.Header>
-      <Table.Body>
-        {entries.length === 0 ? (
-          <Table.Row key="empty">
-            <Table.Cell colSpan={type === "xp" ? 4 : 6} className="text-center py-8 text-[var(--muted)]">
-              No hay datos disponibles.
-            </Table.Cell>
-          </Table.Row>
-        ) : (
-          entries.map((entry, i) => {
+      <Table.Content>
+        <Table.Header>
+          {isXp ? <XpColumns /> : <RatingColumns />}
+        </Table.Header>
+        <Table.Body>
+          {entries.map((entry, i) => {
             const rank = entry.rank || i + 1;
             const isTop3 = rank <= 3;
 
-            // Calculate W/L Ratio for rating boards
             let winRateStr = "-";
-            if (type === "rating" && (entry.wins || entry.losses)) {
+            if (!isXp && (entry.wins || entry.losses)) {
               const wins = entry.wins || 0;
               const losses = entry.losses || 0;
               const total = wins + losses;
@@ -61,25 +66,20 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
               }
             }
 
-            // Streak display
             const streak = entry.current_streak;
             let streakDisplay = "-";
             let streakColor = "var(--muted)";
             if (streak !== undefined && streak !== null) {
               if (streak > 0) {
-                streakDisplay = `🔥 ${streak}W`;
+                streakDisplay = `\u{1F525} ${streak}W`;
                 streakColor = "var(--success)";
               } else if (streak < 0) {
                 streakDisplay = `${Math.abs(streak)}L`;
                 streakColor = "var(--danger)";
-              } else {
-                streakDisplay = "-";
               }
             }
 
-            // Tournaments count
             const tourneysCount = entry.tournaments_played ?? entry.games_played ?? "-";
-
             const playerLink = `/perfil/${entry.username}`;
 
             return (
@@ -88,16 +88,14 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                 className={`${isTop3 ? "bg-[var(--surface-secondary)]" : ""} hover:bg-[var(--surface-secondary)]/50 transition-colors cursor-pointer`}
               >
                 <Table.Cell>
-                  <span
-                    className={`font-extrabold ${isTop3 ? medalColors[rank] : "text-[var(--muted)]"}`}
-                  >
+                  <span className={`font-extrabold ${isTop3 ? medalColors[rank] : "text-[var(--muted)]"}`}>
                     {isTop3 ? medalEmoji[rank] : rank}
                   </span>
                 </Table.Cell>
 
                 <Table.Cell>
                   <Link href={playerLink} className="flex items-center gap-3 group">
-                    {type === "rating" ? (
+                    {!isXp ? (
                       <RankedAvatar
                         src={entry.avatar_url}
                         fallback={entry.username?.charAt(0)?.toUpperCase()}
@@ -121,15 +119,14 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                         user={getUserRoleData(entry)}
                         className={`${isTop3 ? "font-bold" : ""} text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors`}
                       />
-                      {type === "rating" && (
+                      {!isXp && (
                         <div className="mt-0.5 sm:hidden">
                           <RankBadge elo={entry.rating} size="sm" />
                         </div>
                       )}
                     </div>
 
-                    {/* Desktop Rank Badge */}
-                    {type === "rating" && (
+                    {!isXp && (
                       <div className="hidden sm:block ml-2">
                         <RankBadge elo={entry.rating} size="sm" showText={false} />
                       </div>
@@ -137,7 +134,7 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                   </Link>
                 </Table.Cell>
 
-                {type === "xp" ? (
+                {isXp ? (
                   <>
                     <Table.Cell>
                       <span className="text-[var(--foreground)] font-medium">
@@ -161,9 +158,7 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                       <span className="text-[var(--muted)]">{winRateStr}</span>
                     </Table.Cell>
                     <Table.Cell className="hidden sm:table-cell">
-                      <span className="text-[var(--muted)]">
-                        {tourneysCount}
-                      </span>
+                      <span className="text-[var(--muted)]">{tourneysCount}</span>
                     </Table.Cell>
                     <Table.Cell className="hidden sm:table-cell">
                       <span className="font-medium text-xs" style={{ color: streakColor }}>
@@ -174,9 +169,9 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                 )}
               </Table.Row>
             );
-          })
-        )}
-      </Table.Body>
+          })}
+        </Table.Body>
+      </Table.Content>
     </Table>
   );
 }

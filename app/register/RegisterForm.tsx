@@ -70,7 +70,7 @@ export default function RegisterForm() {
               <Person className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
               <Input
                 placeholder="Nombre de usuario"
-                className="w-full [&_input]:h-12 [&_input]:pl-10"
+                className="w-full h-12 pl-10"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -82,7 +82,7 @@ export default function RegisterForm() {
               <Input
                 placeholder="correo@rankeao.cl"
                 type="email"
-                className="w-full [&_input]:h-12 [&_input]:pl-10"
+                className="w-full h-12 pl-10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -94,7 +94,7 @@ export default function RegisterForm() {
               <Input
                 placeholder="Contraseña"
                 type={showPassword ? "text" : "password"}
-                className="w-full [&_input]:h-12 [&_input]:pl-10 [&_input]:pr-10"
+                className="w-full h-12 pl-10 pr-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -113,7 +113,7 @@ export default function RegisterForm() {
               <Input
                 placeholder="Confirmar contraseña"
                 type={showPassword ? "text" : "password"}
-                className="w-full [&_input]:h-12 [&_input]:pl-10"
+                className="w-full h-12 pl-10"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required

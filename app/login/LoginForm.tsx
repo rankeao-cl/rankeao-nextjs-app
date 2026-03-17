@@ -61,7 +61,7 @@ export default function LoginForm() {
               <Input
                 placeholder="correo@rankeao.cl"
                 type="email"
-                className="w-full [&_input]:h-12 [&_input]:pl-10"
+                className="w-full h-12 pl-10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -73,7 +73,7 @@ export default function LoginForm() {
               <Input
                 placeholder="Contraseña"
                 type={isVisible ? "text" : "password"}
-                className="w-full [&_input]:h-12 [&_input]:pl-10 [&_input]:pr-10"
+                className="w-full h-12 pl-10 pr-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -110,12 +110,17 @@ export default function LoginForm() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-sm text-[var(--muted)]">
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" className="text-[var(--accent)] hover:underline font-semibold">
-            Regístrate gratis
+        <div className="space-y-3 text-center">
+          <p className="text-sm text-[var(--muted)]">
+            ¿No tienes cuenta?{" "}
+            <Link href="/register" className="text-[var(--accent)] hover:underline font-semibold">
+              Registrate gratis
+            </Link>
+          </p>
+          <Link href="/" className="block text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+            Continuar sin cuenta
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

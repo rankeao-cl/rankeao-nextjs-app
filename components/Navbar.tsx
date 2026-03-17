@@ -50,8 +50,14 @@ function getNotifCategory(notif: Notification): string {
   return notif.category || notif.type || "system";
 }
 
+const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
+
 export default function Navbar() {
   const pathname = usePathname();
+
+  if (authPages.some((p) => pathname.startsWith(p))) {
+    return null;
+  }
   const router = useRouter();
   const { session, status, logout } = useAuth();
   const isAuthenticated = status === "authenticated" && Boolean(session?.email);

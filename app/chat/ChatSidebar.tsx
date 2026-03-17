@@ -6,6 +6,7 @@ import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy, Pl
 import type { Channel, ChannelMember } from "@/lib/types/chat";
 import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";
+import ChatSettingsModal from "./ChatSettingsModal";
 
 interface ChatSidebarProps {
     channels: Channel[];
@@ -13,6 +14,7 @@ interface ChatSidebarProps {
     selectedChannel: Channel | null;
     onSelectChannel: (channel: Channel) => void;
     onChannelCreated: (channel: Channel) => void;
+    onChannelLeft?: () => void;
 }
 
 /** Green pulsing dot for online status, positioned absolute on avatar corner */
@@ -36,10 +38,25 @@ function formatLastSeen(member?: ChannelMember): string | null {
     return "desconectado";
 }
 
-export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated }: ChatSidebarProps) {
+function timeAgo(dateStr?: string): string {
+    if (!dateStr) return "";
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "ahora";
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d`;
+    return new Date(dateStr).toLocaleDateString("es-CL", { day: "numeric", month: "short" });
+}
+
+export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft }: ChatSidebarProps) {
     const { session } = useAuth();
+    const myUsername = session?.username;
     const [search, setSearch] = useState("");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const filteredChannels = useMemo(() => {
         if (!search.trim()) return channels;
@@ -65,8 +82,8 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
         const isGroup = channel.type === "GROUP";
         const memberCount = channel.members?.length || 0;
 
-        if (channel.type === "DM" && session?.username) {
-            otherMember = channel.members?.find(m => m.username !== session.username);
+        if (channel.type === "DM" && myUsername) {
+            otherMember = channel.members?.find(m => m.username !== myUsername);
             if (otherMember) {
                 displayName = otherMember.username;
                 displayAvatar = otherMember.avatar_url;
@@ -108,32 +125,34 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate text-[var(--foreground)]">
-                        {displayName}
-                    </p>
-                    <p className="text-xs text-[var(--muted)] truncate mt-0.5 font-medium flex items-center gap-1">
-                        {isGroup ? (
-                            <>
-                                <Persons className="size-3" />
-                                <span>Grupo</span>
-                                <span className="text-[var(--muted)]/70">({memberCount})</span>
-                            </>
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-bold truncate text-[var(--foreground)]">
+                            {displayName}
+                        </p>
+                        {channel.last_message?.created_at && (
+                            <span className="text-[10px] text-[var(--muted)] shrink-0 font-medium">
+                                {timeAgo(channel.last_message.created_at)}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-xs text-[var(--muted)] truncate mt-0.5 font-medium">
+                        {channel.last_message?.content ? (
+                            <span className={channel.unread_count ? "text-[var(--foreground)] font-semibold" : ""}>
+                                {channel.last_message.sender_username && channel.last_message.sender_username !== myUsername
+                                    ? `${channel.last_message.sender_username}: `
+                                    : channel.last_message.sender?.username && channel.last_message.sender.username !== myUsername
+                                    ? `${channel.last_message.sender.username}: `
+                                    : ""}
+                                {channel.last_message.content.slice(0, 40)}{channel.last_message.content.length > 40 ? "..." : ""}
+                            </span>
+                        ) : isGroup ? (
+                            <span className="flex items-center gap-1"><Persons className="size-3" /> Grupo ({memberCount})</span>
                         ) : channel.type === "CLAN" ? (
-                            <>
-                                <Hierarchy className="size-3" />
-                                <span>Comunidad</span>
-                            </>
+                            <span className="flex items-center gap-1"><Hierarchy className="size-3" /> Comunidad</span>
+                        ) : lastSeenText ? (
+                            <span className={isOnline ? "text-green-500" : ""}>{lastSeenText}</span>
                         ) : (
-                            <>
-                                <Person className="size-3" />
-                                {lastSeenText ? (
-                                    <span className={isOnline ? "text-green-500" : ""}>
-                                        {lastSeenText}
-                                    </span>
-                                ) : (
-                                    <span>Directo</span>
-                                )}
-                            </>
+                            <span>Mensaje directo</span>
                         )}
                     </p>
                 </div>
@@ -150,7 +169,15 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         <Button isIconOnly variant="secondary" size="sm" className="w-8 h-8 rounded-lg text-[var(--foreground)]" onPress={() => setIsNewChatOpen(true)} aria-label="Nuevo Chat">
                             <Plus width={18} />
                         </Button>
-                        <Button isIconOnly variant="tertiary" size="sm" className="text-[var(--muted)] min-w-8 w-8 h-8 rounded-lg" aria-label="Ajustes de Chat">
+                        <Button
+                            isIconOnly
+                            variant="tertiary"
+                            size="sm"
+                            className={`min-w-8 w-8 h-8 rounded-lg ${selectedChannel ? "text-[var(--muted)]" : "text-[var(--muted)]/40"}`}
+                            aria-label="Ajustes de Chat"
+                            isDisabled={!selectedChannel}
+                            onPress={() => { if (selectedChannel) setIsSettingsOpen(true); }}
+                        >
                             <Gear width={18} />
                         </Button>
                     </div>
@@ -211,6 +238,17 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 isOpen={isNewChatOpen}
                 onOpenChange={setIsNewChatOpen}
                 onChannelCreated={onChannelCreated}
+            />
+
+            <ChatSettingsModal
+                isOpen={isSettingsOpen}
+                onOpenChange={setIsSettingsOpen}
+                channel={selectedChannel}
+                onChannelLeft={onChannelLeft}
+                onChannelUpdated={(updated) => {
+                    // Update the channel in the list
+                    onChannelCreated(updated);
+                }}
             />
         </div>
     );

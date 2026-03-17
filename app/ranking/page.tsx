@@ -26,6 +26,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
   let xpData, ratingData, gamesData;
 
   const period = params.period || "all_time";
+  const selectedTab = params.tab === "ratings" ? "ratings" : "xp";
 
   try {
     [xpData, gamesData] = await Promise.all([
@@ -72,196 +73,181 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
   }
 
   const xpAny = xpData as any;
-  const rawXpEntries = xpAny?.data?.leaderboard ?? xpAny?.data?.entries ?? xpAny?.data ?? xpData?.leaderboard ?? xpData?.entries;
-  const xpEntries: LeaderboardEntry[] = Array.isArray(rawXpEntries) ? rawXpEntries : [];
+  const rawXp = xpAny?.data;
+  const rawXpEntries = Array.isArray(rawXp) ? rawXp : (rawXp?.leaderboard ?? rawXp?.entries ?? xpData?.leaderboard ?? xpData?.entries);
+  const xpEntries: LeaderboardEntry[] = Array.isArray(rawXpEntries)
+    ? rawXpEntries.map((e: any) => ({
+        rank: e.rank,
+        user_id: e.user_id ?? e.user?.id ?? e.user?.username ?? "",
+        username: e.username ?? e.user?.username ?? "",
+        avatar_url: e.avatar_url ?? e.user?.avatar_url ?? undefined,
+        total_xp: e.total_xp ?? e.xp ?? 0,
+        level: e.level,
+        title: e.title ?? e.user?.current_title ?? undefined,
+      }))
+    : [];
   const ratingAny = ratingData as any;
-  const rawRatingEntries = ratingAny?.data?.leaderboard ?? ratingAny?.data ?? ratingData?.leaderboard;
-  const ratingEntries: LeaderboardEntry[] = Array.isArray(rawRatingEntries) ? rawRatingEntries : [];
+  const rawRating = ratingAny?.data;
+  const rawRatingEntries = Array.isArray(rawRating) ? rawRating : (rawRating?.leaderboard ?? ratingData?.leaderboard);
+  const ratingEntries: LeaderboardEntry[] = Array.isArray(rawRatingEntries)
+    ? rawRatingEntries.map((e: any) => ({
+        rank: e.rank,
+        user_id: e.user_id ?? e.user?.id ?? e.user?.username ?? "",
+        username: e.username ?? e.user?.username ?? "",
+        avatar_url: e.avatar_url ?? e.user?.avatar_url ?? undefined,
+        rating: e.rating ?? e.elo ?? 0,
+        games_played: e.games_played,
+        wins: e.wins,
+        losses: e.losses,
+      }))
+    : [];
+
+  const periods = [
+    { key: "week", label: "Semanal" },
+    { key: "month", label: "Mensual" },
+    { key: "all_time", label: "Todo" },
+  ];
+
+  function buildUrl(overrides: Record<string, string>) {
+    const base: Record<string, string> = {
+      tab: selectedTab,
+      period,
+    };
+    if (params.game) base.game = params.game;
+    if (params.format) base.format = params.format;
+    const merged = { ...base, ...overrides };
+    const qs = Object.entries(merged)
+      .filter(([, v]) => v)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .join("&");
+    return `/ranking?${qs}`;
+  }
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col pt-4">
       {/* Hero Header */}
       <section className="px-4 lg:px-6 mb-6">
-        <div
-          className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-        >
+        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="relative z-10 flex-1">
             <Chip size="sm" variant="soft" color="accent" className="mb-3 px-3">
-              Rankings Globales Chile
+              Rankings Chile
             </Chip>
             <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-              Sube en XP, domina en ELO
+              Leaderboard competitivo
             </h1>
-            <p className="text-sm text-[var(--muted)] max-w-lg mb-2">
-              Consulta el leaderboard global, compara tu rendimiento, sube de rango y obtén badges exclusivos.
+            <p className="text-sm text-[var(--muted)] max-w-lg">
+              Consulta el leaderboard global, compara tu rendimiento y sube de rango.
             </p>
           </div>
 
-          <div className="hidden md:flex flex-col gap-2 min-w-[200px]">
-            <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
-              <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Jugadores XP</p>
-              <p className="text-sm font-medium text-[var(--foreground)]">{xpEntries.length} en el top <span className="text-[var(--accent)] inline-block ml-1">&rarr;</span></p>
+          <div className="flex flex-row md:flex-col gap-2 min-w-0 md:min-w-[200px]">
+            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
+              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Top XP</p>
+              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{xpEntries.length}</p>
             </div>
-            <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
-              <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos activos</p>
-              <p className="text-sm font-medium text-[var(--foreground)]">{games.length} juegos rankeados</p>
+            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
+              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos</p>
+              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{games.length}</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Grid Layout */}
-      <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
-        {/* Left Sidebar - Game/Format Filters */}
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
-            <RankingFilters
-              games={games}
-              formats={formats}
-              selectedGameSlug={selectedGame?.slug}
-              selectedFormatSlug={selectedFormat?.slug}
-              selectedTab={params.tab === "ratings" ? "ratings" : "xp"}
-              selectedPeriod={period}
-            />
-          </div>
-        </aside>
-
-        {/* Right Content - Leaderboard */}
-        <main className="flex-1">
-          <RankingTabs
-            xpEntries={xpEntries}
-            ratingEntries={ratingEntries}
-            games={games}
-            formats={formats}
-            selectedGameSlug={selectedGame?.slug}
-            selectedFormatSlug={selectedFormat?.slug}
-            selectedTab={params.tab === "ratings" ? "ratings" : "xp"}
-          />
-        </main>
-      </div>
-    </div>
-  );
-}
-
-// Inline server component for the sidebar filters
-function RankingFilters({
-  games,
-  formats,
-  selectedGameSlug,
-  selectedFormatSlug,
-  selectedTab,
-  selectedPeriod,
-}: {
-  games: CatalogGame[];
-  formats: CatalogFormat[];
-  selectedGameSlug?: string;
-  selectedFormatSlug?: string;
-  selectedTab: string;
-  selectedPeriod: string;
-}) {
-  const periods = [
-    { key: "week", label: "Semanal" },
-    { key: "month", label: "Mensual" },
-    { key: "all_time", label: "Histórico" },
-  ];
-
-  return (
-    <div className="flex flex-col gap-4">
-      <h3 className="font-bold text-[var(--foreground)]">Navegación</h3>
-
-      <div className="flex flex-col gap-3">
-        <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider">Tipo de Ranking</p>
-        <div className="flex flex-col gap-2">
+      {/* Tab pills + Period pills */}
+      <div className="px-4 lg:px-6 mb-4 space-y-3">
+        {/* Ranking type tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <a
-            href={`/ranking?tab=xp${selectedGameSlug ? `&game=${selectedGameSlug}` : ""}${selectedFormatSlug ? `&format=${selectedFormatSlug}` : ""}`}
-            className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${selectedTab === "xp"
-              ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
-              : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
+            href={buildUrl({ tab: "xp" })}
+            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+              selectedTab === "xp"
+                ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
+            }`}
           >
             XP Global
           </a>
           <a
-            href={`/ranking?tab=ratings${selectedGameSlug ? `&game=${selectedGameSlug}` : ""}${selectedFormatSlug ? `&format=${selectedFormatSlug}` : ""}`}
-            className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${selectedTab === "ratings"
-              ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
-              : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
+            href={buildUrl({ tab: "ratings" })}
+            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+              selectedTab === "ratings"
+                ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
+            }`}
           >
             Ratings ELO
           </a>
-        </div>
-      </div>
 
-      {/* Period filter */}
-      <div className="flex flex-col gap-3 pt-3 border-t border-[var(--separator)]">
-        <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider">Periodo</p>
-        <div className="flex flex-col gap-2">
-          {periods.map((p) => {
-            const isActive = selectedPeriod === p.key;
-            return (
+          <span className="w-px h-6 bg-[var(--border)] mx-1 shrink-0" />
+
+          {/* Period pills */}
+          {periods.map((p) => (
+            <a
+              key={p.key}
+              href={buildUrl({ period: p.key })}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                period === p.key
+                  ? "bg-[var(--foreground)] text-[var(--background)]"
+                  : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              {p.label}
+            </a>
+          ))}
+        </div>
+
+        {/* Game pills (inline, scrollable) */}
+        {games.length > 0 && selectedTab === "ratings" && (
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span className="text-xs font-semibold text-[var(--muted)] shrink-0 mr-1">Juego:</span>
+            {games.map((g) => (
               <a
-                key={p.key}
-                href={`/ranking?tab=${selectedTab}&period=${p.key}${selectedGameSlug ? `&game=${selectedGameSlug}` : ""}${selectedFormatSlug ? `&format=${selectedFormatSlug}` : ""}`}
-                className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${isActive
-                  ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
-                  : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
-                  }`}
+                key={g.slug}
+                href={buildUrl({ tab: "ratings", game: g.slug })}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                  selectedGame?.slug === g.slug
+                    ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30"
+                    : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)] border border-transparent"
+                }`}
               >
-                {p.label}
+                {g.name}
               </a>
-            );
-          })}
-        </div>
+            ))}
+            {formats.length > 0 && (
+              <>
+                <span className="w-px h-5 bg-[var(--border)] mx-1 shrink-0" />
+                <span className="text-xs font-semibold text-[var(--muted)] shrink-0 mr-1">Formato:</span>
+                {formats.map((f) => (
+                  <a
+                    key={f.slug}
+                    href={buildUrl({ tab: "ratings", game: selectedGame?.slug || "", format: f.slug })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                      selectedFormat?.slug === f.slug
+                        ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30"
+                        : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)] border border-transparent"
+                    }`}
+                  >
+                    {f.name}
+                  </a>
+                ))}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      {games.length > 0 && (
-        <div className="flex flex-col gap-3 pt-3 border-t border-[var(--separator)]">
-          <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider">Juego</p>
-          <div className="flex flex-col gap-2">
-            {games.map((g) => {
-              const isActive = selectedGameSlug === g.slug;
-              return (
-                <a
-                  key={g.slug}
-                  href={`/ranking?tab=${selectedTab}&game=${g.slug}`}
-                  className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${isActive
-                    ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
-                    : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
-                    }`}
-                >
-                  {g.name}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {formats.length > 0 && (
-        <div className="flex flex-col gap-3 pt-3 border-t border-[var(--separator)]">
-          <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wider">Formato</p>
-          <div className="flex flex-col gap-2">
-            {formats.map((f) => {
-              const isActive = selectedFormatSlug === f.slug;
-              return (
-                <a
-                  key={f.slug}
-                  href={`/ranking?tab=${selectedTab}&game=${selectedGameSlug}&format=${f.slug}`}
-                  className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${isActive
-                    ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
-                    : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
-                    }`}
-                >
-                  {f.name}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Content — full width, no sidebar */}
+      <div className="px-4 lg:px-6 mb-12">
+        <RankingTabs
+          xpEntries={xpEntries}
+          ratingEntries={ratingEntries}
+          games={games}
+          formats={formats}
+          selectedGameSlug={selectedGame?.slug}
+          selectedFormatSlug={selectedFormat?.slug}
+          selectedTab={selectedTab}
+        />
+      </div>
     </div>
   );
 }

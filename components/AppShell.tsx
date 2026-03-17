@@ -15,7 +15,7 @@ const PullToRefresh = dynamic(() => import("./PullToRefresh"), {
     loading: () => null,
 });
 
-const fullWidthPages = ["/login", "/register", "/terminos", "/privacidad", "/cookies"];
+const fullWidthPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/terminos", "/privacidad", "/cookies"];
 const fixedLayoutPages = ["/chat"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -44,7 +44,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 </main>
             )}
 
-            {!isFixedLayout && <RightSidebar />}
+            <RightSidebar />
 
             <BottomNav />
         </div>
