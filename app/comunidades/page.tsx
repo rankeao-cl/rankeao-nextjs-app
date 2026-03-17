@@ -88,10 +88,10 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
       </section>
 
       {/* Main Grid Layout */}
-      <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
-        {/* Left Sidebar - Filters */}
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
+      <div className="flex flex-col lg:flex-row gap-6 px-4 lg:px-6 mb-12">
+        {/* Left Sidebar - Filters (hidden on mobile) */}
+        <aside className="hidden lg:block w-64 flex-shrink-0">
+          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
             <ComunidadesFilters
               currentFilters={{
                 q: params.q,

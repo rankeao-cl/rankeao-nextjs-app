@@ -35,7 +35,7 @@ export default function ChatPage() {
 
   if (status === "loading") {
     return (
-      <div className="h-[calc(100vh-64px)] flex items-center justify-center bg-[var(--surface-secondary)]/20">
+      <div className="h-full flex items-center justify-center bg-[var(--surface-secondary)]/20">
         <Skeleton className="w-16 h-16 rounded-full bg-[var(--surface-secondary)]" />
       </div>
     );
@@ -43,7 +43,7 @@ export default function ChatPage() {
 
   if (status === "unauthenticated") {
     return (
-      <div className="h-[calc(100vh-128px)] md:h-[calc(100vh-64px)] flex flex-col items-center justify-center bg-[var(--surface-secondary)]/10 gap-4 p-4 text-center">
+      <div className="h-full flex flex-col items-center justify-center bg-[var(--surface-secondary)]/10 gap-4 p-4 text-center">
         <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-xl">
           <ShieldExclamation width={48} height={48} className="text-[var(--muted)]" />
         </div>
@@ -54,7 +54,7 @@ export default function ChatPage() {
   }
   
   return (
-    <div className="h-[calc(100vh-128px)] md:h-[calc(100vh-64px)] flex bg-[var(--surface)] text-[var(--foreground)] overflow-hidden relative">
+    <div className="h-full flex bg-[var(--surface)] text-[var(--foreground)] overflow-hidden relative">
       <div className={`${selectedChannel ? 'hidden md:flex' : 'flex'} w-full md:w-[320px] border-r border-[var(--border)] shrink-0 h-full`}>
         <ChatSidebar
           channels={channels}

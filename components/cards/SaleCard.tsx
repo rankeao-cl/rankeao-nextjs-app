@@ -58,26 +58,20 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                 </Link>
 
                 {/* Content */}
-                <div className="p-3 space-y-2">
-                    <h3 className="text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
+                <div className="p-2.5 sm:p-3 space-y-1.5 sm:space-y-2">
+                    <h3 className="text-xs sm:text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
                         {listing.title}
                     </h3>
 
                     {/* Price — prominent */}
                     {listing.price != null && (
-                        <p className="text-lg font-extrabold" style={{ color: "var(--accent)" }}>
+                        <p className="text-base sm:text-lg font-extrabold" style={{ color: "var(--accent)" }}>
                             ${listing.price.toLocaleString("es-CL")}
                         </p>
                     )}
 
-                    {/* Meta chips */}
-                    <div className="flex flex-wrap gap-1">
-                        {listing.game_name && (
-                            <Chip variant="secondary" size="sm">{listing.game_name}</Chip>
-                        )}
-                        {listing.set_name && (
-                            <Chip variant="secondary" size="sm">{listing.set_name}</Chip>
-                        )}
+                    {/* Meta chips — hide overflow on mobile */}
+                    <div className="flex flex-wrap gap-1 max-h-[52px] overflow-hidden">
                         {condition && (
                             <Chip
                                 color={conditionColors[condition] || "default"}
@@ -87,47 +81,35 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                                 {condition}
                             </Chip>
                         )}
-                        {listing.rarity && (
-                            <Chip variant="soft" size="sm">{listing.rarity}</Chip>
+                        {listing.game_name && (
+                            <Chip variant="secondary" size="sm">{listing.game_name}</Chip>
                         )}
                         {listing.is_foil && (
-                            <Chip color="warning" variant="soft" size="sm">✨ Foil</Chip>
+                            <Chip color="warning" variant="soft" size="sm">Foil</Chip>
                         )}
                     </div>
 
-                    {/* Seller */}
-                    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--muted)" }}>
-                        <Avatar size="sm" className="w-5 h-5">
+                    {/* Seller + Location row — compact */}
+                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs min-w-0" style={{ color: "var(--muted)" }}>
+                        <Avatar size="sm" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0">
                             {listing.seller_avatar_url ? (
                                 <Avatar.Image src={listing.seller_avatar_url} />
                             ) : null}
-                            <Avatar.Fallback className="text-[8px]">
+                            <Avatar.Fallback className="text-[7px]">
                                 {sellerName[0]?.toUpperCase()}
                             </Avatar.Fallback>
                         </Avatar>
-                        <span className="truncate flex-1 font-medium">
-                            {sellerName}
-                        </span>
-                        {(isStore || listing.is_verified_store || listing.is_verified_seller) && (
-                            <span
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
-                                style={{
-                                    background: "var(--success)",
-                                    color: "var(--success-foreground)",
-                                }}
-                            >
-                                ✓ Tienda
-                            </span>
+                        <span className="truncate font-medium">{sellerName}</span>
+                        {(isStore || listing.is_verified_store) && (
+                            <span className="text-[var(--success)] shrink-0">✓</span>
+                        )}
+                        {listing.city && (
+                            <>
+                                <span className="text-[var(--border)]">·</span>
+                                <span className="truncate shrink-0">{listing.city}</span>
+                            </>
                         )}
                     </div>
-
-                    {/* Location */}
-                    {(listing.city || listing.region) && (
-                        <div className="flex items-center gap-1 text-xs" style={{ color: "var(--muted)" }}>
-                            <MapPin className="size-3" />
-                            <span>{listing.city || listing.region}</span>
-                        </div>
-                    )}
 
                     {/* CTA */}
                     <SaleCardActions listingId={listing.id} sellerUsername={listing.seller_username || ""} />

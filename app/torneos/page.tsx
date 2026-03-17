@@ -210,11 +210,33 @@ export default async function TorneosPage({ searchParams }: Props) {
         </div>
       </section>
 
+      {/* Tabs — always visible */}
+      <div className="px-4 lg:px-6 mb-4">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          {Object.entries(tabConfig).map(([key, cfg]) => (
+            <a
+              key={key}
+              href={`?tab=${key}${params.view ? `&view=${params.view}` : ""}${params.game ? `&game=${params.game}` : ""}`}
+              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                tab === key
+                  ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                  : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              {cfg.title}
+            </a>
+          ))}
+          <div className="ml-auto shrink-0">
+            <TorneosViewToggle currentView={currentView} />
+          </div>
+        </div>
+      </div>
+
       {/* Main Grid Layout */}
-      <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
-        {/* Left Sidebar - Filters */}
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
+      <div className="flex flex-col lg:flex-row gap-6 px-4 lg:px-6 mb-12">
+        {/* Left Sidebar - Filters (hidden mobile, collapsible) */}
+        <aside className="hidden lg:block w-64 flex-shrink-0">
+          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
             <TorneosFilters
               games={games}
               currentFilters={params}
@@ -223,18 +245,8 @@ export default async function TorneosPage({ searchParams }: Props) {
           </div>
         </aside>
 
-        {/* Right Content - Results */}
-        <main className="flex-1">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              {config.title}
-              <Chip size="sm" className="bg-[var(--surface-secondary)] text-[var(--muted)] border-0">
-                {tab}
-              </Chip>
-            </h2>
-            <TorneosViewToggle currentView={currentView} />
-          </div>
-
+        {/* Content */}
+        <main className="flex-1 min-w-0">
           {currentView === "calendar" ? (
             <Suspense key="calendar" fallback={<TournamentsSkeleton />}>
               <CalendarTournaments params={params} />

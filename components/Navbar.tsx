@@ -146,73 +146,31 @@ export default function Navbar() {
 
             {/* Right side: Actions */}
             <div className="flex items-center gap-2 z-10">
-              {/* Mobile actions bar */}
-              <div className="flex md:hidden items-center gap-1.5">
-                {/* Search icon (mobile) */}
+              {/* Mobile actions bar — compact: only search + create */}
+              <div className="flex md:hidden items-center gap-1">
                 <Button
                   isIconOnly
                   variant="tertiary"
                   size="sm"
-                  className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
+                  className="text-[var(--muted)] min-w-[40px] min-h-[40px]"
                   onPress={() => setIsSearchExpanded(true)}
                   aria-label="Abrir búsqueda"
                 >
                   <Magnifier className="size-4" />
                 </Button>
 
-                {/* Botón + para crear post (mobile) */}
                 {isAuthenticated && (
                   <Link href="/feed/new" className="flex items-center">
                     <Button
                       isIconOnly
                       variant="primary"
                       size="sm"
-                      className="text-white bg-[var(--accent)] hover:bg-[var(--accent)]/90 shadow-brand-sm min-w-[44px] min-h-[44px]"
+                      className="text-white bg-[var(--accent)] hover:bg-[var(--accent)]/90 shadow-brand-sm min-w-[40px] min-h-[40px]"
                       aria-label="Crear post"
                     >
                       <Plus className="size-4 font-bold" />
                     </Button>
                   </Link>
-                )}
-
-                {/* Chat bubble (mobile) */}
-                {isAuthenticated && (
-                  <Button
-                    isIconOnly
-                    variant="tertiary"
-                    size="sm"
-                    className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
-                    onPress={() => router.push("/chat")}
-                    aria-label="Chat"
-                  >
-                    <Comment className="size-5" />
-                  </Button>
-                )}
-
-                {/* Theme toggle (mobile) */}
-                <Button
-                  isIconOnly
-                  variant="tertiary"
-                  size="sm"
-                  className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
-                  onPress={() => setTheme(isDark ? "light" : "dark")}
-                  aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-                >
-                  {mounted && (isDark ? <Sun className="size-4" /> : <Moon className="size-4" />)}
-                </Button>
-
-                {/* Logout (mobile) */}
-                {isAuthenticated && (
-                  <Button
-                    isIconOnly
-                    variant="tertiary"
-                    size="sm"
-                    className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
-                    onPress={logout}
-                    aria-label="Cerrar sesión"
-                  >
-                    <ArrowRightFromSquare className="size-4" />
-                  </Button>
                 )}
               </div>
 

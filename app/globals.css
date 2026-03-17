@@ -170,6 +170,11 @@
   border: 1px solid oklch(from var(--muted) l c h / 0.15);
 }
 
+/* ── Hide scrollbar utility ── */
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ── Scrollbar ── */
 
 ::-webkit-scrollbar {

@@ -26,9 +26,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="flex min-h-[calc(100vh-4rem)]">
+        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
             <Sidebar />
-            <main className="flex-1 min-w-0 pb-16 lg:pb-0 overflow-x-hidden">
+            <main className="flex-1 min-w-0 pb-16 lg:pb-0 overflow-y-auto overflow-x-hidden">
                 <PullToRefresh>
                     <SwipeWrapper>
                         {children}

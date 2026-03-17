@@ -57,16 +57,14 @@ export default async function JuegosPage() {
             </p>
           </div>
 
-          <div className="hidden md:flex flex-col gap-2 min-w-[200px]">
-            <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
-              <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos activos</p>
-              <p className="text-xl font-bold text-[var(--foreground)]">{enrichedGames.length}</p>
+          <div className="flex flex-row md:flex-col gap-2 min-w-0 md:min-w-[200px]">
+            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
+              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos</p>
+              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{enrichedGames.length}</p>
             </div>
-            <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
-              <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Formatos</p>
-              <p className="text-xl font-bold text-[var(--foreground)]">{totalFormats}</p>
+            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden">
+              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Formatos</p>
+              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{totalFormats}</p>
             </div>
           </div>
         </div>

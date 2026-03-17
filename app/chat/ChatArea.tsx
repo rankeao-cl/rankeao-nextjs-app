@@ -467,7 +467,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             autoResizeTextarea();
                         }}
                         onKeyDown={handleKeyDown}
-                        placeholder="Escribe tu mensaje o pega un link del marketplace..."
+                        placeholder="Escribe un mensaje..."
                         rows={1}
                         className="flex-1 bg-transparent border-none shadow-none outline-none resize-none text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] py-2.5 px-2 max-h-[120px] custom-scrollbar"
                         autoComplete="off"
