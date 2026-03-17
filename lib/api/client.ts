@@ -3,7 +3,7 @@ import type { FetchOptions } from "@/lib/types/api";
 
 // ── Configuration ──
 
-const BASE_URL = "https://api.rankeao.cl/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
 
 // ── Helpers ──
 
@@ -123,6 +123,7 @@ export async function apiPost<T>(
         cache: "no-store",
     });
     if (!res.ok) return handleError(res, endpoint);
+    if (res.status === 204) return {} as T;
     return res.json();
 }
 
@@ -140,6 +141,7 @@ export async function apiPatch<T>(
         cache: "no-store",
     });
     if (!res.ok) return handleError(res, endpoint);
+    if (res.status === 204) return {} as T;
     return res.json();
 }
 
@@ -157,6 +159,7 @@ export async function apiPut<T>(
         cache: "no-store",
     });
     if (!res.ok) return handleError(res, endpoint);
+    if (res.status === 204) return {} as T;
     return res.json();
 }
 

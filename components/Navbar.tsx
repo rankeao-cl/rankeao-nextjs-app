@@ -28,15 +28,26 @@ import {
 } from "@gravity-ui/icons";
 import { useTheme } from "next-themes";
 import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
+import type { Notification } from "@/lib/types/notification";
 
-type AppNotification = {
-  id: string;
-  type: "social" | "marketplace" | "tournament" | "system";
-  message?: string;
-  data?: any;
-  created_at: string;
-  is_read?: boolean;
-};
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "hace instantes";
+  if (mins < 60) return `hace ${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `hace ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `hace ${days}d`;
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}
+
+function getNotifCategory(notif: Notification): string {
+  return notif.category || notif.type || "system";
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -49,7 +60,7 @@ export default function Navbar() {
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
 
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -57,17 +68,21 @@ export default function Navbar() {
   useEffect(() => {
     if (status === "authenticated" && session?.accessToken) {
       Promise.all([
-        getNotifications({ limit: 10 }, session.accessToken).catch(() => null),
+        getNotifications({ per_page: 10 }, session.accessToken).catch(() => null),
         getUnreadNotificationCount(session.accessToken).catch(() => null),
       ]).then(([notifRes, countRes]) => {
-        if (notifRes && Array.isArray(notifRes.notifications)) {
-          setNotifications(notifRes.notifications);
-        } else if (Array.isArray(notifRes)) {
-          setNotifications(notifRes);
+        // Parse notifications from various API response shapes
+        const raw = notifRes?.data?.notifications
+          ?? notifRes?.data
+          ?? notifRes?.notifications
+          ?? notifRes;
+        if (Array.isArray(raw)) {
+          setNotifications(raw);
         }
 
-        if (countRes?.count !== undefined) {
-          setUnreadCount(countRes.count);
+        const total = countRes?.data?.total ?? countRes?.count ?? countRes?.total;
+        if (typeof total === "number") {
+          setUnreadCount(total);
         }
       });
     }
@@ -91,6 +106,8 @@ export default function Navbar() {
       style={{
         borderColor: "var(--border)",
         background: "var(--surface)",
+        backdropFilter: "blur(32px) saturate(1.5)",
+        WebkitBackdropFilter: "blur(32px) saturate(1.5)",
       }}
     >
       <div className="w-full h-full px-4 flex items-center justify-between relative">
@@ -130,13 +147,13 @@ export default function Navbar() {
             {/* Right side: Actions */}
             <div className="flex items-center gap-2 z-10">
               {/* Mobile actions bar */}
-              <div className="flex md:hidden items-center gap-1">
+              <div className="flex md:hidden items-center gap-1.5">
                 {/* Search icon (mobile) */}
                 <Button
                   isIconOnly
                   variant="tertiary"
                   size="sm"
-                  className="text-[var(--muted)]"
+                  className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
                   onPress={() => setIsSearchExpanded(true)}
                   aria-label="Abrir búsqueda"
                 >
@@ -150,7 +167,7 @@ export default function Navbar() {
                       isIconOnly
                       variant="primary"
                       size="sm"
-                      className="text-white bg-[var(--accent)] hover:bg-[var(--accent)]/90 shadow-brand-sm"
+                      className="text-white bg-[var(--accent)] hover:bg-[var(--accent)]/90 shadow-brand-sm min-w-[44px] min-h-[44px]"
                       aria-label="Crear post"
                     >
                       <Plus className="size-4 font-bold" />
@@ -164,7 +181,7 @@ export default function Navbar() {
                     isIconOnly
                     variant="tertiary"
                     size="sm"
-                    className="text-[var(--muted)]"
+                    className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
                     onPress={() => router.push("/chat")}
                     aria-label="Chat"
                   >
@@ -177,7 +194,7 @@ export default function Navbar() {
                   isIconOnly
                   variant="tertiary"
                   size="sm"
-                  className="text-[var(--muted)]"
+                  className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
                   onPress={() => setTheme(isDark ? "light" : "dark")}
                   aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
                 >
@@ -190,7 +207,7 @@ export default function Navbar() {
                     isIconOnly
                     variant="tertiary"
                     size="sm"
-                    className="text-[var(--muted)]"
+                    className="text-[var(--muted)] min-w-[44px] min-h-[44px]"
                     onPress={logout}
                     aria-label="Cerrar sesión"
                   >
@@ -220,32 +237,34 @@ export default function Navbar() {
                       <Popover.Trigger
                         className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-[var(--muted)] cursor-pointer hover:bg-[var(--default)] rounded-lg transition-colors"
                       >
-                        <Badge.Anchor>
-                          <Bell className="size-[18px]" />
+                        <Badge color="danger" size="sm">
+                          <Badge.Anchor>
+                            <Bell className="size-[18px]" />
+                          </Badge.Anchor>
                           {unreadCount > 0 && (
-                            <Badge color="danger" size="sm" className="absolute -top-1.5 -right-1.5 z-10 scale-80 border-2 border-[var(--background)]">
+                            <Badge.Label className="scale-80 border-2 border-[var(--background)]">
                               {unreadCount > 9 ? "+9" : unreadCount}
-                            </Badge>
+                            </Badge.Label>
                           )}
-                        </Badge.Anchor>
+                        </Badge>
                       </Popover.Trigger>
-                      <Popover.Content className="w-[340px] p-0 overflow-hidden bg-[var(--surface)] border border-[var(--border)] shadow-xl rounded-xl">
+                      <Popover.Content className="w-[340px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
                         <div className="flex flex-col w-full">
                           {/* Header with gradient bar */}
                           <div className="relative">
-                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[var(--accent)] to-[var(--brand)]" />
+                            <div className="absolute top-0 inset-x-0 h-0.5 bg-[var(--accent)]" />
                             <div className="px-4 py-3 pt-4 flex justify-between items-center">
                               <div className="flex items-center gap-2">
                                 <h3 className="font-bold text-sm text-[var(--foreground)]">Notificaciones</h3>
                                 {unreadCount > 0 && (
-                                  <span className="text-[10px] font-bold bg-[var(--accent)]/15 text-[var(--accent)] px-1.5 py-0.5 rounded-full">{unreadCount} nuevas</span>
+                                  <span className="text-[11px] font-bold bg-[var(--accent)]/15 text-[var(--accent)] px-1.5 py-0.5 rounded-full">{unreadCount} nuevas</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
                                 {notifications.length > 0 && (
-                                  <button onClick={handleMarkAllRead} className="text-[10px] text-[var(--accent)] hover:underline font-bold cursor-pointer">Marcar leídas</button>
+                                  <button onClick={handleMarkAllRead} className="text-[11px] text-[var(--accent)] hover:underline font-bold cursor-pointer">Marcar leídas</button>
                                 )}
-                                <Link href="/config" className="text-[10px] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors font-semibold">⚙️</Link>
+                                <Link href="/config" className="text-[11px] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors font-semibold">⚙️</Link>
                               </div>
                             </div>
                           </div>
@@ -262,24 +281,33 @@ export default function Navbar() {
                                     <p className="text-xs text-[var(--muted)]">No tienes notificaciones pendientes</p>
                                   </div>
                                 ) : (
-                                  notifications.map((notif) => (
-                                    <div key={notif.id} className={`flex gap-3 px-3 py-3 mx-1.5 my-0.5 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer relative ${!notif.is_read ? "bg-[var(--accent)]/5" : ""}`}>
-                                      {/* Unread dot indicator */}
-                                      {!notif.is_read && (
-                                        <div className="absolute top-3 left-1 w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-                                      )}
-                                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${notif.type === "social" ? "bg-blue-500/15 text-blue-500" : notif.type === "marketplace" ? "bg-orange-500/15 text-orange-500" : notif.type === "tournament" ? "bg-purple-500/15 text-purple-500" : "bg-[var(--default)] text-[var(--muted)]"}`}>
-                                        {notif.type === "social" && <Person className="size-4" />}
-                                        {notif.type === "marketplace" && <ShoppingCart className="size-4" />}
-                                        {notif.type === "tournament" && <StarFill className="size-4" />}
-                                        {notif.type === "system" && <Bell className="size-4" />}
+                                  notifications.map((notif) => {
+                                    const cat = getNotifCategory(notif);
+                                    const inner = (
+                                      <div className={`flex gap-3 px-3 py-3 mx-1.5 my-0.5 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer relative ${!notif.is_read ? "bg-[var(--accent)]/5" : ""}`}>
+                                        {!notif.is_read && (
+                                          <div className="absolute top-3 left-1 w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+                                        )}
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cat === "social" ? "bg-blue-500/15 text-blue-500" : cat === "marketplace" ? "bg-orange-500/15 text-orange-500" : cat === "tournament" ? "bg-purple-500/15 text-purple-500" : "bg-[var(--default)] text-[var(--muted)]"}`}>
+                                          {cat === "social" && <Person className="size-4" />}
+                                          {cat === "marketplace" && <ShoppingCart className="size-4" />}
+                                          {cat === "tournament" && <StarFill className="size-4" />}
+                                          {cat === "system" && <Bell className="size-4" />}
+                                        </div>
+                                        <div className="flex flex-col flex-1 leading-snug min-w-0">
+                                          <p className={`text-[13px] text-[var(--foreground)] leading-relaxed ${!notif.is_read ? "font-semibold" : ""}`}>
+                                            {stripHtml(notif.title || "Nueva notificación")}
+                                          </p>
+                                          <p className="text-[11px] text-[var(--muted)] mt-1 font-medium">{timeAgo(notif.created_at)}</p>
+                                        </div>
                                       </div>
-                                      <div className="flex flex-col flex-1 leading-snug min-w-0">
-                                        <p className={`text-[13px] text-[var(--foreground)] leading-relaxed ${!notif.is_read ? "font-semibold" : ""}`} dangerouslySetInnerHTML={{ __html: notif.message || "Nueva notificación" }} />
-                                        <p className="text-[10px] text-[var(--muted)] mt-1 font-medium">hace instantes</p>
-                                      </div>
-                                    </div>
-                                  ))
+                                    );
+                                    return notif.action_url ? (
+                                      <Link key={notif.id} href={notif.action_url}>{inner}</Link>
+                                    ) : (
+                                      <div key={notif.id}>{inner}</div>
+                                    );
+                                  })
                                 )}
                               </div>
                             </ScrollShadow>
@@ -305,7 +333,7 @@ export default function Navbar() {
                       >
                         <Plus className="size-4 font-bold" />
                       </Popover.Trigger>
-                      <Popover.Content className="w-[260px] p-0 overflow-hidden bg-[var(--surface)] border border-[var(--border)] shadow-xl rounded-xl">
+                      <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
                         <div className="px-3.5 py-2.5 border-b border-[var(--border)] bg-[var(--surface-secondary)]">
                           <p className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Crear nuevo</p>
                         </div>
@@ -316,7 +344,7 @@ export default function Navbar() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-[var(--foreground)]">Crear Post</p>
-                              <p className="text-[10px] text-[var(--muted)] leading-tight">Comparte con la comunidad</p>
+                              <p className="text-[11px] text-[var(--muted)] leading-tight">Comparte con la comunidad</p>
                             </div>
                           </Link>
                           <Link href="/decks/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors group cursor-pointer">
@@ -325,7 +353,7 @@ export default function Navbar() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-[var(--foreground)]">Publicar Mazo</p>
-                              <p className="text-[10px] text-[var(--muted)] leading-tight">Muestra tu mejor deck</p>
+                              <p className="text-[11px] text-[var(--muted)] leading-tight">Muestra tu mejor deck</p>
                             </div>
                           </Link>
                           <Link href="/marketplace/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors group cursor-pointer">
@@ -334,7 +362,7 @@ export default function Navbar() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-[var(--foreground)]">Vender Carta</p>
-                              <p className="text-[10px] text-[var(--muted)] leading-tight">Listado en el marketplace</p>
+                              <p className="text-[11px] text-[var(--muted)] leading-tight">Listado en el marketplace</p>
                             </div>
                           </Link>
                           <Link href="/torneos/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors group cursor-pointer">
@@ -343,7 +371,7 @@ export default function Navbar() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-[var(--foreground)]">Crear Torneo</p>
-                              <p className="text-[10px] text-[var(--muted)] leading-tight">Organiza un evento competitivo</p>
+                              <p className="text-[11px] text-[var(--muted)] leading-tight">Organiza un evento competitivo</p>
                             </div>
                           </Link>
                         </div>
@@ -364,10 +392,10 @@ export default function Navbar() {
                             </Avatar.Fallback>
                           </Avatar>
                         </Popover.Trigger>
-                        <Popover.Content className="w-[260px] p-0 overflow-hidden bg-[var(--surface)] border border-[var(--border)] shadow-xl rounded-xl">
+                        <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
                           {/* User Info Header */}
                           <div className="relative">
-                            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[var(--accent)] to-[var(--brand)]" />
+                            <div className="absolute top-0 inset-x-0 h-0.5 bg-[var(--accent)]" />
                             <div className="flex items-center gap-3 px-4 py-4 pt-5">
                               <Avatar size="sm" className="ring-2 ring-[var(--accent)]/30">
                                 <Avatar.Image
@@ -388,7 +416,7 @@ export default function Navbar() {
                           {/* Menu Sections */}
                           <div className="border-t border-[var(--border)]">
                             <div className="p-1.5">
-                              <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Mi cuenta</p>
+                              <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Mi cuenta</p>
                               <Link href="/perfil/me" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer">
                                 <Person className="size-4 text-[var(--muted)]" />
                                 <span className="text-sm text-[var(--foreground)]">Mi Perfil</span>

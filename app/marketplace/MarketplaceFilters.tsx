@@ -14,6 +14,13 @@ const conditionOptions = [
   { value: "DMG", label: "Damaged" },
 ];
 
+const conditionChips = [
+  { value: "M", label: "Mint" },
+  { value: "NM", label: "Near Mint" },
+  { value: "LP", label: "Played" },
+  { value: "DMG", label: "Damaged" },
+];
+
 const sortOptions = [
   { value: "newest", label: "Más recientes" },
   { value: "price-asc", label: "Precio: menor a mayor" },
@@ -95,6 +102,54 @@ export default function MarketplaceFilters({ currentFilters, games = [] }: Props
             Limpiar
           </Button>
         )}
+      </div>
+
+      {/* Quick Condition Chips */}
+      <div>
+        <span className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2 block">Estado rápido</span>
+        <div className="flex flex-wrap gap-1.5">
+          {conditionChips.map((opt) => {
+            const isActive = currentFilters.condition === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => updateFilter("condition", isActive ? "" : opt.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${isActive
+                  ? "bg-[var(--accent)] text-[var(--accent-foreground)] border-[var(--accent)] shadow-sm"
+                  : "bg-[var(--surface-secondary)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--border-hover)]"
+                  }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Quick Seller Type Toggle */}
+      <div>
+        <span className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2 block">Vendedor</span>
+        <div className="flex gap-1.5">
+          {[
+            { value: "", label: "Todos" },
+            { value: "user", label: "Particular" },
+            { value: "store", label: "Tienda" },
+          ].map((opt) => {
+            const isActive = (currentFilters.seller_type || "") === opt.value;
+            return (
+              <button
+                key={opt.value || "__all"}
+                onClick={() => updateFilter("seller_type", opt.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex-1 text-center ${isActive
+                  ? "bg-[var(--accent)] text-[var(--accent-foreground)] border-[var(--accent)] shadow-sm"
+                  : "bg-[var(--surface-secondary)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--border-hover)]"
+                  }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <Accordion defaultExpandedKeys={["condition", "price", "game"]} className="px-0">
@@ -252,7 +307,14 @@ export default function MarketplaceFilters({ currentFilters, games = [] }: Props
                   onChangeEnd={applyPriceFilter}
                   formatOptions={{ style: 'currency', currency: 'CLP' }}
                   className="w-full"
-                />
+                >
+                  <Slider.Output />
+                  <Slider.Track>
+                    <Slider.Fill />
+                    <Slider.Thumb />
+                    <Slider.Thumb />
+                  </Slider.Track>
+                </Slider>
                 <div className="flex gap-2">
                   <Input
                     type="number"

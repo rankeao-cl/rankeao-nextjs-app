@@ -1,8 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./context/**/*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -19,9 +21,10 @@ module.exports = {
         },
       },
       borderRadius: {
-        "3xl": "0.75rem",
-        "4xl": "1rem",
-        "5xl": "1.25rem",
+        "card": "22px",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
+        "5xl": "2.5rem",
       },
       boxShadow: {
         "soft-xl": "0 20px 25px -5px oklch(0% 0 0 / 0.1), 0 8px 10px -6px oklch(0% 0 0 / 0.1)",
@@ -31,10 +34,6 @@ module.exports = {
         heading: ["var(--font-poppins)", "sans-serif"],
         body: ["var(--font-poppins)", "sans-serif"],
         reddit: ["var(--font-reddit)", "sans-serif"],
-      },
-      backgroundImage: {
-        "hero-mesh":
-          "radial-gradient(circle at 15% 15%, oklch(from var(--brand) l c h / 0.15), transparent 38%), radial-gradient(circle at 80% 20%, oklch(from var(--accent) l c h / 0.1), transparent 35%)",
       },
     },
   },

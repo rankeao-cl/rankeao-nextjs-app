@@ -38,6 +38,8 @@ export interface Tournament {
     prize_pool?: string;
     entry_fee?: string;
     registered_count?: number;
+    current_players?: number;  // API may return this instead of registered_count
+    tenant?: { id?: string; name?: string; slug?: string; logo_url?: string };  // API nested object
     tenant_id?: string;
     tenant_name?: string;
     tenant_slug?: string;

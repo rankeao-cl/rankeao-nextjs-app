@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Avatar, Input, ScrollShadow, Skeleton, Button, Badge } from "@heroui/react";
 import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy, Plus } from "@gravity-ui/icons";
-import type { Channel } from "@/lib/types/chat";
+import type { Channel, ChannelMember } from "@/lib/types/chat";
 import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";
 
@@ -13,6 +13,27 @@ interface ChatSidebarProps {
     selectedChannel: Channel | null;
     onSelectChannel: (channel: Channel) => void;
     onChannelCreated: (channel: Channel) => void;
+}
+
+/** Green pulsing dot for online status, positioned absolute on avatar corner */
+function OnlineIndicator({ isOnline, size = "md" }: { isOnline: boolean; size?: "sm" | "md" }) {
+    if (!isOnline) {
+        return (
+            <span className={`absolute bottom-0 right-0 rounded-full border-2 border-[var(--surface)] bg-gray-400 ${size === "sm" ? "w-2.5 h-2.5" : "w-3 h-3"}`} />
+        );
+    }
+    return (
+        <span className={`absolute bottom-0 right-0 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)] ${size === "sm" ? "w-2.5 h-2.5" : "w-3 h-3"}`}>
+            <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+        </span>
+    );
+}
+
+function formatLastSeen(member?: ChannelMember): string | null {
+    if (!member) return null;
+    if (member.is_online) return "en linea";
+    // If we had a last_seen field, we'd use it. For now, show "offline"
+    return "desconectado";
 }
 
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated }: ChatSidebarProps) {
@@ -35,21 +56,25 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
 
     const renderChannel = (channel: Channel) => {
         const isSelected = selectedChannel?.id === channel.id;
-        
-        // DEBUG: Inspect channel structure
-        if (isSelected) console.log("Canal seleccionado:", channel);
 
-        // Resolve DM name and avatar
+        // Resolve DM name, avatar and online status
         let displayName = channel.name || (channel.type === "DM" ? "Mensaje Directo" : "Sala Global");
-        let displayAvatar = channel.name === "Soporte Rankeao" ? undefined : channel.name; // Fallback to existing logic if any
+        let displayAvatar = channel.name === "Soporte Rankeao" ? undefined : channel.name;
+        let otherMember: ChannelMember | undefined;
+        let isOnline = false;
+        const isGroup = channel.type === "GROUP";
+        const memberCount = channel.members?.length || 0;
 
         if (channel.type === "DM" && session?.username) {
-            const otherMember = channel.members?.find(m => m.username !== session.username);
+            otherMember = channel.members?.find(m => m.username !== session.username);
             if (otherMember) {
                 displayName = otherMember.username;
                 displayAvatar = otherMember.avatar_url;
+                isOnline = !!otherMember.is_online;
             }
         }
+
+        const lastSeenText = channel.type === "DM" ? formatLastSeen(otherMember) : null;
 
         return (
             <button
@@ -57,31 +82,63 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 onClick={() => onSelectChannel(channel)}
                 className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-300 text-left
           ${isSelected
-                        ? "bg-gradient-to-r from-[var(--accent)]/15 to-transparent border border-[var(--accent)]/30 shadow-[0_0_15px_rgba(var(--accent-rgb),0.05)]"
+                        ? "bg-[var(--accent)]/10 border border-[var(--accent)]/25"
                         : "hover:bg-[var(--surface-secondary)] border border-transparent"}`}
             >
                 <div className="relative shrink-0">
-                    <Badge.Anchor>
-                        <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
-                            <Avatar.Image src={displayAvatar} alt={displayName} />
-                            <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
-                        </Avatar>
+                    <Badge color="danger" size="sm">
+                        <Badge.Anchor>
+                            {isGroup ? (
+                                <div className="w-11 h-11 rounded-full border border-[var(--border)] bg-[var(--surface-tertiary)] flex items-center justify-center text-[var(--muted)]">
+                                    <Persons className="size-5" />
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
+                                        <Avatar.Image src={displayAvatar} alt={displayName} />
+                                        <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
+                                    </Avatar>
+                                    {channel.type === "DM" && (
+                                        <OnlineIndicator isOnline={isOnline} size="sm" />
+                                    )}
+                                </div>
+                            )}
+                        </Badge.Anchor>
                         {(channel.unread_count ?? 0) > 0 && (
-                            <Badge color="danger" size="sm" className="border-2 border-[var(--surface)]">
+                            <Badge.Label className="border-2 border-[var(--surface)]">
                                 {(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}
-                            </Badge>
+                            </Badge.Label>
                         )}
-                    </Badge.Anchor>
+                    </Badge>
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate text-[var(--foreground)]">
                         {displayName}
                     </p>
                     <p className="text-xs text-[var(--muted)] truncate mt-0.5 font-medium flex items-center gap-1">
-                        {channel.type === "GROUP" ? <Persons className="size-3" /> :
-                            channel.type === "CLAN" ? <Hierarchy className="size-3" /> :
-                                <Person className="size-3" />}
-                        {channel.type === "GROUP" ? "Grupo" : channel.type === "CLAN" ? "Comunidad" : "Directo"}
+                        {isGroup ? (
+                            <>
+                                <Persons className="size-3" />
+                                <span>Grupo</span>
+                                <span className="text-[var(--muted)]/70">({memberCount})</span>
+                            </>
+                        ) : channel.type === "CLAN" ? (
+                            <>
+                                <Hierarchy className="size-3" />
+                                <span>Comunidad</span>
+                            </>
+                        ) : (
+                            <>
+                                <Person className="size-3" />
+                                {lastSeenText ? (
+                                    <span className={isOnline ? "text-green-500" : ""}>
+                                        {lastSeenText}
+                                    </span>
+                                ) : (
+                                    <span>Directo</span>
+                                )}
+                            </>
+                        )}
                     </p>
                 </div>
             </button>
@@ -154,10 +211,10 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 )}
             </ScrollShadow>
 
-            <NewChatModal 
-                isOpen={isNewChatOpen} 
-                onOpenChange={setIsNewChatOpen} 
-                onChannelCreated={onChannelCreated} 
+            <NewChatModal
+                isOpen={isNewChatOpen}
+                onOpenChange={setIsNewChatOpen}
+                onChannelCreated={onChannelCreated}
             />
         </div>
     );

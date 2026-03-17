@@ -1,21 +1,55 @@
 import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
-import type { ListingsResponse, ListingFilters, CreateListingRequest } from "@/lib/types/marketplace";
+import type { Listing, ListingsResponse, ListingFilters, CreateListingRequest } from "@/lib/types/marketplace";
 import type { Params } from "@/lib/types/api";
+
+// ── Helpers ──
+
+function normalizeListing(item: any): Listing {
+    // Flatten nested seller object from API into flat fields for components
+    if (item?.seller && typeof item.seller === "object") {
+        item.seller_username = item.seller_username || item.seller.username;
+        item.seller_avatar_url = item.seller_avatar_url || item.seller.avatar_url;
+        item.is_verified_store = item.is_verified_store ?? item.seller.is_store ?? false;
+        item.seller_id = item.seller_id || item.seller.id;
+    }
+    // Flatten nested tenant object if present
+    if (item?.tenant && typeof item.tenant === "object") {
+        item.tenant_name = item.tenant_name || item.tenant.name;
+        item.tenant_id = item.tenant_id || item.tenant.id;
+    }
+    return item as Listing;
+}
 
 // ── Listings ──
 
 export async function getListings(
     filters: ListingFilters = {}
 ): Promise<ListingsResponse> {
-    return apiFetch<ListingsResponse>(
+    const raw = await apiFetch<any>(
         "/marketplace/listings",
         filters as Params,
         { cache: "no-store" }
     );
+
+    const items = raw?.data?.items ?? raw?.data?.listings ?? raw?.listings ?? raw?.items ?? [];
+    const rawMeta = raw?.meta ?? raw?.data?.meta;
+
+    return {
+        listings: items.map(normalizeListing),
+        meta: rawMeta ? {
+            page: rawMeta.page ?? 1,
+            per_page: rawMeta.per_page ?? rawMeta.page_size ?? 20,
+            total: rawMeta.total ?? items.length,
+            total_pages: rawMeta.total_pages ?? 1,
+        } : undefined,
+        facets: raw?.facets ?? raw?.data?.facets,
+    };
 }
 
 export async function getListingDetail(id: string) {
-    return apiFetch<any>(`/marketplace/listings/${encodeURIComponent(id)}`);
+    const raw = await apiFetch<any>(`/marketplace/listings/${encodeURIComponent(id)}`);
+    const listing = raw?.data ?? raw?.listing ?? raw;
+    return normalizeListing(listing);
 }
 
 export async function createListing(data: CreateListingRequest) {
@@ -180,7 +214,8 @@ export async function uploadMarketplaceImage(formData: FormData) {
     // Special: uses FormData, not JSON
     const { getAuthHeaders } = await import("./client");
     const headers = getAuthHeaders();
-    const res = await fetch("https://api.rankeao.cl/api/v1/marketplace/uploads", {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
+    const res = await fetch(`${baseUrl}/marketplace/uploads`, {
         method: "POST",
         headers,
         body: formData,

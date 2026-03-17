@@ -10,6 +10,23 @@ import type {
 } from "@/lib/types/tournament";
 import type { Params } from "@/lib/types/api";
 
+// ── Helpers ──
+
+function normalizeTournament(t: any): Tournament {
+    // Flatten current_players → registered_count
+    if (t.current_players != null && t.registered_count == null) {
+        t.registered_count = t.current_players;
+    }
+    // Flatten nested tenant object
+    if (t.tenant && typeof t.tenant === "object") {
+        t.tenant_id = t.tenant_id || t.tenant.id;
+        t.tenant_name = t.tenant_name || t.tenant.name;
+        t.tenant_slug = t.tenant_slug || t.tenant.slug;
+        t.tenant_logo_url = t.tenant_logo_url || t.tenant.logo_url;
+    }
+    return t as Tournament;
+}
+
 // ── List / Search ──
 
 export async function getTournaments(
@@ -20,7 +37,11 @@ export async function getTournaments(
         filters as Params,
         { revalidate: 30 }
     );
-    return res.data || res;
+    const data = res.data || res;
+    if (Array.isArray(data.tournaments)) {
+        data.tournaments = data.tournaments.map(normalizeTournament);
+    }
+    return data;
 }
 
 // ── Detail ──
@@ -28,7 +49,7 @@ export async function getTournaments(
 export async function getTournament(id: string): Promise<{ tournament: Tournament }> {
     const res = await apiFetch<any>(`/tournaments/${encodeURIComponent(id)}`);
     const unwrapped = res.data || res;
-    const tournament = unwrapped.tournament || unwrapped;
+    const tournament = normalizeTournament(unwrapped.tournament || unwrapped);
     return { tournament };
 }
 

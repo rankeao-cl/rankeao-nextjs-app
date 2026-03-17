@@ -1,4 +1,5 @@
 import { Card, Chip } from "@heroui/react";
+import Image from "next/image";
 
 export interface FeedCollection {
     id: string;
@@ -11,7 +12,7 @@ export interface FeedCollection {
 
 export default function CollectionCard({ collection }: { collection: FeedCollection }) {
     return (
-        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <Card className="surface-card rounded-[22px] overflow-hidden">
             <Card.Content className="p-4 space-y-3">
                 <h3 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>
                     {collection.title}
@@ -23,10 +24,10 @@ export default function CollectionCard({ collection }: { collection: FeedCollect
                         {collection.thumbnails.slice(0, 8).map((src, i) => (
                             <div
                                 key={i}
-                                className="aspect-[2.5/3.5] overflow-hidden"
+                                className="relative aspect-[2.5/3.5] overflow-hidden"
                                 style={{ background: "var(--surface-secondary)" }}
                             >
-                                <img src={src} alt="" className="w-full h-full object-cover" />
+                                <Image src={src} alt="" fill sizes="25vw" className="object-cover" />
                             </div>
                         ))}
                     </div>

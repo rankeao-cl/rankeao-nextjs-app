@@ -18,6 +18,9 @@ export interface Listing {
     game_name?: string;
     set_name?: string;
     rarity?: string;
+    accepts_offers?: boolean;
+    // Seller — API returns nested object; flatten for display
+    seller?: { username?: string; avatar_url?: string; is_store?: boolean };
     seller_id?: string;
     seller_username?: string;
     seller_avatar_url?: string;
@@ -29,6 +32,8 @@ export interface Listing {
     country?: string;
     lat?: number;
     lng?: number;
+    card_image_url?: string;
+    is_verified_seller?: boolean;
     images?: ListingImage[];
     status?: string;
     views_count?: number;

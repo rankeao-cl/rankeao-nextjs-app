@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Select, ListBox, Input } from "@heroui/react";
 import { Magnifier } from "@gravity-ui/icons";
+import Image from "next/image";
 
 interface MemberProps {
     members: any[]; // Adjust this later with correct types
@@ -121,9 +122,9 @@ export default function MemberDirectory({ members }: MemberProps) {
 function MemberCard({ member }: { member: any }) {
     return (
         <div className="flex items-center gap-3 p-3 bg-[var(--surface-secondary)] border border-[var(--border)] rounded-xl hover:bg-[var(--surface-sunken)] transition-colors">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[var(--surface-tertiary)] to-[var(--surface)] border border-[var(--border)] flex-shrink-0 flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-[var(--surface-tertiary)] border border-[var(--border)] flex-shrink-0 flex items-center justify-center overflow-hidden">
                 {member.avatar_url ? (
-                    <img src={member.avatar_url} alt={member.username} className="w-full h-full object-cover" />
+                    <Image src={member.avatar_url} alt={member.username} width={40} height={40} className="w-full h-full object-cover" />
                 ) : (
                     <span className="text-sm font-bold">{member.username?.[0]?.toUpperCase()}</span>
                 )}

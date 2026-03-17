@@ -7,10 +7,12 @@ export interface Notification {
     user_id: string;
     type: string;
     category?: string; // TOURNAMENT | MARKETPLACE | SOCIAL | SYSTEM
+    channel?: string;  // API may return "channel" instead of "category"
     title: string;
     body?: string;
     priority?: "low" | "normal" | "high";
     is_read: boolean;
+    read_at?: string | null; // API returns read_at (nullable timestamp)
     action_url?: string;
     metadata?: Record<string, unknown>;
     created_at: string;
@@ -22,7 +24,8 @@ export interface NotificationsResponse {
 }
 
 export interface UnreadCountResponse {
-    count: number;
+    total: number;
+    by_category?: Record<string, number>;
 }
 
 export interface NotificationPreferences {
