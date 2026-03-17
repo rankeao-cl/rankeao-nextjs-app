@@ -19,23 +19,15 @@ export function RankedAvatar({ src, fallback, elo, rank: propRank, size = "md", 
     const isDiamante = rank.name === "Diamante";
     const isHighRank = isLegendary || isGrandMaster || isMaster || isDiamante;
 
-    // Build animation class for high-rank users
-    let animClass = "";
-    if (isLegendary) {
-        animClass = "shadow-[0_0_12px_rgba(255,215,0,0.6)] animate-[glow_2s_ease-in-out_infinite]";
-    } else if (isGrandMaster) {
-        animClass = "shadow-[0_0_10px_rgba(138,43,226,0.5)] animate-[glow_3s_ease-in-out_infinite]";
-    } else if (isMaster) {
-        animClass = "shadow-[0_0_8px_rgba(220,20,60,0.4)] animate-[glow_4s_ease-in-out_infinite]";
-    } else if (isDiamante) {
-        animClass = "shadow-[0_0_6px_rgba(0,191,255,0.3)]";
-    }
+    // Use CSS-class-based ring + glow instead of inline Tailwind
+    const ringClass = rank.ringClass;
+    const glowClass = rank.glowClass;
 
     return (
         <div className={`relative inline-block ${className}`}>
             <Avatar
                 size={size}
-                className={`ring-2 ${rank.ringColor} ${animClass}`}
+                className={`rounded-full ${ringClass} ${glowClass}`}
             >
                 <Avatar.Image src={src ?? undefined} />
                 <Avatar.Fallback>{fallback || "?"}</Avatar.Fallback>
@@ -43,7 +35,11 @@ export function RankedAvatar({ src, fallback, elo, rank: propRank, size = "md", 
             {/* Small rank icon overlay at the bottom right */}
             <div
                 className={`absolute -bottom-1 -right-1 z-10 bg-[var(--surface)] rounded-full border border-[var(--border)] flex items-center justify-center shadow-sm ${isHighRank ? "animate-bounce-subtle" : ""}`}
-                style={{ width: size === "sm" ? "16px" : size === "md" ? "20px" : "24px", height: size === "sm" ? "16px" : size === "md" ? "20px" : "24px", fontSize: size === "sm" ? "10px" : size === "md" ? "12px" : "14px" }}
+                style={{
+                    width: size === "sm" ? "16px" : size === "md" ? "20px" : "24px",
+                    height: size === "sm" ? "16px" : size === "md" ? "20px" : "24px",
+                    fontSize: size === "sm" ? "10px" : size === "md" ? "12px" : "14px",
+                }}
             >
                 {rank.icon}
             </div>

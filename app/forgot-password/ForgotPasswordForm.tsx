@@ -37,7 +37,7 @@ export default function ForgotPasswordForm() {
 
   return (
     <div className="rk-container py-14">
-      <Card className="surface-panel max-w-md mx-auto">
+      <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Recuperacion</p>
           <h1 className="text-3xl font-bold text-[var(--foreground)]">Recuperar contrasena</h1>
@@ -63,7 +63,7 @@ export default function ForgotPasswordForm() {
                 <Input
                   placeholder="usuario@rankeao.cl"
                   type="email"
-                  className="w-full"
+                  className="w-full [&_input]:h-12"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
@@ -82,7 +82,7 @@ export default function ForgotPasswordForm() {
               </Form>
 
               <div className="flex flex-col gap-2 mt-6 items-center w-full">
-                <Link href="/login" className="text-xs text-accent-glow hover:underline font-semibold text-center">
+                <Link href="/login" className="text-sm py-2 text-accent-glow hover:underline font-semibold text-center">
                   Recordaste tu contraseña? Inicia sesión
                 </Link>
               </div>

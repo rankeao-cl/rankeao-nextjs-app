@@ -5,19 +5,19 @@ import { usePathname } from "next/navigation";
 import {
     House,
     Medal,
-    ShoppingBag,
-    Bell,
+    ShoppingCart,
+    Comment,
     Person,
 } from "@gravity-ui/icons";
 
 import { useAuth } from "@/context/AuthContext";
 
 const tabs = [
-    { href: "/", label: "Home", icon: House },
+    { href: "/", label: "Feed", icon: House },
     { href: "/torneos", label: "Torneos", icon: Medal },
-    { href: "/comunidades", label: "Comunidades", icon: ShoppingBag },
-    { href: "/notificaciones", label: "Notificaciones", icon: Bell, authRequired: true },
-    { href: "/perfil/me", label: "Perfil", icon: Person, },
+    { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
+    { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
+    { href: "/perfil/me", label: "Perfil", icon: Person },
 ];
 
 export default function BottomNav() {
@@ -33,13 +33,13 @@ export default function BottomNav() {
 
     return (
         <nav
-            className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around rounded-t-2xl"
+            className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around rounded-t-3xl"
             style={{
-                background: "oklch(from var(--surface) l c h / 0.92)",
-                borderTop: "1px solid oklch(from var(--border) l c h / 0.5)",
-                backdropFilter: "blur(20px) saturate(1.4)",
-                WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-                boxShadow: "0 -2px 20px oklch(0% 0 0 / 0.06)",
+                background: "var(--surface)",
+                borderTop: "1px solid var(--border)",
+                backdropFilter: "blur(32px) saturate(1.5)",
+                WebkitBackdropFilter: "blur(32px) saturate(1.5)",
+                boxShadow: "0 -2px 20px rgba(0,0,0,0.06)",
             }}
         >
                 {filteredTabs.map((tab) => {
@@ -50,15 +50,22 @@ export default function BottomNav() {
                         <Link
                             key={tab.href}
                             href={tab.href}
-                            className="flex flex-col items-center justify-center gap-0.5 py-2.5 px-2 min-w-[52px] transition-colors relative"
+                            className="flex flex-col items-center justify-center gap-0.5 py-3 px-3 min-w-[56px] min-h-[44px] transition-colors relative"
                             style={{
                                 color: active
                                     ? "var(--accent)"
                                     : "var(--muted)",
                             }}
                         >
+                            {/* Active indicator dot */}
+                            {active && (
+                                <span
+                                    className="absolute top-1.5 w-1 h-1 rounded-full transition-all duration-300"
+                                    style={{ background: "var(--accent)" }}
+                                />
+                            )}
                             <Icon
-                                className="size-[22px] transition-all duration-200"
+                                className="size-6 transition-all duration-200"
                                 style={
                                     active
                                         ? {
@@ -70,7 +77,7 @@ export default function BottomNav() {
                             <span
                                 className="leading-tight whitespace-nowrap"
                                 style={{
-                                    fontSize: "10px",
+                                    fontSize: "11px",
                                     fontWeight: active ? 600 : 500,
                                 }}
                             >

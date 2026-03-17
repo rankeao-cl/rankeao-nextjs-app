@@ -13,11 +13,7 @@ export default function GameCard({
 }) {
     return (
         <Card
-            className="overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.01]"
-            style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-            }}
+            className="surface-card rounded-[22px] overflow-hidden cursor-pointer"
             onClick={() => onSelect?.(game)}
         >
             <Card.Content className="p-4 gap-3">

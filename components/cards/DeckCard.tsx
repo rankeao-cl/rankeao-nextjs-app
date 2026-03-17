@@ -15,7 +15,7 @@ export interface FeedDeck {
 
 export default function DeckCard({ deck }: { deck: FeedDeck }) {
     return (
-        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <Card className="surface-card rounded-[22px] overflow-hidden">
             <Card.Content className="p-4 space-y-3">
                 {/* Author */}
                 <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
+import { apiFetch, apiPost, apiPatch, apiPut, apiDelete } from "./client";
 import type { Params } from "@/lib/types/api";
 
 // ── Feed ──
@@ -89,6 +89,17 @@ export async function getUserRatingHistory(username: string) {
 
 export async function getProfile(token: string) {
     return apiFetch<any>("/social/users/me", undefined, { token, cache: "no-store" });
+}
+
+export async function updateProfile(payload: {
+    bio?: string;
+    city?: string;
+    country?: string;
+    avatar_url?: string;
+    banner_url?: string;
+    display_name?: string;
+}, token?: string) {
+    return apiPatch<any>("/social/users/me", payload, { token });
 }
 
 // ── Follow / Block ──

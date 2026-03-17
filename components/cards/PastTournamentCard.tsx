@@ -47,8 +47,7 @@ export default function PastTournamentCard({
 
     return (
         <Card
-            className="overflow-hidden transition-all duration-200 hover:scale-[1.01]"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+            className="glass overflow-hidden transition-all duration-500 ease-out hover:scale-[1.01]"
         >
             <Card.Content className="p-4 space-y-4">
                 {/* Header */}
@@ -148,7 +147,7 @@ export default function PastTournamentCard({
                 </div>
 
                 {/* CTA */}
-                <Link href={`/torneos/${tournament.id}`} passHref legacyBehavior>
+                <Link href={`/torneos/${tournament.id}`} >
                     <Button
                         size="sm"
                         className="w-full font-semibold"

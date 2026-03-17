@@ -81,11 +81,11 @@ function cleanTokenString(token: string | undefined): string | undefined {
   return trimmed;
 }
 
-function isTokenExpired(token?: string): boolean {
-  if (!token) return true;
+function decodeJwtPayload(token?: string): Record<string, unknown> | null {
+  if (!token) return null;
   try {
     const parts = token.split('.');
-    if (parts.length !== 3) return false; // not a standard JWT
+    if (parts.length !== 3) return null;
 
     const base64Url = parts[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -95,14 +95,17 @@ function isTokenExpired(token?: string): boolean {
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    const parsed = JSON.parse(jsonPayload);
-    if (!parsed.exp) return false;
-
-    // Add 1 minute buffer (60 seconds)
-    return Date.now() >= (parsed.exp - 60) * 1000;
+    return JSON.parse(jsonPayload);
   } catch {
-    return false; // Cannot decode, assume valid until backend rejects
+    return null;
   }
+}
+
+function isTokenExpired(token?: string): boolean {
+  if (!token) return true;
+  const parsed = decodeJwtPayload(token);
+  if (!parsed?.exp) return false;
+  return Date.now() >= ((parsed.exp as number) - 60) * 1000;
 }
 
 function normalizeAuthSession(payload: unknown, fallbackEmail?: string): AuthSession {
@@ -124,7 +127,15 @@ function normalizeAuthSession(payload: unknown, fallbackEmail?: string): AuthSes
   const rawRefreshToken = pickString([tokens, root, data], ["refresh_token", "refreshToken"]);
   const accessToken = cleanTokenString(rawAccessToken);
   const refreshToken = cleanTokenString(rawRefreshToken);
-  const username = pickString([user, data, root], ["username", "name"]);
+  let username = pickString([user, data, root], ["username", "name"]);
+
+  // Fallback: extract username from JWT payload if not in response body
+  if (!username && accessToken) {
+    const jwtPayload = decodeJwtPayload(accessToken);
+    if (jwtPayload) {
+      username = (jwtPayload.usr as string) || (jwtPayload.username as string) || (jwtPayload.name as string) || undefined;
+    }
+  }
 
   return {
     email,
@@ -151,6 +162,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const legacyToken = (parsed as any).token || (parsed as any).access_token || (parsed as any).jwt;
         if (legacyToken && !parsed.accessToken) {
           parsed.accessToken = legacyToken;
+        }
+
+        // Ensure username is always populated (extract from JWT if missing)
+        if (!parsed.username && parsed.accessToken) {
+          const jwtPayload = decodeJwtPayload(parsed.accessToken);
+          if (jwtPayload) {
+            const jwtUsername = (jwtPayload.usr as string) || (jwtPayload.username as string) || (jwtPayload.name as string) || (jwtPayload.sub as string);
+            if (jwtUsername && typeof jwtUsername === "string") {
+              parsed.username = jwtUsername;
+            }
+          }
         }
 
         if (parsed.accessToken && isTokenExpired(parsed.accessToken)) {

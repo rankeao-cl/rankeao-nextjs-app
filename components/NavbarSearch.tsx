@@ -239,7 +239,7 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
       {/* Results Dropdown */}
       {isOpen && (
         <div
-          className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-xl overflow-hidden shadow-2xl z-50 border border-[var(--border)] max-h-[70vh] overflow-y-auto custom-scrollbar"
+          className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-[22px] overflow-hidden shadow-2xl z-50 border border-[var(--border)] max-h-[70vh] overflow-y-auto custom-scrollbar backdrop-blur-3xl"
           style={{ background: "var(--surface)" }}
         >
           {results.length === 0 && !isLoading && debouncedQuery.length >= 2 && (

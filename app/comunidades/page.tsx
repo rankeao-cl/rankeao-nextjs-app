@@ -60,14 +60,13 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
       {/* General Search Header */}
       <section className="px-4 lg:px-6 mb-6">
         <div
-          className="p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
         >
           <div className="relative z-10 flex-1">
             <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
               Tiendas Locales
             </Chip>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--foreground)] to-[var(--muted)] mb-2">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
               Comunidades y tiendas activas
             </h1>
             <p className="text-sm text-[var(--muted)] max-w-lg mb-6">
@@ -92,7 +91,7 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
       <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
         {/* Left Sidebar - Filters */}
         <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
             <ComunidadesFilters
               currentFilters={{
                 q: params.q,
@@ -122,13 +121,13 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
               ))}
             </div>
           ) : (
-            <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <Card className="glass">
               <Card.Content className="py-16 text-center">
                 <p className="text-4xl mb-4">🏪</p>
-                <p className="text-lg font-medium" style={{ color: "var(--foreground)" }}>
+                <p className="text-lg font-medium text-[var(--foreground)]">
                   No hay comunidades que coincidan con los filtros actuales.
                 </p>
-                <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+                <p className="text-sm mt-1 text-[var(--muted)]">
                   Intenta ajustar los filtros de búsqueda
                 </p>
               </Card.Content>

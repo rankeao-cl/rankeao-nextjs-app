@@ -1,7 +1,9 @@
-import { Card, Chip, Button, Avatar } from "@heroui/react";
+import { Card, Chip, Avatar } from "@heroui/react";
 import Image from "next/image";
+import Link from "next/link";
 import type { Listing } from "@/lib/types/marketplace";
 import { MapPin } from "@gravity-ui/icons";
+import SaleCardActions from "./SaleCardActions";
 
 const conditionColors: Record<string, "success" | "warning" | "danger" | "default"> = {
     mint: "success",
@@ -19,19 +21,13 @@ const conditionColors: Record<string, "success" | "warning" | "danger" | "defaul
 };
 
 export default function SaleCard({ listing }: { listing: Listing }) {
-    const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url;
+    const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
     const condition = listing.card_condition || "";
     const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
     const isStore = !!listing.tenant_name;
 
     return (
-        <Card
-            className="overflow-hidden transition-all duration-200 hover:scale-[1.01] group"
-            style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-            }}
-        >
+        <Card className="surface-card rounded-[22px] overflow-hidden group">
             <Card.Content className="p-0">
                 {/* Promoted badge */}
                 <div
@@ -44,20 +40,22 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                     Venta
                 </div>
 
-                {/* Image */}
-                <div className="relative aspect-[4/5] w-full overflow-hidden" style={{ background: "var(--surface-secondary)" }}>
-                    {imageUrl ? (
-                        <Image
-                            src={imageUrl}
-                            alt={listing.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            sizes="(max-width: 768px) 50vw, 25vw"
-                        />
-                    ) : (
-                        <div className="flex items-center justify-center h-full text-3xl">🃏</div>
-                    )}
-                </div>
+                {/* Image — clickable to detail */}
+                <Link href={`/marketplace/${listing.id}`}>
+                    <div className="relative aspect-[4/5] w-full overflow-hidden cursor-pointer" style={{ background: "var(--surface-secondary)" }}>
+                        {imageUrl ? (
+                            <Image
+                                src={imageUrl}
+                                alt={listing.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="(max-width: 768px) 50vw, 25vw"
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-3xl">🃏</div>
+                        )}
+                    </div>
+                </Link>
 
                 {/* Content */}
                 <div className="p-3 space-y-2">
@@ -110,7 +108,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                         <span className="truncate flex-1 font-medium">
                             {sellerName}
                         </span>
-                        {(isStore || listing.is_verified_store) && (
+                        {(isStore || listing.is_verified_store || listing.is_verified_seller) && (
                             <span
                                 className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
                                 style={{
@@ -132,25 +130,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                     )}
 
                     {/* CTA */}
-                    <div className="flex gap-2">
-                        <Button
-                            size="sm"
-                            className="flex-1 font-medium"
-                            style={{
-                                background: "var(--accent)",
-                                color: "var(--accent-foreground)",
-                            }}
-                        >
-                            Contactar
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="tertiary"
-                            className="font-medium"
-                        >
-                            Detalle
-                        </Button>
-                    </div>
+                    <SaleCardActions listingId={listing.id} sellerUsername={listing.seller_username || ""} />
                 </div>
             </Card.Content>
         </Card>

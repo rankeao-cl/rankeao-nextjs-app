@@ -1,10 +1,12 @@
 import { Card, Chip, Button } from "@heroui/react";
-import { SaleCard } from "@/components/cards";
+import { SaleCard, SaleCardList } from "@/components/cards";
 import { getListings } from "@/lib/api/marketplace";
 import { getGames } from "@/lib/api/catalog";
 import type { CatalogGame } from "@/lib/types/catalog";
 import MarketplaceFilters from "./MarketplaceFilters";
 import MarketplaceSearch from "./MarketplaceSearch";
+import MarketplaceViewToggle from "./MarketplaceViewToggle";
+import FeaturedSections from "./FeaturedSections";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ searchParams }: MarketplacePageProps): Promise<Metadata> {
@@ -30,6 +32,7 @@ interface MarketplacePageProps {
     game?: string;
     city?: string;
     seller_type?: string;
+    view?: string;
   }>;
 }
 
@@ -66,20 +69,20 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   const totalPages = meta?.total_pages ?? 1;
   const rawGames = gamesData?.data ?? gamesData?.games;
   const games: CatalogGame[] = Array.isArray(rawGames) ? rawGames : [];
+  const viewMode = params.view || "grid";
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col pt-4">
       {/* General Search Header */}
       <section className="px-4 lg:px-6 mb-6">
         <div
-          className="p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
         >
           <div className="relative z-10 flex-1">
             <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
               Singles & Productos
             </Chip>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--foreground)] to-[var(--muted)] mb-2">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
               Marketplace TCG
             </h1>
             <p className="text-sm text-[var(--muted)] max-w-lg mb-6">
@@ -100,11 +103,16 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         </div>
       </section>
 
+      {/* Featured Sections */}
+      {page === 1 && !params.q && (
+        <FeaturedSections listings={listings} />
+      )}
+
       {/* Main Grid Layout */}
       <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
-        {/* Left Sidebar - Filters */}
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+        {/* Left Sidebar - Filters (hidden on mobile) */}
+        <aside className="hidden md:block w-full md:w-64 flex-shrink-0">
+          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
             <MarketplaceFilters
               currentFilters={{
                 q: params.q,
@@ -133,15 +141,24 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                 </Chip>
               )}
             </h2>
+            <MarketplaceViewToggle currentView={viewMode} />
           </div>
 
           {listings.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {listings.map((listing) => (
-                  <SaleCard key={listing.id} listing={listing} />
-                ))}
-              </div>
+              {viewMode === "list" ? (
+                <div className="flex flex-col gap-3">
+                  {listings.map((listing) => (
+                    <SaleCardList key={listing.id} listing={listing} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                  {listings.map((listing) => (
+                    <SaleCard key={listing.id} listing={listing} />
+                  ))}
+                </div>
+              )}
 
               {/* Pagination controls MVP */}
               {totalPages > 1 && (

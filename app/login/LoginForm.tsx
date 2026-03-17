@@ -61,7 +61,7 @@ export default function LoginForm() {
 
   return (
     <div className="rk-container py-14">
-      <Card className="surface-panel max-w-md mx-auto">
+      <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Acceso</p>
           <h1 className="text-3xl font-bold text-foreground">Iniciar sesión</h1>
@@ -76,7 +76,7 @@ export default function LoginForm() {
             <Input
               placeholder="usuario@rankeao.cl"
               type="email"
-              className="w-full"
+              className="w-full [&_input]:h-12"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
@@ -86,7 +86,7 @@ export default function LoginForm() {
               <Input
                 placeholder="••••••••"
                 type={isVisible ? "text" : "password"}
-                className="w-full pr-10"
+                className="w-full pr-10 [&_input]:h-12"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
@@ -107,7 +107,7 @@ export default function LoginForm() {
 
             <Button
               type="submit"
-              className="w-full font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
+              className="w-full h-12 font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
               isDisabled={isSubmitting}
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
@@ -115,12 +115,12 @@ export default function LoginForm() {
           </Form>
 
           <div className="flex flex-col gap-2 mt-6 items-center w-full">
-            <Link href="/forgot-password" className="text-xs text-accent-glow hover:underline font-semibold text-center">
+            <Link href="/forgot-password" className="text-sm py-2 text-accent-glow hover:underline font-semibold text-center">
               Olvidé mi contraseña
             </Link>
-            <div className="text-xs text-muted text-center">
+            <div className="text-sm text-muted text-center">
               No tienes cuenta?{' '}
-              <Link href="/register" className="text-accent-glow hover:underline font-semibold">
+              <Link href="/register" className="py-2 text-accent-glow hover:underline font-semibold">
                 Regístrate
               </Link>
             </div>

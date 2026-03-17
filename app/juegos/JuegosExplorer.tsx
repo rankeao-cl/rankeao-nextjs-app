@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, Chip, Input, Button, Accordion } from "@heroui/react";
+import { Chip, Input, Button, Accordion } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
 import { GameCard } from "@/components/cards";
@@ -44,7 +44,7 @@ export default function JuegosExplorer({ games }: Props) {
             )}
           </div>
 
-          <Accordion defaultExpandedKeys={["search", "stats"]} className="px-0">
+          <Accordion defaultExpandedKeys={["search", "games-list"]} className="px-0">
             <Accordion.Item key="search">
               <Accordion.Heading>
                 <Accordion.Trigger>
@@ -112,7 +112,20 @@ export default function JuegosExplorer({ games }: Props) {
                             : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
                             }`}
                         >
-                          {game.name}
+                          <div className="flex items-center gap-2">
+                            {game.logo_url ? (
+                              <Image
+                                src={game.logo_url}
+                                alt={game.name}
+                                width={20}
+                                height={20}
+                                className="w-5 h-5 rounded object-cover shrink-0"
+                              />
+                            ) : (
+                              <span className="text-xs shrink-0">🎴</span>
+                            )}
+                            <span className="truncate">{game.name}</span>
+                          </div>
                         </button>
                       );
                     })}
@@ -145,15 +158,15 @@ export default function JuegosExplorer({ games }: Props) {
             <div className="flex items-start gap-4 flex-wrap relative z-10">
               {/* Logo */}
               <div
-                className="w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center text-2xl shrink-0"
+                className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center text-2xl shrink-0 border border-[var(--border)]"
                 style={{ background: "var(--surface-tertiary)" }}
               >
                 {selectedGame.logo_url ? (
                   <Image
                     src={selectedGame.logo_url}
                     alt={selectedGame.name}
-                    width={56}
-                    height={56}
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -188,19 +201,22 @@ export default function JuegosExplorer({ games }: Props) {
                   )}
                 </div>
 
-                <div className="mt-4">
+                <div className="flex items-center gap-3 mt-4">
                   <Link href={`/juegos/${selectedGame.slug}`}>
                     <Button variant="primary" size="sm" className="font-bold">
                       Ver Comunidad y Rankings &rarr;
                     </Button>
                   </Link>
+                  <div className="flex gap-4 text-sm text-[var(--muted)]">
+                    <span><span className="font-bold text-[var(--foreground)]">{selectedFormats.length}</span> formatos</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Game grid - 3-4 columns like marketplace */}
+        {/* Game grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.length > 0 ? (
             filtered.map((game) => (
@@ -213,7 +229,8 @@ export default function JuegosExplorer({ games }: Props) {
           ) : (
             <div className="col-span-full py-20 text-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-secondary)]/30">
               <p className="text-3xl mb-3 opacity-50">🎮</p>
-              <p className="text-[var(--muted)]">No encontramos juegos que coincidan con tu búsqueda.</p>
+              <p className="text-lg font-medium text-[var(--foreground)]">No se encontraron juegos</p>
+              <p className="text-sm mt-1 text-[var(--muted)]">Intenta ajustar los filtros de búsqueda</p>
             </div>
           )}
         </div>

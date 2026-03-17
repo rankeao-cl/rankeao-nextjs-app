@@ -19,7 +19,7 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
   return (
     <Table
       aria-label="Leaderboard"
-      className="surface-panel border border-[var(--border)] rounded-xl overflow-hidden [&_table]:p-0 [&_table]:bg-transparent [&_th]:bg-[var(--surface-secondary)] [&_th]:text-[var(--muted)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_th]:border-b [&_th]:border-[var(--border)] [&_td]:text-sm [&_td]:border-b [&_td]:border-[var(--border)] [&_td]:py-3"
+      className="surface-panel border border-[var(--border)] rounded-[22px] overflow-hidden [&_table]:p-0 [&_table]:bg-transparent [&_th]:bg-[var(--surface-secondary)] [&_th]:text-[var(--muted)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_th]:border-b [&_th]:border-[var(--border)] [&_td]:text-sm [&_td]:border-b [&_td]:border-[var(--border)] [&_td]:py-4"
     >
       <Table.Header>
         <Table.Column>Pos</Table.Column>
@@ -33,8 +33,8 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
           <>
             <Table.Column>ELO</Table.Column>
             <Table.Column>W/L</Table.Column>
-            <Table.Column>Torneos</Table.Column>
-            <Table.Column>Racha</Table.Column>
+            <Table.Column className="hidden sm:table-cell">Torneos</Table.Column>
+            <Table.Column className="hidden sm:table-cell">Racha</Table.Column>
           </>
         )}
       </Table.Header>
@@ -160,12 +160,12 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                     <Table.Cell>
                       <span className="text-[var(--muted)]">{winRateStr}</span>
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell className="hidden sm:table-cell">
                       <span className="text-[var(--muted)]">
                         {tourneysCount}
                       </span>
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell className="hidden sm:table-cell">
                       <span className="font-medium text-xs" style={{ color: streakColor }}>
                         {streakDisplay}
                       </span>

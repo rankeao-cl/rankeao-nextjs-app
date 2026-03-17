@@ -21,7 +21,7 @@ export default function ResetPasswordForm() {
   if (!token) {
     return (
       <div className="rk-container py-14">
-        <Card className="surface-panel max-w-md mx-auto">
+        <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
           <Card.Content className="p-6 space-y-4">
             <p className="kicker">Error</p>
             <h1 className="text-3xl font-bold text-white">Enlace invalido</h1>
@@ -29,7 +29,7 @@ export default function ResetPasswordForm() {
               El enlace no contiene un token valido. Solicita uno nuevo desde la pagina de recuperacion.
             </p>
             <Link href="/forgot-password">
-              <Button className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold">
+              <Button className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold">
                 Solicitar nuevo enlace
               </Button>
             </Link>
@@ -75,7 +75,7 @@ export default function ResetPasswordForm() {
 
   return (
     <div className="rk-container py-14">
-      <Card className="surface-panel max-w-md mx-auto">
+      <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Seguridad</p>
           <h1 className="text-3xl font-bold text-white">Nueva contrasena</h1>
@@ -86,7 +86,7 @@ export default function ResetPasswordForm() {
                 Tu contrasena ha sido actualizada. Ya puedes iniciar sesion.
               </p>
               <Link href="/login">
-                <Button className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold">
+                <Button className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold">
                   Ir al login
                 </Button>
               </Link>
@@ -128,7 +128,7 @@ export default function ResetPasswordForm() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-zinc-700 to-zinc-400 text-white font-semibold"
+                  className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold"
                   isDisabled={isSubmitting}
                 >
                   {isSubmitting ? "Actualizando..." : "Restablecer contrasena"}

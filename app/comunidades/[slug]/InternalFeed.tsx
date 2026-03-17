@@ -60,7 +60,7 @@ export default function InternalFeed({ posts }: FeedProps) {
                     ))
                 ) : (
                     <div className="flex flex-col items-center justify-center py-20 px-4 bg-[var(--surface)] border border-[var(--border)] rounded-3xl shadow-sm text-center">
-                        <div className="size-16 bg-gradient-to-tr from-[var(--surface-tertiary)] to-[var(--surface-secondary)] rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-inner">
+                        <div className="size-16 bg-[var(--surface-tertiary)] rounded-2xl flex items-center justify-center text-3xl mb-4">
                             📰
                         </div>
                         <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">Sin publicaciones</h3>

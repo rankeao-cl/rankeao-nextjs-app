@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, Chip } from "@heroui/react";
 import { ArrowUpRightFromSquare, Flame, Cup } from "@gravity-ui/icons";
 import Link from "next/link";
+import Image from "next/image";
 import { getTournaments } from "@/lib/api/tournaments";
 import { getGames } from "@/lib/api/catalog";
 import { getTenants } from "@/lib/api/tenants";
@@ -20,17 +21,16 @@ export default function RightSidebar() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch independently to avoid mixed inference issues (more stable for TS)
-                const tournamentsT = await getTournaments({ status: "ROUND_IN_PROGRESS", per_page: 2 }).catch(() => null);
-                const gamesT = await getGames().catch(() => null);
-                const tenantsT = await getTenants({ per_page: 3 }).catch(() => null);
+                const [tournamentsT, gamesT, tenantsT] = await Promise.all([
+                    getTournaments({ status: "ROUND_IN_PROGRESS", per_page: 2 }).catch(() => null),
+                    getGames().catch(() => null),
+                    getTenants({ per_page: 3 }).catch(() => null),
+                ]);
 
-                if (tournamentsT?.tournaments) {
+                if (tournamentsT?.tournaments?.length) {
                     setOngoingTournaments(tournamentsT.tournaments);
-                }
-
-                // If no ongoing (ROUND_IN_PROGRESS), show upcoming (OPEN)
-                if (!tournamentsT?.tournaments?.length) {
+                } else {
+                    // Fallback: show upcoming if no live tournaments
                     const upcomingRes = await getTournaments({ status: "OPEN", per_page: 2 }).catch(() => null);
                     if (upcomingRes?.tournaments) {
                         setOngoingTournaments(upcomingRes.tournaments);
@@ -64,10 +64,12 @@ export default function RightSidebar() {
             style={{
                 borderColor: "var(--border)",
                 background: "var(--surface)",
+                backdropFilter: "blur(32px) saturate(1.5)",
+                WebkitBackdropFilter: "blur(32px) saturate(1.5)",
             }}
         >
             {/* Trending Games */}
-            <Card className="p-4">
+            <Card className="surface-card rounded-[22px] p-4">
                 <div className="flex items-center gap-2 mb-3">
                     <Flame className="size-4 text-[var(--warning)]" />
                     <h3 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
@@ -95,7 +97,7 @@ export default function RightSidebar() {
             </Card>
 
             {/* Tournaments */}
-            <Card className="p-4">
+            <Card className="surface-card rounded-[22px] p-4">
                 <div className="flex items-center gap-2 mb-3">
                     <Cup className="size-4 text-[var(--accent)]" />
                     <h3 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
@@ -132,7 +134,7 @@ export default function RightSidebar() {
             </Card>
 
             {/* Suggestions */}
-            <Card className="p-4">
+            <Card className="surface-card rounded-[22px] p-4">
                 <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--foreground)" }}>
                     Sugerencias
                 </h3>
@@ -143,14 +145,14 @@ export default function RightSidebar() {
                             href={`/comunidades/${tenant.slug || tenant.id}`}
                             className="flex items-center gap-2 p-1.5 rounded-lg transition-colors hover:bg-[var(--surface-secondary)]"
                         >
-                            <div className="size-6 rounded bg-[var(--surface-tertiary)] flex items-center justify-center text-[10px] shrink-0 overflow-hidden">
+                            <div className="size-6 rounded bg-[var(--surface-tertiary)] flex items-center justify-center text-[11px] shrink-0 overflow-hidden">
                                 {tenant.logo_url ? (
-                                    <img src={tenant.logo_url} alt={tenant.name} className="w-full h-full object-cover" />
+                                    <Image src={tenant.logo_url} alt={tenant.name} width={24} height={24} className="w-full h-full object-cover" loading="lazy" />
                                 ) : "🏠"}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-[11px] font-bold truncate text-[var(--foreground)]">{tenant.name}</p>
-                                <p className="text-[9px] text-[var(--muted)] truncate">{tenant.city || "Comunidad"}</p>
+                                <p className="text-[11px] text-[var(--muted)] truncate">{tenant.city || "Comunidad"}</p>
                             </div>
                         </Link>
                     ))}
@@ -158,7 +160,7 @@ export default function RightSidebar() {
                     <div className="pt-2 border-t flex flex-col gap-1" style={{ borderColor: 'var(--border)' }}>
                         <Link
                             href="/comunidades"
-                            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--surface-secondary)] text-[10px]"
+                            className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-[var(--surface-secondary)] text-[11px]"
                             style={{ color: "var(--muted)" }}
                         >
                             <ArrowUpRightFromSquare className="size-3" />

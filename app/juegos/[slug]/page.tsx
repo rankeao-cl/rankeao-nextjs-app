@@ -3,9 +3,12 @@ import { getTournaments } from "@/lib/api/tournaments";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button, Chip, Tabs } from "@heroui/react";
+import { Button, Chip, Tabs, Card } from "@heroui/react";
 import { Plus, ShieldCheck } from "@gravity-ui/icons";
-import { TournamentCard } from "@/components/cards";
+import GameLeaderboard from "./GameLeaderboard";
+import GameActiveTournaments from "./GameActiveTournaments";
+import GameCommunities from "./GameCommunities";
+import GameFeed from "./GameFeed";
 
 interface PageProps {
     params: Promise<{ slug: string }>;
@@ -46,15 +49,15 @@ export default async function GameDetailPage({ params }: PageProps) {
 
     return (
         <div className="flex flex-col w-full">
-            {/* Dynamic Banner section using a placeholder or logic if we eventually have game banners */}
+            {/* Banner */}
             <div className="relative w-full h-48 md:h-64 lg:h-80 bg-[var(--surface-secondary)] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--surface-tertiary)] to-[var(--surface-primary)] opacity-60" />
+                <div className="absolute inset-0 bg-[var(--surface-tertiary)] opacity-60" />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                     <div className="text-9xl tracking-widest font-black uppercase blur-sm mix-blend-overlay">
                         {game.name}
                     </div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] to-transparent opacity-90" />
+                <div className="absolute inset-0 bg-[var(--background)] opacity-70" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 lg:px-6 w-full relative -mt-16 sm:-mt-24 mb-12">
@@ -104,6 +107,20 @@ export default async function GameDetailPage({ params }: PageProps) {
                     </div>
                 </div>
 
+                {/* Quick Stats Row */}
+                <div className="flex gap-3 mt-6 flex-wrap">
+                    <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden min-w-[120px]">
+                        <div className="absolute top-0 right-0 w-12 h-12 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
+                        <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Formatos</p>
+                        <p className="text-xl font-bold text-[var(--foreground)]">{formats.length}</p>
+                    </div>
+                    <div className="p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] relative overflow-hidden min-w-[120px]">
+                        <div className="absolute top-0 right-0 w-12 h-12 bg-[var(--accent)] opacity-10 blur-xl rounded-full"></div>
+                        <p className="text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Torneos</p>
+                        <p className="text-xl font-bold text-[var(--foreground)]">{tournaments.length}</p>
+                    </div>
+                </div>
+
                 {/* Tabs Content Navigation */}
                 <div className="mt-10">
                     <Tabs
@@ -113,19 +130,19 @@ export default async function GameDetailPage({ params }: PageProps) {
                         <Tabs.ListContainer>
                             <Tabs.List aria-label="Opciones del Juego">
                                 <Tabs.Tab id="info">
-                                    ℹ️ Info y Reglas
+                                    Info y Reglas
                                     <Tabs.Indicator />
                                 </Tabs.Tab>
                                 <Tabs.Tab id="tournaments">
-                                    ⚔️ Torneos
+                                    Torneos
                                     <Tabs.Indicator />
                                 </Tabs.Tab>
                                 <Tabs.Tab id="leaderboard">
-                                    🏆 Rankings
+                                    Rankings
                                     <Tabs.Indicator />
                                 </Tabs.Tab>
                                 <Tabs.Tab id="community">
-                                    📰 Comunidades y Feed
+                                    Comunidades y Feed
                                     <Tabs.Indicator />
                                 </Tabs.Tab>
                             </Tabs.List>
@@ -138,63 +155,57 @@ export default async function GameDetailPage({ params }: PageProps) {
                                         Formatos Competitivos
                                     </h2>
                                     {formats.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {formats.map((format) => (
-                                                <Chip key={format.id} variant="secondary" className="border-[var(--border)]">
-                                                    {format.name}
-                                                </Chip>
+                                                <div
+                                                    key={format.id}
+                                                    className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex items-center gap-3"
+                                                >
+                                                    <div className="w-10 h-10 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
+                                                        <span className="text-base">🃏</span>
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-semibold text-sm text-[var(--foreground)] truncate">{format.name}</p>
+                                                        {format.description && (
+                                                            <p className="text-xs text-[var(--muted)] line-clamp-1">{format.description}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-[var(--muted)] italic">No hay formatos registrados aún.</p>
+                                        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                                            <Card.Content className="py-12 text-center">
+                                                <p className="text-3xl mb-3 opacity-50">🃏</p>
+                                                <p className="text-[var(--muted)] italic">No hay formatos registrados aún.</p>
+                                            </Card.Content>
+                                        </Card>
                                     )}
                                 </div>
 
-                                <div className="prose prose-invert max-w-none">
+                                <div>
                                     <h2 className="text-xl font-bold mb-4">Sobre {game.name}</h2>
-                                    <p className="text-[var(--muted)] whitespace-pre-wrap">
-                                        {game.description || `Conoce todo acerca de ${game.name}. A medida que la comunidad crezca, iremos agregando los reglamentos oficiales, enlaces a bases de datos útiles y guías para jugadores nuevos.`}
-                                    </p>
+                                    <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+                                        <p className="text-sm text-[var(--muted)] whitespace-pre-wrap leading-relaxed">
+                                            {game.description || `Conoce todo acerca de ${game.name}. A medida que la comunidad crezca, iremos agregando los reglamentos oficiales, enlaces a bases de datos útiles y guías para jugadores nuevos.`}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </Tabs.Panel>
 
                         <Tabs.Panel id="tournaments">
-                            <div className="flex flex-col gap-6">
-                                <h2 className="text-xl font-bold">Próximos Torneos</h2>
-
-                                {tournaments.length > 0 ? (
-                                    <div className="flex flex-col gap-4 max-w-4xl">
-                                        {tournaments.map(tournament => (
-                                            <TournamentCard key={tournament.id} tournament={tournament} />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl">
-                                        <p className="text-[var(--muted)]">No hay torneos programados para {game.name}.</p>
-                                    </div>
-                                )}
-                            </div>
+                            <GameActiveTournaments gameSlug={slug} />
                         </Tabs.Panel>
 
                         <Tabs.Panel id="leaderboard">
-                            <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl">
-                                <div className="text-4xl mb-4">🏆</div>
-                                <h3 className="text-lg font-bold mb-2">Tabla de Clasificación Global</h3>
-                                <p className="text-[var(--muted)]">Muy pronto podrás ver a los mejores jugadores de {game.name} a nivel nacional.</p>
-                                <Link href="/ranking">
-                                    <Button variant="secondary" className="mt-4">
-                                        Ver Ranking General
-                                    </Button>
-                                </Link>
-                            </div>
+                            <GameLeaderboard gameSlug={slug} />
                         </Tabs.Panel>
 
                         <Tabs.Panel id="community">
-                            <div className="text-center py-16 bg-[var(--surface-secondary)] border border-dashed border-[var(--border)] rounded-2xl max-w-4xl">
-                                <div className="text-4xl mb-4">📰</div>
-                                <h3 className="text-lg font-bold mb-2">Feed Social del Juego</h3>
-                                <p className="text-[var(--muted)]">Explora los posts, discusiones y un directorio de comunidades que juegan {game.name}. (En construcción)</p>
+                            <div className="flex flex-col gap-10">
+                                <GameCommunities gameSlug={slug} gameName={game.name} />
+                                <GameFeed gameSlug={slug} gameName={game.name} />
                             </div>
                         </Tabs.Panel>
 

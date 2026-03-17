@@ -71,25 +71,25 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
     }
   }
 
-  const rawXpEntries = xpData?.leaderboard ?? xpData?.entries;
+  const xpAny = xpData as any;
+  const rawXpEntries = xpAny?.data?.leaderboard ?? xpAny?.data?.entries ?? xpAny?.data ?? xpData?.leaderboard ?? xpData?.entries;
   const xpEntries: LeaderboardEntry[] = Array.isArray(rawXpEntries) ? rawXpEntries : [];
-  const ratingEntries: LeaderboardEntry[] = Array.isArray(ratingData?.leaderboard)
-    ? ratingData.leaderboard
-    : [];
+  const ratingAny = ratingData as any;
+  const rawRatingEntries = ratingAny?.data?.leaderboard ?? ratingAny?.data ?? ratingData?.leaderboard;
+  const ratingEntries: LeaderboardEntry[] = Array.isArray(rawRatingEntries) ? rawRatingEntries : [];
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col pt-4">
       {/* Hero Header */}
       <section className="px-4 lg:px-6 mb-6">
         <div
-          className="p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
         >
           <div className="relative z-10 flex-1">
             <Chip size="sm" variant="soft" color="accent" className="mb-3 px-3">
               Rankings Globales Chile
             </Chip>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--foreground)] to-[var(--muted)] mb-2">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
               Sube en XP, domina en ELO
             </h1>
             <p className="text-sm text-[var(--muted)] max-w-lg mb-2">
@@ -116,7 +116,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
       <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
         {/* Left Sidebar - Game/Format Filters */}
         <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
             <RankingFilters
               games={games}
               formats={formats}
@@ -162,8 +162,8 @@ function RankingFilters({
   selectedPeriod: string;
 }) {
   const periods = [
-    { key: "weekly", label: "Semanal" },
-    { key: "monthly", label: "Mensual" },
+    { key: "week", label: "Semanal" },
+    { key: "month", label: "Mensual" },
     { key: "all_time", label: "Histórico" },
   ];
 

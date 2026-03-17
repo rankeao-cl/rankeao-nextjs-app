@@ -1,17 +1,17 @@
 
 import { getTenant, getTenantMembers } from "@/lib/api/tenants";
-import { getProducts } from "@/lib/api/store";
-import { getTournaments } from "@/lib/api/tournaments";
 import { getFeed } from "@/lib/api/social";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button, Chip, Tabs, Tooltip } from "@heroui/react";
 import { MapPin, Persons, Plus, Envelope, ShieldCheck } from "@gravity-ui/icons";
-import { SaleCard, TournamentCard } from "@/components/cards";
 import MemberDirectory from "./MemberDirectory";
 import InternalFeed from "./InternalFeed";
 import RulesModal from "./RulesModal";
+import ProductsTab from "./ProductsTab";
+import TournamentsTab from "./TournamentsTab";
+import ReviewsTab from "./ReviewsTab";
 import type { Tenant } from "@/lib/types/tenant";
 
 // Extend Tenant type for extra fields from API
@@ -109,15 +109,11 @@ export default async function StorePage({ params }: PageProps) {
     }
     const tenant: ExtendedTenant = tenantData.tenant;
 
-    const [productsData, tournamentsData, membersData, feedData] = await Promise.all([
-        getProducts({ tenant: storeSlug, per_page: 8 }).catch(() => null),
-        getTournaments({ q: storeSlug, per_page: 4 }).catch(() => null),
+    const [membersData, feedData] = await Promise.all([
         getTenantMembers(storeSlug).catch(() => null),
         getFeed({ tenant_id: tenant.id }).catch(() => null),
     ]);
 
-    const products = productsData?.products || [];
-    const tournaments = tournamentsData?.tournaments || [];
     const members = membersData?.members || [];
     const posts = feedData?.items || [];
 
@@ -141,10 +137,10 @@ export default async function StorePage({ params }: PageProps) {
                         priority
                     />
                 ) : (
-                    // Fallback sleek gradient pattern if no image
-                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface-tertiary)] via-[var(--surface-secondary)] to-[var(--surface)] opacity-80" />
+                    // Fallback solid pattern if no image
+                    <div className="absolute inset-0 bg-[var(--surface-tertiary)]" />
                 )}
-                {/* Premium gradient overlay for perfect text contrast and blending into background */}
+                {/* Overlay for text contrast */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-transparent to-black/20" />
             </div>
 
@@ -163,7 +159,7 @@ export default async function StorePage({ params }: PageProps) {
                                     className="object-cover"
                                 />
                             ) : (
-                                <div className="flex items-center justify-center w-full h-full text-5xl bg-gradient-to-br from-[var(--surface-tertiary)] to-[var(--surface-secondary)]">
+                                <div className="flex items-center justify-center w-full h-full text-5xl bg-[var(--surface-tertiary)]">
                                     {tenantType === 'store' ? '🏪' : '🎮'}
                                 </div>
                             )}
@@ -344,56 +340,12 @@ export default async function StorePage({ params }: PageProps) {
 
                         {tenantType === 'store' && (
                             <Tabs.Panel id="products">
-                                <div className="flex flex-col gap-6 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="flex justify-between items-center">
-                                        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Catálogo Destacado</h2>
-                                        <Link href={`/marketplace?tenant=${storeSlug}`}>
-                                            <Button size="sm" variant="primary" className="font-semibold bg-[var(--accent)] text-[var(--accent-foreground)]">
-                                                Ver todo el inventario &rarr;
-                                            </Button>
-                                        </Link>
-                                    </div>
-
-                                    {products.length > 0 ? (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                            {products.map(product => {
-                                                const productListing = { ...product, title: product.title || product.name || '' };
-                                                return <SaleCard key={product.id} listing={productListing} />;
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center py-20 px-4 bg-[var(--surface)] border border-[var(--border)] rounded-3xl shadow-sm text-center">
-                                            <div className="size-16 bg-gradient-to-tr from-[var(--surface-tertiary)] to-[var(--surface-secondary)] rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-inner">
-                                                📦
-                                            </div>
-                                            <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">Sin productos</h3>
-                                            <p className="text-[var(--muted)] max-w-sm">Esta comunidad aún no ha listado productos en el catálogo.</p>
-                                        </div>
-                                    )}
-                                </div>
+                                <ProductsTab tenantSlug={storeSlug} />
                             </Tabs.Panel>
                         )}
 
                         <Tabs.Panel id="tournaments">
-                            <div className="flex flex-col gap-6 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Eventos Oficiales</h2>
-
-                                {tournaments.length > 0 ? (
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                        {tournaments.map(tournament => (
-                                            <TournamentCard key={tournament.id} tournament={tournament} />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-20 px-4 bg-[var(--surface)] border border-[var(--border)] rounded-3xl shadow-sm text-center">
-                                        <div className="size-16 bg-gradient-to-tr from-[var(--surface-tertiary)] to-[var(--surface-secondary)] rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-inner">
-                                            🏆
-                                        </div>
-                                        <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">Sin eventos programados</h3>
-                                        <p className="text-[var(--muted)] max-w-sm">Mantente atento, pronto anunciarán nuevos torneos épicos.</p>
-                                    </div>
-                                )}
-                            </div>
+                            <TournamentsTab tenantSlug={storeSlug} />
                         </Tabs.Panel>
 
                         <Tabs.Panel id="members">
@@ -406,17 +358,7 @@ export default async function StorePage({ params }: PageProps) {
 
                         {tenantType === 'store' && (
                             <Tabs.Panel id="reviews">
-                                <div className="flex flex-col gap-6 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Opiniones de Clientes</h2>
-
-                                    <div className="flex flex-col items-center justify-center py-20 px-4 bg-[var(--surface)] border border-[var(--border)] rounded-3xl shadow-sm text-center">
-                                        <div className="size-16 bg-gradient-to-tr from-[var(--accent)]/10 to-[var(--accent)]/20 rounded-full flex items-center justify-center text-3xl mb-4 border border-[var(--accent)]/20 shadow-inner">
-                                            💬
-                                        </div>
-                                        <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">Sé el primero en opinar</h3>
-                                        <p className="text-[var(--muted)] max-w-md">Pronto habilitaremos el sistema de reseñas para que compartas tu experiencia con {tenant.name}.</p>
-                                    </div>
-                                </div>
+                                <ReviewsTab tenantSlug={storeSlug} tenantName={tenant.name} />
                             </Tabs.Panel>
                         )}
                     </Tabs>

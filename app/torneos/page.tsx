@@ -3,6 +3,8 @@ import { getGames } from "@/lib/api/catalog";
 import { TournamentCard, PastTournamentCard } from "@/components/cards";
 import TorneosFilters from "./TorneosFilters";
 import TorneosPagination from "./TorneosPagination";
+import TorneosViewToggle from "./TorneosViewToggle";
+import TorneosCalendar from "./TorneosCalendar";
 import { Card, Chip, Button, Skeleton } from "@heroui/react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -19,6 +21,7 @@ interface Props {
     is_ranked?: string;
     page?: string;
     tab?: string;
+    view?: string;
     date_from?: string;
     date_to?: string;
   }>;
@@ -45,7 +48,7 @@ function TournamentsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {[1, 2, 3, 4].map((i) => (
-        <Card key={i} className="p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <Card key={i} className="glass p-4">
           <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between gap-4">
               {/* header skeleton */}
@@ -117,13 +120,13 @@ async function TournamentsList({ params, tab }: { params: any; tab: string }) {
           ))}
         </div>
       ) : (
-        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <Card className="glass">
           <Card.Content className="py-16 text-center">
             <p className="text-4xl mb-4">🔍</p>
-            <p className="text-lg font-medium" style={{ color: "var(--foreground)" }}>
+            <p className="text-lg font-medium text-[var(--foreground)]">
               No se encontraron torneos
             </p>
-            <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
+            <p className="text-sm mt-1 text-[var(--muted)]">
               Intenta ajustar los filtros de búsqueda
             </p>
           </Card.Content>
@@ -138,9 +141,32 @@ async function TournamentsList({ params, tab }: { params: any; tab: string }) {
   );
 }
 
+async function CalendarTournaments({ params }: { params: any }) {
+  // Fetch upcoming + live tournaments for the calendar view
+  let allTournaments: Tournament[] = [];
+  try {
+    const [upcoming, live, past] = await Promise.all([
+      getTournaments({ status: "OPEN", sort: "upcoming", per_page: 50 }).catch(() => null),
+      getTournaments({ status: "STARTED,CHECK_IN,ROUND_IN_PROGRESS,ROUND_COMPLETE", sort: "recent", per_page: 50 }).catch(() => null),
+      getTournaments({ status: "FINISHED,CLOSED", sort: "recent", per_page: 50 }).catch(() => null),
+    ]);
+    const u = upcoming?.tournaments;
+    const l = live?.tournaments;
+    const p = past?.tournaments;
+    if (Array.isArray(u)) allTournaments.push(...u);
+    if (Array.isArray(l)) allTournaments.push(...l);
+    if (Array.isArray(p)) allTournaments.push(...p);
+  } catch {
+    // silent fail
+  }
+
+  return <TorneosCalendar tournaments={allTournaments} />;
+}
+
 export default async function TorneosPage({ searchParams }: Props) {
   const params = await searchParams;
   const tab = (params.tab && tabConfig[params.tab]) ? params.tab : "upcoming";
+  const currentView = params.view === "calendar" ? "calendar" : "list";
   const config = tabConfig[tab];
   const apiStatus = params.status || config.apiStatus;
 
@@ -159,14 +185,13 @@ export default async function TorneosPage({ searchParams }: Props) {
       {/* General Search Header */}
       <section className="px-4 lg:px-6 mb-6">
         <div
-          className="p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
         >
           <div className="relative z-10 flex-1">
             <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
               Agenda competitiva
             </Chip>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--foreground)] to-[var(--muted)] mb-2">
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
               Torneos TCG
             </h1>
             <p className="text-sm text-[var(--muted)] max-w-lg mb-6">
@@ -189,7 +214,7 @@ export default async function TorneosPage({ searchParams }: Props) {
       <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">
         {/* Left Sidebar - Filters */}
         <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)]">
+          <div className="sticky top-20 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-3xl">
             <TorneosFilters
               games={games}
               currentFilters={params}
@@ -207,11 +232,18 @@ export default async function TorneosPage({ searchParams }: Props) {
                 {tab}
               </Chip>
             </h2>
+            <TorneosViewToggle currentView={currentView} />
           </div>
 
-          <Suspense key={JSON.stringify(params)} fallback={<TournamentsSkeleton />}>
-            <TournamentsList params={params} tab={tab} />
-          </Suspense>
+          {currentView === "calendar" ? (
+            <Suspense key="calendar" fallback={<TournamentsSkeleton />}>
+              <CalendarTournaments params={params} />
+            </Suspense>
+          ) : (
+            <Suspense key={JSON.stringify(params)} fallback={<TournamentsSkeleton />}>
+              <TournamentsList params={params} tab={tab} />
+            </Suspense>
+          )}
         </main>
       </div>
     </div>

@@ -46,11 +46,13 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r transition-all duration-200 ${collapsed ? "w-[72px]" : "w-[239px]"
+            className={`hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16 border-r transition-all duration-500 ease-out ${collapsed ? "w-[72px]" : "w-[239px]"
                 }`}
             style={{
                 borderColor: "var(--border)",
                 background: "var(--surface)",
+                backdropFilter: "blur(32px) saturate(1.5)",
+                WebkitBackdropFilter: "blur(32px) saturate(1.5)",
             }}
         >
             {/* Navigation */}
@@ -63,7 +65,7 @@ export default function Sidebar() {
                         <Link key={item.href} href={item.href}>
                             <Button
                                 variant={active ? "secondary" : "ghost"}
-                                className={`w-full justify-start gap-3 font-medium transition-colors ${active
+                                className={`w-full justify-start gap-3 font-medium transition-colors rounded-2xl ${active
                                     ? "text-accent-glow"
                                     : "text-muted hover:text-foreground"
                                     } ${collapsed ? "justify-center px-0" : ""}`}

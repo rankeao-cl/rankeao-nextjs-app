@@ -20,7 +20,7 @@ export default function RulesModal({ rules }: RulesModalProps) {
             </Modal.Trigger>
             <Modal.Backdrop className="bg-black/50 backdrop-blur-sm">
                 <Modal.Container>
-                    <Modal.Dialog className="bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-4 shadow-2xl">
+                    <Modal.Dialog className="bg-[var(--bg-solid)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-4 shadow-2xl">
                         <Modal.CloseTrigger className="absolute top-4 right-4 text-[var(--muted)] hover:text-[var(--foreground)] bg-[var(--surface-secondary)] rounded-full p-1" />
                         <Modal.Header>
                             <Modal.Heading className="text-xl font-bold">Reglas de la Comunidad</Modal.Heading>

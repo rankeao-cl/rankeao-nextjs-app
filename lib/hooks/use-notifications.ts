@@ -14,7 +14,12 @@ export function useNotifications(params?: Params, token?: string) {
 export function useUnreadCount(token?: string) {
     return useQuery({
         queryKey: ["notifications", "unread-count"],
-        queryFn: () => notificationsApi.getUnreadNotificationCount(token),
+        queryFn: async () => {
+            const res = await notificationsApi.getUnreadNotificationCount(token);
+            // Normalize: YAML returns { data: { total, by_category } }
+            const total = res?.data?.total ?? res?.count ?? res?.total ?? 0;
+            return { total, by_category: res?.data?.by_category ?? res?.by_category };
+        },
         refetchInterval: 30000, // Poll every 30s
     });
 }

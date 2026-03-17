@@ -40,13 +40,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
         : null;
 
     return (
-        <Card
-            className="overflow-hidden transition-all duration-200 hover:scale-[1.01]"
-            style={{
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-            }}
-        >
+        <Card className="surface-card rounded-[22px] overflow-hidden">
             <Card.Content className="p-0">
                 {/* Status bar */}
                 <div
@@ -176,7 +170,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
 
                     {/* CTA */}
                     {isLive ? (
-                        <Link href={`/torneos/${tournament.id}`} passHref legacyBehavior>
+                        <Link href={`/torneos/${tournament.id}`} >
                             <Button
                                 size="sm"
                                 className="w-full font-semibold"
@@ -204,7 +198,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                                     </Button>
                                 </a>
                             ) : (
-                                <Link href={`/torneos/${tournament.id}`} passHref legacyBehavior>
+                                <Link href={`/torneos/${tournament.id}`}>
                                     <Button
                                         size="sm"
                                         className="w-full font-semibold"
@@ -217,7 +211,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                                     </Button>
                                 </Link>
                             )}
-                            <Link href={`/torneos/${tournament.id}`} passHref legacyBehavior>
+                            <Link href={`/torneos/${tournament.id}`}>
                                 <Button
                                     size="sm"
                                     variant="tertiary"
@@ -228,7 +222,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                             </Link>
                         </div>
                     ) : (
-                        <Link href={`/torneos/${tournament.id}`} passHref legacyBehavior>
+                        <Link href={`/torneos/${tournament.id}`}>
                             <Button
                                 size="sm"
                                 className="w-full font-semibold"

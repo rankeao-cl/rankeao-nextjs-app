@@ -23,6 +23,21 @@ export interface ChannelMember {
     is_online?: boolean;
 }
 
+export type MessageStatus = "sent" | "delivered" | "read";
+
+export interface MessageEmbed {
+    embed_type: "listing" | "post";
+    // Listing embed fields
+    image_url?: string;
+    product_name?: string;
+    price?: string;
+    listing_url?: string;
+    // Post embed fields
+    author_name?: string;
+    post_text?: string;
+    post_url?: string;
+}
+
 export interface ChatMessage {
     id: string;
     channel_id: string;
@@ -35,6 +50,9 @@ export interface ChatMessage {
     sender_username?: string;
     sender_avatar_url?: string;
     content: string;
+    image_url?: string;
+    metadata?: MessageEmbed;
+    status?: MessageStatus;
     reply_to_id?: string;
     reply_to?: ChatMessage;
     is_edited?: boolean;

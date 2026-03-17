@@ -1,11 +1,19 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import RightSidebar from "./RightSidebar";
-import SwipeWrapper from "./SwipeWrapper";
-import PullToRefresh from "./PullToRefresh";
+
+const SwipeWrapper = dynamic(() => import("./SwipeWrapper"), {
+    ssr: false,
+    loading: () => null,
+});
+const PullToRefresh = dynamic(() => import("./PullToRefresh"), {
+    ssr: false,
+    loading: () => null,
+});
 
 const fullWidthPages = ["/login", "/register", "/terminos", "/privacidad", "/cookies"];
 

@@ -57,7 +57,7 @@ export default function RegisterForm() {
 
   return (
     <div className="rk-container py-14">
-      <Card className="surface-panel max-w-md mx-auto">
+      <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Nuevo jugador</p>
           <h1 className="text-3xl font-bold text-foreground">Crear cuenta</h1>
@@ -65,7 +65,7 @@ export default function RegisterForm() {
           <Form className="space-y-3" onSubmit={handleSubmit}>
             <Input
               placeholder="Nombre de usuario"
-              className="w-full"
+              className="w-full [&_input]:h-12"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
@@ -73,7 +73,7 @@ export default function RegisterForm() {
             <Input
               placeholder="Correo"
               type="email"
-              className="w-full"
+              className="w-full [&_input]:h-12"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
@@ -81,7 +81,7 @@ export default function RegisterForm() {
             <Input
               placeholder="Contrasena"
               type="password"
-              className="w-full"
+              className="w-full [&_input]:h-12"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
@@ -89,7 +89,7 @@ export default function RegisterForm() {
             <Input
               placeholder="Confirmar contrasena"
               type="password"
-              className="w-full"
+              className="w-full [&_input]:h-12"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
@@ -99,7 +99,7 @@ export default function RegisterForm() {
 
             <Button
               type="submit"
-              className="w-full font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
+              className="w-full h-12 font-semibold bg-[color:var(--accent)] text-[color:var(--accent-foreground)] hover:bg-[color:var(--accent-subtle)]"
               isDisabled={isSubmitting}
             >
               {isSubmitting ? "Registrando..." : "Registrarme gratis"}
@@ -107,7 +107,7 @@ export default function RegisterForm() {
           </Form>
 
           <div className="flex flex-col gap-2 mt-6 items-center w-full">
-            <div className="text-xs text-muted text-center">
+            <div className="text-sm text-muted text-center">
               Ya tienes cuenta?{' '}
               <Link href="/login" className="text-accent-glow hover:underline font-semibold">
                 Inicia sesión

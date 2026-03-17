@@ -1,6 +1,9 @@
-import { Card, Chip, Avatar, Button } from "@heroui/react";
+"use client";
+
+import { Card, Chip, Avatar } from "@heroui/react";
 import Image from "next/image";
-import { Comment, Heart, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
+import ReactionBar from "@/components/ReactionBar";
+import { useState } from "react";
 
 export interface FeedPost {
     id: string;
@@ -11,14 +14,34 @@ export interface FeedPost {
     game?: string;
     likes_count?: number;
     comments_count?: number;
+    reactions?: Record<string, number>;
+    user_reactions?: string[];
     created_at: string;
 }
 
 export default function PostCard({ post }: { post: FeedPost }) {
     const timeAgo = getTimeAgo(post.created_at);
 
+    const [reactions, setReactions] = useState<Record<string, number>>(
+        post.reactions ?? { love: post.likes_count ?? 0 }
+    );
+    const [userReactions, setUserReactions] = useState<string[]>(
+        post.user_reactions ?? []
+    );
+
+    const handleReact = (type: string) => {
+        setUserReactions((prev) => {
+            const already = prev.includes(type);
+            setReactions((r) => ({
+                ...r,
+                [type]: Math.max(0, (r[type] || 0) + (already ? -1 : 1)),
+            }));
+            return already ? prev.filter((t) => t !== type) : [...prev, type];
+        });
+    };
+
     return (
-        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <Card className="surface-card rounded-[22px] overflow-hidden">
             <Card.Content className="p-4 space-y-3">
                 {/* Author header */}
                 <div className="flex items-center gap-3">
@@ -68,18 +91,16 @@ export default function PostCard({ post }: { post: FeedPost }) {
                     </div>
                 )}
 
-                {/* Interaction bar */}
-                <div className="flex items-center gap-1 pt-1" style={{ borderTop: "1px solid var(--separator)" }}>
-                    <Button variant="tertiary" size="sm" className="gap-1.5 text-[var(--muted)]">
-                        <Heart className="size-4" /> {post.likes_count || 0}
-                    </Button>
-                    <Button variant="tertiary" size="sm" className="gap-1.5 text-[var(--muted)]">
-                        <Comment className="size-4" /> {post.comments_count || 0}
-                    </Button>
-                    <Button variant="tertiary" size="sm" className="ml-auto text-[var(--muted)]">
-                        <ArrowShapeTurnUpRight className="size-4" />
-                    </Button>
-                </div>
+                {/* Reaction bar */}
+                <ReactionBar
+                    reactions={reactions}
+                    userReactions={userReactions}
+                    commentCount={post.comments_count || 0}
+                    onReact={handleReact}
+                    onComment={() => {}}
+                    onShare={() => {}}
+                    onBookmark={() => {}}
+                />
             </Card.Content>
         </Card>
     );
