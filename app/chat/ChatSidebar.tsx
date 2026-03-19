@@ -51,17 +51,47 @@ function timeAgo(dateStr?: string): string {
     return new Date(dateStr).toLocaleDateString("es-CL", { day: "numeric", month: "short" });
 }
 
+type ChatFilter = "todo" | "dm" | "grupos" | "comunidades";
+
+const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
+    { key: "todo", label: "Todo" },
+    { key: "dm", label: "Directos" },
+    { key: "grupos", label: "Grupos" },
+    { key: "comunidades", label: "Comunidades" },
+];
+
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft }: ChatSidebarProps) {
     const { session } = useAuth();
     const myUsername = session?.username;
     const [search, setSearch] = useState("");
+    const [chatFilter, setChatFilter] = useState<ChatFilter>("todo");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const filteredChannels = useMemo(() => {
-        if (!search.trim()) return channels;
-        return channels.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()));
-    }, [channels, search]);
+        let result = channels;
+
+        // Apply type filter
+        if (chatFilter === "dm") result = result.filter(c => c.type === "DM");
+        else if (chatFilter === "grupos") result = result.filter(c => c.type === "GROUP");
+        else if (chatFilter === "comunidades") result = result.filter(c => c.type === "CLAN" || c.type === "TOURNAMENT");
+
+        // Apply search filter (match channel name or DM member username)
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            result = result.filter(c => {
+                if (c.name?.toLowerCase().includes(q)) return true;
+                // For DMs, also search by the other member's username
+                if (c.type === "DM" && myUsername) {
+                    const otherMember = c.members?.find(m => m.username !== myUsername);
+                    if (otherMember?.username?.toLowerCase().includes(q)) return true;
+                }
+                return false;
+            });
+        }
+
+        return result;
+    }, [channels, search, chatFilter, myUsername]);
 
     const channelsByType = useMemo(() => {
         return {
@@ -92,6 +122,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
         }
 
         const lastSeenText = channel.type === "DM" ? formatLastSeen(otherMember) : null;
+        const hasUnread = (channel.unread_count ?? 0) > 0;
 
         return (
             <button
@@ -126,11 +157,11 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-bold truncate text-[var(--foreground)]">
+                        <p className={`text-sm truncate ${hasUnread ? "font-bold text-[var(--foreground)]" : "font-medium text-[var(--muted)]"}`}>
                             {displayName}
                         </p>
                         {channel.last_message?.created_at && (
-                            <span className="text-[10px] text-[var(--muted)] shrink-0 font-medium">
+                            <span className={`text-[10px] shrink-0 ${hasUnread ? "text-[var(--foreground)] font-semibold" : "text-[var(--muted)] font-medium"}`}>
                                 {timeAgo(channel.last_message.created_at)}
                             </span>
                         )}
@@ -188,6 +219,23 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
+
+                {/* Filter pills */}
+                <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+                    {CHAT_FILTERS.map((f) => (
+                        <button
+                            key={f.key}
+                            onClick={() => setChatFilter(f.key)}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200
+                                ${chatFilter === f.key
+                                    ? "bg-[var(--accent)] text-[var(--accent-foreground)] shadow-sm"
+                                    : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--default)]"
+                                }`}
+                        >
+                            {f.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             <ScrollShadow className="flex-1 min-h-0 p-3 flex flex-col gap-4">
@@ -206,8 +254,34 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         <div className="text-4xl mb-3"><Comment /></div>
                         <p className="text-sm font-medium text-[var(--muted)]">No tienes chats activos.</p>
                         <p className="text-xs text-[var(--muted)]/70 mt-1">Explora la comunidad o torneos para conectarte.</p>
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="mt-4 rounded-full"
+                            onPress={() => setIsNewChatOpen(true)}
+                        >
+                            Iniciar chat
+                        </Button>
+                    </div>
+                ) : filteredChannels.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center opacity-60 p-6 text-center">
+                        <div className="text-3xl mb-3 text-[var(--muted)]"><Comment /></div>
+                        <p className="text-sm text-[var(--muted)]">
+                            {search.length > 0
+                                ? "No se encontraron chats con ese nombre."
+                                : `No tienes ${chatFilter === "dm" ? "mensajes directos" : chatFilter === "grupos" ? "grupos" : chatFilter === "comunidades" ? "comunidades" : "chats"}.`}
+                        </p>
+                    </div>
+                ) : chatFilter !== "todo" ? (
+                    /* Single section when a specific filter is active */
+                    <div className="space-y-1">
+                        <p className="px-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">
+                            {CHAT_FILTERS.find(f => f.key === chatFilter)?.label ?? ""}
+                        </p>
+                        {filteredChannels.map(renderChannel)}
                     </div>
                 ) : (
+                    /* Grouped sections for "Todo" filter */
                     <>
                         {channelsByType.DMs.length > 0 && (
                             <div className="space-y-1">
@@ -226,9 +300,6 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 <p className="px-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2 mt-4">Comunidades y Torneos</p>
                                 {channelsByType.COMMUNITIES.map(renderChannel)}
                             </div>
-                        )}
-                        {filteredChannels.length === 0 && search.length > 0 && (
-                            <p className="text-center text-sm text-[var(--muted)] mt-10">No se encontraron chats con ese nombre.</p>
                         )}
                     </>
                 )}
