@@ -16,9 +16,7 @@ export function useUnreadCount(token?: string) {
         queryKey: ["notifications", "unread-count"],
         queryFn: async () => {
             const res = await notificationsApi.getUnreadNotificationCount(token);
-            // Normalize: YAML returns { data: { total, by_category } }
-            const total = res?.data?.total ?? res?.count ?? res?.total ?? 0;
-            return { total, by_category: res?.data?.by_category ?? res?.by_category };
+            return { total: res?.total ?? 0, by_category: res?.by_category };
         },
         refetchInterval: 30000, // Poll every 30s
     });

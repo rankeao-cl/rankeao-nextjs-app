@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as marketplaceApi from "@/lib/api/marketplace";
-import type { ListingFilters, CreateListingRequest, CreateOfferRequest } from "@/lib/types/marketplace";
+import type { ListingFilters, CreateListingRequest, CreateOfferRequest, Favorite } from "@/lib/types/marketplace";
 
 // ── Listings ──
 
@@ -59,8 +59,11 @@ export function useMyFavorites() {
 export function useToggleFavorite() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ listingId, add }: { listingId: string; add: boolean }) =>
-            add ? marketplaceApi.addFavorite(listingId) : marketplaceApi.removeFavorite(listingId),
+        mutationFn: async ({ listingId, add }: { listingId: string; add: boolean }) => {
+            if (add) return marketplaceApi.addFavorite(listingId);
+            await marketplaceApi.removeFavorite(listingId);
+            return { favorite: null as unknown as Favorite };
+        },
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "favorites"] }),
     });
 }

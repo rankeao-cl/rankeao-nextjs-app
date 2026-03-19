@@ -32,13 +32,13 @@ export default async function HomePage() {
       id: `tournament-${t.id}`,
       type: "tournament" as const,
       data: t,
-      timestamp: new Date(t.starts_at || t.created_at || Date.now()).getTime(),
+      timestamp: new Date(t.starts_at || t.created_at || 0).getTime(),
     })),
     ...listings.map((l) => ({
       id: `listing-${l.id}`,
       type: "sale" as const,
       data: l,
-      timestamp: new Date(l.created_at || Date.now()).getTime(),
+      timestamp: new Date(l.created_at || 0).getTime(),
     })),
   ].sort((a, b) => b.timestamp - a.timestamp);
 

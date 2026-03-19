@@ -11,7 +11,7 @@ interface Props {
 
 export default function GameFeed({ gameSlug, gameName }: Props) {
     const { data, isLoading } = useFeedDiscover({ game: gameSlug, per_page: 10 });
-    const items = data?.items ?? data?.data?.items ?? data?.posts ?? [];
+    const items = data?.items ?? [];
     const posts = Array.isArray(items) ? items : [];
 
     return (

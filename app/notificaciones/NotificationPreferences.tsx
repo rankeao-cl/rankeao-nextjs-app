@@ -72,16 +72,17 @@ export default function NotificationPreferences() {
 
     useEffect(() => {
         if (prefData) {
-            const raw = prefData?.data ?? prefData;
+            const raw = prefData?.preferences ?? prefData;
+            const prefs = raw as unknown as Record<string, unknown>;
             const parsed: Record<string, boolean> = {};
             PREFERENCE_ROWS.forEach((row) => {
-                parsed[row.key] = raw?.[row.key] !== false;
+                parsed[row.key] = prefs?.[row.key] !== false;
             });
             setPrefs(parsed);
-            if (raw?.push_enabled !== undefined) setPushEnabled(raw.push_enabled);
-            if (raw?.dnd_enabled !== undefined) setDndEnabled(raw.dnd_enabled);
-            if (raw?.dnd_from) setDndFrom(raw.dnd_from);
-            if (raw?.dnd_to) setDndTo(raw.dnd_to);
+            if (prefs?.push_enabled !== undefined) setPushEnabled(prefs.push_enabled as boolean);
+            if (prefs?.dnd_enabled !== undefined) setDndEnabled(prefs.dnd_enabled as boolean);
+            if (prefs?.dnd_from) setDndFrom(prefs.dnd_from as string);
+            if (prefs?.dnd_to) setDndTo(prefs.dnd_to as string);
         }
     }, [prefData]);
 

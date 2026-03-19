@@ -7,6 +7,7 @@ import { Gear, ShieldExclamation, Person, Palette, Briefcase, Bell } from "@grav
 import { useTheme } from "next-themes";
 import { changePassword } from "@/lib/api/auth";
 import { getNotificationPreferences, updateNotificationPreferences } from "@/lib/api/notifications";
+import type { NotificationPreferences } from "@/lib/types/notification";
 import { getUserProfile, updateProfile } from "@/lib/api/social";
 import { uploadMarketplaceImage } from "@/lib/api/marketplace";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,7 +47,7 @@ export default function ConfigPage() {
     });
 
     const updatePrefsMutation = useMutation({
-        mutationFn: (newPrefs: any) => updateNotificationPreferences(newPrefs, token!),
+        mutationFn: (newPrefs: Partial<NotificationPreferences>) => updateNotificationPreferences(newPrefs, token!),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["notificationPreferences"] });
             toast.success("Preferencias actualizadas");
@@ -372,7 +373,7 @@ export default function ConfigPage() {
                                                     <span className="text-xs text-[var(--muted)]">Cuándo te toca jugar y resultados.</span>
                                                 </div>
                                                 <Switch
-                                                    isSelected={notifPrefs?.tournament_updates ?? true}
+                                                    isSelected={notifPrefs?.preferences?.tournament_updates ?? true}
                                                     onChange={(isSelected) => updatePrefsMutation.mutate({ tournament_updates: isSelected, match_reminders: isSelected })}
                                                     isDisabled={updatePrefsMutation.isPending}
                                                 />
@@ -383,7 +384,7 @@ export default function ConfigPage() {
                                                     <span className="text-xs text-[var(--muted)]">Ofertas recibidas y ventas.</span>
                                                 </div>
                                                 <Switch
-                                                    isSelected={notifPrefs?.marketplace_offers ?? true}
+                                                    isSelected={notifPrefs?.preferences?.marketplace_offers ?? true}
                                                     onChange={(isSelected) => updatePrefsMutation.mutate({ marketplace_offers: isSelected, price_alerts: isSelected })}
                                                     isDisabled={updatePrefsMutation.isPending}
                                                 />
@@ -394,7 +395,7 @@ export default function ConfigPage() {
                                                     <span className="text-xs text-[var(--muted)]">Interacciones y solicitudes de amistad.</span>
                                                 </div>
                                                 <Switch
-                                                    isSelected={notifPrefs?.social_interactions ?? true}
+                                                    isSelected={notifPrefs?.preferences?.social_interactions ?? true}
                                                     onChange={(isSelected) => updatePrefsMutation.mutate({ social_interactions: isSelected, clan_activity: isSelected })}
                                                     isDisabled={updatePrefsMutation.isPending}
                                                 />
@@ -407,7 +408,7 @@ export default function ConfigPage() {
                                                         <span className="text-xs text-[var(--muted)]">Silencia todas las notificaciones.</span>
                                                     </div>
                                                     <Switch
-                                                        isSelected={notifPrefs && (!notifPrefs.tournament_updates && !notifPrefs.marketplace_offers && !notifPrefs.social_interactions && !notifPrefs.system_announcements)}
+                                                        isSelected={notifPrefs?.preferences && (!notifPrefs.preferences.tournament_updates && !notifPrefs.preferences.marketplace_offers && !notifPrefs.preferences.social_interactions && !notifPrefs.preferences.system_announcements)}
                                                         onChange={(isSelected) => {
                                                             const val = !isSelected;
                                                             updatePrefsMutation.mutate({

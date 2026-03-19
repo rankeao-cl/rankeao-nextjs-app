@@ -81,13 +81,11 @@ export default function NotificacionesPage() {
                 getNotifications({ per_page: 100 }, session.accessToken).catch(() => null),
                 getUnreadNotificationCount(session.accessToken).catch(() => null),
             ]).then(([notifRes, countRes]) => {
-                const raw = notifRes?.data?.notifications
-                    ?? notifRes?.data
-                    ?? notifRes?.notifications
-                    ?? notifRes;
-                if (Array.isArray(raw)) {
+                const raw = notifRes?.notifications ?? notifRes;
+                const list = Array.isArray(raw) ? raw : [];
+                if (list.length > 0) {
                     // Normalize: API returns read_at (timestamp|null), frontend uses is_read (boolean)
-                    const normalized = raw.map((n: any) => ({
+                    const normalized = list.map((n: Notification) => ({
                         ...n,
                         is_read: n.is_read ?? (n.read_at != null),
                         category: n.category || n.channel,
@@ -95,7 +93,7 @@ export default function NotificacionesPage() {
                     setNotifications(normalized);
                 }
 
-                const total = countRes?.data?.total ?? countRes?.count ?? countRes?.total;
+                const total = countRes?.total;
                 if (typeof total === "number") {
                     setUnreadCount(total);
                 }

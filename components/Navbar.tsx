@@ -79,15 +79,12 @@ export default function Navbar() {
         getNotifications({ per_page: 10 }, session.accessToken).catch(() => null),
         getUnreadNotificationCount(session.accessToken).catch(() => null),
       ]).then(([notifRes, countRes]) => {
-        const raw = notifRes?.data?.notifications
-          ?? notifRes?.data
-          ?? notifRes?.notifications
-          ?? notifRes;
+        const raw = notifRes?.notifications ?? [];
         if (Array.isArray(raw)) {
           setNotifications(raw);
         }
 
-        const total = countRes?.data?.total ?? countRes?.count ?? countRes?.total;
+        const total = countRes?.total;
         if (typeof total === "number") {
           setUnreadCount(total);
         }
