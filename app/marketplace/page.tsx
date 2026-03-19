@@ -7,6 +7,8 @@ import MarketplaceFilters from "./MarketplaceFilters";
 import MarketplaceSearch from "./MarketplaceSearch";
 import MarketplaceViewToggle from "./MarketplaceViewToggle";
 import FeaturedSections from "./FeaturedSections";
+import QuickActionChips from "./QuickActionChips";
+import ConditionFilterChips from "./ConditionFilterChips";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ searchParams }: MarketplacePageProps): Promise<Metadata> {
@@ -33,6 +35,7 @@ interface MarketplacePageProps {
     city?: string;
     seller_type?: string;
     view?: string;
+    tab?: string;
   }>;
 }
 
@@ -101,6 +104,16 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Quick Action Chips */}
+      <section className="px-4 lg:px-6 mb-4">
+        <QuickActionChips />
+      </section>
+
+      {/* Condition Filter Chips */}
+      <section className="px-4 lg:px-6 mb-6">
+        <ConditionFilterChips currentCondition={params.condition || ""} />
       </section>
 
       {/* Featured Sections */}

@@ -4,7 +4,7 @@ import { Card, Chip, Avatar } from "@heroui/react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Listing } from "@/lib/types/marketplace";
-import { MapPin } from "@gravity-ui/icons";
+import { MapPin, ShieldCheck } from "@gravity-ui/icons";
 import SaleCardActions from "./SaleCardActions";
 
 const conditionColors: Record<string, "success" | "warning" | "danger" | "default"> = {
@@ -99,7 +99,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                             <div className="flex items-center gap-3 min-w-0">
                                 {/* Seller */}
                                 <div className="flex items-center gap-1.5 text-xs min-w-0" style={{ color: "var(--muted)" }}>
-                                    <Avatar size="sm" className="w-5 h-5 flex-shrink-0">
+                                    <Avatar size="sm" className="w-6 h-6 flex-shrink-0">
                                         {listing.seller_avatar_url ? (
                                             <Avatar.Image src={listing.seller_avatar_url} />
                                         ) : null}
@@ -109,15 +109,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                                     </Avatar>
                                     <span className="truncate font-medium">{sellerName}</span>
                                     {(isStore || listing.is_verified_store || listing.is_verified_seller) && (
-                                        <span
-                                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase flex-shrink-0"
-                                            style={{
-                                                background: "var(--success)",
-                                                color: "var(--success-foreground)",
-                                            }}
-                                        >
-                                            Tienda
-                                        </span>
+                                        <ShieldCheck className="size-3.5 flex-shrink-0 text-[var(--success)]" />
                                     )}
                                 </div>
 
