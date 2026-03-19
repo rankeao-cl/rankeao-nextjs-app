@@ -5,6 +5,7 @@ import type { Tournament } from "@/lib/types/tournament";
 import { FeedListingCard, FeedTournamentCard } from "@/components/cards";
 import FeedHeader from "./FeedClient";
 import FeedTabs from "./FeedTabs";
+import FeedEmptyState from "./FeedEmptyState";
 
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
@@ -63,15 +64,7 @@ export default async function HomePage() {
           })}
         </div>
       ) : (
-        <div className="glass py-16 text-center">
-          <div className="w-14 h-14 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center mx-auto mb-3">
-            <span className="text-2xl">📭</span>
-          </div>
-          <p className="font-semibold text-[var(--foreground)] mb-1">Tu feed esta vacio</p>
-          <p className="text-sm text-[var(--muted)]">
-            Explora torneos y el marketplace para descubrir contenido.
-          </p>
-        </div>
+        <FeedEmptyState />
       )}
     </div>
   );
