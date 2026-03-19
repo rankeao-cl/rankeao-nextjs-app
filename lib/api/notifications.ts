@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
+import { apiFetch, apiPost, apiPatch, apiPut, apiDelete } from "./client";
 import type { Params } from "@/lib/types/api";
 import type { RegisterDevicePayload, NotificationPreferences } from "@/lib/types/notification";
 
@@ -28,10 +28,21 @@ export async function deleteAllNotifications(token?: string) {
     return apiDelete<any>("/notifications", { token });
 }
 
+export async function getNotification(notificationId: string, token?: string) {
+    return apiFetch<any>(`/notifications/${notificationId}`, undefined, { cache: "no-store", token });
+}
+
 // ── Preferences ──
 
 export async function getNotificationPreferences(token?: string) {
     return apiFetch<any>("/notifications/preferences", undefined, { cache: "no-store", token });
+}
+
+export async function batchUpdateNotificationPreferences(
+    preferences: Array<{ category: string; channel: string; enabled: boolean }>,
+    token?: string
+) {
+    return apiPut<any>("/notifications/preferences", { preferences }, { token });
 }
 
 export async function updateNotificationPreferences(prefs: Partial<NotificationPreferences>, token?: string) {

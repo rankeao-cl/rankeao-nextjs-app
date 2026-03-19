@@ -79,7 +79,13 @@ export async function renewListing(id: string) {
 // ── Offers ──
 
 export async function getMyOffers(params?: Params) {
-    return apiFetch<any>("/marketplace/offers", params, { cache: "no-store" });
+    return apiFetch<any>("/marketplace/offers/mine", params, { cache: "no-store" });
+}
+
+// ── My Listings ──
+
+export async function getMyListings(params?: Params) {
+    return apiFetch<any>("/marketplace/listings/mine", params, { cache: "no-store" });
 }
 
 export async function createOffer(listingId: string, payload: { amount: number; message?: string }) {
@@ -106,10 +112,40 @@ export async function withdrawOffer(offerId: string) {
     return apiPost<any>(`/marketplace/offers/${encodeURIComponent(offerId)}/withdraw`, {});
 }
 
+// ── Buy ──
+
+export async function buyListing(listingId: string, payload: { quantity: number; delivery_method: string; shipping_address?: string }) {
+    return apiPost<any>(`/marketplace/listings/${encodeURIComponent(listingId)}/buy`, payload);
+}
+
+// ── Counter Offer Accept ──
+
+export async function acceptCounterOffer(offerId: string) {
+    return apiPost<any>(`/marketplace/offers/${encodeURIComponent(offerId)}/accept-counter`, {});
+}
+
+// ── Listing Images ──
+
+export async function uploadListingImages(listingId: string, payload: { url: string; thumbnail_url?: string; alt_text?: string }) {
+    return apiPost<any>(`/marketplace/listings/${encodeURIComponent(listingId)}/images`, payload);
+}
+
+export async function deleteListingImage(listingId: string, imageId: string) {
+    return apiDelete<any>(`/marketplace/listings/${encodeURIComponent(listingId)}/images/${encodeURIComponent(imageId)}`);
+}
+
 // ── Checkout & Orders ──
 
 export async function checkoutListing(listingId: string, payload: any) {
     return apiPost<any>(`/marketplace/listings/${encodeURIComponent(listingId)}/checkout`, payload);
+}
+
+export async function getCheckout(checkoutId: string) {
+    return apiFetch<any>(`/marketplace/checkouts/${encodeURIComponent(checkoutId)}`, undefined, { cache: "no-store" });
+}
+
+export async function payCheckout(checkoutId: string, payload?: { provider?: string }) {
+    return apiPost<any>(`/marketplace/checkouts/${encodeURIComponent(checkoutId)}/pay`, payload ?? {});
 }
 
 export async function getMarketplaceOrders(params?: Params) {
@@ -124,20 +160,20 @@ export async function confirmDelivery(orderId: string) {
     return apiPost<any>(`/marketplace/orders/${encodeURIComponent(orderId)}/confirm-delivery`, {});
 }
 
-export async function shipOrder(orderId: string, payload: { tracking_number?: string; tracking_url?: string }) {
+export async function shipOrder(orderId: string, payload: { carrier?: string; tracking_number?: string; tracking_url?: string }) {
     return apiPost<any>(`/marketplace/orders/${encodeURIComponent(orderId)}/ship`, payload);
 }
 
 // ── Reviews ──
 
 export async function reviewOrder(orderId: string, payload: any) {
-    return apiPost<any>(`/marketplace/orders/${encodeURIComponent(orderId)}/review`, payload);
+    return apiPost<any>(`/marketplace/orders/${encodeURIComponent(orderId)}/reviews`, payload);
 }
 
 // ── Disputes ──
 
 export async function openDispute(orderId: string, payload: { reason: string; description?: string }) {
-    return apiPost<any>(`/marketplace/orders/${encodeURIComponent(orderId)}/dispute`, payload);
+    return apiPost<any>(`/marketplace/orders/${encodeURIComponent(orderId)}/disputes`, payload);
 }
 
 export async function getDispute(disputeId: string) {
@@ -149,7 +185,11 @@ export async function addDisputeEvidence(disputeId: string, payload: any) {
 }
 
 export async function sendDisputeMessage(disputeId: string, payload: { content: string }) {
-    return apiPost<any>(`/marketplace/disputes/${encodeURIComponent(disputeId)}/messages`, payload);
+    return apiPost<any>(`/marketplace/disputes/${encodeURIComponent(disputeId)}/message`, payload);
+}
+
+export async function respondToDispute(disputeId: string, payload: any) {
+    return apiPost<any>(`/marketplace/disputes/${encodeURIComponent(disputeId)}/respond`, payload);
 }
 
 // ── Favorites ──
@@ -174,6 +214,10 @@ export async function getMyPriceAlerts(params?: Params) {
 
 export async function createPriceAlert(payload: { card_id?: string; printing_id?: string; target_price: number; condition?: string }) {
     return apiPost<any>("/marketplace/price-alerts", payload);
+}
+
+export async function updatePriceAlert(alertId: string, payload: any) {
+    return apiPatch<any>(`/marketplace/price-alerts/${encodeURIComponent(alertId)}`, payload);
 }
 
 export async function deletePriceAlert(id: string) {
@@ -204,8 +248,32 @@ export async function setupSellerProfile(payload: any) {
     return apiPost<any>("/marketplace/seller/setup", payload);
 }
 
+export async function getMySellerProfile() {
+    return apiFetch<any>("/marketplace/seller/me", undefined, { cache: "no-store" });
+}
+
 export async function updateSellerProfile(payload: any) {
-    return apiPatch<any>("/marketplace/seller/profile", payload);
+    return apiPatch<any>("/marketplace/seller/me", payload);
+}
+
+// ── Bank Accounts ──
+
+export async function addBankAccount(payload: any) {
+    return apiPost<any>("/marketplace/seller/bank-accounts", payload);
+}
+
+export async function deleteBankAccount(bankAccountId: string) {
+    return apiDelete<any>(`/marketplace/seller/bank-accounts/${encodeURIComponent(bankAccountId)}`);
+}
+
+// ── Payouts ──
+
+export async function getPayouts(params?: Params) {
+    return apiFetch<any>("/marketplace/seller/payouts", params, { cache: "no-store" });
+}
+
+export async function getPayoutDetail(payoutId: string) {
+    return apiFetch<any>(`/marketplace/seller/payouts/${encodeURIComponent(payoutId)}`, undefined, { cache: "no-store" });
 }
 
 // ── Uploads ──
@@ -222,4 +290,14 @@ export async function uploadMarketplaceImage(formData: FormData) {
     });
     if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
     return res.json();
+}
+
+export async function uploadMarketplaceFile(payload: any) {
+    return apiPost<any>("/marketplace/uploads", payload);
+}
+
+// ── User Reviews ──
+
+export async function getMarketplaceUserReviews(userId: string, params?: Params) {
+    return apiFetch<any>(`/marketplace/users/${encodeURIComponent(userId)}/reviews`, params, { revalidate: 60 });
 }

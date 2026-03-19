@@ -164,3 +164,43 @@ export async function nextRound(id: string) {
 export async function getMyTournamentHistory(params?: Params) {
     return apiFetch<any>("/tournaments/history", params, { cache: "no-store" });
 }
+
+// ── Publish ──
+
+export async function publishTournament(id: string) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/publish`, {});
+}
+
+// ── Check-in ──
+
+export async function startCheckIn(id: string) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/start-check-in`, {});
+}
+
+// ── Registrations ──
+
+export async function getRegistrations(id: string) {
+    return apiFetch<any>(`/tournaments/${encodeURIComponent(id)}/registrations`, undefined, { cache: "no-store" });
+}
+
+// ── Judges ──
+
+export async function addJudge(id: string, payload: { user_id: string; is_head_judge?: boolean }) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/judges`, payload);
+}
+
+export async function removeJudge(id: string, userId: string) {
+    return apiDelete<any>(`/tournaments/${encodeURIComponent(id)}/judges/${encodeURIComponent(userId)}`);
+}
+
+// ── Penalties ──
+
+export async function issuePenalty(id: string, payload: { player_id: string; match_id: string; severity: string; reason: string; infraction?: string; notes?: string }) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/penalties`, payload);
+}
+
+// ── Extend Round Time ──
+
+export async function extendRoundTime(id: string, roundNumber: number, payload: { extra_minutes: number; reason?: string }) {
+    return apiPost<any>(`/tournaments/${encodeURIComponent(id)}/rounds/${roundNumber}/extend-time`, payload);
+}

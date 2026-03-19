@@ -62,11 +62,28 @@ export async function autocompleteCards(q: string, gameId?: string) {
     });
 }
 
+// ── Search ──
+
+export async function searchCards(params?: Params) {
+    return apiFetch<any>("/catalog/cards/search", params);
+}
+
+export async function getSetCards(setId: string, params?: Params) {
+    return apiFetch<any>(`/catalog/sets/${encodeURIComponent(setId)}/cards`, params);
+}
+
 // ── Price History ──
 
 export async function getPriceHistory(printingId: string, params?: Params) {
     return apiFetch<{ prices: PricePoint[] }>(
         `/catalog/printings/${encodeURIComponent(printingId)}/price-history`,
+        params
+    );
+}
+
+export async function getCardPriceHistory(cardId: string, params?: Params) {
+    return apiFetch<{ prices: PricePoint[] }>(
+        `/catalog/cards/${encodeURIComponent(cardId)}/price-history`,
         params
     );
 }

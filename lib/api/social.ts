@@ -99,7 +99,7 @@ export async function updateProfile(payload: {
     banner_url?: string;
     display_name?: string;
 }, token?: string) {
-    return apiPatch<any>("/social/users/me", payload, { token });
+    return apiPatch<any>("/social/profile", payload, { token });
 }
 
 // ── Follow / Block ──
@@ -118,6 +118,10 @@ export async function blockUser(userId: string, reason?: string, token?: string)
 
 export async function unblockUser(userId: string, token?: string) {
     return apiDelete<any>(`/social/users/${userId}/block`, { token });
+}
+
+export async function listBlocks(token?: string) {
+    return apiFetch<any>("/social/blocks", undefined, { cache: "no-store", token });
 }
 
 // ── Tenant Follow ──
