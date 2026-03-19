@@ -63,7 +63,12 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                     <span className="text-[11px] text-[var(--muted)]">publicó un torneo</span>
                 </div>
                 <Chip color={status.color} variant="soft" size="sm" className="shrink-0 text-[10px]">
-                    {isLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-current mr-1 animate-pulse" />}
+                    {isLive && (
+                        <span className="relative inline-flex h-2 w-2 mr-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-current" />
+                        </span>
+                    )}
                     {status.label}
                 </Chip>
             </div>
