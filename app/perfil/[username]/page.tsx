@@ -305,7 +305,7 @@ export default function PublicProfilePage({
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Image
-                            src="/rankeao.svg"
+                            src="/rankeao-logo.png"
                             alt="Rankeao"
                             width={840}
                             height={175}
