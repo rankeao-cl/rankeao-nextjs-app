@@ -1,19 +1,21 @@
 import { apiFetch } from "./client";
-import type { CatalogGame, CatalogFormat, GamesResponse, AutocompleteResult, PricePoint } from "@/lib/types/catalog";
-import type { Params } from "@/lib/types/api";
+import type { CatalogGame, CatalogFormat, GamesResponse, AutocompleteResult, PricePoint, Card, CardSet, Printing, LegalityEntry } from "@/lib/types/catalog";
+import type { Params, PaginationMeta } from "@/lib/types/api";
 
 // ── Games ──
 
 export async function getGames(): Promise<GamesResponse> {
-    const payload = await apiFetch<any>("/catalog/games", undefined, { revalidate: 300 });
-    if (Array.isArray(payload)) return { data: payload, success: true };
+    const payload = await apiFetch<GamesResponse>("/catalog/games", undefined, { revalidate: 300 });
+    if (Array.isArray(payload)) return { data: payload as unknown as CatalogGame[], success: true };
     if (payload && Array.isArray(payload.data)) return { data: payload.data, success: true };
-    if (payload?.data?.games && Array.isArray(payload.data.games)) return { data: payload.data.games, success: true };
+    const extended = payload as GamesResponse & { data?: { games?: CatalogGame[] } };
+    if (extended.data && Array.isArray((extended.data as unknown as { games?: CatalogGame[] }).games))
+        return { data: (extended.data as unknown as { games: CatalogGame[] }).games, success: true };
     return payload as GamesResponse;
 }
 
 export async function getGameDetail(slug: string) {
-    const payload = await apiFetch<any>(`/catalog/games/${encodeURIComponent(slug)}`);
+    const payload = await apiFetch<{ data?: { game?: CatalogGame } & CatalogGame; game?: CatalogGame; success?: boolean }>(`/catalog/games/${encodeURIComponent(slug)}`);
     // API returns { data: { game: {...} } } — normalize to { data: CatalogGame }
     const game = payload?.data?.game ?? payload?.game ?? payload?.data;
     return { data: game as CatalogGame | undefined, success: payload?.success };
@@ -28,29 +30,29 @@ export async function getGameFormats(slug: string) {
 // ── Sets ──
 
 export async function getGameSets(gameSlug: string, params?: Params) {
-    return apiFetch<any>(`/catalog/games/${encodeURIComponent(gameSlug)}/sets`, params);
+    return apiFetch<{ data?: CardSet[]; sets?: CardSet[]; meta?: PaginationMeta }>(`/catalog/games/${encodeURIComponent(gameSlug)}/sets`, params);
 }
 
 export async function getSetDetail(setId: string) {
-    return apiFetch<any>(`/catalog/sets/${encodeURIComponent(setId)}`);
+    return apiFetch<{ data?: CardSet; set?: CardSet }>(`/catalog/sets/${encodeURIComponent(setId)}`);
 }
 
 // ── Cards ──
 
 export async function getCards(params?: Params) {
-    return apiFetch<any>("/catalog/cards", params);
+    return apiFetch<{ data?: Card[]; cards?: Card[]; meta?: PaginationMeta }>("/catalog/cards", params);
 }
 
 export async function getCardDetail(cardId: string) {
-    return apiFetch<any>(`/catalog/cards/${encodeURIComponent(cardId)}`);
+    return apiFetch<{ data?: Card; card?: Card }>(`/catalog/cards/${encodeURIComponent(cardId)}`);
 }
 
 export async function getCardPrintings(cardId: string) {
-    return apiFetch<any>(`/catalog/cards/${encodeURIComponent(cardId)}/printings`);
+    return apiFetch<{ data?: Printing[]; printings?: Printing[] }>(`/catalog/cards/${encodeURIComponent(cardId)}/printings`);
 }
 
 export async function getCardLegality(cardId: string) {
-    return apiFetch<any>(`/catalog/cards/${encodeURIComponent(cardId)}/legality`);
+    return apiFetch<{ data?: LegalityEntry[]; legalities?: LegalityEntry[] }>(`/catalog/cards/${encodeURIComponent(cardId)}/legality`);
 }
 
 // ── Autocomplete ──
@@ -65,11 +67,11 @@ export async function autocompleteCards(q: string, gameId?: string) {
 // ── Search ──
 
 export async function searchCards(params?: Params) {
-    return apiFetch<any>("/catalog/cards/search", params);
+    return apiFetch<{ data?: Card[]; cards?: Card[]; meta?: PaginationMeta }>("/catalog/cards/search", params);
 }
 
 export async function getSetCards(setId: string, params?: Params) {
-    return apiFetch<any>(`/catalog/sets/${encodeURIComponent(setId)}/cards`, params);
+    return apiFetch<{ data?: Card[]; cards?: Card[]; meta?: PaginationMeta }>(`/catalog/sets/${encodeURIComponent(setId)}/cards`, params);
 }
 
 // ── Price History ──

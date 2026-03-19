@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Avatar, Input, ScrollShadow, Skeleton, Button } from "@heroui/react";
-import { Gear, Comment, Persons, Person, ShoppingCart, Headphones, Hierarchy, Plus } from "@gravity-ui/icons";
+import { Gear, Comment, Persons, Hierarchy, Plus } from "@gravity-ui/icons";
 import type { Channel, ChannelMember } from "@/lib/types/chat";
 import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";

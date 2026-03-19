@@ -53,10 +53,9 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
         setLoading(true);
         debounceRef.current = setTimeout(async () => {
             try {
-                const res = await autocompleteCards(q);
-                const data = res as any;
+                const data = await autocompleteCards(q);
                 const items: Suggestion[] =
-                    data?.results ?? data?.data?.results ?? data?.suggestions ?? data?.data?.suggestions ?? data?.cards ?? [];
+                    (data as Record<string, unknown>)?.results as Suggestion[] ?? [];
                 setSuggestions(items.slice(0, 10));
                 setShowSuggestions(items.length > 0);
             } catch {

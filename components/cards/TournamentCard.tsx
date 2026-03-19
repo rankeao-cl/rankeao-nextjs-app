@@ -1,4 +1,4 @@
-import { Chip, Button, Avatar } from "@heroui/react";
+import { Chip, Button } from "@heroui/react";
 import type { Tournament } from "@/lib/types/tournament";
 import { Clock, Persons, MapPin, Cup } from "@gravity-ui/icons";
 import Image from "next/image";
