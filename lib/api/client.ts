@@ -67,7 +67,9 @@ async function handleError(res: Response, endpoint: string): Promise<never> {
             }
         }
     } catch { }
-    showErrorToast(message);
+    if (res.status !== 401 && res.status !== 404) {
+        showErrorToast(message);
+    }
     throw new Error(message);
 }
 

@@ -13,7 +13,11 @@ export async function getClan(clanId: string) {
 }
 
 export async function getMyClan(token?: string) {
-    return apiFetch<any>("/social/clans/mine", undefined, { cache: "no-store", token });
+    try {
+        return await apiFetch<any>("/social/clans/mine", undefined, { cache: "no-store", token });
+    } catch {
+        return null;
+    }
 }
 
 // ── CRUD ──
