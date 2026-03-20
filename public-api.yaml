@@ -35,6 +35,43 @@ tags:
 - name: Lobby
 security: []
 paths:
+  /api/v1/auth/change-password:
+    post:
+      tags:
+      - Auth
+      summary: Change password (authenticated)
+      description: 'Changes the authenticated user''s password. Requires the current password
+
+        and the new password (min 8 characters). Returns 400 if the current password
+
+        is incorrect. Requires Bearer token.
+
+        '
+      operationId: changePassword
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - current_password
+              - new_password
+              properties:
+                current_password:
+                  type: string
+                new_password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          $ref: '#/components/responses/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/auth/forgot-password:
     post:
       tags:
@@ -190,6 +227,30 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '409':
           $ref: '#/components/responses/Conflict'
+  /api/v1/auth/resend-verification:
+    post:
+      tags:
+      - Auth
+      summary: Resend verification email
+      description: 'Resends the email verification link to the authenticated user''s email address.
+
+        Rate-limited to prevent abuse. Returns 429 if called too frequently.
+
+        Requires Bearer token.
+
+        '
+      operationId: resendVerification
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/MessageResponse'
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/auth/reset-password:
     post:
       tags:
@@ -5166,7 +5227,67 @@ paths:
                     type: array
                     items:
                       type: object
+  /api/v1/social/me/profile:
+    patch:
+      tags:
+      - Social
+      summary: Update my profile
+      description: 'Updates the authenticated user''s profile. Only provided fields are changed.
+
+        Avatar and banner can be updated via URL or uploaded separately.
+
+        Requires Bearer token.
+
+        '
+      operationId: updateMyProfile
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/v1/social/me/equipped:
+    get:
+      tags:
+      - Feed
+      summary: Get my equipped items
+      description: 'Returns the authenticated user''s currently equipped cosmetic items
+
+        and active title. Requires authentication.
+
+        '
+      operationId: getMyEquipped
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Equipped items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: object
+                    nullable: true
+                  cosmetics:
+                    type: array
+                    items:
+                      type: object
     patch:
       tags:
       - Feed
@@ -8770,3 +8891,31 @@ components:
         created_at:
           type: string
           format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        status:
+          type: integer
+    UpdateProfileRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+          maxLength: 50
+        bio:
+          type: string
+          maxLength: 500
+        avatar_url:
+          type: string
+        banner_url:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        language:
+          type: string
