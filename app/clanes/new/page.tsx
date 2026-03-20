@@ -31,6 +31,10 @@ export default function NewClanPage() {
   const [description, setDescription] = useState("");
   const [gameId, setGameId] = useState("");
   const [city, setCity] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+  const [recruitMinElo, setRecruitMinElo] = useState("");
+  const [maxMembers, setMaxMembers] = useState("");
   const [isRecruiting, setIsRecruiting] = useState(true);
 
   useEffect(() => {
@@ -71,6 +75,10 @@ export default function NewClanPage() {
       description: description.trim() || undefined,
       game_id: gameId || undefined,
       city: city.trim() || undefined,
+      logo_url: logoUrl.trim() || undefined,
+      banner_url: bannerUrl.trim() || undefined,
+      recruit_min_elo: recruitMinElo ? parseInt(recruitMinElo) : undefined,
+      max_members: maxMembers ? parseInt(maxMembers) : undefined,
       is_recruiting: isRecruiting,
     };
 
@@ -190,6 +198,56 @@ export default function NewClanPage() {
               placeholder="Ej: Santiago"
               value={city}
               onChange={(e) => setCity(e.target.value)}
+            />
+          </TextField>
+
+          {/* Logo URL */}
+          <TextField className="space-y-1 flex flex-col">
+            <Label className="text-xs text-[var(--muted)]">
+              URL Logo (opcional)
+            </Label>
+            <Input
+              placeholder="https://..."
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+            />
+          </TextField>
+
+          {/* Banner URL */}
+          <TextField className="space-y-1 flex flex-col">
+            <Label className="text-xs text-[var(--muted)]">
+              URL Banner (opcional)
+            </Label>
+            <Input
+              placeholder="https://..."
+              value={bannerUrl}
+              onChange={(e) => setBannerUrl(e.target.value)}
+            />
+          </TextField>
+
+          {/* ELO minimo */}
+          <TextField className="space-y-1 flex flex-col">
+            <Label className="text-xs text-[var(--muted)]">
+              ELO minimo para unirse (opcional)
+            </Label>
+            <Input
+              type="number"
+              placeholder="Ej: 1200"
+              value={recruitMinElo}
+              onChange={(e) => setRecruitMinElo(e.target.value)}
+            />
+          </TextField>
+
+          {/* Max members */}
+          <TextField className="space-y-1 flex flex-col">
+            <Label className="text-xs text-[var(--muted)]">
+              Maximo de miembros (opcional, default 50)
+            </Label>
+            <Input
+              type="number"
+              placeholder="50"
+              value={maxMembers}
+              onChange={(e) => setMaxMembers(e.target.value)}
             />
           </TextField>
 

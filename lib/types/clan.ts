@@ -85,9 +85,12 @@ export interface CreateClanRequest {
     description?: string;
     is_recruiting?: boolean;
     recruit_min_elo?: number;
+    max_members?: number;
     city?: string;
     country_code?: string;
     game_id?: string;
+    logo_url?: string;
+    banner_url?: string;
 }
 
 export interface ClanChallengeRequest {
