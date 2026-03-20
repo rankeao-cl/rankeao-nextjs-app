@@ -5,7 +5,15 @@ import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
 import type { Channel, ChatMessage } from "@/lib/types/chat";
 import ChatMessageBubble from "./ChatMessageBubble";
-import ChatSettingsModal from "./ChatSettingsModal";
+import ChatSettingsModal, { type ChatSettings, DEFAULT_CHAT_SETTINGS } from "./ChatSettingsModal";
+
+function loadChatSettings(): ChatSettings {
+    try {
+        const raw = localStorage.getItem("rankeao.chat.settings");
+        if (raw) return { ...DEFAULT_CHAT_SETTINGS, ...JSON.parse(raw) };
+    } catch {}
+    return DEFAULT_CHAT_SETTINGS;
+}
 
 interface ChatAreaProps {
     selectedChannel: Channel | null;
@@ -62,8 +70,24 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Settings modal
+    // Settings modal + chat settings
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [chatSettings, setChatSettings] = useState<ChatSettings>(DEFAULT_CHAT_SETTINGS);
+
+    useEffect(() => {
+        setChatSettings(loadChatSettings());
+    }, []);
+
+    const handleChatSettingsChange = (s: ChatSettings) => {
+        setChatSettings(s);
+    };
+
+    const activeFontSize = (() => {
+        const map: Record<string, number> = { small: 13, medium: 15, large: 17, xlarge: 20 };
+        return map[chatSettings.fontSize] ?? 15;
+    })();
+
+    const activeBubbleBg = chatSettings.theme === "green" ? "#25D366" : "#2C2C30";
 
     // Typing indicator state
     const [isTyping, setIsTyping] = useState(false);
@@ -568,6 +592,11 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                             isMine={isMine}
                                             showHeader={showHeader}
                                             status={msg.status}
+                                            fontSize={activeFontSize}
+                                            showTimestamps={chatSettings.showTimestamps}
+                                            showAvatars={chatSettings.showAvatars}
+                                            bubbleBg={activeBubbleBg}
+                                            compactMode={chatSettings.compactMode}
                                             isGroup={isGroup}
                                         />
                                     );
@@ -796,6 +825,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 onOpenChange={setIsSettingsOpen}
                 channel={selectedChannel}
                 onChannelLeft={onBack}
+                chatSettings={chatSettings}
+                onChatSettingsChange={handleChatSettingsChange}
             />
         </div>
     );

@@ -69,10 +69,6 @@ export default function Navbar() {
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
-  if (authPages.some((p) => pathname.startsWith(p))) {
-    return null;
-  }
-
   useEffect(() => {
     if (status === "authenticated" && session?.accessToken) {
       Promise.all([
@@ -99,6 +95,10 @@ export default function Navbar() {
       }
     }
   }, [status, session]);
+
+  if (authPages.some((p) => pathname.startsWith(p))) {
+    return null;
+  }
 
   const handleMarkAllRead = async () => {
     try {

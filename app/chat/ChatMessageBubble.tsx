@@ -10,6 +10,11 @@ interface ChatMessageBubbleProps {
     showHeader: boolean;
     status?: MessageStatus;
     isGroup?: boolean;
+    fontSize?: number;
+    showTimestamps?: boolean;
+    showAvatars?: boolean;
+    bubbleBg?: string;
+    compactMode?: boolean;
 }
 
 const IMAGE_URL_REGEX = /https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp)(\?[^\s]*)?/gi;
@@ -221,7 +226,7 @@ function PostEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
     );
 }
 
-export default function ChatMessageBubble({ message, isMine, showHeader, status, isGroup }: ChatMessageBubbleProps) {
+export default function ChatMessageBubble({ message, isMine, showHeader, status, isGroup, fontSize = 15, showTimestamps = true, showAvatars = true, bubbleBg, compactMode = false }: ChatMessageBubbleProps) {
     // Detect image URLs in content
     const imageUrls: string[] = [];
     const textContent = message.content.replace(IMAGE_URL_REGEX, (url) => {
@@ -247,8 +252,8 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                 <p style={{
                     whiteSpace: "pre-wrap",
                     margin: 0,
-                    fontSize: 15,
-                    lineHeight: "21px",
+                    fontSize,
+                    lineHeight: `${Math.round(fontSize * 1.4)}px`,
                     color: isMine ? "#FFFFFF" : "#F2F2F2",
                 }}>
                     {text}
@@ -316,8 +321,8 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                     return part ? (
                         <span key={idx} style={{
                             whiteSpace: "pre-wrap",
-                            fontSize: 15,
-                            lineHeight: "21px",
+                            fontSize,
+                            lineHeight: `${Math.round(fontSize * 1.4)}px`,
                             color: isMine ? "#FFFFFF" : "#F2F2F2",
                         }}>
                             {part}
@@ -366,15 +371,15 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
         <div style={{
             display: "flex",
             flexDirection: isMine ? "row-reverse" : "row",
-            gap: isMine ? 0 : 8,
-            marginBottom: isGrouped ? 2 : 6,
+            gap: isMine ? 0 : (compactMode ? 4 : 8),
+            marginBottom: compactMode ? 1 : (isGrouped ? 2 : 6),
             maxWidth: "80%",
             alignSelf: isMine ? "flex-end" : "flex-start",
             marginLeft: isMine ? "auto" : 8,
             marginRight: isMine ? 0 : "auto",
         }}>
-            {/* Avatar (other only) */}
-            {!isMine && (
+            {/* Avatar (other only, when showAvatars enabled) */}
+            {!isMine && showAvatars && (
                 <div style={{ width: 32, flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
                     {showHeader ? (
                         <div style={{
@@ -410,8 +415,8 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                 flexDirection: "column",
                 alignItems: isMine ? "flex-end" : "flex-start",
             }}>
-                {/* Sender name (other, group/showHeader) */}
-                {!isMine && showHeader && (
+                {/* Sender name (other, group/showHeader, hidden in compact) */}
+                {!isMine && showHeader && !compactMode && (
                     <span style={{
                         fontSize: 11,
                         fontWeight: 500,
@@ -426,15 +431,15 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
 
                 {/* Bubble */}
                 <div style={{
-                    background: isMine ? "#2C2C30" : "#1A1A1E",
+                    background: isMine ? (bubbleBg || "#2C2C30") : "#1A1A1E",
                     borderRadius: 18,
                     ...(showHeader
                         ? { borderBottomRightRadius: isMine ? 4 : 18, borderBottomLeftRadius: isMine ? 18 : 4 }
                         : {}),
-                    paddingLeft: 14,
-                    paddingRight: 14,
-                    paddingTop: 8,
-                    paddingBottom: 8,
+                    paddingLeft: compactMode ? 10 : 14,
+                    paddingRight: compactMode ? 10 : 14,
+                    paddingTop: compactMode ? 4 : 8,
+                    paddingBottom: compactMode ? 4 : 8,
                     border: isMine ? "none" : "1px solid rgba(255,255,255,0.06)",
                 }}>
                     {/* Text content */}
@@ -460,19 +465,23 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                     )}
 
                     {/* Meta row: time + status — INSIDE bubble */}
-                    <div style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: isMine ? "flex-end" : "flex-start",
-                        gap: 4,
-                        marginTop: 4,
-                    }}>
-                        <span style={{ fontSize: 10, fontWeight: 500, color: isMine ? "rgba(255,255,255,0.60)" : "#888891" }}>
-                            {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                        <StatusIndicator status={effectiveStatus} isMine={isMine} />
-                    </div>
+                    {(showTimestamps || isMine) && (
+                        <div style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: isMine ? "flex-end" : "flex-start",
+                            gap: 4,
+                            marginTop: 4,
+                        }}>
+                            {showTimestamps && (
+                                <span style={{ fontSize: 10, fontWeight: 500, color: isMine ? "rgba(255,255,255,0.60)" : "#888891" }}>
+                                    {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                            )}
+                            <StatusIndicator status={effectiveStatus} isMine={isMine} />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

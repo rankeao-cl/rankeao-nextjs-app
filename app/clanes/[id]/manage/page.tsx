@@ -87,11 +87,11 @@ export default function ManageClanPage() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // Load clan data
+  // Load clan data (with token to get my_membership)
   const loadClan = useCallback(async () => {
     try {
-      const data = await getClan(clanId);
-      const c = ((data as any)?.data ?? (data as any)?.clan ?? data) as ClanDetail | null;
+      const data = await getClan(clanId, token);
+      const c = ((data as any)?.data?.clan ?? (data as any)?.data ?? (data as any)?.clan ?? data) as ClanDetail | null;
       if (!c) return;
       setClan(c);
       const m = c.members ?? [];
@@ -109,12 +109,12 @@ export default function ManageClanPage() {
       setEditLogoUrl(c.logo_url ?? "");
       setEditBannerUrl(c.banner_url ?? "");
       setEditRecruitMinElo(String(c.recruit_min_elo ?? ""));
-      setEditMaxMembers(String(c.max_members ?? ""));
+      setEditMaxMembers(String((c as any).max_members ?? ""));
       setEditRecruiting(c.is_recruiting ?? true);
     } catch {
       // silent
     }
-  }, [clanId]);
+  }, [clanId, token]);
 
   const loadApplications = useCallback(async () => {
     if (!token) return;
@@ -141,11 +141,21 @@ export default function ManageClanPage() {
     ]).finally(() => setPageLoading(false));
   }, [loadClan, loadApplications]);
 
-  // Guard: redirect if not authenticated
-  if (status === "unauthenticated") {
-    router.push("/login");
-    return null;
-  }
+  // Check membership — try my_membership, fallback to matching in members list
+  const myMembership = clan?.my_membership
+    ?? (clan?.members ?? []).find(
+      (m: any) => m.username === session?.username || m.user_id === (session as any)?.user_id
+    );
+  const isLeader = myMembership?.role === "LEADER";
+
+  // Guard: redirect if not authenticated or not leader
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    } else if (!pageLoading && clan && !isLeader) {
+      router.push(`/clanes/${clanId}`);
+    }
+  }, [status, isLeader, clan, clanId, router, pageLoading]);
 
   // Loading
   if (pageLoading) {
@@ -174,12 +184,7 @@ export default function ManageClanPage() {
     );
   }
 
-  // Check if leader
-  const myMembership = clan.my_membership;
-  const isLeader = myMembership?.role === "LEADER";
-
   if (!isLeader) {
-    router.push(`/clanes/${clanId}`);
     return null;
   }
 
