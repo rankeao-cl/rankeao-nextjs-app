@@ -25,6 +25,7 @@ const navItems = [
     { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
     { href: "/juegos", label: "Juegos", icon: Display },
     { href: "/comunidades", label: "Comunidades", icon: Persons },
+    { href: "/clanes", label: "Clanes", icon: Persons },
     { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
     { href: "/perfil/me", label: "Perfil", icon: Person, authRequired: true },
     { href: "/config", label: "Ajustes", icon: Gear, authRequired: true },
@@ -47,7 +48,7 @@ export default function Sidebar() {
             className={`hidden lg:flex flex-col h-full sticky top-16 border-r transition-all duration-300 ${
                 collapsed ? "w-[68px]" : "w-[220px]"
             }`}
-            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+            style={{ borderColor: "rgba(255,255,255,0.08)", background: "#000000" }}
         >
             <nav className="flex-1 flex flex-col gap-0.5 p-3 pt-4 overflow-y-auto">
                 {filteredNavItems.map((item) => {
@@ -58,30 +59,27 @@ export default function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                                 collapsed ? "justify-center px-0" : ""
                             } ${
                                 active
-                                    ? "bg-[var(--accent)]/10 text-[var(--accent)]"
-                                    : "text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]"
+                                    ? "text-[#F2F2F2]"
+                                    : "text-[#888891] hover:text-[#F2F2F2]"
                             }`}
                             aria-label={item.label}
                         >
-                            <Icon className={`size-[18px] shrink-0 ${active ? "text-[var(--accent)]" : ""}`} />
+                            <Icon className="size-[18px] shrink-0" />
                             {!collapsed && <span className="truncate">{item.label}</span>}
-                            {active && !collapsed && (
-                                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
-                            )}
                         </Link>
                     );
                 })}
             </nav>
 
             {/* Collapse toggle */}
-            <div className="p-2 border-t border-[var(--border)]">
+            <div className="p-2 border-t border-[rgba(255,255,255,0.06)]">
                 <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] transition-colors cursor-pointer ${
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#888891] hover:bg-[#222226] hover:text-[#F2F2F2] transition-colors cursor-pointer ${
                         collapsed ? "justify-center" : ""
                     }`}
                     aria-label={collapsed ? "Expandir" : "Colapsar"}

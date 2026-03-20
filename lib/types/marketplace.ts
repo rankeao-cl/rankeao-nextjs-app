@@ -145,16 +145,33 @@ export interface ShippingAddress {
     phone?: string;
 }
 
+export type OrderStatus =
+    | "PENDING"
+    | "CONFIRMED"
+    | "PAID"
+    | "SHIPPED"
+    | "DELIVERED"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "DISPUTED";
+
 export interface MarketplaceOrder {
     id: string;
     listing_id: string;
     buyer_id: string;
+    buyer_username?: string;
     seller_id: string;
+    seller_username?: string;
     status: string;
+    quantity?: number;
     total: number;
-    shipping_address?: ShippingAddress;
+    total_price?: number;
+    delivery_method?: "SHIPPING" | "IN_PERSON" | "PICKUP";
+    shipping_address?: ShippingAddress | string;
+    carrier?: string;
     tracking_number?: string;
     tracking_url?: string;
+    listing?: Listing;
     review?: MarketplaceReview;
     created_at?: string;
     updated_at?: string;

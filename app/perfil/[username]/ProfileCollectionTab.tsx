@@ -1,8 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Card, Chip } from "@heroui/react";
-import Image from "next/image";
+import { useState, useMemo, useEffect } from "react";
+import { Card, Chip, Button, Spinner } from "@heroui/react";
+import { Plus, Xmark, Magnifier, TrashBin } from "@gravity-ui/icons";
+import { addCollectionItem, removeCollectionItem } from "@/lib/api/social";
+import { autocompleteCards } from "@/lib/api/catalog";
+
+const CONDITIONS = ["NM", "LP", "MP", "HP", "DMG"] as const;
+
+const CONDITION_COLORS: Record<string, string> = {
+    NM: "bg-emerald-500/15 text-emerald-500",
+    LP: "bg-blue-500/15 text-blue-500",
+    MP: "bg-yellow-500/15 text-yellow-500",
+    HP: "bg-orange-500/15 text-orange-500",
+    DMG: "bg-red-500/15 text-red-500",
+};
 
 const conditionColors: Record<string, string> = {
     mint: "text-[var(--success)]",
@@ -32,18 +44,25 @@ interface CollectionItem {
     game?: string;
     game_name?: string;
     set_name?: string;
+    set_code?: string;
     rarity?: string;
+    is_foil?: boolean;
 }
 
 export default function ProfileCollectionTab({
-    collection,
-    wishlist,
+    collection: initialCollection,
+    isOwnProfile,
+    token,
 }: {
     collection: CollectionItem[];
-    wishlist: any[];
+    isOwnProfile: boolean;
+    token?: string;
 }) {
+    const [collection, setCollection] = useState<CollectionItem[]>(initialCollection);
     const [gameFilter, setGameFilter] = useState<string>("all");
     const [setFilter, setSetFilter] = useState<string>("all");
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const games = useMemo(() => {
         const g = new Set<string>();
@@ -75,7 +94,30 @@ export default function ProfileCollectionTab({
         });
     }, [collection, gameFilter, setFilter]);
 
-    if (collection.length === 0 && wishlist.length === 0) {
+    const handleDelete = async (itemId: string) => {
+        if (!confirm("¿Eliminar esta carta de tu colección?")) return;
+        setDeletingId(itemId);
+        try {
+            await removeCollectionItem(itemId, token);
+            setCollection((prev) => prev.filter((i) => i.id !== itemId));
+        } catch {
+            // silent
+        }
+        setDeletingId(null);
+    };
+
+    const handleAdd = async (payload: Record<string, unknown>) => {
+        try {
+            const res = await addCollectionItem(payload, token);
+            const newItem = (res as any)?.item ?? (res as any)?.data;
+            if (newItem) setCollection((prev) => [newItem, ...prev]);
+            setShowAddModal(false);
+        } catch {
+            // silent
+        }
+    };
+
+    if (collection.length === 0 && !isOwnProfile) {
         return (
             <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <Card.Content className="py-14 text-center">
@@ -89,6 +131,24 @@ export default function ProfileCollectionTab({
 
     return (
         <div className="space-y-6">
+            {/* Add button (own profile only) */}
+            {isOwnProfile && (
+                <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">
+                        {collection.length} carta{collection.length !== 1 ? "s" : ""} en colección
+                    </p>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        className="bg-[var(--accent)] text-white rounded-full px-4 font-semibold shadow-brand-sm"
+                        onPress={() => setShowAddModal(true)}
+                    >
+                        <Plus className="size-4 mr-1" />
+                        Agregar carta
+                    </Button>
+                </div>
+            )}
+
             {/* Filters */}
             {(games.length > 0 || sets.length > 0) && (
                 <div className="flex flex-wrap gap-2">
@@ -137,10 +197,12 @@ export default function ProfileCollectionTab({
                 </div>
             )}
 
-            {/* Collection count */}
-            <p className="text-xs text-[var(--muted)] font-semibold uppercase tracking-wider">
-                {filtered.length} carta{filtered.length !== 1 ? "s" : ""} en coleccion
-            </p>
+            {/* Collection count (when not own profile, since own profile shows it above) */}
+            {!isOwnProfile && (
+                <p className="text-xs text-[var(--muted)] font-semibold uppercase tracking-wider">
+                    {filtered.length} carta{filtered.length !== 1 ? "s" : ""} en coleccion
+                </p>
+            )}
 
             {/* Collection Grid */}
             {filtered.length > 0 ? (
@@ -168,10 +230,27 @@ export default function ProfileCollectionTab({
                                         <div className="flex items-center justify-center h-full text-3xl opacity-30">🃏</div>
                                     )}
 
+                                    {/* Delete button (own profile, on hover) */}
+                                    {isOwnProfile && item.id && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(item.id!); }}
+                                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                        >
+                                            <TrashBin className="size-3.5 text-red-400" />
+                                        </button>
+                                    )}
+
                                     {/* Quantity badge */}
                                     {item.quantity != null && item.quantity > 1 && (
-                                        <div className="absolute top-1.5 right-1.5 bg-[var(--accent)] text-[var(--accent-foreground)] text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                                        <div className="absolute top-1.5 left-1.5 bg-[var(--accent)] text-[var(--accent-foreground)] text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                                             x{item.quantity}
+                                        </div>
+                                    )}
+
+                                    {/* Foil indicator */}
+                                    {item.is_foil && (
+                                        <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-yellow-500/80 text-[9px] font-bold text-black uppercase">
+                                            Foil
                                         </div>
                                     )}
                                 </div>
@@ -200,25 +279,243 @@ export default function ProfileCollectionTab({
                     })}
                 </div>
             ) : (
-                <p className="text-xs text-[var(--muted)] italic text-center py-8">No se encontraron cartas con los filtros seleccionados.</p>
+                <div className="text-center py-8">
+                    {isOwnProfile && collection.length === 0 ? (
+                        <div>
+                            <p className="text-4xl mb-4">🃏</p>
+                            <p className="text-base font-medium text-[var(--foreground)]">
+                                Tu colección está vacía
+                            </p>
+                            <p className="text-sm mt-1 text-[var(--muted)]">
+                                Agrega cartas para empezar a registrar tu colección.
+                            </p>
+                        </div>
+                    ) : (
+                        <p className="text-xs text-[var(--muted)] italic">No se encontraron cartas con los filtros seleccionados.</p>
+                    )}
+                </div>
             )}
 
-            {/* Wishlist */}
-            <div>
-                <h3 className="text-sm font-semibold text-[var(--foreground)] uppercase tracking-wide mb-3">
-                    Lista de Deseos ({wishlist.length})
-                </h3>
-                {wishlist.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                        {wishlist.map((item: any, i: number) => (
-                            <div key={item.id || i} className="p-3 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] text-center hover:border-[var(--accent)]/50 transition-colors">
-                                {item.image_url && <Image src={item.image_url} alt={item.card_name} width={200} height={280} className="w-full h-auto rounded-lg mb-2" />}
-                                <p className="text-xs font-semibold text-[var(--foreground)] truncate">{item.card_name || "Carta"}</p>
-                            </div>
+            {/* Add Card Modal */}
+            {showAddModal && (
+                <AddCardModal
+                    onClose={() => setShowAddModal(false)}
+                    onAdd={handleAdd}
+                />
+            )}
+        </div>
+    );
+}
+
+function AddCardModal({
+    onClose,
+    onAdd,
+}: {
+    onClose: () => void;
+    onAdd: (payload: Record<string, unknown>) => Promise<void>;
+}) {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [results, setResults] = useState<any[]>([]);
+    const [searching, setSearching] = useState(false);
+    const [selected, setSelected] = useState<any>(null);
+    const [quantity, setQuantity] = useState(1);
+    const [condition, setCondition] = useState<string>("NM");
+    const [isFoil, setIsFoil] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Debounced search
+    useEffect(() => {
+        if (searchQuery.length < 2) {
+            setResults([]);
+            return;
+        }
+        const timer = setTimeout(async () => {
+            setSearching(true);
+            try {
+                const res = await autocompleteCards(searchQuery);
+                const raw = (res as any)?.data ?? (res as any)?.cards ?? (res as any)?.results ?? [];
+                setResults(Array.isArray(raw) ? raw : []);
+            } catch {
+                setResults([]);
+            }
+            setSearching(false);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    const handleSave = async () => {
+        if (!selected) return;
+        setSaving(true);
+        await onAdd({
+            printing_id: selected.printing_id || selected.id,
+            card_name: selected.name || selected.card_name,
+            image_url: selected.image_url,
+            set_code: selected.set_code,
+            quantity,
+            condition,
+            is_foil: isFoil,
+        });
+        setSaving(false);
+    };
+
+    return (
+        <div
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-[var(--foreground)]">Agregar carta</h3>
+                    <button onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer">
+                        <Xmark className="size-5" />
+                    </button>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                    <Magnifier className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)]" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => { setSearchQuery(e.target.value); setSelected(null); }}
+                        placeholder="Buscar carta por nombre..."
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-[var(--field-background)] text-[var(--foreground)] placeholder:text-[var(--field-placeholder)] border border-[var(--border)] focus:border-[var(--focus)] outline-none transition-colors"
+                        autoFocus
+                    />
+                </div>
+
+                {/* Search results */}
+                {!selected && results.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] p-1">
+                        {results.map((card: any, idx: number) => (
+                            <button
+                                key={card.id || idx}
+                                onClick={() => { setSelected(card); setResults([]); }}
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--default)] transition-colors text-left cursor-pointer"
+                            >
+                                {card.image_url && (
+                                    <img src={card.image_url} alt="" className="w-8 h-11 object-cover rounded" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-[var(--foreground)] truncate">
+                                        {card.name || card.card_name}
+                                    </p>
+                                    {card.set_code && (
+                                        <p className="text-[11px] text-[var(--muted)]">{card.set_code}</p>
+                                    )}
+                                </div>
+                            </button>
                         ))}
                     </div>
-                ) : (
-                    <p className="text-xs text-[var(--muted)] italic">Sin cartas en la lista de deseos.</p>
+                )}
+
+                {searching && (
+                    <div className="flex justify-center py-4">
+                        <Spinner size="sm" />
+                    </div>
+                )}
+
+                {/* Selected card preview + options */}
+                {selected && (
+                    <div className="space-y-4">
+                        {/* Preview */}
+                        <div className="flex gap-3 items-center p-3 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
+                            {selected.image_url && (
+                                <img src={selected.image_url} alt="" className="w-12 h-16 object-cover rounded" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+                                    {selected.name || selected.card_name}
+                                </p>
+                                {selected.set_code && (
+                                    <p className="text-xs text-[var(--muted)]">{selected.set_code}</p>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setSelected(null)}
+                                className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer"
+                            >
+                                <Xmark className="size-4" />
+                            </button>
+                        </div>
+
+                        {/* Quantity */}
+                        <div>
+                            <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">
+                                Cantidad
+                            </p>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    className="w-9 h-9 rounded-lg bg-[var(--surface-secondary)] text-[var(--foreground)] font-bold flex items-center justify-center hover:bg-[var(--default)] transition-colors cursor-pointer"
+                                >
+                                    -
+                                </button>
+                                <span className="text-lg font-bold text-[var(--foreground)] w-8 text-center">
+                                    {quantity}
+                                </span>
+                                <button
+                                    onClick={() => setQuantity(quantity + 1)}
+                                    className="w-9 h-9 rounded-lg bg-[var(--surface-secondary)] text-[var(--foreground)] font-bold flex items-center justify-center hover:bg-[var(--default)] transition-colors cursor-pointer"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Condition */}
+                        <div>
+                            <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">
+                                Condición
+                            </p>
+                            <div className="flex gap-2">
+                                {CONDITIONS.map((c) => (
+                                    <button
+                                        key={c}
+                                        onClick={() => setCondition(c)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                                            condition === c
+                                                ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                                                : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                                        }`}
+                                    >
+                                        {c}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Foil toggle */}
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <div
+                                className={`w-10 h-6 rounded-full transition-colors relative ${
+                                    isFoil ? "bg-[var(--accent)]" : "bg-[var(--surface-secondary)]"
+                                }`}
+                                onClick={() => setIsFoil(!isFoil)}
+                            >
+                                <div
+                                    className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                        isFoil ? "translate-x-4" : "translate-x-0.5"
+                                    }`}
+                                />
+                            </div>
+                            <span className="text-sm text-[var(--foreground)]">Foil / Holográfica</span>
+                        </label>
+
+                        {/* Save */}
+                        <Button
+                            variant="primary"
+                            className="w-full bg-[var(--accent)] text-white rounded-full font-semibold"
+                            onPress={handleSave}
+                            isPending={saving}
+                        >
+                            Agregar a colección
+                        </Button>
+                    </div>
                 )}
             </div>
         </div>

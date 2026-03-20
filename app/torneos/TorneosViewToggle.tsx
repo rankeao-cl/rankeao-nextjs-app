@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Calendar } from "@gravity-ui/icons";
 
 interface TorneosViewToggleProps {
     currentView: "list" | "calendar";
@@ -12,9 +11,9 @@ export default function TorneosViewToggle({ currentView }: TorneosViewToggleProp
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    function setView(view: "list" | "calendar") {
+    function toggle() {
         const params = new URLSearchParams(searchParams.toString());
-        if (view === "calendar") {
+        if (currentView === "list") {
             params.set("view", "calendar");
         } else {
             params.delete("view");
@@ -23,28 +22,33 @@ export default function TorneosViewToggle({ currentView }: TorneosViewToggleProp
     }
 
     return (
-        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)]">
-            <button
-                onClick={() => setView("list")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    currentView === "list"
-                        ? "bg-[var(--accent)] text-white"
-                        : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                }`}
-            >
-                Lista
-            </button>
-            <button
-                onClick={() => setView("calendar")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-                    currentView === "calendar"
-                        ? "bg-[var(--accent)] text-white"
-                        : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                }`}
-            >
-                <Calendar className="size-3" />
-                Calendario
-            </button>
-        </div>
+        <button
+            onClick={toggle}
+            className="shrink-0 flex items-center justify-center cursor-pointer"
+            style={{
+                backgroundColor: "#1A1A1E",
+                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: 12,
+                padding: 8,
+            }}
+            aria-label={currentView === "list" ? "Vista calendario" : "Vista lista"}
+        >
+            {currentView === "list" ? (
+                /* Calendar icon */
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F2F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+            ) : (
+                /* List icon */
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                    <rect x="1" y="1" width="14" height="3.5" rx="1" fill="#F2F2F2" />
+                    <rect x="1" y="6.25" width="14" height="3.5" rx="1" fill="#F2F2F2" />
+                    <rect x="1" y="11.5" width="14" height="3.5" rx="1" fill="#F2F2F2" />
+                </svg>
+            )}
+        </button>
     );
 }

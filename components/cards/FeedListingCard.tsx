@@ -1,8 +1,7 @@
-import { Avatar, Chip, Button } from "@heroui/react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Listing } from "@/lib/types/marketplace";
-import { Heart, Comment, ArrowShapeTurnUpRight, MapPin, ShoppingCart } from "@gravity-ui/icons";
+import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark, MapPin } from "@gravity-ui/icons";
 
 function timeAgo(dateStr?: string): string {
     if (!dateStr) return "";
@@ -23,92 +22,291 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
     const isStore = !!listing.tenant_name || listing.is_verified_store || listing.is_verified_seller;
 
     return (
-        <article className="glass overflow-hidden">
+        <article
+            style={{
+                background: "#1A1A1E",
+                borderRadius: 16,
+                border: "1px solid rgba(255,255,255,0.06)",
+                overflow: "hidden",
+            }}
+        >
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3">
-                <Avatar size="sm" className="w-9 h-9">
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px" }}>
+                {/* Avatar 36px */}
+                <div
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: "#2A2A2E",
+                        overflow: "hidden",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#F2F2F2",
+                    }}
+                >
                     {listing.seller_avatar_url ? (
-                        <Avatar.Image src={listing.seller_avatar_url} alt={sellerName} />
-                    ) : null}
-                    <Avatar.Fallback className="text-xs">
-                        {sellerName[0]?.toUpperCase()}
-                    </Avatar.Fallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-semibold text-[var(--foreground)] truncate">
+                        <Image
+                            src={listing.seller_avatar_url}
+                            alt={sellerName}
+                            width={36}
+                            height={36}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                    ) : (
+                        sellerName[0]?.toUpperCase()
+                    )}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span
+                            style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: "#F2F2F2",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
                             {sellerName}
                         </span>
-                        {isStore && <span className="text-[var(--accent)] text-xs">✓</span>}
+                        {isStore && (
+                            <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>✓</span>
+                        )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "#888891" }}>
                         {listing.city && (
-                            <span className="flex items-center gap-0.5">
-                                <MapPin className="size-3" />
+                            <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                <MapPin style={{ width: 10, height: 10 }} />
                                 {listing.city}
                             </span>
                         )}
                         <span>{timeAgo(listing.created_at)}</span>
                     </div>
                 </div>
-                {listing.price != null && (
-                    <span className="text-base font-bold text-[var(--accent)] shrink-0">
-                        ${listing.price.toLocaleString("es-CL")}
-                    </span>
-                )}
             </div>
 
-            {/* Content: title + tags */}
-            <div className="px-4 pb-3 space-y-2">
-                <Link href={`/marketplace/${listing.id}`}>
-                    <p className="text-sm text-[var(--foreground)] leading-relaxed hover:text-[var(--accent)] transition-colors">
-                        <span className="font-semibold">{listing.title}</span>
-                        {listing.set_name && <span className="text-[var(--muted)]"> — {listing.set_name}</span>}
-                    </p>
-                </Link>
-
-                <div className="flex flex-wrap gap-1.5">
-                    {listing.game_name && <Chip variant="secondary" size="sm">{listing.game_name}</Chip>}
-                    {listing.card_condition && <Chip variant="soft" size="sm">{listing.card_condition}</Chip>}
-                    {listing.rarity && <Chip variant="soft" size="sm">{listing.rarity}</Chip>}
-                    {listing.is_foil && <Chip color="warning" variant="soft" size="sm">Foil</Chip>}
-                </div>
-            </div>
-
-            {/* Image */}
+            {/* Card image - aspect ratio 63:88 */}
             {imageUrl && (
                 <Link href={`/marketplace/${listing.id}`}>
-                    <div className="relative w-full aspect-[4/3] bg-[var(--surface-secondary)]">
+                    <div
+                        style={{
+                            position: "relative",
+                            width: "100%",
+                            aspectRatio: "63 / 88",
+                            background: "#111113",
+                        }}
+                    >
                         <Image
                             src={imageUrl}
                             alt={listing.title}
                             fill
-                            className="object-contain"
+                            style={{ objectFit: "contain" }}
                             sizes="(max-width: 640px) 100vw, 700px"
                         />
                     </div>
                 </Link>
             )}
 
+            {/* Info section */}
+            <div style={{ padding: "10px 14px" }}>
+                {/* Title row: card name + price badge */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+                    <Link href={`/marketplace/${listing.id}`} style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
+                        <span
+                            style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#F2F2F2",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                display: "block",
+                            }}
+                        >
+                            {listing.title}
+                        </span>
+                    </Link>
+                    {listing.price != null && (
+                        <span
+                            style={{
+                                fontSize: 14,
+                                fontWeight: 700,
+                                color: "#FFFFFF",
+                                background: "rgba(0,0,0,0.6)",
+                                padding: "4px 10px",
+                                borderRadius: 8,
+                                whiteSpace: "nowrap",
+                                flexShrink: 0,
+                            }}
+                        >
+                            ${listing.price.toLocaleString("es-CL")}
+                        </span>
+                    )}
+                </div>
+
+                {/* Tags row */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {listing.game_name && (
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "#3B82F6",
+                                background: "rgba(59,130,246,0.15)",
+                                padding: "3px 8px",
+                                borderRadius: 6,
+                            }}
+                        >
+                            {listing.game_name}
+                        </span>
+                    )}
+                    {listing.card_condition && (
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "#F2F2F2",
+                                background: "rgba(255,255,255,0.08)",
+                                padding: "3px 8px",
+                                borderRadius: 6,
+                            }}
+                        >
+                            {listing.card_condition}
+                        </span>
+                    )}
+                    {listing.rarity && (
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "#F2F2F2",
+                                background: "rgba(255,255,255,0.08)",
+                                padding: "3px 8px",
+                                borderRadius: 6,
+                            }}
+                        >
+                            {listing.rarity}
+                        </span>
+                    )}
+                    {listing.is_foil && (
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "#eab308",
+                                background: "rgba(234,179,8,0.15)",
+                                padding: "3px 8px",
+                                borderRadius: 6,
+                            }}
+                        >
+                            Foil
+                        </span>
+                    )}
+                </div>
+            </div>
+
             {/* Footer */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-t border-[var(--border)]">
-                <div className="flex items-center gap-4 text-xs text-[var(--muted)]">
-                    <button className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors cursor-pointer">
-                        <Heart className="size-4" /> Me gusta
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 14px 10px",
+                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                }}
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "#888891" }}>
+                    <button
+                        type="button"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            color: "inherit",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: "inherit",
+                        }}
+                    >
+                        <Heart style={{ width: 18, height: 18 }} />
                     </button>
-                    <button className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors cursor-pointer">
-                        <Comment className="size-4" /> Comentar
+                    <button
+                        type="button"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            color: "inherit",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: "inherit",
+                        }}
+                    >
+                        <Comment style={{ width: 18, height: 18 }} />
                     </button>
-                    <button className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors cursor-pointer">
-                        <ArrowShapeTurnUpRight className="size-4" /> Compartir
+                    <button
+                        type="button"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            color: "inherit",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: "inherit",
+                        }}
+                    >
+                        <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
                     </button>
                 </div>
-                <Link href={`/marketplace/${listing.id}`}>
-                    <Button size="sm" className="font-semibold text-xs gap-1.5 bg-[var(--accent)] text-[var(--accent-foreground)]">
-                        <ShoppingCart className="size-3.5" />
-                        Contactar
-                    </Button>
-                </Link>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        type="button"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            background: "none",
+                            border: "none",
+                            color: "#888891",
+                            cursor: "pointer",
+                            padding: 0,
+                        }}
+                    >
+                        <Bookmark style={{ width: 18, height: 18 }} />
+                    </button>
+                    <Link
+                        href={`/marketplace/${listing.id}`}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "#FFFFFF",
+                            background: "#3B82F6",
+                            padding: "6px 14px",
+                            borderRadius: 8,
+                            textDecoration: "none",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        Ver carta
+                    </Link>
+                </div>
             </div>
         </article>
     );

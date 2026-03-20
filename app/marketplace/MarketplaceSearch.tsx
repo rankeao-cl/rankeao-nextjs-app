@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useRef, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Input, Button } from "@heroui/react";
 import { Magnifier, Xmark } from "@gravity-ui/icons";
 import Image from "next/image";
 import { autocompleteCards } from "@/lib/api/catalog";
@@ -32,7 +31,6 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -80,13 +78,11 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
         (e?: React.FormEvent) => {
             if (e) e.preventDefault();
             const params = new URLSearchParams(searchParams.toString());
-
             if (query.trim()) {
                 params.set("q", query.trim());
             } else {
                 params.delete("q");
             }
-
             params.delete("page");
             setShowSuggestions(false);
             router.push(`${pathname}?${params.toString()}`);
@@ -100,7 +96,6 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
             setQuery(name);
             setSuggestions([]);
             setShowSuggestions(false);
-
             const params = new URLSearchParams(searchParams.toString());
             params.set("q", name);
             params.delete("page");
@@ -116,44 +111,69 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
     }, []);
 
     return (
-        <div ref={wrapperRef} className="relative max-w-lg">
-            <form onSubmit={handleSearch} className="flex gap-2">
-                <div className="relative flex-1">
-                    <Input
+        <div ref={wrapperRef} className="relative" style={{ zIndex: 10 }}>
+            <form onSubmit={handleSearch}>
+                <div
+                    className="flex items-center"
+                    style={{
+                        backgroundColor: "#1A1A1E",
+                        borderRadius: "999px",
+                        padding: "10px 14px",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                >
+                    <Magnifier className="size-[18px] shrink-0" style={{ color: "#888891" }} />
+                    <input
+                        type="text"
                         value={query}
                         onChange={handleInputChange}
                         onFocus={() => {
                             if (suggestions.length > 0) setShowSuggestions(true);
                         }}
-                        placeholder="Buscar carta, juego o tienda..."
-                        className="flex-1 bg-[var(--surface-secondary)] border border-[var(--border)] shadow-none text-[var(--foreground)] px-3 py-2 rounded-xl"
+                        placeholder="Buscar cartas, productos..."
+                        className="flex-1 bg-transparent outline-none border-none"
+                        style={{
+                            color: "#F2F2F2",
+                            fontSize: "14px",
+                            marginLeft: "8px",
+                        }}
                     />
+                    {loading && (
+                        <div
+                            className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin mr-1.5"
+                            style={{ borderColor: "#888891", borderTopColor: "transparent" }}
+                        />
+                    )}
                     {query.length > 0 && (
                         <button
                             type="button"
                             onClick={handleClear}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                            className="cursor-pointer"
+                            style={{ color: "#888891" }}
                         >
-                            <Xmark className="size-4" />
+                            <Xmark className="size-[18px]" />
                         </button>
                     )}
                 </div>
-                <Button
-                    type="submit"
-                    className="font-bold border border-transparent bg-[var(--accent)] text-[var(--accent-foreground)]"
-                >
-                    Buscar
-                </Button>
             </form>
 
             {/* Autocomplete dropdown */}
             {showSuggestions && (
                 <div
-                    className="absolute z-50 top-full left-0 right-0 mt-2 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--card-radius,12px)] overflow-hidden max-h-[320px] overflow-y-auto"
-                    style={{ boxShadow: "var(--shadow-popover, 0 8px 30px rgba(0,0,0,0.3))" }}
+                    className="absolute top-full left-0 right-0 mt-1 overflow-hidden overflow-y-auto"
+                    style={{
+                        backgroundColor: "#1A1A1E",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: "16px",
+                        maxHeight: "280px",
+                        zIndex: 20,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                    }}
                 >
                     {loading && suggestions.length === 0 && (
-                        <div className="px-4 py-3 text-xs text-[var(--muted)]">Buscando...</div>
+                        <div style={{ padding: "12px 14px", color: "#888891", fontSize: "13px" }}>
+                            Buscando...
+                        </div>
                     )}
                     {suggestions.map((s, i) => {
                         const imgUrl = s.image_url || s.thumbnail_url;
@@ -162,37 +182,46 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                             <button
                                 key={`${s.id}-${i}`}
                                 onClick={() => handleSelectSuggestion(s)}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--surface-secondary)] transition-colors ${
-                                    i < suggestions.length - 1 ? "border-b border-[var(--border)]" : ""
-                                }`}
+                                className="w-full flex items-center text-left cursor-pointer"
+                                style={{
+                                    padding: "10px 14px",
+                                    borderBottom: i < suggestions.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                                    transition: "background 0.1s",
+                                }}
+                                onMouseOver={(e) => (e.currentTarget.style.background = "#222226")}
+                                onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
                             >
-                                {/* Card image thumbnail */}
                                 {imgUrl ? (
-                                    <div className="w-7 h-10 rounded overflow-hidden flex-shrink-0 bg-[var(--surface-secondary)]">
+                                    <div className="shrink-0 overflow-hidden" style={{ width: "28px", height: "38px", borderRadius: "4px", marginRight: "10px" }}>
                                         <Image
                                             src={imgUrl}
                                             alt={s.name}
                                             width={28}
-                                            height={40}
+                                            height={38}
                                             className="w-full h-full object-contain"
                                         />
                                     </div>
                                 ) : (
-                                    <div className="w-7 h-10 rounded flex-shrink-0 bg-[var(--surface-secondary)] flex items-center justify-center">
-                                        <Magnifier className="size-3 text-[var(--muted)]" />
+                                    <div
+                                        className="shrink-0 flex items-center justify-center"
+                                        style={{
+                                            width: "28px",
+                                            height: "38px",
+                                            borderRadius: "4px",
+                                            marginRight: "10px",
+                                            backgroundColor: "rgba(255,255,255,0.06)",
+                                        }}
+                                    >
+                                        <Magnifier className="size-3" style={{ color: "#888891" }} />
                                     </div>
                                 )}
-
-                                {/* Text */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-[var(--foreground)] truncate">{s.name}</p>
+                                    <p className="truncate" style={{ color: "#F2F2F2", fontSize: "13px" }}>{s.name}</p>
                                     {setLabel && (
-                                        <p className="text-[10px] text-[var(--muted)] truncate">{setLabel}</p>
+                                        <p className="truncate" style={{ color: "#888891", fontSize: "10px" }}>{setLabel}</p>
                                     )}
                                 </div>
-
-                                {/* Arrow */}
-                                <svg className="size-3.5 text-[var(--muted)] flex-shrink-0" viewBox="0 0 16 16" fill="none">
+                                <svg className="size-3.5 shrink-0" style={{ color: "#888891" }} viewBox="0 0 16 16" fill="none">
                                     <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>

@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { Card, Chip } from "@heroui/react";
-import { Cup } from "@gravity-ui/icons";
+import { Cup, Medal, ChartColumn, StarFill } from "@gravity-ui/icons";
 import Image from "next/image";
+import Link from "next/link";
 import type { Badge } from "@/lib/types/gamification";
 
 const rarityColors: Record<string, string> = {
@@ -18,10 +19,14 @@ export default function ProfileLogrosTab({
     earnedBadges,
     allBadges,
     badgesCount,
+    gamiStats,
+    isOwnProfile,
 }: {
     earnedBadges: any[];
     allBadges: Badge[];
     badgesCount: number;
+    gamiStats?: any;
+    isOwnProfile?: boolean;
 }) {
     const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
@@ -75,8 +80,77 @@ export default function ProfileLogrosTab({
         );
     }
 
+    const level = gamiStats?.level ?? 1;
+    const totalXp = gamiStats?.total_xp ?? 0;
+    const currentLevelXp = gamiStats?.current_level_xp ?? 0;
+    const xpToNext = gamiStats?.xp_to_next_level ?? 100;
+    const xpProgress = xpToNext > 0 ? Math.min((currentLevelXp / xpToNext) * 100, 100) : 0;
+
     return (
         <div className="space-y-4">
+            {/* Gamification Stats */}
+            {gamiStats && (
+                <>
+                    {/* XP Progress Card */}
+                    <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-full bg-[var(--accent)]/15 border-2 border-[var(--accent)] flex items-center justify-center shrink-0">
+                                <span className="text-lg font-extrabold text-[var(--accent)]">{level}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-[var(--foreground)]">Nivel {level}</p>
+                                <p className="text-xs text-[var(--muted)] mb-2">
+                                    {totalXp.toLocaleString("es-CL")} XP total
+                                </p>
+                                <div className="h-2 rounded-full bg-[var(--surface-secondary)] overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full bg-[var(--accent)] xp-bar-fill"
+                                        style={{ width: `${xpProgress}%` }}
+                                    />
+                                </div>
+                                <p className="text-[11px] text-[var(--muted)] mt-1">
+                                    {currentLevelXp.toLocaleString("es-CL")} / {xpToNext.toLocaleString("es-CL")} XP
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Stats Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
+                            <Medal className="size-4 text-[var(--accent)]" />
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{earnedBadges.length}</p>
+                            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Logros</p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
+                            <Cup className="size-4 text-yellow-500" />
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{gamiStats.tournaments_played ?? 0}</p>
+                            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Torneos</p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
+                            <ChartColumn className="size-4 text-emerald-500" />
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{gamiStats.total_matches ?? 0}</p>
+                            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Partidas</p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
+                            <StarFill className="size-4 text-purple-500" />
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{Math.round(gamiStats.win_rate ?? 0)}%</p>
+                            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Winrate</p>
+                        </div>
+                    </div>
+
+                    {/* Cosmetics link for own profile */}
+                    {isOwnProfile && (
+                        <Link
+                            href="/gamificacion/cosmetics"
+                            className="block text-center text-xs font-semibold text-[var(--accent)] hover:underline py-1"
+                        >
+                            Personalizar títulos y cosméticos &rarr;
+                        </Link>
+                    )}
+                </>
+            )}
+
             {/* Summary */}
             <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-center min-w-[80px]">

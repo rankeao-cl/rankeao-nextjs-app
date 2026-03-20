@@ -1,13 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import {
-    Modal,
-    Button,
-    Avatar,
-    Input,
-    ScrollShadow,
-} from "@heroui/react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "@heroui/react";
 import { Person, Persons, Magnifier, Xmark } from "@gravity-ui/icons";
 import { autocompleteUsers } from "@/lib/api/social";
@@ -30,6 +23,17 @@ interface UserSuggestion {
 
 type ChatMode = "dm" | "group";
 
+const C = {
+    bg: "#000000",
+    surface: "#1A1A1E",
+    surfaceLight: "#222226",
+    border: "rgba(255,255,255,0.06)",
+    text: "#F2F2F2",
+    muted: "#888891",
+    accent: "#3B82F6",
+    iconBg: "rgba(255,255,255,0.08)",
+} as const;
+
 export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }: NewChatModalProps) {
     const { session } = useAuth();
     const [mode, setMode] = useState<ChatMode>("dm");
@@ -37,13 +41,10 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
     const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-
-    // DM mode state
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
-    // Group mode state
     const [groupName, setGroupName] = useState("");
     const [selectedMembers, setSelectedMembers] = useState<UserSuggestion[]>([]);
+    const overlayRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -61,7 +62,6 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             setSuggestions([]);
             return;
         }
-
         const delay = setTimeout(async () => {
             if (!session?.accessToken) return;
             setIsLoading(true);
@@ -76,7 +76,6 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                 setIsLoading(false);
             }
         }, 300);
-
         return () => clearTimeout(delay);
     }, [search, session]);
 
@@ -84,7 +83,6 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
         if (mode === "dm") {
             setSelectedUserId(user.id);
         } else {
-            // Group mode: toggle member
             if (selectedMembers.some(m => m.id === user.id)) {
                 setSelectedMembers(prev => prev.filter(m => m.id !== user.id));
             } else {
@@ -100,7 +98,6 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
 
     const handleCreateChat = async () => {
         if (!session?.accessToken) return;
-
         if (mode === "dm" && !selectedUserId) return;
         if (mode === "group" && (selectedMembers.length < 1 || !groupName.trim())) return;
 
@@ -111,7 +108,6 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                 : { type: "GROUP" as const, name: groupName.trim(), user_ids: selectedMembers.map(m => m.id) };
 
             const res = await createChannel(payload, session.accessToken);
-
             toast.success(mode === "dm" ? "Chat creado exitosamente" : "Grupo creado exitosamente");
             onChannelCreated(res.channel || res);
             onOpenChange(false);
@@ -129,167 +125,279 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
         ? !selectedUserId
         : selectedMembers.length < 1 || !groupName.trim();
 
-    // Group avatar: show initials
-    const groupInitials = groupName.trim()
-        ? groupName.trim().split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-        : "GR";
+    if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-            <Modal.Backdrop className="bg-black/50 backdrop-blur-md">
-                <Modal.Container>
-                    <Modal.Dialog className="bg-[var(--bg-solid)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-0 shadow-2xl max-w-md w-full overflow-hidden">
-                        <Modal.CloseTrigger className="absolute top-4 right-4 text-[var(--muted)] hover:text-[var(--foreground)] bg-[var(--surface-secondary)] rounded-full p-1 z-10" />
-
-                        <Modal.Header className="px-6 pt-6 pb-4 border-b border-[var(--separator)] items-center text-center">
-                            <Modal.Icon className="bg-[var(--accent)]/10 text-[var(--accent)]">
-                                {mode === "dm" ? <Person className="size-5" /> : <Persons className="size-5" />}
-                            </Modal.Icon>
-                            <Modal.Heading className="text-xl font-bold">
-                                {mode === "dm" ? "Nuevo Chat" : "Nuevo Grupo"}
-                            </Modal.Heading>
-                            <p className="text-sm font-medium text-[var(--muted)] mt-1 w-full text-center">
-                                {mode === "dm"
-                                    ? "Busca un usuario para empezar a conversar"
-                                    : "Crea un grupo con multiples miembros"}
-                            </p>
-
-                            {/* Mode toggle */}
-                            <div className="flex w-full mt-3 bg-[var(--surface-secondary)] rounded-xl p-1 gap-1">
-                                <button
-                                    onClick={() => setMode("dm")}
-                                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5
-                                        ${mode === "dm"
-                                            ? "bg-[var(--accent)]/15 text-[var(--accent)] shadow-sm"
-                                            : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                                        }`}
-                                >
-                                    <Person className="size-3.5" />
-                                    Chat directo
-                                </button>
-                                <button
-                                    onClick={() => { setMode("group"); setSelectedUserId(null); }}
-                                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5
-                                        ${mode === "group"
-                                            ? "bg-[var(--accent)]/15 text-[var(--accent)] shadow-sm"
-                                            : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                                        }`}
-                                >
-                                    <Persons className="size-3.5" />
-                                    Grupo
-                                </button>
+        <div
+            ref={overlayRef}
+            onClick={(e) => { if (e.target === overlayRef.current) onOpenChange(false); }}
+            style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 50,
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "center",
+                background: "rgba(0,0,0,0.6)",
+                backdropFilter: "blur(4px)",
+                WebkitBackdropFilter: "blur(4px)",
+            }}
+        >
+            {/* Desktop: centered, Mobile: bottom sheet */}
+            <div
+                style={{
+                    width: "100%",
+                    maxWidth: 440,
+                    background: C.bg,
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    maxHeight: "90vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                }}
+            >
+                {/* Header */}
+                <div style={{ padding: "16px 20px", borderBottom: `0.5px solid ${C.border}` }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{
+                                width: 40, height: 40, borderRadius: 20,
+                                background: C.iconBg,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                                <Person style={{ width: 20, height: 20, color: C.text }} />
                             </div>
-                        </Modal.Header>
-
-                        <Modal.Body className="p-0">
-                            {/* Group name input (only in group mode) */}
-                            {mode === "group" && (
-                                <div className="px-4 pt-4 pb-2 border-b border-[var(--separator)] bg-[var(--surface-secondary)]/20">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-12 h-12 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-sm font-bold text-[var(--accent)] shrink-0">
-                                            {groupInitials}
-                                        </div>
-                                        <Input
-                                            placeholder="Nombre del grupo..."
-                                            value={groupName}
-                                            onChange={(e) => setGroupName(e.target.value)}
-                                            className="flex-1 bg-[var(--surface)]"
-                                            autoComplete="off"
-                                        />
-                                    </div>
-
-                                    {/* Selected members chips */}
-                                    {selectedMembers.length > 0 && (
-                                        <div className="flex flex-wrap gap-1.5 pb-2">
-                                            {selectedMembers.map(member => (
-                                                <span
-                                                    key={member.id}
-                                                    className="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs font-bold text-[var(--accent)]"
-                                                >
-                                                    {member.username}
-                                                    <button
-                                                        onClick={() => handleRemoveMember(member.id)}
-                                                        className="w-4 h-4 rounded-full bg-[var(--accent)]/20 hover:bg-[var(--accent)]/30 flex items-center justify-center transition-colors"
-                                                    >
-                                                        <Xmark className="size-2.5" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
+                            <div>
+                                <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Nuevo chat</div>
+                                <div style={{ fontSize: 13, fontWeight: 500, color: C.muted }}>
+                                    Busca un usuario para chatear
                                 </div>
-                            )}
-
-                            {/* User search */}
-                            <div className="p-4 border-b border-[var(--separator)] bg-[var(--surface-secondary)]/30">
-                                <Input
-                                    placeholder={mode === "dm" ? "Nombre de usuario..." : "Buscar miembros..."}
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full bg-[var(--surface)]"
-                                    autoComplete="off"
-                                />
-                                {isLoading && <div className="text-xs text-[var(--accent)] mt-2 font-medium">Buscando...</div>}
                             </div>
+                        </div>
+                        <button
+                            onClick={() => onOpenChange(false)}
+                            style={{
+                                background: "none", border: "none", cursor: "pointer",
+                                fontSize: 14, fontWeight: 500, color: C.muted, padding: "4px 0",
+                            }}
+                        >
+                            Cancelar
+                        </button>
+                    </div>
 
-                            <ScrollShadow className="max-h-[300px] bg-[var(--surface)] p-2">
-                                {suggestions.length > 0 ? (
-                                    <div className="flex flex-col gap-1">
-                                        {suggestions.map((user) => {
-                                            const isSelectedDM = mode === "dm" && selectedUserId === user.id;
-                                            const isSelectedGroup = mode === "group" && selectedMembers.some(m => m.id === user.id);
-                                            const isUserSelected = isSelectedDM || isSelectedGroup;
+                    {/* Tab toggle */}
+                    <div style={{
+                        display: "flex", gap: 8, marginTop: 16,
+                        background: C.surface, borderRadius: 999, padding: 4,
+                    }}>
+                        <button
+                            onClick={() => setMode("dm")}
+                            style={{
+                                flex: 1, padding: "8px 16px", borderRadius: 999, border: "none",
+                                cursor: "pointer", fontSize: 13, fontWeight: 600,
+                                background: mode === "dm" ? C.text : "transparent",
+                                color: mode === "dm" ? C.bg : C.muted,
+                                transition: "all 0.2s",
+                            }}
+                        >
+                            Chat directo
+                        </button>
+                        <button
+                            onClick={() => { setMode("group"); setSelectedUserId(null); }}
+                            style={{
+                                flex: 1, padding: "8px 16px", borderRadius: 999, border: "none",
+                                cursor: "pointer", fontSize: 13, fontWeight: 600,
+                                background: mode === "group" ? C.text : "transparent",
+                                color: mode === "group" ? C.bg : C.muted,
+                                transition: "all 0.2s",
+                            }}
+                        >
+                            Grupo
+                        </button>
+                    </div>
+                </div>
 
-                                            return (
-                                                <button
-                                                    key={user.id}
-                                                    onClick={() => handleAddMember(user)}
-                                                    className={`flex items-center gap-3 p-3 rounded-xl transition-all w-full text-left
-                                                        ${isUserSelected ? "bg-[var(--accent)]/10 border border-[var(--accent)]/30" : "hover:bg-[var(--surface-secondary)] border border-transparent"}
-                                                    `}
-                                                >
-                                                    <Avatar className="w-10 h-10 border border-[var(--border)] shrink-0">
-                                                        <Avatar.Image src={user.avatar_url} alt={user.username} />
-                                                        <Avatar.Fallback>{user.username?.slice(0, 2).toUpperCase()}</Avatar.Fallback>
-                                                    </Avatar>
-                                                    <div className="flex flex-col flex-1 min-w-0">
-                                                        <span className="text-sm font-bold truncate">{user.username}</span>
-                                                        {user.name && <span className="text-xs text-[var(--muted)] truncate">{user.name}</span>}
-                                                    </div>
-                                                    {isUserSelected && (
-                                                        <span className="text-xs font-bold text-[var(--accent)] shrink-0">Seleccionado</span>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
+                {/* Group name input */}
+                {mode === "group" && (
+                    <div style={{ padding: "12px 20px", borderBottom: `0.5px solid ${C.border}` }}>
+                        <input
+                            placeholder="Nombre del grupo"
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                            autoComplete="off"
+                            style={{
+                                width: "100%", boxSizing: "border-box",
+                                background: C.surface, borderRadius: 12,
+                                border: `1px solid ${C.border}`,
+                                padding: "10px 12px", fontSize: 14,
+                                color: C.text, outline: "none",
+                            }}
+                        />
+                        {/* Selected members chips */}
+                        {selectedMembers.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                                {selectedMembers.map(member => (
+                                    <span
+                                        key={member.id}
+                                        style={{
+                                            display: "inline-flex", alignItems: "center", gap: 4,
+                                            paddingLeft: 10, paddingRight: 4, paddingTop: 4, paddingBottom: 4,
+                                            borderRadius: 999, background: "rgba(59,130,246,0.15)",
+                                            fontSize: 12, fontWeight: 600, color: C.accent,
+                                        }}
+                                    >
+                                        {member.username}
+                                        <button
+                                            onClick={() => handleRemoveMember(member.id)}
+                                            style={{
+                                                width: 18, height: 18, borderRadius: 999, border: "none",
+                                                background: "rgba(59,130,246,0.25)", cursor: "pointer",
+                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                padding: 0,
+                                            }}
+                                        >
+                                            <Xmark style={{ width: 10, height: 10, color: C.accent }} />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Search */}
+                <div style={{ padding: "12px 20px" }}>
+                    <div style={{
+                        display: "flex", alignItems: "center", gap: 8,
+                        background: C.surface, borderRadius: 12,
+                        border: `1px solid ${C.border}`, padding: "10px 12px",
+                    }}>
+                        <Magnifier style={{ width: 18, height: 18, color: C.muted, flexShrink: 0 }} />
+                        <input
+                            placeholder={mode === "dm" ? "Buscar usuario..." : "Buscar miembros..."}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            autoComplete="off"
+                            style={{
+                                flex: 1, background: "transparent", border: "none",
+                                fontSize: 14, color: C.text, outline: "none",
+                            }}
+                        />
+                    </div>
+                    {isLoading && (
+                        <div style={{ fontSize: 12, color: C.accent, marginTop: 8, fontWeight: 500 }}>
+                            Buscando...
+                        </div>
+                    )}
+                </div>
+
+                {/* Results */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 12px" }}>
+                    {suggestions.length > 0 ? (
+                        suggestions.map((user) => {
+                            const isSelectedDM = mode === "dm" && selectedUserId === user.id;
+                            const isSelectedGroup = mode === "group" && selectedMembers.some(m => m.id === user.id);
+                            const isUserSelected = isSelectedDM || isSelectedGroup;
+
+                            return (
+                                <button
+                                    key={user.id}
+                                    onClick={() => handleAddMember(user)}
+                                    style={{
+                                        display: "flex", alignItems: "center", gap: 12,
+                                        padding: 12, borderRadius: 12, width: "100%",
+                                        background: isUserSelected ? "rgba(59,130,246,0.1)" : "transparent",
+                                        border: "none", cursor: "pointer", textAlign: "left",
+                                        transition: "background 0.15s",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!isUserSelected) e.currentTarget.style.background = C.surfaceLight;
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isUserSelected) e.currentTarget.style.background = "transparent";
+                                    }}
+                                >
+                                    {/* Avatar */}
+                                    <div style={{
+                                        width: 40, height: 40, borderRadius: 20,
+                                        background: C.surface, flexShrink: 0,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        overflow: "hidden",
+                                    }}>
+                                        {user.avatar_url ? (
+                                            <img
+                                                src={user.avatar_url}
+                                                alt={user.username}
+                                                style={{ width: 40, height: 40, objectFit: "cover" }}
+                                            />
+                                        ) : (
+                                            <span style={{ fontSize: 14, fontWeight: 700, color: C.muted }}>
+                                                {user.username?.slice(0, 2).toUpperCase()}
+                                            </span>
+                                        )}
                                     </div>
-                                ) : (
-                                    <div className="py-10 text-center text-[var(--muted)] flex flex-col items-center">
-                                        <Magnifier className="size-8 opacity-30 mb-2" />
-                                        <p className="text-sm">
-                                            {search.length < 2 ? "Escribe para buscar..." : "No se encontraron usuarios"}
-                                        </p>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{
+                                            fontSize: 14, fontWeight: 700, color: C.text,
+                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                        }}>
+                                            {user.username}
+                                        </div>
+                                        {user.name && (
+                                            <div style={{
+                                                fontSize: 12, color: C.muted,
+                                                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                            }}>
+                                                {user.name}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </ScrollShadow>
-                        </Modal.Body>
+                                    {isUserSelected && (
+                                        <span style={{ fontSize: 12, fontWeight: 600, color: C.accent, flexShrink: 0 }}>
+                                            ✓
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })
+                    ) : (
+                        <div style={{
+                            display: "flex", flexDirection: "column", alignItems: "center",
+                            justifyContent: "center", padding: "40px 0",
+                        }}>
+                            <Magnifier style={{ width: 32, height: 32, color: C.muted, opacity: 0.3, marginBottom: 8 }} />
+                            <div style={{ fontSize: 14, color: C.muted }}>
+                                {search.length < 2 ? "Escribe para buscar..." : "No se encontraron usuarios"}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-                        <Modal.Footer className="px-6 py-4 flex justify-end gap-2 border-t border-[var(--border)] bg-[var(--surface-secondary)]">
-                            <Button variant="outline" onPress={() => onOpenChange(false)} isDisabled={isCreating}>
-                                Cancelar
-                            </Button>
-                            <Button variant="secondary" onPress={handleCreateChat} isDisabled={isCreateDisabled || isCreating}>
-                                {isCreating
-                                    ? "Creando..."
-                                    : mode === "dm"
-                                        ? "Iniciar Chat"
-                                        : `Crear Grupo${selectedMembers.length > 0 ? ` (${selectedMembers.length})` : ""}`
-                                }
-                            </Button>
-                        </Modal.Footer>
-                    </Modal.Dialog>
-                </Modal.Container>
-            </Modal.Backdrop>
-        </Modal>
+                {/* Create button */}
+                {(mode === "dm" ? selectedUserId : true) && (
+                    <div style={{ padding: "12px 20px 20px" }}>
+                        <button
+                            onClick={handleCreateChat}
+                            disabled={isCreateDisabled || isCreating}
+                            style={{
+                                width: "100%", padding: "14px 0", borderRadius: 999,
+                                border: "none", cursor: isCreateDisabled || isCreating ? "not-allowed" : "pointer",
+                                background: isCreateDisabled || isCreating ? "rgba(59,130,246,0.4)" : C.accent,
+                                color: "#FFFFFF", fontSize: 14, fontWeight: 700,
+                                transition: "background 0.2s",
+                            }}
+                        >
+                            {isCreating
+                                ? "Creando..."
+                                : mode === "dm"
+                                    ? "Iniciar Chat"
+                                    : `Crear Grupo${selectedMembers.length > 0 ? ` (${selectedMembers.length})` : ""}`
+                            }
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

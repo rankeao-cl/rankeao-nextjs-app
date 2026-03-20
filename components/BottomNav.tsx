@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -7,41 +8,63 @@ import {
     Medal,
     ShoppingCart,
     Comment,
-    Person,
 } from "@gravity-ui/icons";
-
 import { useAuth } from "@/context/AuthContext";
+import { getUserProfile } from "@/lib/api/social";
 
 const tabs = [
     { href: "/", label: "Feed", icon: House },
     { href: "/torneos", label: "Torneos", icon: Medal },
     { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
     { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
-    { href: "/perfil/me", label: "Perfil", icon: Person },
 ];
+
+const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
 export default function BottomNav() {
     const pathname = usePathname();
-    const { status } = useAuth();
+    const { session, status } = useAuth();
+    const isAuth = status === "authenticated";
+
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+    // Fetch user avatar
+    useEffect(() => {
+        if (!isAuth || !session?.username) return;
+        getUserProfile(session.username)
+            .then((res: any) => {
+                const profile = res?.data ?? res;
+                if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+            })
+            .catch(() => {});
+    }, [isAuth, session?.username]);
+
+    if (authPages.some((p) => pathname.startsWith(p))) {
+        return null;
+    }
 
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-    const filteredTabs = tabs.filter(tab =>
-        !tab.authRequired || status === "authenticated"
+    const filteredTabs = tabs.filter(
+        (tab) => !tab.authRequired || isAuth
     );
+
+    const profileActive = pathname.startsWith("/perfil");
+    const initial = session?.username?.[0]?.toUpperCase() || "?";
 
     return (
         <nav
-            className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around rounded-t-3xl"
-            style={{
-                background: "var(--surface)",
-                borderTop: "1px solid var(--border)",
-                backdropFilter: "blur(32px) saturate(1.5)",
-                WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-                boxShadow: "0 -2px 20px rgba(0,0,0,0.06)",
-            }}
+            className="lg:hidden fixed bottom-0 inset-x-0 z-50"
+            style={{ background: "#000000" }}
         >
+            {/* Hairline divider */}
+            <div
+                className="h-px w-full"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+            />
+
+            <div className="flex items-center justify-around pt-2 pb-[max(env(safe-area-inset-bottom,8px),8px)] px-1">
                 {filteredTabs.map((tab) => {
                     const Icon = tab.icon;
                     const active = isActive(tab.href);
@@ -50,35 +73,27 @@ export default function BottomNav() {
                         <Link
                             key={tab.href}
                             href={tab.href}
-                            className="flex flex-col items-center justify-center gap-0.5 py-3 px-3 min-w-[56px] min-h-[44px] transition-colors relative"
-                            style={{
-                                color: active
-                                    ? "var(--accent)"
-                                    : "var(--muted)",
-                            }}
+                            className="flex-1 flex flex-col items-center justify-center py-1"
+                            aria-label={tab.label}
                         >
-                            {/* Active indicator dot */}
-                            {active && (
-                                <span
-                                    className="absolute top-1.5 w-1 h-1 rounded-full transition-all duration-300"
-                                    style={{ background: "var(--accent)" }}
+                            <div className="w-6 h-6 flex items-center justify-center mb-1 relative">
+                                <Icon
+                                    className="size-[22px] transition-opacity duration-200"
+                                    style={{
+                                        color: active
+                                            ? "#F2F2F2"
+                                            : "#888891",
+                                    }}
                                 />
-                            )}
-                            <Icon
-                                className="size-6 transition-all duration-200"
-                                style={
-                                    active
-                                        ? {
-                                              filter: "drop-shadow(0 0 6px oklch(from var(--accent) l c h / 0.45))",
-                                          }
-                                        : undefined
-                                }
-                            />
+                            </div>
                             <span
-                                className="leading-tight whitespace-nowrap"
+                                className="leading-none whitespace-nowrap transition-opacity duration-200"
                                 style={{
-                                    fontSize: "11px",
-                                    fontWeight: active ? 600 : 500,
+                                    fontSize: "10px",
+                                    fontWeight: 600,
+                                    letterSpacing: "0.1px",
+                                    color: "#F2F2F2",
+                                    opacity: active ? 1 : 0.5,
                                 }}
                             >
                                 {tab.label}
@@ -86,6 +101,71 @@ export default function BottomNav() {
                         </Link>
                     );
                 })}
+
+                {/* Profile tab — avatar with online badge (Discord style) */}
+                <Link
+                    href="/perfil/me"
+                    className="flex-1 flex flex-col items-center justify-center py-1"
+                    aria-label="Tu perfil"
+                >
+                    <div className="relative w-7 h-7 mb-0.5">
+                        <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-200"
+                            style={{
+                                borderWidth: "2px",
+                                borderStyle: "solid",
+                                borderColor: profileActive
+                                    ? "#F2F2F2"
+                                    : "transparent",
+                            }}
+                        >
+                            {avatarUrl ? (
+                                <img
+                                    src={avatarUrl}
+                                    alt="Avatar"
+                                    className="w-[22px] h-[22px] rounded-full object-cover"
+                                />
+                            ) : (
+                                <div
+                                    className="w-[22px] h-[22px] rounded-full flex items-center justify-center"
+                                    style={{ background: "#1A1A1E" }}
+                                >
+                                    <span
+                                        className="text-[11px] font-bold"
+                                        style={{ color: "#F2F2F2" }}
+                                    >
+                                        {initial}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        {/* Online badge */}
+                        {isAuth && (
+                            <div
+                                className="absolute -bottom-px -right-px w-3 h-3 rounded-full flex items-center justify-center"
+                                style={{ background: "#000000" }}
+                            >
+                                <div
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ background: "#22C55E" }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <span
+                        className="leading-none whitespace-nowrap transition-opacity duration-200"
+                        style={{
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            letterSpacing: "0.1px",
+                            color: "#F2F2F2",
+                            opacity: profileActive ? 1 : 0.5,
+                        }}
+                    >
+                        Tu
+                    </span>
+                </Link>
+            </div>
         </nav>
     );
 }

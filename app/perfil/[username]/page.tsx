@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { Button, Card, Chip, Tabs, Input, toast } from "@heroui/react";
 import Image from "next/image";
-import { RankedAvatar } from "@/components/RankedAvatar";
-import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
 import PostCard from "@/components/cards/PostCard";
 import type { FeedPost } from "@/components/cards/PostCard";
 import DeckCard from "@/components/cards/DeckCard";
@@ -36,6 +33,17 @@ import SaleCard from "@/components/cards/SaleCard";
 import { Person, Envelope, Cup, MapPin, Xmark, EllipsisVertical, CircleCheck, Star } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { getRankForElo } from "@/lib/rankSystem";
+
+type ProfileTab =
+    | "actividad"
+    | "mazos"
+    | "coleccion"
+    | "wishlist"
+    | "torneos"
+    | "stats"
+    | "marketplace"
+    | "logros";
 
 function getInitial(value: unknown) {
     if (typeof value === "string") return value.trim().charAt(0).toUpperCase() || "U";
@@ -67,6 +75,17 @@ function toArray<T>(value: unknown): T[] {
     if (Array.isArray(v.tournaments)) return v.tournaments;
     return [];
 }
+
+const TABS: { key: ProfileTab; label: string }[] = [
+    { key: "actividad", label: "Actividad" },
+    { key: "mazos", label: "Mazos" },
+    { key: "coleccion", label: "Coleccion" },
+    { key: "wishlist", label: "Wishlist" },
+    { key: "torneos", label: "Torneos" },
+    { key: "stats", label: "Stats" },
+    { key: "marketplace", label: "Market" },
+    { key: "logros", label: "Logros" },
+];
 
 export default function PublicProfilePage({
     params,
@@ -103,6 +122,9 @@ export default function PublicProfilePage({
 
     // Edit profile modal state
     const [showEditModal, setShowEditModal] = useState(false);
+
+    // Active tab
+    const [activeTab, setActiveTab] = useState<ProfileTab>("actividad");
 
     useEffect(() => {
         setLoading(true);
@@ -220,7 +242,7 @@ export default function PublicProfilePage({
                 setIsFollowing(true);
             }
         } catch {
-            toast.danger("Error al actualizar seguimiento");
+            // Error al actualizar seguimiento
         } finally {
             setFollowLoading(false);
         }
@@ -228,26 +250,61 @@ export default function PublicProfilePage({
 
     if (loading) {
         return (
-            <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-8 h-8 rounded-full border-t-2 border-r-2 border-rankeao-neon-cyan animate-spin"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                />
-                <p className="text-[var(--muted)] font-sans text-sm">Cargando perfil de {usernameParam}...</p>
+            <div style={{
+                display: "flex",
+                justifyContent: "center",
+                flexDirection: "column",
+                alignItems: "center",
+                minHeight: "50vh",
+                gap: 16,
+                backgroundColor: "#000000",
+            }}>
+                <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    borderTop: "2px solid #3B82F6",
+                    borderRight: "2px solid #3B82F6",
+                    borderBottom: "2px solid transparent",
+                    borderLeft: "2px solid transparent",
+                    animation: "spin 0.8s linear infinite",
+                }} />
+                <p style={{ color: "#888891", fontSize: 13 }}>Cargando perfil de {usernameParam}...</p>
             </div>
         );
     }
 
     if (!profile) {
         return (
-            <div className="flex justify-center flex-col items-center min-h-[50vh] space-y-4">
-                <h2 className="text-xl font-bold text-[var(--foreground)]">Usuario no encontrado</h2>
-                <p className="text-[var(--muted)] font-sans">El perfil al que intentas acceder no existe o es privado.</p>
-                <Button variant="secondary" onPress={() => router.push("/")}>
+            <div style={{
+                display: "flex",
+                justifyContent: "center",
+                flexDirection: "column",
+                alignItems: "center",
+                minHeight: "50vh",
+                gap: 16,
+                backgroundColor: "#000000",
+                paddingLeft: 24,
+                paddingRight: 24,
+            }}>
+                <Person width={48} height={48} color="#888891" />
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#F2F2F2" }}>Usuario no encontrado</h2>
+                <p style={{ color: "#888891", fontSize: 14 }}>El perfil al que intentas acceder no existe o es privado.</p>
+                <button
+                    onClick={() => router.push("/")}
+                    style={{
+                        backgroundColor: "#1A1A1E",
+                        color: "#F2F2F2",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 99,
+                        padding: "10px 24px",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                    }}
+                >
                     Volver al Inicio
-                </Button>
+                </button>
             </div>
         );
     }
@@ -296,308 +353,699 @@ export default function PublicProfilePage({
     const tournamentEntries = toArray(tournamentHistory) as any[];
     const tournamentStats = tournamentHistory?.stats;
 
+    // Rank
+    const rank = getRankForElo(rating || 1000);
+
+    // Win rate display
+    const winRateDisplay = winRate != null && winRate > 0
+        ? `${typeof winRate === "number" && winRate < 1 ? (winRate * 100).toFixed(0) : winRate}%`
+        : "-";
+
+    // Win rate color
+    const winRateColor = (() => {
+        const wr = typeof winRate === "number" && winRate < 1 ? winRate * 100 : winRate;
+        if (wr >= 60) return "#22C55E";
+        if (wr >= 40) return "#F59E0B";
+        return "#EF4444";
+    })();
+
     const handleProfileUpdated = (updatedProfile: any) => {
         setProfile((prev: any) => ({ ...prev, ...updatedProfile }));
         setShowEditModal(false);
     };
 
-    return (
-        <div className="flex flex-col w-full">
-            {/* ── Banner ── */}
-            <div className="relative w-full h-36 sm:h-44 md:h-56 lg:h-64 overflow-hidden bg-[var(--surface-secondary)]">
-                {bannerUrl ? (
-                    <div
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: `url('${bannerUrl}')` }}
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <Image
-                            src="/rankeao-logo.png"
-                            alt="Rankeao"
-                            width={840}
-                            height={175}
-                            className="w-[70%] max-w-[500px] h-auto opacity-[0.07] select-none pointer-events-none"
-                            priority
-                        />
+    /* ── Shared sub-components used in both mobile & desktop ── */
+
+    const badgesRow = (
+        <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+            <span style={{
+                backgroundColor: rank.cssColor + "20",
+                color: rank.cssColor,
+                paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
+                borderRadius: 99, fontSize: 11, fontWeight: 700,
+            }}>{rank.name}</span>
+            {level > 0 && (
+                <span style={{
+                    backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
+                    paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
+                    borderRadius: 99, fontSize: 11, fontWeight: 700,
+                }}>Nv. {level}</span>
+            )}
+            {equippedTitle && (
+                <span style={{
+                    backgroundColor: "rgba(168,85,247,0.15)", color: "#A855F7",
+                    paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
+                    borderRadius: 99, fontSize: 11, fontWeight: 600,
+                }}>{equippedTitle}</span>
+            )}
+            {isVerified && (
+                <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 3,
+                    backgroundColor: "#3B82F6", color: "white",
+                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
+                    borderRadius: 99, fontSize: 10, fontWeight: 700,
+                }}><CircleCheck width={10} height={10} /> Verificado</span>
+            )}
+            {isPremium && (
+                <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 3,
+                    backgroundColor: "#F59E0B", color: "#1A1A1E",
+                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
+                    borderRadius: 99, fontSize: 10, fontWeight: 700,
+                }}><Star width={10} height={10} /> Premium</span>
+            )}
+            {isAdmin && (
+                <span style={{
+                    backgroundColor: "#EF4444", color: "white",
+                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
+                    borderRadius: 99, fontSize: 10, fontWeight: 700,
+                }}>Admin</span>
+            )}
+            {isModerator && (
+                <span style={{
+                    backgroundColor: "#06B6D4", color: "white",
+                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
+                    borderRadius: 99, fontSize: 10, fontWeight: 700,
+                }}>Mod</span>
+            )}
+        </div>
+    );
+
+    const socialRow = (
+        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <span style={{ color: "#888891", fontSize: 13 }}>
+                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>{followersCount}</span> seguidores
+            </span>
+            <span style={{ color: "#3C3C43", fontSize: 13 }}>&middot;</span>
+            <span style={{ color: "#888891", fontSize: 13 }}>
+                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>{followingCount}</span> siguiendo
+            </span>
+            <span style={{ color: "#3C3C43", fontSize: 13 }}>&middot;</span>
+            <span style={{ color: "#888891", fontSize: 13 }}>
+                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>{friendsCount}</span> amigos
+            </span>
+        </div>
+    );
+
+    const avatarBlock = (size: number, borderColor: string) => (
+        <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+            {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt={name} style={{
+                    width: size, height: size, borderRadius: size / 2,
+                    border: `4px solid ${borderColor}`, objectFit: "cover",
+                }} />
+            ) : (
+                <div style={{
+                    width: size, height: size, borderRadius: size / 2,
+                    backgroundColor: "#1A1A1E", border: `4px solid ${borderColor}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                    <Person width={size * 0.4} height={size * 0.4} color="#888891" />
+                </div>
+            )}
+            {isOwnProfile && (
+                <div style={{
+                    position: "absolute", bottom: 2, right: 2,
+                    width: 20, height: 20, borderRadius: 10,
+                    backgroundColor: borderColor,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                    <div style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "#22C55E" }} />
+                </div>
+            )}
+        </div>
+    );
+
+    const bannerBlock = (height: number) => (
+        <div style={{ position: "relative", width: "100%", height, overflow: "hidden" }}>
+            {bannerUrl ? (
+                <div style={{
+                    position: "absolute", inset: 0,
+                    backgroundImage: `url('${bannerUrl}')`,
+                    backgroundSize: "cover", backgroundPosition: "center",
+                }} />
+            ) : (
+                <div style={{
+                    position: "absolute", inset: 0, backgroundColor: "#1A1A1E",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                    <span style={{
+                        fontSize: 60, color: "#F2F2F2", opacity: 0.04,
+                        fontWeight: 900, userSelect: "none",
+                    }}>RANKEAO</span>
+                </div>
+            )}
+            <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.3)" }} />
+        </div>
+    );
+
+    const statsCard = (
+        <div style={{
+            backgroundColor: "#1A1A1E", borderRadius: 16,
+            border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+        }}>
+            <div style={{ paddingTop: 4, paddingBottom: 4 }}>
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
+                        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
+                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
                     </div>
-                )}
-                <div className="absolute inset-0 bg-[var(--background)]/50" />
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[var(--background)] to-transparent" />
+                    <div style={{ width: 0.5, height: 36, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
+                        <p style={{ color: winRate > 0 ? winRateColor : "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
+                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
+                    </div>
+                </div>
+                <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.08)", marginLeft: 16, marginRight: 16 }} />
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
+                        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
+                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
+                    </div>
+                    <div style={{ width: 0.5, height: 36, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
+                        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>
+                            {currentStreak > 0 ? `${currentStreak}W` : bestStreak > 0 ? `${bestStreak}` : "-"}
+                        </p>
+                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
+                    </div>
+                </div>
             </div>
+        </div>
+    );
 
-            {/* ── Profile Header ── */}
-            <div className="max-w-5xl mx-auto w-full px-4 relative -mt-12 sm:-mt-16">
-                <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-5">
-                    <div className="shrink-0">
-                        <RankedAvatar
-                            elo={rating}
-                            size="lg"
-                            fallback={getInitial(name)}
-                            src={profile?.avatar_url}
-                        />
-                    </div>
-
-                    <div className="flex-1 min-w-0 pb-1 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <UserDisplayName
-                                    user={getUserRoleData(profile)}
-                                    className="text-xl sm:text-2xl"
-                                />
-                                {/* User type badges */}
-                                {isVerified && (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-[var(--accent)] text-[var(--accent-foreground)]" title="Verificado">
-                                        <CircleCheck className="size-3" /> Verificado
-                                    </span>
-                                )}
-                                {isPremium && (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-[var(--warning)] text-[var(--warning-foreground)]" title="Premium">
-                                        <Star className="size-3" /> Premium
-                                    </span>
-                                )}
-                                {isAdmin && (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-[var(--danger)] text-white" title="Admin">
-                                        Admin
-                                    </span>
-                                )}
-                                {isModerator && (
-                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-[var(--info)] text-white" title="Moderador">
-                                        Mod
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-sm text-[var(--muted)]">@{profile?.username || usernameParam}</p>
-                            {equippedTitle && (
-                                <Chip size="sm" variant="soft" color="accent" className="mt-1 font-semibold">
-                                    {equippedTitle}
-                                </Chip>
-                            )}
-                        </div>
-
-                        <div className="flex gap-2 shrink-0">
-                            {isOwnProfile ? (
-                                <>
-                                    <Button variant="primary" size="sm" className="font-bold" onPress={() => setShowEditModal(true)}>
-                                        <Person width={14} /> Editar Perfil
-                                    </Button>
-                                    <Button variant="secondary" size="sm" className="font-bold" onPress={() => router.push('/config')}>
-                                        Ajustes
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button
-                                        variant={isFollowing ? "secondary" : "primary"}
-                                        size="sm"
-                                        className="font-bold"
-                                        onPress={handleFollow}
-                                        isDisabled={followLoading}
-                                    >
-                                        <Person width={14} /> {isFollowing ? "Siguiendo" : "Seguir"}
-                                    </Button>
-                                    <Button variant="secondary" size="sm" className="font-bold" onPress={() => router.push(`/chat?user=${profile?.username}`)}>
-                                        <Envelope width={14} /> Mensaje
-                                    </Button>
-                                    {/* More options dropdown */}
-                                    <div className="relative">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            className="font-bold px-2"
-                                            onPress={() => setShowMoreOptions(!showMoreOptions)}
-                                        >
-                                            <EllipsisVertical width={14} />
-                                        </Button>
-                                        {showMoreOptions && (
-                                            <>
-                                                <div className="fixed inset-0 z-40" onClick={() => setShowMoreOptions(false)} />
-                                                <div className="absolute right-0 top-full mt-1 z-50 w-44 rounded-xl border border-[var(--border)] bg-[var(--bg-solid)] shadow-lg overflow-hidden">
-                                                    <button
-                                                        className="w-full text-left px-3 py-2.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-secondary)] transition-colors"
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(window.location.href);
-                                                            toast.success("Enlace copiado");
-                                                            setShowMoreOptions(false);
-                                                        }}
-                                                    >
-                                                        Copiar enlace al perfil
-                                                    </button>
-                                                    <button
-                                                        className="w-full text-left px-3 py-2.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--surface-secondary)] transition-colors"
-                                                        onClick={() => {
-                                                            setShowMoreOptions(false);
-                                                        }}
-                                                    >
-                                                        Enviar solicitud de amistad
-                                                    </button>
-                                                    <button
-                                                        className="w-full text-left px-3 py-2.5 text-xs font-medium text-[var(--danger)] hover:bg-[var(--surface-secondary)] transition-colors"
-                                                        onClick={() => {
-                                                            setShowMoreOptions(false);
-                                                        }}
-                                                    >
-                                                        Reportar usuario
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
+    const xpProgressBlock = (totalXp > 0 || level > 0) ? (
+        <div style={{
+            padding: 14, backgroundColor: "#1A1A1E", borderRadius: 16,
+            border: "1px solid rgba(255,255,255,0.06)",
+        }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        NIVEL {level} &rarr; {level + 1}
+                    </span>
+                    {xpRank > 0 && (
+                        <span style={{ fontSize: 10, color: "#888891", fontWeight: 600, marginLeft: 8 }}>#{xpRank} XP Rank</span>
+                    )}
                 </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#F2F2F2" }}>{currentLevelXp} / {xpToNextLevel} XP</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 3, backgroundColor: "#000000", overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 3, backgroundColor: "#F2F2F2", width: `${xpProgress}%`, transition: "width 0.5s ease" }} />
+            </div>
+        </div>
+    ) : null;
 
-                {bio && (
-                    <p className="text-sm text-[var(--muted)] mt-3 max-w-xl leading-relaxed">{bio}</p>
-                )}
-                {location && (
-                    <p className="text-xs text-[var(--muted)] mt-1.5 flex items-center gap-1">
-                        <MapPin className="size-3" /> {location}
-                    </p>
-                )}
-
-                {/* Games the user plays */}
-                {gamesList.length > 0 && (
-                    <div className="flex gap-2 flex-wrap mt-3 items-center">
-                        <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-semibold mr-1">Juega:</span>
-                        {gamesList.map((game: string) => (
-                            <Chip key={game} size="sm" className="bg-[var(--surface-tertiary)] text-[var(--foreground)] border border-[var(--border)]">
-                                {game}
-                            </Chip>
-                        ))}
+    const actionButtons = (
+        <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+            {isOwnProfile ? (
+                <>
+                    <button
+                        onClick={() => setShowEditModal(true)}
+                        style={{
+                            flex: 1, backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
+                            border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99, padding: "12px 0",
+                            fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center",
+                        }}
+                    >Editar perfil</button>
+                    <button
+                        onClick={() => router.push("/config")}
+                        className="md:hidden"
+                        style={{
+                            flex: 1, backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
+                            border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99, padding: "12px 0",
+                            fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center",
+                        }}
+                    >Ajustes</button>
+                    <button
+                        onClick={() => { navigator.clipboard.writeText(window.location.href); }}
+                        style={{
+                            width: 44, height: 44, backgroundColor: "rgba(255,255,255,0.08)",
+                            border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", flexShrink: 0,
+                        }}
+                    >
+                        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#F2F2F2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                            <polyline points="16,6 12,2 8,6" />
+                            <line x1={12} y1={2} x2={12} y2={15} />
+                        </svg>
+                    </button>
+                </>
+            ) : (
+                <>
+                    <button
+                        onClick={handleFollow}
+                        disabled={followLoading}
+                        style={{
+                            flex: 1,
+                            backgroundColor: isFollowing ? "#1A1A1E" : "#3B82F6",
+                            color: isFollowing ? "#F2F2F2" : "#FFFFFF",
+                            border: isFollowing ? "1px solid rgba(255,255,255,0.06)" : "none",
+                            borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
+                            cursor: followLoading ? "not-allowed" : "pointer",
+                            opacity: followLoading ? 0.6 : 1, textAlign: "center",
+                        }}
+                    >{isFollowing ? "Siguiendo" : "Seguir"}</button>
+                    <button
+                        onClick={() => router.push(`/chat?user=${profile?.username}`)}
+                        style={{
+                            flex: 1, backgroundColor: "#1A1A1E", color: "#F2F2F2",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
+                            cursor: "pointer", textAlign: "center",
+                        }}
+                    >Mensaje</button>
+                    <div style={{ position: "relative" }}>
+                        <button
+                            onClick={() => setShowMoreOptions(!showMoreOptions)}
+                            style={{
+                                width: 44, height: 44, backgroundColor: "#1A1A1E",
+                                border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99,
+                                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                            }}
+                        >
+                            <EllipsisVertical width={14} height={14} color="#F2F2F2" />
+                        </button>
+                        {showMoreOptions && (
+                            <>
+                                <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setShowMoreOptions(false)} />
+                                <div style={{
+                                    position: "absolute", right: 0, top: "100%", marginTop: 4, zIndex: 50,
+                                    width: 176, borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)",
+                                    backgroundColor: "#000000", overflow: "hidden",
+                                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                                }}>
+                                    <button
+                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "#F2F2F2", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                        onClick={() => { navigator.clipboard.writeText(window.location.href); setShowMoreOptions(false); }}
+                                    >Copiar enlace al perfil</button>
+                                    <button
+                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "#F2F2F2", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                        onClick={() => setShowMoreOptions(false)}
+                                    >Enviar solicitud de amistad</button>
+                                    <button
+                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "#ED4245", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                        onClick={() => setShowMoreOptions(false)}
+                                    >Reportar usuario</button>
+                                </div>
+                            </>
+                        )}
                     </div>
-                )}
+                </>
+            )}
+        </div>
+    );
 
-                <div className="flex gap-4 mt-3 text-sm">
-                    <span className="text-[var(--muted)]"><span className="font-bold text-[var(--foreground)]">{followersCount}</span> seguidores</span>
-                    <span className="text-[var(--muted)]"><span className="font-bold text-[var(--foreground)]">{followingCount}</span> siguiendo</span>
-                    <span className="text-[var(--muted)]"><span className="font-bold text-[var(--foreground)]">{friendsCount}</span> amigos</span>
+    const bioLocationGames = (
+        <>
+            {bio && <p style={{ color: "#D4D4D8", fontSize: 14, lineHeight: 1.5, margin: 0 }}>{bio}</p>}
+            {location && (
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6 }}>
+                    <MapPin width={12} height={12} color="#888891" />
+                    <span style={{ color: "#888891", fontSize: 12 }}>{location}</span>
                 </div>
-
-                {/* Stats row */}
-                <div className="flex gap-1 mt-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-                    {[
-                        { label: "ELO", value: rating, color: "text-[var(--accent)]" },
-                        { label: "Nivel", value: level, color: "text-[var(--foreground)]" },
-                        { label: "XP", value: totalXp.toLocaleString(), color: "text-[var(--foreground)]" },
-                        { label: "W/R", value: `${winRate}%`, color: "text-[var(--success)]" },
-                        { label: "Torneos", value: tournamentsPlayed, color: "text-[var(--foreground)]" },
-                    ].map((stat) => (
-                        <div key={stat.label} className="flex-1 min-w-[72px] p-2.5 sm:p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)] text-center">
-                            <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-semibold mb-0.5">{stat.label}</p>
-                            <p className={`text-base sm:text-lg font-extrabold ${stat.color}`}>{stat.value}</p>
-                        </div>
+            )}
+            {gamesList.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                    {gamesList.map((game: string) => (
+                        <span key={game} style={{
+                            backgroundColor: "rgba(255,255,255,0.06)", color: "#F2F2F2",
+                            paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
+                            borderRadius: 8, fontSize: 11,
+                        }}>{game}</span>
                     ))}
                 </div>
+            )}
+            {profile?.created_at && (
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 8 }}>
+                    <span style={{ color: "#888891", fontSize: 12 }}>
+                        Miembro desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
+                    </span>
+                </div>
+            )}
+        </>
+    );
 
-                {/* XP Progress */}
-                <div className="mt-3 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-                    <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-semibold">
-                            Progreso Nivel {level} &rarr; {level + 1}
-                            {xpRank > 0 && <span className="ml-2 text-[var(--accent)]">#{xpRank} XP Rank</span>}
-                        </span>
-                        <span className="text-xs font-bold text-[var(--foreground)]">{currentLevelXp} / {xpToNextLevel} XP</span>
+    const tabPills = (
+        <div style={{ overflowX: "auto" }} className="no-scrollbar">
+            <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+                {TABS.map((tab) => {
+                    const active = activeTab === tab.key;
+                    return (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            style={{
+                                paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                                borderRadius: 99,
+                                backgroundColor: active ? "#F2F2F2" : "#1A1A1E",
+                                color: active ? "#000000" : "#888891",
+                                fontSize: 13, fontWeight: 600,
+                                border: active ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
+                                cursor: "pointer", whiteSpace: "nowrap",
+                            }}
+                        >{tab.label}</button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+
+    const tabContent = (
+        <div>
+            {activeTab === "actividad" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {activity.length > 0 ? activity.map((item: any, i: number) => {
+                        const user = item.user ?? {};
+                        const post: FeedPost = {
+                            id: String(item.id),
+                            username: user.username ?? item.username ?? profile?.username,
+                            avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
+                            text: item.description ?? item.text ?? item.content ?? item.title ?? "",
+                            images: item.images ?? (item.image_url ? [item.image_url] : undefined),
+                            created_at: item.created_at ?? "",
+                        };
+                        return <PostCard key={post.id || i} post={post} />;
+                    }) : <EmptyState emoji="📝" title="Sin actividad reciente" description="Aun no hay publicaciones en este perfil." />}
+                </div>
+            )}
+            {activeTab === "mazos" && (
+                <div>
+                    {decks.length > 0 ? (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                            {decks.map((deck, i) => <DeckCard key={deck.id || i} deck={deck} />)}
+                        </div>
+                    ) : <EmptyState emoji="🃏" title="Sin mazos publicados" description="No ha compartido mazos todavia." />}
+                </div>
+            )}
+            {activeTab === "coleccion" && (
+                <ProfileCollectionTab collection={collection} isOwnProfile={isOwnProfile} token={session?.accessToken} />
+            )}
+            {activeTab === "wishlist" && (
+                <ProfileWishlistTab wishlist={wishlist} isOwnProfile={isOwnProfile} token={session?.accessToken} />
+            )}
+            {activeTab === "torneos" && (
+                <ProfileTournamentsTab
+                    tournaments={tournamentEntries} stats={tournamentStats}
+                    tournamentsPlayed={tournamentsPlayed} tournamentsWon={tournamentsWon}
+                />
+            )}
+            {activeTab === "stats" && (
+                <ProfileStatsTab
+                    rating={rating} peakRating={peakRating} winRate={winRate}
+                    totalMatches={totalMatches} tournamentsPlayed={tournamentsPlayed}
+                    tournamentsWon={tournamentsWon} currentStreak={currentStreak}
+                    bestStreak={bestStreak} ratingHistory={ratingHistory} gamiStats={gamiStats}
+                />
+            )}
+            {activeTab === "marketplace" && (
+                <ProfileMarketplaceTab listings={listings} />
+            )}
+            {activeTab === "logros" && (
+                <ProfileLogrosTab
+                    earnedBadges={badges} allBadges={allBadges}
+                    badgesCount={badgesCount} gamiStats={gamiStats} isOwnProfile={isOwnProfile}
+                />
+            )}
+        </div>
+    );
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", width: "100%", backgroundColor: "#000000", minHeight: "100vh" }}>
+
+            {/* ══════════════════════════════════════════════
+                MOBILE LAYOUT (default, hidden on md+)
+               ══════════════════════════════════════════════ */}
+            <div className="md:hidden">
+                {/* Banner full-width */}
+                {bannerBlock(160)}
+
+                <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "0 16px", marginTop: -40 }}>
+                    {/* Avatar + Name */}
+                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12 }}>
+                        {avatarBlock(80, "#000000")}
+                        <div style={{ flex: 1, marginTop: 40 }}>
+                            <h1 style={{ color: "#FFFFFF", fontSize: 20, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
+                            <p style={{ color: "#888891", fontSize: 14, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
+                        </div>
                     </div>
-                    <div className="w-full h-2 bg-[var(--surface-tertiary)] rounded-full overflow-hidden">
-                        <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${xpProgress}%` }} />
+
+                    <div style={{ marginTop: 10 }}>{badgesRow}</div>
+                    <div style={{ marginTop: 10 }}>{socialRow}</div>
+                    <div style={{ marginTop: 10 }}>{bioLocationGames}</div>
+                    <div style={{ marginTop: 16 }}>{actionButtons}</div>
+
+                    {/* Sobre mi card */}
+                    {(bio || profile?.created_at) && (
+                        <div style={{ marginTop: 20 }}>
+                            <p style={{ color: "#888891", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>SOBRE MI</p>
+                            <div style={{
+                                backgroundColor: "#1A1A1E", borderRadius: 16,
+                                border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+                            }}>
+                                {bio && <p style={{ color: "#D4D4D8", fontSize: 14, lineHeight: "20px", padding: "14px 16px", margin: 0 }}>{bio}</p>}
+                                {profile?.created_at && (
+                                    <div style={{
+                                        display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
+                                        ...(bio ? { borderTop: "1px solid rgba(255,255,255,0.06)" } : {}),
+                                    }}>
+                                        <span style={{ color: "#888891", fontSize: 13 }}>
+                                            Miembro desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Stats */}
+                    <div style={{ marginTop: 20 }}>
+                        <p style={{ color: "#888891", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>ESTADISTICAS</p>
+                        {statsCard}
                     </div>
+
+                    {/* XP */}
+                    {xpProgressBlock && <div style={{ marginTop: 16 }}>{xpProgressBlock}</div>}
+                </div>
+
+                {/* Tab pills */}
+                <div style={{ marginTop: 20, paddingLeft: 16, paddingRight: 16, maxWidth: 960, marginLeft: "auto", marginRight: "auto" }}>
+                    {tabPills}
+                </div>
+
+                {/* Tab content */}
+                <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "16px 16px 48px 16px" }}>
+                    {tabContent}
                 </div>
             </div>
 
-            {/* ── Tabs ── */}
-            <div className="max-w-5xl mx-auto w-full px-4 mt-6 mb-12">
-                <Tabs variant="secondary">
-                    <Tabs.ListContainer className="overflow-x-auto overflow-y-hidden pb-1 no-scrollbar">
-                        <Tabs.List className="whitespace-nowrap flex-nowrap min-w-max">
-                            <Tabs.Tab id="actividad">Actividad<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="mazos">Mazos<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="coleccion">Coleccion<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="wishlist">Wishlist<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="torneos">Torneos<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="stats">Stats<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="marketplace">Marketplace<Tabs.Indicator /></Tabs.Tab>
-                            <Tabs.Tab id="logros">Logros<Tabs.Indicator /></Tabs.Tab>
-                        </Tabs.List>
-                    </Tabs.ListContainer>
+            {/* ══════════════════════════════════════════════
+                DESKTOP LAYOUT (hidden below md, shown md+)
+               ══════════════════════════════════════════════ */}
+            <div className="hidden md:block" style={{ width: "100%" }}>
+                <div className="flex flex-row gap-6" style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 16px 48px 16px" }}>
 
-                    {/* Actividad */}
-                    <Tabs.Panel id="actividad" className="pt-4 space-y-4">
-                        {activity.length > 0 ? activity.map((item: any, i: number) => {
-                            const user = item.user ?? {};
-                            const post: FeedPost = {
-                                id: String(item.id),
-                                username: user.username ?? item.username ?? profile?.username,
-                                avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
-                                text: item.description ?? item.text ?? item.content ?? item.title ?? "",
-                                images: item.images ?? (item.image_url ? [item.image_url] : undefined),
-                                created_at: item.created_at ?? "",
-                            };
-                            return <PostCard key={post.id || i} post={post} />;
-                        }) : <EmptyState emoji="📝" title="Sin actividad reciente" description="Aun no hay publicaciones en este perfil." />}
-                    </Tabs.Panel>
+                    {/* ── Left Panel: Profile Card (Discord-style) ── */}
+                    <div className="w-[340px] shrink-0 sticky top-4 self-start">
+                        <div style={{
+                            backgroundColor: "#1A1A1E", borderRadius: 16,
+                            border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+                            width: "100%",
+                        }}>
+                            {/* Banner inside card */}
+                            {bannerBlock(120)}
 
-                    {/* Mazos */}
-                    <Tabs.Panel id="mazos" className="pt-4">
-                        {decks.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{decks.map((deck, i) => <DeckCard key={deck.id || i} deck={deck} />)}</div>
-                        ) : <EmptyState emoji="🃏" title="Sin mazos publicados" description="No ha compartido mazos todavia." />}
-                    </Tabs.Panel>
+                            {/* Avatar overlapping banner */}
+                            <div style={{ marginTop: -36, paddingLeft: 16 }}>
+                                {avatarBlock(72, "#1A1A1E")}
+                            </div>
 
-                    {/* Coleccion */}
-                    <Tabs.Panel id="coleccion" className="pt-4">
-                        <ProfileCollectionTab collection={collection} isOwnProfile={isOwnProfile} token={session?.accessToken} />
-                    </Tabs.Panel>
+                            {/* Card content */}
+                            <div style={{ padding: "8px 16px 20px 16px" }}>
+                                <h1 style={{ color: "#FFFFFF", fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
+                                <p style={{ color: "#888891", fontSize: 13, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
 
-                    {/* Wishlist */}
-                    <Tabs.Panel id="wishlist" className="pt-4">
-                        <ProfileWishlistTab wishlist={wishlist} isOwnProfile={isOwnProfile} token={session?.accessToken} />
-                    </Tabs.Panel>
+                                <div style={{ marginTop: 10 }}>{badgesRow}</div>
 
-                    {/* Torneos */}
-                    <Tabs.Panel id="torneos" className="pt-4">
-                        <ProfileTournamentsTab
-                            tournaments={tournamentEntries}
-                            stats={tournamentStats}
-                            tournamentsPlayed={tournamentsPlayed}
-                            tournamentsWon={tournamentsWon}
-                        />
-                    </Tabs.Panel>
+                                {/* Divider */}
+                                <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
 
-                    {/* Stats */}
-                    <Tabs.Panel id="stats" className="pt-4">
-                        <ProfileStatsTab
-                            rating={rating}
-                            peakRating={peakRating}
-                            winRate={winRate}
-                            totalMatches={totalMatches}
-                            tournamentsPlayed={tournamentsPlayed}
-                            tournamentsWon={tournamentsWon}
-                            currentStreak={currentStreak}
-                            bestStreak={bestStreak}
-                            ratingHistory={ratingHistory}
-                            gamiStats={gamiStats}
-                        />
-                    </Tabs.Panel>
+                                {bioLocationGames}
 
-                    {/* Marketplace */}
-                    <Tabs.Panel id="marketplace" className="pt-4">
-                        <ProfileMarketplaceTab listings={listings} />
-                    </Tabs.Panel>
+                                {/* Divider */}
+                                <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
 
-                    {/* Logros */}
-                    <Tabs.Panel id="logros" className="pt-4">
-                        <ProfileLogrosTab
-                            earnedBadges={badges}
-                            allBadges={allBadges}
-                            badgesCount={badgesCount}
-                            gamiStats={gamiStats}
-                            isOwnProfile={isOwnProfile}
-                        />
-                    </Tabs.Panel>
-                </Tabs>
+                                {/* Stats — flat, no card wrapper in desktop */}
+                                <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
+                                        <p style={{ color: "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
+                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
+                                    </div>
+                                    <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
+                                        <p style={{ color: winRate > 0 ? winRateColor : "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
+                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
+                                    </div>
+                                    <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
+                                        <p style={{ color: "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
+                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
+                                    </div>
+                                    <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
+                                        <p style={{ color: "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>
+                                            {currentStreak > 0 ? `${currentStreak}W` : bestStreak > 0 ? `${bestStreak}` : "-"}
+                                        </p>
+                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
+                                    </div>
+                                </div>
+
+                                {/* XP — flat in desktop */}
+                                {(totalXp > 0 || level > 0) && (
+                                    <div style={{ marginTop: 8 }}>
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                                            <span style={{ fontSize: 9, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                                NV. {level} &rarr; {level + 1}
+                                            </span>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: "#F2F2F2" }}>{currentLevelXp}/{xpToNextLevel}</span>
+                                        </div>
+                                        <div style={{ height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                                            <div style={{ height: "100%", borderRadius: 2, backgroundColor: "#F2F2F2", width: `${xpProgress}%` }} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Divider */}
+                                <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
+
+                                {/* Action buttons */}
+                                {actionButtons}
+
+                                {/* Social row */}
+                                <div style={{ marginTop: 12 }}>{socialRow}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Right Panel: Tabs + Content + Extra Sections ── */}
+                    <div className="flex-1 min-w-0">
+                        {tabPills}
+                        <div style={{ marginTop: 16 }}>
+                            {tabContent}
+                        </div>
+
+                        {/* ── Extra sections (Discord-style) ── */}
+                        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+
+                            {/* Juegos que juega */}
+                            {gamesList.length > 0 && (
+                                <div style={{
+                                    backgroundColor: "#1A1A1E", borderRadius: 16,
+                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                }}>
+                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12, margin: 0 }}>
+                                        Juegos que juega
+                                    </p>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+                                        {gamesList.map((game: string) => (
+                                            <div key={game} style={{
+                                                display: "flex", alignItems: "center", gap: 10,
+                                                backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 12,
+                                                padding: "10px 14px",
+                                                border: "1px solid rgba(255,255,255,0.06)",
+                                            }}>
+                                                <span style={{ fontSize: 20 }}>🎮</span>
+                                                <div>
+                                                    <p style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 600, margin: 0 }}>{game}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Insignias destacadas */}
+                            {badges.length > 0 && (
+                                <div style={{
+                                    backgroundColor: "#1A1A1E", borderRadius: 16,
+                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                }}>
+                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                        Insignias destacadas
+                                    </p>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+                                        {badges.slice(0, 6).map((badge: any, i: number) => (
+                                            <div key={badge.id || badge.slug || i} style={{
+                                                display: "flex", flexDirection: "column", alignItems: "center",
+                                                gap: 6, padding: 12, borderRadius: 12,
+                                                backgroundColor: "rgba(255,255,255,0.04)",
+                                                border: "1px solid rgba(255,255,255,0.06)",
+                                                width: 80,
+                                            }}>
+                                                {badge.icon_url ? (
+                                                    <img src={badge.icon_url} alt={badge.name} style={{ width: 32, height: 32, objectFit: "contain" }} />
+                                                ) : (
+                                                    <span style={{ fontSize: 24 }}>🏅</span>
+                                                )}
+                                                <span style={{ color: "#F2F2F2", fontSize: 9, fontWeight: 600, textAlign: "center", lineHeight: "12px" }}>
+                                                    {badge.name || "Logro"}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Amigos */}
+                            {friends.length > 0 && (
+                                <div style={{
+                                    backgroundColor: "#1A1A1E", borderRadius: 16,
+                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                }}>
+                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                        Amigos ({friends.length})
+                                    </p>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 12 }}>
+                                        {friends.slice(0, 5).map((friend: any, i: number) => (
+                                            <a
+                                                key={friend.user_id || friend.id || i}
+                                                href={`/perfil/${friend.username}`}
+                                                style={{
+                                                    display: "flex", alignItems: "center", gap: 10,
+                                                    padding: "8px 10px", borderRadius: 10,
+                                                    textDecoration: "none",
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: 32, height: 32, borderRadius: 16,
+                                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                    overflow: "hidden", flexShrink: 0,
+                                                }}>
+                                                    {friend.avatar_url ? (
+                                                        <img src={friend.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }} />
+                                                    ) : (
+                                                        <span style={{ color: "#F2F2F2", fontSize: 12, fontWeight: 700 }}>
+                                                            {friend.username?.[0]?.toUpperCase() || "?"}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 500 }}>{friend.username}</span>
+                                                {friend.is_online && (
+                                                    <div style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#22C55E", marginLeft: "auto" }} />
+                                                )}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             {/* ── Edit Profile Modal ── */}
@@ -635,7 +1083,6 @@ function EditProfileModal({
 
     const handleSave = async () => {
         if (!token) {
-            toast.danger("No estas autenticado");
             return;
         }
         setSaving(true);
@@ -649,100 +1096,219 @@ function EditProfileModal({
             if (bannerUrl !== (profile?.banner_url || "")) payload.banner_url = bannerUrl;
 
             if (Object.keys(payload).length === 0) {
-                toast.info("No hay cambios que guardar");
                 onClose();
                 return;
             }
 
             await updateProfile(payload, token);
-            toast.success("Perfil actualizado");
             onSaved({ ...profile, ...payload });
         } catch (err: any) {
-            toast.danger(err?.message || "Error al actualizar perfil");
+            console.error(err?.message || "Error al actualizar perfil");
         } finally {
             setSaving(false);
         }
     };
 
+    const countries = [
+        { code: "", label: "Ninguno" },
+        { code: "CL", label: "Chile" },
+        { code: "AR", label: "Argentina" },
+        { code: "MX", label: "Mexico" },
+        { code: "CO", label: "Colombia" },
+        { code: "PE", label: "Peru" },
+    ];
+
+    const initial = (profile?.display_name || profile?.name || profile?.username || "?")[0]?.toUpperCase();
+
+    const inputStyle: React.CSSProperties = {
+        width: "100%",
+        color: "#F2F2F2",
+        fontSize: 15,
+        padding: "14px 16px",
+        backgroundColor: "transparent",
+        border: "none",
+        outline: "none",
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+        <div
+            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+            onClick={onClose}
+        >
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60" />
+            <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.6)" }} />
 
             {/* Modal */}
             <div
-                className="relative w-full max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--bg-solid)] shadow-2xl max-h-[90vh] overflow-y-auto"
+                style={{
+                    position: "relative",
+                    width: "100%",
+                    maxWidth: 480,
+                    backgroundColor: "#000000",
+                    borderRadius: 24,
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-                    <h2 className="text-lg font-bold text-[var(--foreground)]">Editar Perfil</h2>
-                    <button onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                        <Xmark className="size-5" />
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "16px",
+                    borderBottom: "1px solid rgba(255,255,255,0.06)",
+                }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            backgroundColor: "#1A1A1E",
+                            border: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Xmark width={20} height={20} color="#F2F2F2" />
+                    </button>
+                    <span style={{ color: "#F2F2F2", fontSize: 17, fontWeight: 700 }}>Perfil</span>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        style={{
+                            backgroundColor: "#3B82F6",
+                            color: "#FFFFFF",
+                            border: "none",
+                            borderRadius: 20,
+                            padding: "8px 18px",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            cursor: saving ? "not-allowed" : "pointer",
+                            opacity: saving ? 0.6 : 1,
+                        }}
+                    >
+                        {saving ? "..." : "Guardar"}
                     </button>
                 </div>
 
-                {/* Form */}
-                <div className="p-4 space-y-4">
-                    <div>
-                        <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">Nombre</label>
-                        <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Tu nombre publico" className="w-full" />
+                {/* Banner preview */}
+                <div style={{ height: 140, overflow: "hidden", position: "relative" }}>
+                    {profile?.banner_url ? (
+                        <img src={profile.banner_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                        <div style={{ width: "100%", height: "100%", position: "relative" }}>
+                            <div style={{ position: "absolute", inset: 0, top: 0, height: "50%", backgroundColor: "#1E3A5F" }} />
+                            <div style={{ position: "absolute", inset: 0, top: "50%", height: "50%", backgroundColor: "#0F2340" }} />
+                        </div>
+                    )}
+                </div>
+
+                {/* Avatar overlapping banner */}
+                <div style={{ marginTop: -40, paddingLeft: 16, marginBottom: 12 }}>
+                    <div style={{ position: "relative", width: 80, height: 80 }}>
+                        {profile?.avatar_url ? (
+                            <img src={profile.avatar_url} alt="" style={{ width: 80, height: 80, borderRadius: 40, border: "4px solid #000000", objectFit: "cover" }} />
+                        ) : (
+                            <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#1A1A1E", border: "4px solid #000000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <span style={{ color: "#FFFFFF", fontSize: 28, fontWeight: 800 }}>{initial}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Form fields */}
+                <div style={{ padding: "0 16px", paddingBottom: 24 }}>
+                    {/* Display Name */}
+                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>NOMBRE PARA MOSTRAR</p>
+                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                        <input
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            placeholder="Tu nombre publico"
+                            style={{ ...inputStyle }}
+                        />
                     </div>
 
-                    <div>
-                        <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">Bio</label>
+                    {/* Bio */}
+                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>BIO</p>
+                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             placeholder="Cuentanos sobre ti..."
-                            rows={3}
                             maxLength={300}
-                            className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] text-[var(--foreground)] text-sm p-3 resize-none focus:outline-none focus:border-[var(--accent)] transition-colors"
+                            rows={3}
+                            style={{
+                                ...inputStyle,
+                                minHeight: 88,
+                                resize: "none",
+                            }}
                         />
-                        <p className="text-[10px] text-[var(--muted)] text-right mt-0.5">{bio.length}/300</p>
+                        <p style={{ color: "#5C5C66", fontSize: 11, textAlign: "right", padding: "0 16px 10px" }}>{bio.length}/300</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">Ciudad</label>
-                            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ej: Santiago" className="w-full" />
+                    {/* Location */}
+                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>INFORMACION</p>
+                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                        <input
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Ciudad"
+                            style={{ ...inputStyle }}
+                        />
+                        <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.08)", marginLeft: 16 }} />
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "12px 16px" }}>
+                            {countries.map((c) => (
+                                <button
+                                    key={c.code}
+                                    onClick={() => setCountry(c.code)}
+                                    style={{
+                                        paddingLeft: 12,
+                                        paddingRight: 12,
+                                        paddingTop: 6,
+                                        paddingBottom: 6,
+                                        borderRadius: 16,
+                                        backgroundColor: country === c.code ? "#3B82F6" : "rgba(255,255,255,0.06)",
+                                        color: country === c.code ? "#FFFFFF" : "#888891",
+                                        fontSize: 13,
+                                        fontWeight: country === c.code ? 600 : 400,
+                                        border: "none",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    {c.label}
+                                </button>
+                            ))}
                         </div>
-                        <div>
-                            <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">Pais</label>
-                            <select
-                                value={country}
-                                onChange={(e) => setCountry(e.target.value)}
-                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] text-[var(--foreground)] text-sm p-2.5 focus:outline-none focus:border-[var(--accent)] transition-colors"
-                            >
-                                <option value="">Seleccionar pais</option>
-                                <option value="CL">Chile</option>
-                                <option value="AR">Argentina</option>
-                                <option value="MX">Mexico</option>
-                                <option value="CO">Colombia</option>
-                                <option value="PE">Peru</option>
-                            </select>
-                        </div>
                     </div>
 
-                    <div>
-                        <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">URL Avatar</label>
-                        <Input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." className="w-full" />
+                    {/* Avatar URL */}
+                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>URL AVATAR</p>
+                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                        <input
+                            value={avatarUrl}
+                            onChange={(e) => setAvatarUrl(e.target.value)}
+                            placeholder="https://..."
+                            style={{ ...inputStyle }}
+                        />
                     </div>
 
-                    <div>
-                        <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">URL Banner</label>
-                        <Input value={bannerUrl} onChange={(e) => setBannerUrl(e.target.value)} placeholder="https://..." className="w-full" />
+                    {/* Banner URL */}
+                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>URL BANNER</p>
+                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                        <input
+                            value={bannerUrl}
+                            onChange={(e) => setBannerUrl(e.target.value)}
+                            placeholder="https://..."
+                            style={{ ...inputStyle }}
+                        />
                     </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex gap-2 p-4 border-t border-[var(--border)]">
-                    <Button variant="secondary" className="flex-1 font-bold" onPress={onClose} isDisabled={saving}>
-                        Cancelar
-                    </Button>
-                    <Button variant="primary" className="flex-1 font-bold" onPress={handleSave} isDisabled={saving}>
-                        {saving ? "Guardando..." : "Guardar Cambios"}
-                    </Button>
                 </div>
             </div>
         </div>
@@ -751,12 +1317,17 @@ function EditProfileModal({
 
 function EmptyState({ emoji, title, description }: { emoji: string; title: string; description: string }) {
     return (
-        <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <Card.Content className="py-14 text-center">
-                <p className="text-3xl mb-3 opacity-50">{emoji}</p>
-                <p className="text-sm font-medium text-[var(--foreground)]">{title}</p>
-                <p className="text-xs mt-1 text-[var(--muted)]">{description}</p>
-            </Card.Content>
-        </Card>
+        <div style={{
+            backgroundColor: "#1A1A1E",
+            borderRadius: 16,
+            border: "1px solid rgba(255,255,255,0.06)",
+            paddingTop: 48,
+            paddingBottom: 48,
+            textAlign: "center",
+        }}>
+            <p style={{ fontSize: 28, opacity: 0.5, marginBottom: 8 }}>{emoji}</p>
+            <p style={{ color: "#F2F2F2", fontSize: 14, fontWeight: 500 }}>{title}</p>
+            <p style={{ color: "#888891", fontSize: 12, marginTop: 4 }}>{description}</p>
+        </div>
     );
 }

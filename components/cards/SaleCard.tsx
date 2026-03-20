@@ -1,120 +1,114 @@
-import { Card, Chip, Avatar } from "@heroui/react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import type { Listing } from "@/lib/types/marketplace";
-import { MapPin } from "@gravity-ui/icons";
-import SaleCardActions from "./SaleCardActions";
-
-const conditionColors: Record<string, "success" | "warning" | "danger" | "default"> = {
-    mint: "success",
-    near_mint: "success",
-    NM: "success",
-    M: "success",
-    excellent: "warning",
-    good: "warning",
-    LP: "warning",
-    MP: "warning",
-    played: "danger",
-    HP: "danger",
-    damaged: "danger",
-    DMG: "danger",
-};
 
 export default function SaleCard({ listing }: { listing: Listing }) {
-    const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
-    const condition = listing.card_condition || "";
-    const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
-    const isStore = !!listing.tenant_name;
+    const imageUrl =
+        listing.card_image_url ||
+        listing.images?.[0]?.url ||
+        listing.images?.[0]?.thumbnail_url;
+
+    const name = listing.title || listing.card_name || "Sin titulo";
+    const setName = listing.set_name;
+    const condition = listing.card_condition;
+    const price =
+        listing.price != null
+            ? `$${listing.price.toLocaleString("es-CL")}`
+            : "Consultar";
 
     return (
-        <Card className="surface-card rounded-[22px] overflow-hidden group">
-            <Card.Content className="p-0">
-                {/* Promoted badge */}
+        <Link href={`/marketplace/${listing.id}`} className="block h-full">
+            <div
+                className="rounded-2xl overflow-hidden h-full flex flex-col"
+                style={{
+                    backgroundColor: "#1A1A1E",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                }}
+            >
+                {/* Image — fixed aspect ratio, cover to fill uniformly */}
                 <div
-                    className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide"
+                    className="relative w-full shrink-0"
                     style={{
-                        background: "var(--accent)",
-                        color: "var(--accent-foreground)",
+                        aspectRatio: "63 / 88",
+                        backgroundColor: "#111113",
                     }}
                 >
-                    Venta
-                </div>
-
-                {/* Image — clickable to detail */}
-                <Link href={`/marketplace/${listing.id}`}>
-                    <div className="relative aspect-[4/5] w-full overflow-hidden cursor-pointer" style={{ background: "var(--surface-secondary)" }}>
-                        {imageUrl ? (
-                            <Image
-                                src={imageUrl}
-                                alt={listing.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                sizes="(max-width: 768px) 50vw, 25vw"
-                            />
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-3xl">🃏</div>
-                        )}
-                    </div>
-                </Link>
-
-                {/* Content */}
-                <div className="p-2.5 sm:p-3 space-y-1.5 sm:space-y-2">
-                    <h3 className="text-xs sm:text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
-                        {listing.title}
-                    </h3>
-
-                    {/* Price — prominent */}
-                    {listing.price != null && (
-                        <p className="text-base sm:text-lg font-extrabold" style={{ color: "var(--accent)" }}>
-                            ${listing.price.toLocaleString("es-CL")}
-                        </p>
+                    {imageUrl ? (
+                        <Image
+                            src={imageUrl}
+                            alt={name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                        />
+                    ) : (
+                        <div className="flex items-center justify-center h-full">
+                            <span className="text-3xl opacity-30">🃏</span>
+                        </div>
                     )}
-
-                    {/* Meta chips — hide overflow on mobile */}
-                    <div className="flex flex-wrap gap-1 max-h-[52px] overflow-hidden">
-                        {condition && (
-                            <Chip
-                                color={conditionColors[condition] || "default"}
-                                variant="soft"
-                                size="sm"
-                            >
-                                {condition}
-                            </Chip>
-                        )}
-                        {listing.game_name && (
-                            <Chip variant="secondary" size="sm">{listing.game_name}</Chip>
-                        )}
-                        {listing.is_foil && (
-                            <Chip color="warning" variant="soft" size="sm">Foil</Chip>
-                        )}
-                    </div>
-
-                    {/* Seller + Location row — compact */}
-                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs min-w-0" style={{ color: "var(--muted)" }}>
-                        <Avatar size="sm" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0">
-                            {listing.seller_avatar_url ? (
-                                <Avatar.Image src={listing.seller_avatar_url} />
-                            ) : null}
-                            <Avatar.Fallback className="text-[7px]">
-                                {sellerName[0]?.toUpperCase()}
-                            </Avatar.Fallback>
-                        </Avatar>
-                        <span className="truncate font-medium">{sellerName}</span>
-                        {(isStore || listing.is_verified_store) && (
-                            <span className="text-[var(--success)] shrink-0">✓</span>
-                        )}
-                        {listing.city && (
-                            <>
-                                <span className="text-[var(--border)]">·</span>
-                                <span className="truncate shrink-0">{listing.city}</span>
-                            </>
-                        )}
-                    </div>
-
-                    {/* CTA */}
-                    <SaleCardActions listingId={listing.id} sellerUsername={listing.seller_username || ""} />
                 </div>
-            </Card.Content>
-        </Card>
+
+                {/* Body — fixed height so all cards align */}
+                <div className="flex flex-col flex-1" style={{ padding: "10px" }}>
+                    {/* Title — always 2 lines tall */}
+                    <p
+                        className="line-clamp-2"
+                        style={{
+                            color: "#F2F2F2",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            lineHeight: "16px",
+                            minHeight: "32px",
+                        }}
+                    >
+                        {name}
+                    </p>
+
+                    {/* Set name — always 1 line tall */}
+                    <p
+                        className="truncate"
+                        style={{
+                            color: "#888891",
+                            fontSize: "10px",
+                            marginTop: "2px",
+                            minHeight: "14px",
+                        }}
+                    >
+                        {setName || "\u00A0"}
+                    </p>
+
+                    {/* Price + condition — pushed to bottom */}
+                    <div
+                        className="flex items-center justify-between mt-auto"
+                        style={{ paddingTop: "6px" }}
+                    >
+                        <span
+                            style={{
+                                color: "#F2F2F2",
+                                fontSize: "14px",
+                                fontWeight: 700,
+                            }}
+                        >
+                            {price}
+                        </span>
+                        {condition && (
+                            <span
+                                className="uppercase"
+                                style={{
+                                    color: "#888891",
+                                    fontSize: "9px",
+                                    fontWeight: 600,
+                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                    padding: "2px 6px",
+                                    borderRadius: "8px",
+                                }}
+                            >
+                                {condition.replace("_", " ")}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </Link>
     );
 }

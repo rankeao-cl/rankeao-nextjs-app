@@ -1,108 +1,276 @@
 "use client";
 
-import { Card, Chip, Avatar } from "@heroui/react";
 import Image from "next/image";
-import ReactionBar from "@/components/ReactionBar";
 import { useState } from "react";
+import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
 
 export interface FeedPost {
     id: string;
-    author: { username: string; avatar_url?: string; rank_badge?: string };
-    text: string;
+    user_id?: string;
+    username?: string;
+    avatar_url?: string;
+    author?: { username: string; avatar_url?: string; rank_badge?: string };
+    content?: string;
+    text?: string;
     images?: string[];
     tags?: string[];
     game?: string;
     likes_count?: number;
     comments_count?: number;
-    reactions?: Record<string, number>;
-    user_reactions?: string[];
+    rank_badge?: string;
     created_at: string;
 }
 
 export default function PostCard({ post }: { post: FeedPost }) {
     const timeAgo = getTimeAgo(post.created_at);
 
-    const [reactions, setReactions] = useState<Record<string, number>>(
-        post.reactions ?? { love: post.likes_count ?? 0 }
-    );
-    const [userReactions, setUserReactions] = useState<string[]>(
-        post.user_reactions ?? []
-    );
+    const authorUsername = post.author?.username || post.username || "Usuario";
+    const authorAvatar = post.author?.avatar_url || post.avatar_url;
+    const authorRankBadge = post.author?.rank_badge || post.rank_badge;
+    const postText = post.text || post.content || "";
 
-    const handleReact = (type: string) => {
-        setUserReactions((prev) => {
-            const already = prev.includes(type);
-            setReactions((r) => ({
-                ...r,
-                [type]: Math.max(0, (r[type] || 0) + (already ? -1 : 1)),
-            }));
-            return already ? prev.filter((t) => t !== type) : [...prev, type];
+    const [liked, setLiked] = useState(false);
+    const [likesCount, setLikesCount] = useState(post.likes_count ?? 0);
+    const [bookmarked, setBookmarked] = useState(false);
+
+    const handleLike = () => {
+        setLiked((prev) => {
+            setLikesCount((c) => c + (prev ? -1 : 1));
+            return !prev;
         });
     };
 
     return (
-        <Card className="surface-card rounded-[22px] overflow-hidden">
-            <Card.Content className="p-4 space-y-3">
-                {/* Author header */}
-                <div className="flex items-center gap-3">
-                    <Avatar size="sm">
-                        {post.author.avatar_url ? (
-                            <Avatar.Image alt={post.author.username} src={post.author.avatar_url} />
-                        ) : null}
-                        <Avatar.Fallback>{post.author.username[0]?.toUpperCase()}</Avatar.Fallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-                                {post.author.username}
-                            </span>
-                            {post.author.rank_badge && (
-                                <Chip size="sm" variant="soft" color="accent">{post.author.rank_badge}</Chip>
-                            )}
-                        </div>
-                        <span className="text-xs" style={{ color: "var(--muted)" }}>{timeAgo}</span>
-                    </div>
+        <article
+            style={{
+                background: "#1A1A1E",
+                borderRadius: 16,
+                border: "1px solid rgba(255,255,255,0.06)",
+                padding: 14,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+            }}
+        >
+            {/* Author header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* Avatar 36px */}
+                <div
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: "#2A2A2E",
+                        overflow: "hidden",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#F2F2F2",
+                    }}
+                >
+                    {authorAvatar ? (
+                        <Image
+                            src={authorAvatar}
+                            alt={authorUsername}
+                            width={36}
+                            height={36}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                    ) : (
+                        authorUsername[0]?.toUpperCase()
+                    )}
                 </div>
 
-                {/* Text */}
-                <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>
-                    {post.text}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span
+                            style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: "#F2F2F2",
+                            }}
+                        >
+                            {authorUsername}
+                        </span>
+                        {authorRankBadge && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "#eab308",
+                                    background: "rgba(234,179,8,0.15)",
+                                    padding: "2px 6px",
+                                    borderRadius: 6,
+                                }}
+                            >
+                                {authorRankBadge}
+                            </span>
+                        )}
+                    </div>
+                    <span style={{ fontSize: 10, color: "#888891" }}>{timeAgo}</span>
+                </div>
+            </div>
+
+            {/* Text content */}
+            {postText && (
+                <p
+                    style={{
+                        fontSize: 14,
+                        color: "#F2F2F2",
+                        lineHeight: 1.6,
+                        margin: 0,
+                        whiteSpace: "pre-wrap",
+                    }}
+                >
+                    {postText}
                 </p>
+            )}
 
-                {/* Images */}
-                {post.images && post.images.length > 0 && (
-                    <div className={`grid gap-1 rounded-lg overflow-hidden ${post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
-                        }`}>
-                        {post.images.slice(0, 4).map((src, i) => (
-                            <div key={i} className="relative aspect-square" style={{ background: "var(--surface-secondary)" }}>
-                                <Image src={src} alt="" fill className="object-cover" sizes="50vw" />
-                            </div>
-                        ))}
-                    </div>
-                )}
+            {/* Tags */}
+            {(post.tags || post.game) && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {post.game && (
+                        <span
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "#3B82F6",
+                                background: "rgba(59,130,246,0.2)",
+                                padding: "3px 8px",
+                                borderRadius: 8,
+                            }}
+                        >
+                            {post.game}
+                        </span>
+                    )}
+                    {post.tags?.map((tag) => (
+                        <span
+                            key={tag}
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                color: "#a855f7",
+                                background: "rgba(168,85,247,0.15)",
+                                padding: "3px 8px",
+                                borderRadius: 8,
+                            }}
+                        >
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            )}
 
-                {/* Tags */}
-                {(post.tags || post.game) && (
-                    <div className="flex flex-wrap gap-1">
-                        {post.game && <Chip variant="secondary" size="sm">{post.game}</Chip>}
-                        {post.tags?.map((tag) => (
-                            <Chip key={tag} variant="soft" size="sm">#{tag}</Chip>
-                        ))}
-                    </div>
-                )}
+            {/* Image gallery */}
+            {post.images && post.images.length > 0 && (
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: post.images.length === 1 ? "1fr" : "1fr 1fr",
+                        gap: 4,
+                        borderRadius: 10,
+                        overflow: "hidden",
+                    }}
+                >
+                    {post.images.slice(0, 4).map((src, i) => (
+                        <div
+                            key={i}
+                            style={{
+                                position: "relative",
+                                aspectRatio: "1 / 1",
+                                background: "#111113",
+                            }}
+                        >
+                            <Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="50vw" />
+                        </div>
+                    ))}
+                </div>
+            )}
 
-                {/* Reaction bar */}
-                <ReactionBar
-                    reactions={reactions}
-                    userReactions={userReactions}
-                    commentCount={post.comments_count || 0}
-                    onReact={handleReact}
-                    onComment={() => {}}
-                    onShare={() => {}}
-                    onBookmark={() => {}}
-                />
-            </Card.Content>
-        </Card>
+            {/* Reaction bar */}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingTop: 8,
+                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                }}
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "#888891" }}>
+                    <button
+                        type="button"
+                        onClick={handleLike}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            color: liked ? "#ef4444" : "#888891",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: "inherit",
+                        }}
+                    >
+                        <Heart style={{ width: 18, height: 18 }} />
+                        {likesCount > 0 && <span>{likesCount}</span>}
+                    </button>
+                    <button
+                        type="button"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            color: "#888891",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: "inherit",
+                        }}
+                    >
+                        <Comment style={{ width: 18, height: 18 }} />
+                        {(post.comments_count ?? 0) > 0 && <span>{post.comments_count}</span>}
+                    </button>
+                    <button
+                        type="button"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            color: "#888891",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontSize: "inherit",
+                        }}
+                    >
+                        <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
+                    </button>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => setBookmarked((b) => !b)}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        background: "none",
+                        border: "none",
+                        color: bookmarked ? "#3B82F6" : "#888891",
+                        cursor: "pointer",
+                        padding: 0,
+                    }}
+                >
+                    <Bookmark style={{ width: 18, height: 18 }} />
+                </button>
+            </div>
+        </article>
     );
 }
 

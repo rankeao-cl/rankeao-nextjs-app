@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Input, Button, Select, ListBox, Slider, Accordion } from "@heroui/react";
+import { Input, Button, Slider, Accordion } from "@heroui/react";
 import type { CatalogGame } from "@/lib/types/catalog";
 
 const conditionOptions = [
@@ -164,23 +164,23 @@ export default function MarketplaceFilters({ currentFilters, games = [] }: Props
           </Accordion.Heading>
           <Accordion.Panel>
             <Accordion.Body>
-              <Select
-                selectedKey={currentFilters.sort || "newest"}
-                onSelectionChange={(key) => updateFilter("sort", String(key ?? "newest"))}
-                className="w-full mt-1"
-                aria-label="Ordenar"
-              >
-                <Select.Trigger className="min-h-10 text-sm rounded-xl" style={{ background: "var(--field-background)", border: "1px solid var(--border)" }} />
-                <Select.Popover>
-                  <ListBox>
-                    {sortOptions.map((opt) => (
-                      <ListBox.Item key={opt.value} id={opt.value} textValue={opt.label}>
-                        {opt.label}
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
+              <div className="flex flex-col gap-2 mt-2">
+                {sortOptions.map((opt) => {
+                  const isActive = (currentFilters.sort || "newest") === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => updateFilter("sort", opt.value)}
+                      className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${isActive
+                        ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
+                        : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
+                        }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
             </Accordion.Body>
           </Accordion.Panel>
         </Accordion.Item>

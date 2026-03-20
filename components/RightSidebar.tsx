@@ -24,10 +24,10 @@ function SidebarSection({ title, icon, children, viewAllHref }: {
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                     {icon}
-                    <h3 className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider">{title}</h3>
+                    <h3 className="text-xs font-bold text-[#F2F2F2] uppercase tracking-wider">{title}</h3>
                 </div>
                 {viewAllHref && (
-                    <Link href={viewAllHref} className="text-[10px] font-semibold text-[var(--accent)] hover:underline flex items-center gap-0.5">
+                    <Link href={viewAllHref} className="text-[10px] font-semibold text-[#3B82F6] hover:underline flex items-center gap-0.5">
                         Ver todo <ArrowRight className="size-3" />
                     </Link>
                 )}
@@ -73,7 +73,7 @@ export default function RightSidebar() {
     return (
         <aside
             className="hidden xl:flex flex-col w-[260px] h-full sticky top-16 border-l overflow-y-auto p-4 gap-5"
-            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+            style={{ borderColor: "rgba(255,255,255,0.08)", background: "#000000" }}
         >
             {/* Trending Games */}
             <SidebarSection
@@ -88,7 +88,7 @@ export default function RightSidebar() {
                             <Link
                                 key={game.slug}
                                 href={`/juegos/${game.slug}`}
-                                className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[var(--surface-secondary)] transition-colors group"
+                                className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[#222226] transition-colors group"
                             >
                                 <div
                                     className="w-8 h-8 rounded-lg overflow-hidden border shrink-0"
@@ -106,18 +106,18 @@ export default function RightSidebar() {
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
+                                    <p className="text-xs font-semibold text-[#F2F2F2] truncate group-hover:text-[#3B82F6] transition-colors">
                                         {game.name}
                                     </p>
                                     {game.formats_count != null && (
-                                        <p className="text-[10px] text-[var(--muted)]">{game.formats_count} formatos</p>
+                                        <p className="text-[10px] text-[#888891]">{game.formats_count} formatos</p>
                                     )}
                                 </div>
                             </Link>
                         );
                     })}
                     {!loading && games.length === 0 && (
-                        <p className="text-[11px] text-[var(--muted)] italic px-2">Sin datos</p>
+                        <p className="text-[11px] text-[#888891] italic px-2">Sin datos</p>
                     )}
                 </div>
             </SidebarSection>
@@ -125,7 +125,7 @@ export default function RightSidebar() {
             {/* Tournaments */}
             <SidebarSection
                 title="Torneos"
-                icon={<Cup className="size-3.5 text-[var(--accent)]" />}
+                icon={<Cup className="size-3.5 text-[#3B82F6]" />}
                 viewAllHref="/torneos"
             >
                 <div className="space-y-1.5">
@@ -135,15 +135,15 @@ export default function RightSidebar() {
                             <Link
                                 key={t.id}
                                 href={`/torneos/${t.id}`}
-                                className="block p-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--accent)]/30 bg-[var(--surface-secondary)] hover:bg-[var(--surface-secondary)] transition-colors"
+                                className="block p-2.5 rounded-xl border border-[rgba(255,255,255,0.06)] hover:border-[#3B82F6]/30 bg-[#222226] hover:bg-[#222226] transition-colors"
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-bold text-[var(--foreground)] truncate flex-1 mr-2">{t.name}</span>
+                                    <span className="text-xs font-bold text-[#F2F2F2] truncate flex-1 mr-2">{t.name}</span>
                                     <Chip size="sm" color={isLive ? "success" : "warning"} variant="soft" className="text-[9px] shrink-0">
                                         {isLive ? "En vivo" : "Abierto"}
                                     </Chip>
                                 </div>
-                                <div className="flex items-center gap-2 text-[10px] text-[var(--muted)]">
+                                <div className="flex items-center gap-2 text-[10px] text-[#888891]">
                                     <span>{t.game}</span>
                                     <span>·</span>
                                     <span className="flex items-center gap-0.5">
@@ -152,7 +152,7 @@ export default function RightSidebar() {
                                     {t.current_round && (
                                         <>
                                             <span>·</span>
-                                            <span className="text-[var(--success)] font-semibold">R{t.current_round}</span>
+                                            <span className="text-[#22C55E] font-semibold">R{t.current_round}</span>
                                         </>
                                     )}
                                 </div>
@@ -160,8 +160,8 @@ export default function RightSidebar() {
                         );
                     })}
                     {!loading && tournaments.length === 0 && (
-                        <div className="text-center py-4 px-2 rounded-xl border border-dashed border-[var(--border)]">
-                            <p className="text-[11px] text-[var(--muted)]">Sin torneos activos</p>
+                        <div className="text-center py-4 px-2 rounded-xl border border-dashed border-[rgba(255,255,255,0.06)]">
+                            <p className="text-[11px] text-[#888891]">Sin torneos activos</p>
                         </div>
                     )}
                 </div>
@@ -178,20 +178,20 @@ export default function RightSidebar() {
                         <Link
                             key={tenant.id}
                             href={`/comunidades/${tenant.slug || tenant.id}`}
-                            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[var(--surface-secondary)] transition-colors group"
+                            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[#222226] transition-colors group"
                         >
-                            <div className="w-8 h-8 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-center text-[11px] shrink-0 overflow-hidden">
+                            <div className="w-8 h-8 rounded-lg bg-[#222226] border border-[rgba(255,255,255,0.06)] flex items-center justify-center text-[11px] shrink-0 overflow-hidden">
                                 {tenant.logo_url ? (
                                     <Image src={tenant.logo_url} alt={tenant.name} width={32} height={32} className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="font-bold text-[var(--accent)]">{tenant.name?.charAt(0)?.toUpperCase()}</span>
+                                    <span className="font-bold text-[#3B82F6]">{tenant.name?.charAt(0)?.toUpperCase()}</span>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
+                                <p className="text-xs font-semibold text-[#F2F2F2] truncate group-hover:text-[#3B82F6] transition-colors">
                                     {tenant.name}
                                 </p>
-                                <p className="text-[10px] text-[var(--muted)] truncate">
+                                <p className="text-[10px] text-[#888891] truncate">
                                     {tenant.city || "Comunidad"}
                                 </p>
                             </div>
@@ -201,8 +201,8 @@ export default function RightSidebar() {
             </SidebarSection>
 
             {/* Footer */}
-            <div className="mt-auto pt-3 border-t border-[var(--border)] px-1">
-                <p className="text-[10px] text-[var(--muted)] leading-relaxed">
+            <div className="mt-auto pt-3 border-t border-[rgba(255,255,255,0.06)] px-1">
+                <p className="text-[10px] text-[#888891] leading-relaxed">
                     <Link href="/terminos" className="hover:underline">Términos</Link>
                     {" · "}
                     <Link href="/privacidad" className="hover:underline">Privacidad</Link>

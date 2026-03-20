@@ -1,8 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Avatar, Input, ScrollShadow, Skeleton, Button } from "@heroui/react";
-import { Gear, Comment, Persons, Hierarchy, Plus } from "@gravity-ui/icons";
 import type { Channel, ChannelMember } from "@/lib/types/chat";
 import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";
@@ -17,24 +15,9 @@ interface ChatSidebarProps {
     onChannelLeft?: () => void;
 }
 
-/** Green pulsing dot for online status, positioned absolute on avatar corner */
-function OnlineIndicator({ isOnline, size = "md" }: { isOnline: boolean; size?: "sm" | "md" }) {
-    if (!isOnline) {
-        return (
-            <span className={`absolute bottom-0 right-0 rounded-full border-2 border-[var(--surface)] bg-gray-400 ${size === "sm" ? "w-2.5 h-2.5" : "w-3 h-3"}`} />
-        );
-    }
-    return (
-        <span className={`absolute bottom-0 right-0 rounded-full border-2 border-[var(--surface)] bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)] ${size === "sm" ? "w-2.5 h-2.5" : "w-3 h-3"}`}>
-            <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
-        </span>
-    );
-}
-
 function formatLastSeen(member?: ChannelMember): string | null {
     if (!member) return null;
     if (member.is_online) return "en linea";
-    // If we had a last_seen field, we'd use it. For now, show "offline"
     return "desconectado";
 }
 
@@ -60,6 +43,19 @@ const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
     { key: "comunidades", label: "Comunidades" },
 ];
 
+// Hardcoded color palette
+const C = {
+    bg: "#000000",
+    surface: "#1A1A1E",
+    surfaceLight: "#222226",
+    border: "rgba(255,255,255,0.06)",
+    text: "#F2F2F2",
+    muted: "#888891",
+    accent: "#3B82F6",
+    online: "#23A559",
+    offline: "#888891",
+} as const;
+
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft }: ChatSidebarProps) {
     const { session } = useAuth();
     const myUsername = session?.username;
@@ -71,17 +67,14 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     const filteredChannels = useMemo(() => {
         let result = channels;
 
-        // Apply type filter
         if (chatFilter === "dm") result = result.filter(c => c.type === "DM");
         else if (chatFilter === "grupos") result = result.filter(c => c.type === "GROUP");
         else if (chatFilter === "comunidades") result = result.filter(c => c.type === "CLAN" || c.type === "TOURNAMENT");
 
-        // Apply search filter (match channel name or DM member username)
         if (search.trim()) {
             const q = search.toLowerCase();
             result = result.filter(c => {
                 if (c.name?.toLowerCase().includes(q)) return true;
-                // For DMs, also search by the other member's username
                 if (c.type === "DM" && myUsername) {
                     const otherMember = c.members?.find(m => m.username !== myUsername);
                     if (otherMember?.username?.toLowerCase().includes(q)) return true;
@@ -101,12 +94,10 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
         };
     }, [filteredChannels]);
 
-    const renderChannel = (channel: Channel) => {
+    const renderChannel = (channel: Channel, index: number, arr: Channel[]) => {
         const isSelected = selectedChannel?.id === channel.id;
 
-        // Resolve DM name, avatar and online status
         let displayName = channel.name || (channel.type === "DM" ? "Mensaje Directo" : "Sala Global");
-        let displayAvatar = channel.name === "Soporte Rankeao" ? undefined : channel.name;
         let otherMember: ChannelMember | undefined;
         let isOnline = false;
         const isGroup = channel.type === "GROUP";
@@ -116,194 +107,475 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
             otherMember = channel.members?.find(m => m.username !== myUsername);
             if (otherMember) {
                 displayName = otherMember.username;
-                displayAvatar = otherMember.avatar_url;
                 isOnline = !!otherMember.is_online;
             }
         }
 
         const lastSeenText = channel.type === "DM" ? formatLastSeen(otherMember) : null;
         const hasUnread = (channel.unread_count ?? 0) > 0;
+        const isLast = index === arr.length - 1;
+
+        // Build initials
+        const initials = displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH");
+
+        // Build last message display
+        let lastMessageContent: string | null = null;
+        let lastMessagePrefix = "";
+        if (channel.last_message?.content) {
+            if (channel.last_message.sender_username && channel.last_message.sender_username !== myUsername) {
+                lastMessagePrefix = `${channel.last_message.sender_username}: `;
+            } else if (channel.last_message.sender?.username && channel.last_message.sender.username !== myUsername) {
+                lastMessagePrefix = `${channel.last_message.sender.username}: `;
+            }
+            const content = channel.last_message.content;
+            lastMessageContent = content.length > 40 ? content.slice(0, 40) + "..." : content;
+        }
 
         return (
-            <button
-                key={channel.id}
-                onClick={() => onSelectChannel(channel)}
-                className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all duration-300 text-left
-          ${isSelected
-                        ? "bg-[var(--accent)]/10 border border-[var(--accent)]/25"
-                        : "hover:bg-[var(--surface-secondary)] border border-transparent"}`}
-            >
-                <div className="relative shrink-0 w-11 h-11">
-                    {isGroup ? (
-                        <div className="w-11 h-11 rounded-full border border-[var(--border)] bg-[var(--surface-tertiary)] flex items-center justify-center text-[var(--muted)]">
-                            <Persons className="size-5" />
-                        </div>
-                    ) : (
-                        <>
-                            <Avatar className="w-11 h-11 text-sm border border-[var(--border)] bg-[var(--surface-tertiary)]">
-                                <Avatar.Image src={displayAvatar} alt={displayName} />
-                                <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || (channel.type === "DM" ? "DM" : "CH")}</Avatar.Fallback>
-                            </Avatar>
-                            {channel.type === "DM" && (
-                                <OnlineIndicator isOnline={isOnline} size="sm" />
-                            )}
-                        </>
-                    )}
-                    {(channel.unread_count ?? 0) > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 border-2 border-[var(--surface)]">
-                            {(channel.unread_count ?? 0) > 99 ? '99+' : channel.unread_count}
-                        </span>
-                    )}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                        <p className={`text-sm truncate ${hasUnread ? "font-bold text-[var(--foreground)]" : "font-medium text-[var(--muted)]"}`}>
-                            {displayName}
-                        </p>
-                        {channel.last_message?.created_at && (
-                            <span className={`text-[10px] shrink-0 ${hasUnread ? "text-[var(--foreground)] font-semibold" : "text-[var(--muted)] font-medium"}`}>
-                                {timeAgo(channel.last_message.created_at)}
-                            </span>
+            <div key={channel.id}>
+                <button
+                    onClick={() => onSelectChannel(channel)}
+                    style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        padding: "12px 16px",
+                        background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                    }}
+                >
+                    {/* Avatar */}
+                    <div style={{ position: "relative", flexShrink: 0, width: 44, height: 44 }}>
+                        {isGroup ? (
+                            <div
+                                style={{
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 22,
+                                    backgroundColor: C.surface,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={C.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </div>
+                        ) : (
+                            <>
+                                <div
+                                    style={{
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 22,
+                                        backgroundColor: C.surface,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: C.text,
+                                        fontSize: 14,
+                                        fontWeight: 700,
+                                        overflow: "hidden",
+                                    }}
+                                >
+                                    {otherMember?.avatar_url ? (
+                                        <img
+                                            src={otherMember.avatar_url}
+                                            alt={displayName}
+                                            style={{ width: 44, height: 44, objectFit: "cover" }}
+                                        />
+                                    ) : (
+                                        initials
+                                    )}
+                                </div>
+                                {channel.type === "DM" && (
+                                    <span
+                                        style={{
+                                            position: "absolute",
+                                            bottom: 0,
+                                            right: 0,
+                                            width: 12,
+                                            height: 12,
+                                            borderRadius: "50%",
+                                            border: `2px solid ${C.bg}`,
+                                            backgroundColor: isOnline ? C.online : C.offline,
+                                        }}
+                                    />
+                                )}
+                            </>
                         )}
                     </div>
-                    <p className="text-xs text-[var(--muted)] truncate mt-0.5 font-medium">
-                        {channel.last_message?.content ? (
-                            <span className={channel.unread_count ? "text-[var(--foreground)] font-semibold" : ""}>
-                                {channel.last_message.sender_username && channel.last_message.sender_username !== myUsername
-                                    ? `${channel.last_message.sender_username}: `
-                                    : channel.last_message.sender?.username && channel.last_message.sender.username !== myUsername
-                                    ? `${channel.last_message.sender.username}: `
-                                    : ""}
-                                {channel.last_message.content.slice(0, 40)}{channel.last_message.content.length > 40 ? "..." : ""}
+
+                    {/* Text content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                            <span
+                                style={{
+                                    fontSize: 15,
+                                    fontWeight: hasUnread ? 700 : 500,
+                                    color: hasUnread ? C.text : C.muted,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {displayName}
                             </span>
-                        ) : isGroup ? (
-                            <span className="flex items-center gap-1"><Persons className="size-3" /> Grupo ({memberCount})</span>
-                        ) : channel.type === "CLAN" ? (
-                            <span className="flex items-center gap-1"><Hierarchy className="size-3" /> Comunidad</span>
-                        ) : lastSeenText ? (
-                            <span className={isOnline ? "text-green-500" : ""}>{lastSeenText}</span>
-                        ) : (
-                            <span>Mensaje directo</span>
-                        )}
-                    </p>
-                </div>
-            </button>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                                {channel.last_message?.created_at && (
+                                    <span
+                                        style={{
+                                            fontSize: 11,
+                                            color: hasUnread ? C.text : C.muted,
+                                            fontWeight: hasUnread ? 600 : 400,
+                                        }}
+                                    >
+                                        {timeAgo(channel.last_message.created_at)}
+                                    </span>
+                                )}
+                                {hasUnread && (
+                                    <span
+                                        style={{
+                                            minWidth: 10,
+                                            height: 10,
+                                            borderRadius: 5,
+                                            backgroundColor: C.accent,
+                                        }}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                        <p
+                            style={{
+                                fontSize: 13,
+                                color: hasUnread ? C.text : C.muted,
+                                fontWeight: hasUnread ? 500 : 400,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                margin: "2px 0 0 0",
+                            }}
+                        >
+                            {lastMessageContent ? (
+                                <>{lastMessagePrefix}{lastMessageContent}</>
+                            ) : isGroup ? (
+                                <>Grupo ({memberCount})</>
+                            ) : channel.type === "CLAN" ? (
+                                <>Comunidad</>
+                            ) : lastSeenText ? (
+                                <span style={isOnline ? { color: C.online } : undefined}>{lastSeenText}</span>
+                            ) : (
+                                <>Mensaje directo</>
+                            )}
+                        </p>
+                    </div>
+                </button>
+                {/* Divider */}
+                {!isLast && (
+                    <div
+                        style={{
+                            height: 1,
+                            backgroundColor: C.border,
+                            marginLeft: 72,
+                        }}
+                    />
+                )}
+            </div>
         );
     };
 
-    return (
-        <div className="w-full h-full flex flex-col bg-[var(--surface)] shrink-0 transition-transform">
-            <div className="p-5 border-b border-[var(--border)] flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[var(--foreground)] tracking-wide">Tus Chats</h2>
-                    <div className="flex items-center gap-1">
-                        <Button isIconOnly variant="secondary" size="sm" className="w-8 h-8 rounded-lg text-[var(--foreground)]" onPress={() => setIsNewChatOpen(true)} aria-label="Nuevo Chat">
-                            <Plus width={18} />
-                        </Button>
-                        <Button
-                            isIconOnly
-                            variant="tertiary"
-                            size="sm"
-                            className={`min-w-8 w-8 h-8 rounded-lg ${selectedChannel ? "text-[var(--muted)]" : "text-[var(--muted)]/40"}`}
-                            aria-label="Ajustes de Chat"
-                            isDisabled={!selectedChannel}
-                            onPress={() => { if (selectedChannel) setIsSettingsOpen(true); }}
-                        >
-                            <Gear width={18} />
-                        </Button>
+    const renderSectionHeader = (title: string) => (
+        <div
+            style={{
+                padding: "20px 16px 8px 16px",
+                fontSize: 11,
+                fontWeight: 700,
+                color: C.muted,
+                textTransform: "uppercase",
+                letterSpacing: 1.2,
+            }}
+        >
+            {title}
+        </div>
+    );
+
+    const renderEmptyState = (message: string, showButton = false) => (
+        <div
+            style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 24,
+                textAlign: "center",
+            }}
+        >
+            <div
+                style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: "50%",
+                    backgroundColor: C.surface,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 16,
+                }}
+            >
+                <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: "0 0 4px 0" }}>
+                Sin chats
+            </h3>
+            <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>
+                {message}
+            </p>
+            {showButton && (
+                <button
+                    onClick={() => setIsNewChatOpen(true)}
+                    style={{
+                        marginTop: 16,
+                        backgroundColor: C.accent,
+                        color: "#FFFFFF",
+                        border: "none",
+                        borderRadius: 999,
+                        padding: "10px 20px",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                    }}
+                >
+                    Iniciar chat
+                </button>
+            )}
+        </div>
+    );
+
+    const renderLoadingSkeleton = () => (
+        <div style={{ padding: 16 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", alignItems: "center" }}>
+                    <div
+                        style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
+                            backgroundColor: C.surface,
+                            flexShrink: 0,
+                            animation: "pulse 1.5s ease-in-out infinite",
+                        }}
+                    />
+                    <div style={{ flex: 1 }}>
+                        <div
+                            style={{
+                                height: 12,
+                                width: "70%",
+                                borderRadius: 6,
+                                backgroundColor: C.surface,
+                                marginBottom: 8,
+                                animation: "pulse 1.5s ease-in-out infinite",
+                            }}
+                        />
+                        <div
+                            style={{
+                                height: 12,
+                                width: "45%",
+                                borderRadius: 6,
+                                backgroundColor: C.surface,
+                                animation: "pulse 1.5s ease-in-out infinite",
+                            }}
+                        />
                     </div>
                 </div>
-                <Input
-                    placeholder="Buscar chats..."
-                    className="w-full h-8"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+            ))}
+            <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+        </div>
+    );
 
-                {/* Filter pills */}
-                <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-                    {CHAT_FILTERS.map((f) => (
-                        <button
-                            key={f.key}
-                            onClick={() => setChatFilter(f.key)}
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200
-                                ${chatFilter === f.key
-                                    ? "bg-[var(--accent)] text-[var(--accent-foreground)] shadow-sm"
-                                    : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--default)]"
-                                }`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+    return (
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", backgroundColor: C.bg }}>
+            {/* Hero header */}
+            <div
+                style={{
+                    margin: "12px 16px 14px 16px",
+                    backgroundColor: C.surface,
+                    borderRadius: 16,
+                    border: `1px solid ${C.border}`,
+                    padding: 18,
+                    minHeight: 120,
+                    display: "flex",
+                    alignItems: "center",
+                }}
+            >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Badge */}
+                    <span
+                        style={{
+                            display: "inline-block",
+                            backgroundColor: C.border,
+                            paddingLeft: 10,
+                            paddingRight: 10,
+                            paddingTop: 4,
+                            paddingBottom: 4,
+                            borderRadius: 999,
+                            marginBottom: 8,
+                            color: C.muted,
+                            fontSize: 11,
+                            fontWeight: 600,
+                        }}
+                    >
+                        Mensajes
+                    </span>
+                    <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: 0, marginBottom: 4 }}>Tus Chats</h2>
+                    <p style={{ fontSize: 13, color: C.muted, lineHeight: "18px", margin: 0 }}>
+                        Conversa con jugadores de tu comunidad.
+                    </p>
                 </div>
+                {/* New chat button — same as torneos/marketplace */}
+                <button
+                    onClick={() => setIsNewChatOpen(true)}
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                        backgroundColor: C.accent,
+                        borderRadius: 12,
+                        paddingLeft: 14,
+                        paddingRight: 14,
+                        paddingTop: 8,
+                        paddingBottom: 8,
+                        marginLeft: 12,
+                        alignSelf: "center",
+                        border: "none",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                    }}
+                >
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Nuevo</span>
+                </button>
             </div>
 
-            <ScrollShadow className="flex-1 min-h-0 p-3 flex flex-col gap-4">
+            {/* Search bar */}
+            <div
+                style={{
+                    margin: "0 16px 12px 16px",
+                    backgroundColor: C.surface,
+                    borderRadius: 999,
+                    padding: "10px 14px",
+                    border: `1px solid ${C.border}`,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                }}
+            >
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                    type="text"
+                    placeholder="Buscar chats..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    style={{
+                        flex: 1,
+                        backgroundColor: "transparent",
+                        border: "none",
+                        outline: "none",
+                        fontSize: 14,
+                        color: C.text,
+                        padding: 0,
+                        margin: 0,
+                        lineHeight: "normal",
+                    }}
+                />
+            </div>
+
+            {/* Filter pills */}
+            <div
+                style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 6,
+                    margin: "0 16px 12px 16px",
+                }}
+            >
+                {CHAT_FILTERS.map((f) => (
+                    <button
+                        key={f.key}
+                        onClick={() => setChatFilter(f.key)}
+                        style={{
+                            padding: "6px 12px",
+                            borderRadius: 999,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            whiteSpace: "nowrap",
+                            cursor: "pointer",
+                            border: chatFilter === f.key ? "1px solid transparent" : `1px solid ${C.border}`,
+                            backgroundColor: chatFilter === f.key ? C.text : C.surface,
+                            color: chatFilter === f.key ? C.bg : C.muted,
+                        }}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Channel list */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
                 {loading ? (
-                    Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="flex gap-3 p-2">
-                            <Skeleton className="w-11 h-11 rounded-full bg-[var(--surface-secondary)] shrink-0" />
-                            <div className="flex-1 space-y-2 py-1">
-                                <Skeleton className="h-3 w-3/4 rounded-lg bg-[var(--surface-secondary)]" />
-                                <Skeleton className="h-3 w-1/2 rounded-lg bg-[var(--surface-secondary)]" />
-                            </div>
-                        </div>
-                    ))
+                    renderLoadingSkeleton()
                 ) : channels.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center opacity-70 p-6 text-center">
-                        <div className="text-4xl mb-3"><Comment /></div>
-                        <p className="text-sm font-medium text-[var(--muted)]">No tienes chats activos.</p>
-                        <p className="text-xs text-[var(--muted)]/70 mt-1">Explora la comunidad o torneos para conectarte.</p>
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            className="mt-4 rounded-full"
-                            onPress={() => setIsNewChatOpen(true)}
-                        >
-                            Iniciar chat
-                        </Button>
-                    </div>
+                    renderEmptyState("Explora la comunidad o torneos para conectarte.", true)
                 ) : filteredChannels.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center opacity-60 p-6 text-center">
-                        <div className="text-3xl mb-3 text-[var(--muted)]"><Comment /></div>
-                        <p className="text-sm text-[var(--muted)]">
-                            {search.length > 0
-                                ? "No se encontraron chats con ese nombre."
-                                : `No tienes ${chatFilter === "dm" ? "mensajes directos" : chatFilter === "grupos" ? "grupos" : chatFilter === "comunidades" ? "comunidades" : "chats"}.`}
-                        </p>
-                    </div>
+                    renderEmptyState(
+                        search.length > 0
+                            ? "No se encontraron chats con ese nombre."
+                            : `No tienes ${chatFilter === "dm" ? "mensajes directos" : chatFilter === "grupos" ? "grupos" : chatFilter === "comunidades" ? "comunidades" : "chats"}.`
+                    )
                 ) : chatFilter !== "todo" ? (
-                    /* Single section when a specific filter is active */
-                    <div className="space-y-1">
-                        <p className="px-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">
-                            {CHAT_FILTERS.find(f => f.key === chatFilter)?.label ?? ""}
-                        </p>
-                        {filteredChannels.map(renderChannel)}
+                    <div>
+                        {renderSectionHeader(CHAT_FILTERS.find(f => f.key === chatFilter)?.label ?? "")}
+                        {filteredChannels.map((ch, i, arr) => renderChannel(ch, i, arr))}
                     </div>
                 ) : (
-                    /* Grouped sections for "Todo" filter */
                     <>
                         {channelsByType.DMs.length > 0 && (
-                            <div className="space-y-1">
-                                <p className="px-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Mensajes Directos</p>
-                                {channelsByType.DMs.map(renderChannel)}
+                            <div>
+                                {renderSectionHeader("Mensajes Directos")}
+                                {channelsByType.DMs.map((ch, i, arr) => renderChannel(ch, i, arr))}
                             </div>
                         )}
                         {channelsByType.GROUPS.length > 0 && (
-                            <div className="space-y-1">
-                                <p className="px-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2 mt-4">Grupos</p>
-                                {channelsByType.GROUPS.map(renderChannel)}
+                            <div>
+                                {renderSectionHeader("Grupos")}
+                                {channelsByType.GROUPS.map((ch, i, arr) => renderChannel(ch, i, arr))}
                             </div>
                         )}
                         {channelsByType.COMMUNITIES.length > 0 && (
-                            <div className="space-y-1">
-                                <p className="px-2 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-2 mt-4">Comunidades y Torneos</p>
-                                {channelsByType.COMMUNITIES.map(renderChannel)}
+                            <div>
+                                {renderSectionHeader("Comunidades y Torneos")}
+                                {channelsByType.COMMUNITIES.map((ch, i, arr) => renderChannel(ch, i, arr))}
                             </div>
                         )}
                     </>
                 )}
-            </ScrollShadow>
+            </div>
 
             <NewChatModal
                 isOpen={isNewChatOpen}
@@ -317,7 +589,6 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 channel={selectedChannel}
                 onChannelLeft={onChannelLeft}
                 onChannelUpdated={(updated) => {
-                    // Update the channel in the list
                     onChannelCreated(updated);
                 }}
             />

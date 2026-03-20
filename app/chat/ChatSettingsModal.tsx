@@ -1,210 +1,387 @@
 "use client";
 
 import { useState } from "react";
-import { Modal, Button, Avatar, Switch, toast } from "@heroui/react";
+import { toast } from "@heroui/react";
 import { Persons, ArrowRightFromSquare, BellSlash, Bell, Person } from "@gravity-ui/icons";
 import { muteChannel, unmuteChannel, leaveChannel } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
 import type { Channel } from "@/lib/types/chat";
+import { useRef } from "react";
 
 interface Props {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  channel: Channel | null;
-  onChannelLeft?: () => void;
-  onChannelUpdated?: (channel: Channel) => void;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    channel: Channel | null;
+    onChannelLeft?: () => void;
+    onChannelUpdated?: (channel: Channel) => void;
 }
 
+const C = {
+    bg: "#000000",
+    surface: "#1A1A1E",
+    surfaceLight: "#222226",
+    border: "rgba(255,255,255,0.06)",
+    text: "#F2F2F2",
+    muted: "#888891",
+    accent: "#3B82F6",
+    danger: "#EF4444",
+    handle: "rgba(255,255,255,0.15)",
+} as const;
+
 export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onChannelLeft, onChannelUpdated }: Props) {
-  const { session } = useAuth();
-  const token = session?.accessToken;
-  const [isMuted, setIsMuted] = useState(channel?.is_muted ?? false);
-  const [isTogglingMute, setIsTogglingMute] = useState(false);
-  const [isLeaving, setIsLeaving] = useState(false);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    const { session } = useAuth();
+    const token = session?.accessToken;
+    const [isMuted, setIsMuted] = useState(channel?.is_muted ?? false);
+    const [isTogglingMute, setIsTogglingMute] = useState(false);
+    const [isLeaving, setIsLeaving] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    const overlayRef = useRef<HTMLDivElement>(null);
 
-  if (!channel) return null;
+    if (!channel || !isOpen) return null;
 
-  const isGroup = channel.type === "GROUP";
-  const isCommunity = channel.type === "CLAN" || channel.type === "TOURNAMENT";
-  const members = channel.members ?? [];
-  const myUsername = session?.username;
+    const isGroup = channel.type === "GROUP";
+    const isCommunity = channel.type === "CLAN" || channel.type === "TOURNAMENT";
+    const members = channel.members ?? [];
+    const myUsername = session?.username;
 
-  // DM: get other user
-  let otherUser = null;
-  if (channel.type === "DM" && myUsername) {
-    otherUser = members.find(m => m.username !== myUsername) ?? null;
-  }
-
-  const displayName = channel.type === "DM" && otherUser
-    ? otherUser.username
-    : channel.name || "Canal";
-
-  const handleToggleMute = async () => {
-    if (!token || !channel) return;
-    setIsTogglingMute(true);
-    try {
-      if (isMuted) {
-        await unmuteChannel(channel.id, token);
-        setIsMuted(false);
-        toast.success("Notificaciones activadas");
-      } else {
-        await muteChannel(channel.id, token);
-        setIsMuted(true);
-        toast.success("Chat silenciado");
-      }
-      if (onChannelUpdated) {
-        onChannelUpdated({ ...channel, is_muted: !isMuted });
-      }
-    } catch {
-      toast.danger("Error al cambiar notificaciones");
-    } finally {
-      setIsTogglingMute(false);
+    let otherUser = null;
+    if (channel.type === "DM" && myUsername) {
+        otherUser = members.find(m => m.username !== myUsername) ?? null;
     }
-  };
 
-  const handleLeave = async () => {
-    if (!token || !channel) return;
-    setIsLeaving(true);
-    try {
-      await leaveChannel(channel.id, token);
-      toast.success("Saliste del chat");
-      onOpenChange(false);
-      onChannelLeft?.();
-    } catch {
-      toast.danger("Error al salir del chat");
-    } finally {
-      setIsLeaving(false);
-      setShowLeaveConfirm(false);
-    }
-  };
+    const displayName = channel.type === "DM" && otherUser
+        ? otherUser.username
+        : channel.name || "Canal";
 
-  return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Modal.Backdrop className="bg-black/50 backdrop-blur-md">
-        <Modal.Container>
-          <Modal.Dialog className="bg-[var(--bg-solid)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-0 shadow-2xl max-w-md w-full overflow-hidden">
-            <Modal.CloseTrigger className="absolute top-4 right-4 text-[var(--muted)] hover:text-[var(--foreground)] bg-[var(--surface-secondary)] rounded-full p-1 z-10" />
+    const handleToggleMute = async () => {
+        if (!token || !channel) return;
+        setIsTogglingMute(true);
+        try {
+            if (isMuted) {
+                await unmuteChannel(channel.id, token);
+                setIsMuted(false);
+                toast.success("Notificaciones activadas");
+            } else {
+                await muteChannel(channel.id, token);
+                setIsMuted(true);
+                toast.success("Chat silenciado");
+            }
+            if (onChannelUpdated) {
+                onChannelUpdated({ ...channel, is_muted: !isMuted });
+            }
+        } catch {
+            toast.danger("Error al cambiar notificaciones");
+        } finally {
+            setIsTogglingMute(false);
+        }
+    };
 
-            {/* Header */}
-            <Modal.Header className="px-5 py-4 border-b border-[var(--border)] items-center">
-              <Modal.Icon className="bg-[var(--accent)]/10 text-[var(--accent)]">
-                {channel.type === "DM" && otherUser ? (
-                  <Person className="size-5" />
-                ) : (
-                  <Persons className="size-5" />
-                )}
-              </Modal.Icon>
-              <Modal.Heading className="text-lg font-bold">{displayName}</Modal.Heading>
-              <p className="text-xs text-[var(--muted)]">
-                {channel.type === "DM" ? "Mensaje directo" : `${members.length} miembros`}
-              </p>
-            </Modal.Header>
+    const handleLeave = async () => {
+        if (!token || !channel) return;
+        setIsLeaving(true);
+        try {
+            await leaveChannel(channel.id, token);
+            toast.success("Saliste del chat");
+            onOpenChange(false);
+            onChannelLeft?.();
+        } catch {
+            toast.danger("Error al salir del chat");
+        } finally {
+            setIsLeaving(false);
+            setShowLeaveConfirm(false);
+        }
+    };
 
-            <Modal.Body className="p-5 space-y-5">
-              {/* Notifications toggle */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
-                <div className="flex items-center gap-3">
-                  {isMuted ? <BellSlash className="size-5 text-[var(--muted)]" /> : <Bell className="size-5 text-[var(--accent)]" />}
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">Notificaciones</p>
-                    <p className="text-[11px] text-[var(--muted)]">
-                      {isMuted ? "Silenciado — no recibirás alertas" : "Recibirás alertas de nuevos mensajes"}
-                    </p>
-                  </div>
+    return (
+        <div
+            ref={overlayRef}
+            onClick={(e) => { if (e.target === overlayRef.current) onOpenChange(false); }}
+            style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                display: "flex",
+                justifyContent: "center",
+                background: "rgba(0,0,0,0.6)",
+            }}
+            className="items-end md:items-center md:p-4"
+        >
+            <div
+                style={{
+                    width: "100%",
+                    maxWidth: 440,
+                    background: C.bg,
+                    maxHeight: "85vh",
+                    overflowY: "auto",
+                    borderTop: `0.5px solid ${C.border}`,
+                }}
+                className="rounded-t-3xl md:rounded-2xl md:border md:border-[rgba(255,255,255,0.06)]"
+            >
+                {/* Handle */}
+                <div style={{ display: "flex", justifyContent: "center", marginTop: 12, marginBottom: 16 }}>
+                    <div style={{
+                        width: 36, height: 4, borderRadius: 2,
+                        background: C.handle,
+                    }} />
                 </div>
-                <Switch
-                  isSelected={!isMuted}
-                  onChange={handleToggleMute}
-                  isDisabled={isTogglingMute}
-                />
-              </div>
 
-              {/* Members list */}
-              {members.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-                    Miembros ({members.length})
-                  </p>
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {members.map((member) => {
-                      const isMe = member.username === myUsername;
-                      return (
-                        <div
-                          key={member.user_id}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors"
-                        >
-                          <div className="relative">
-                            <Avatar className="w-8 h-8 text-xs border border-[var(--border)]">
-                              <Avatar.Image src={member.avatar_url} alt={member.username} />
-                              <Avatar.Fallback>{member.username?.slice(0, 2).toUpperCase()}</Avatar.Fallback>
-                            </Avatar>
-                            {member.is_online && (
-                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-[var(--surface)]" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[var(--foreground)] truncate">
-                              {member.username}
-                              {isMe && <span className="text-[var(--accent)] ml-1 text-xs">(tú)</span>}
-                            </p>
-                            {member.role && member.role !== "member" && (
-                              <p className="text-[10px] text-[var(--accent)] font-semibold uppercase">{member.role}</p>
-                            )}
-                          </div>
-                          <span className={`text-[10px] font-medium ${member.is_online ? "text-green-500" : "text-[var(--muted)]"}`}>
-                            {member.is_online ? "online" : "offline"}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Leave channel — only for groups/communities */}
-              {(isGroup || isCommunity) && (
-                <div className="pt-3 border-t border-[var(--border)]">
-                  {showLeaveConfirm ? (
-                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 space-y-3">
-                      <p className="text-sm text-red-500 font-medium">
-                        ¿Seguro que quieres salir de este {isGroup ? "grupo" : "canal"}? No podrás ver los mensajes anteriores.
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          className="font-semibold"
-                          onPress={handleLeave}
-                          isPending={isLeaving}
-                        >
-                          Sí, salir
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="font-semibold"
-                          onPress={() => setShowLeaveConfirm(false)}
-                        >
-                          Cancelar
-                        </Button>
-                      </div>
+                {/* Header info */}
+                <div style={{ textAlign: "center", paddingBottom: 16, paddingLeft: 20, paddingRight: 20 }}>
+                    <div style={{
+                        width: 56, height: 56, borderRadius: 28, margin: "0 auto 12px",
+                        background: C.surface,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                        {channel.type === "DM" && otherUser ? (
+                            otherUser.avatar_url ? (
+                                <img
+                                    src={otherUser.avatar_url}
+                                    alt={otherUser.username}
+                                    style={{ width: 56, height: 56, borderRadius: 28, objectFit: "cover" }}
+                                />
+                            ) : (
+                                <Person style={{ width: 24, height: 24, color: C.muted }} />
+                            )
+                        ) : (
+                            <Persons style={{ width: 24, height: 24, color: C.muted }} />
+                        )}
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowLeaveConfirm(true)}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
-                    >
-                      <ArrowRightFromSquare className="size-4" />
-                      <span className="text-sm font-medium">Salir del {isGroup ? "grupo" : "canal"}</span>
-                    </button>
-                  )}
+                    <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>{displayName}</div>
+                    <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
+                        {channel.type === "DM" ? "Mensaje directo" : `${members.length} miembros`}
+                    </div>
                 </div>
-              )}
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
-  );
+
+                {/* NOTIFICATIONS section */}
+                <div style={{ padding: "0 20px" }}>
+                    <div style={{
+                        fontSize: 11, fontWeight: 700, color: C.muted,
+                        textTransform: "uppercase", letterSpacing: 1.2,
+                        marginTop: 16, marginBottom: 8,
+                    }}>
+                        Preferencias
+                    </div>
+                    <div style={{
+                        background: C.surface, borderRadius: 16,
+                        border: `1px solid ${C.border}`,
+                        overflow: "hidden",
+                    }}>
+                        <div style={{
+                            display: "flex", alignItems: "center", gap: 12,
+                            padding: "14px 16px",
+                        }}>
+                            {isMuted
+                                ? <BellSlash style={{ width: 20, height: 20, color: C.muted, flexShrink: 0 }} />
+                                : <Bell style={{ width: 20, height: 20, color: C.accent, flexShrink: 0 }} />
+                            }
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: 14, color: C.text }}>Notificaciones</div>
+                                <div style={{ fontSize: 11, color: C.muted, marginTop: 1 }}>
+                                    {isMuted ? "Silenciado" : "Activas"}
+                                </div>
+                            </div>
+                            <label style={{
+                                position: "relative", display: "inline-block",
+                                width: 44, height: 26, flexShrink: 0,
+                            }}>
+                                <input
+                                    type="checkbox"
+                                    checked={!isMuted}
+                                    onChange={handleToggleMute}
+                                    disabled={isTogglingMute}
+                                    style={{
+                                        opacity: 0, width: 0, height: 0,
+                                        position: "absolute",
+                                    }}
+                                />
+                                <span style={{
+                                    position: "absolute", cursor: isTogglingMute ? "not-allowed" : "pointer",
+                                    inset: 0, borderRadius: 999,
+                                    background: isMuted ? "rgba(255,255,255,0.1)" : C.accent,
+                                    transition: "background 0.2s",
+                                }} />
+                                <span style={{
+                                    position: "absolute",
+                                    width: 20, height: 20, borderRadius: 10,
+                                    background: "#FFFFFF",
+                                    left: isMuted ? 3 : 21,
+                                    top: 3,
+                                    transition: "left 0.2s",
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                                }} />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* MEMBERS section */}
+                {members.length > 0 && (
+                    <div style={{ padding: "0 20px" }}>
+                        <div style={{
+                            fontSize: 11, fontWeight: 700, color: C.muted,
+                            textTransform: "uppercase", letterSpacing: 1.2,
+                            marginTop: 16, marginBottom: 8,
+                        }}>
+                            Miembros ({members.length})
+                        </div>
+                        <div style={{
+                            background: C.surface, borderRadius: 16,
+                            border: `1px solid ${C.border}`,
+                            overflow: "hidden",
+                        }}>
+                            {members.map((member, idx) => {
+                                const isMe = member.username === myUsername;
+                                return (
+                                    <div key={member.user_id}>
+                                        <div style={{
+                                            display: "flex", alignItems: "center", gap: 12,
+                                            padding: "14px 16px",
+                                        }}>
+                                            {/* Avatar */}
+                                            <div style={{
+                                                position: "relative", flexShrink: 0,
+                                            }}>
+                                                <div style={{
+                                                    width: 36, height: 36, borderRadius: 18,
+                                                    background: C.surfaceLight,
+                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                    overflow: "hidden",
+                                                }}>
+                                                    {member.avatar_url ? (
+                                                        <img
+                                                            src={member.avatar_url}
+                                                            alt={member.username}
+                                                            style={{ width: 36, height: 36, objectFit: "cover" }}
+                                                        />
+                                                    ) : (
+                                                        <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>
+                                                            {member.username?.slice(0, 2).toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {member.is_online && (
+                                                    <span style={{
+                                                        position: "absolute", bottom: 0, right: 0,
+                                                        width: 10, height: 10, borderRadius: 5,
+                                                        background: "#22C55E",
+                                                        border: `2px solid ${C.surface}`,
+                                                    }} />
+                                                )}
+                                            </div>
+                                            {/* Info */}
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{
+                                                    fontSize: 14, color: C.text, fontWeight: 500,
+                                                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                                }}>
+                                                    {member.username}
+                                                    {isMe && (
+                                                        <span style={{ color: C.accent, marginLeft: 4, fontSize: 12 }}>
+                                                            (tú)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {member.role && member.role !== "member" && (
+                                                    <div style={{
+                                                        fontSize: 10, color: C.accent,
+                                                        fontWeight: 600, textTransform: "uppercase",
+                                                    }}>
+                                                        {member.role}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* Online status */}
+                                            <span style={{
+                                                fontSize: 10, fontWeight: 500,
+                                                color: member.is_online ? "#22C55E" : C.muted,
+                                            }}>
+                                                {member.is_online ? "online" : "offline"}
+                                            </span>
+                                        </div>
+                                        {/* Divider */}
+                                        {idx < members.length - 1 && (
+                                            <div style={{
+                                                height: 0.5, background: C.border,
+                                                marginLeft: 64,
+                                            }} />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Leave channel */}
+                {(isGroup || isCommunity) && (
+                    <div style={{ padding: "0 20px", marginTop: 16 }}>
+                        <div style={{
+                            fontSize: 11, fontWeight: 700, color: C.muted,
+                            textTransform: "uppercase", letterSpacing: 1.2,
+                            marginBottom: 8,
+                        }}>
+                            Zona de peligro
+                        </div>
+                        <div style={{
+                            background: C.surface, borderRadius: 16,
+                            border: `1px solid ${C.border}`,
+                            overflow: "hidden",
+                        }}>
+                            {showLeaveConfirm ? (
+                                <div style={{ padding: 16 }}>
+                                    <div style={{ fontSize: 14, color: C.danger, fontWeight: 500, marginBottom: 12 }}>
+                                        ¿Seguro que quieres salir de este {isGroup ? "grupo" : "canal"}? No podrás ver los mensajes anteriores.
+                                    </div>
+                                    <div style={{ display: "flex", gap: 8 }}>
+                                        <button
+                                            onClick={handleLeave}
+                                            disabled={isLeaving}
+                                            style={{
+                                                padding: "10px 20px", borderRadius: 999,
+                                                background: C.danger, color: "#FFFFFF",
+                                                fontSize: 13, fontWeight: 700,
+                                                border: "none", cursor: isLeaving ? "not-allowed" : "pointer",
+                                                opacity: isLeaving ? 0.6 : 1,
+                                            }}
+                                        >
+                                            {isLeaving ? "Saliendo..." : "Sí, salir"}
+                                        </button>
+                                        <button
+                                            onClick={() => setShowLeaveConfirm(false)}
+                                            style={{
+                                                padding: "10px 20px", borderRadius: 999,
+                                                background: C.surfaceLight, color: C.text,
+                                                fontSize: 13, fontWeight: 600,
+                                                border: "none", cursor: "pointer",
+                                            }}
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setShowLeaveConfirm(true)}
+                                    style={{
+                                        display: "flex", alignItems: "center", gap: 12,
+                                        padding: "14px 16px", width: "100%",
+                                        background: "transparent", border: "none",
+                                        cursor: "pointer", textAlign: "left",
+                                    }}
+                                >
+                                    <ArrowRightFromSquare style={{ width: 18, height: 18, color: C.danger }} />
+                                    <span style={{ fontSize: 14, color: C.danger, fontWeight: 500 }}>
+                                        Salir del {isGroup ? "grupo" : "canal"}
+                                    </span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Bottom spacing */}
+                <div style={{ height: 32 }} />
+            </div>
+        </div>
+    );
 }

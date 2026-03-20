@@ -5,11 +5,11 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 const CONDITION_FILTERS = [
     { label: "Todos", value: "" },
-    { label: "Mint", value: "M" },
-    { label: "Near Mint", value: "NM" },
-    { label: "Excellent", value: "LP" },
-    { label: "Good", value: "MP" },
-    { label: "Played", value: "HP" },
+    { label: "Mint", value: "mint" },
+    { label: "Near Mint", value: "near_mint" },
+    { label: "Excellent", value: "excellent" },
+    { label: "Good", value: "good" },
+    { label: "Played", value: "played" },
 ];
 
 interface Props {
@@ -36,18 +36,25 @@ export default function ConditionFilterChips({ currentCondition = "" }: Props) {
     );
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-[var(--border)] scrollbar-track-transparent -mx-1 px-1">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             {CONDITION_FILTERS.map((filter) => {
                 const isActive = currentCondition === filter.value;
                 return (
                     <button
                         key={filter.value || "__all"}
                         onClick={() => handleSelect(filter.value)}
-                        className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
-                            isActive
-                                ? "bg-[var(--accent)] text-[var(--accent-foreground)] border-[var(--accent)] shadow-sm"
-                                : "bg-[var(--surface)] text-[var(--muted)] border-[var(--border)] hover:text-[var(--foreground)] hover:border-[var(--border-hover)]"
-                        }`}
+                        className="shrink-0 cursor-pointer"
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "999px",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            border: "1px solid",
+                            backgroundColor: isActive ? "#F2F2F2" : "#1A1A1E",
+                            borderColor: isActive ? "#F2F2F2" : "rgba(255,255,255,0.06)",
+                            color: isActive ? "#000000" : "#888891",
+                            transition: "all 0.15s ease",
+                        }}
                     >
                         {filter.label}
                     </button>

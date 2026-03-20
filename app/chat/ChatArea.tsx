@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Avatar, Input, Button, ScrollShadow, Skeleton, toast, Badge } from "@heroui/react";
-import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons } from "@gravity-ui/icons";
+import { toast } from "@heroui/react";
+import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear } from "@gravity-ui/icons";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
-import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
 import type { Channel, ChatMessage } from "@/lib/types/chat";
 import ChatMessageBubble from "./ChatMessageBubble";
+import ChatSettingsModal from "./ChatSettingsModal";
 
 interface ChatAreaProps {
     selectedChannel: Channel | null;
@@ -24,10 +24,29 @@ function getJwtField(token: string | undefined, field: string): string | undefin
     }
 }
 
+/** Group messages by date for date separator rendering */
+function groupMessagesByDate(messages: ChatMessage[]): { date: string; messages: ChatMessage[] }[] {
+    const groups: { date: string; messages: ChatMessage[] }[] = [];
+    let currentDate = "";
+    for (const msg of messages) {
+        const d = new Date(msg.created_at).toLocaleDateString("es-CL", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+        if (d !== currentDate) {
+            currentDate = d;
+            groups.push({ date: d, messages: [msg] });
+        } else {
+            groups[groups.length - 1].messages.push(msg);
+        }
+    }
+    return groups;
+}
+
 export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const { session } = useAuth();
 
-    // Resolve current user identity robustly (survives page reload)
     const myUsername = session?.username || getJwtField(session?.accessToken, "usr") || getJwtField(session?.accessToken, "username");
     const myUserId = getJwtField(session?.accessToken, "sub") || getJwtField(session?.accessToken, "user_id");
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -43,6 +62,9 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Settings modal
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
     // Typing indicator state
     const [isTyping, setIsTyping] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -51,7 +73,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const messagesRef = useRef<ChatMessage[]>([]); // To avoid stale closures in comparison
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const messagesRef = useRef<ChatMessage[]>([]);
     const pollInterval = useRef<NodeJS.Timeout | null>(null);
 
     const fetchMessages = async (channelId: string, isInitial = false) => {
@@ -68,7 +91,6 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     sender_avatar_url: msg.sender?.avatar_url || msg.sender_avatar_url
                 })).reverse();
 
-                // 1. Calculate new messages before updating state
                 if (!isInitial && messagesRef.current.length > 0) {
                     const newMsgs = formattedMessages.filter(msg => !messagesRef.current.some(p => p.id === msg.id));
 
@@ -84,7 +106,6 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     }
                 }
 
-                // 2. Update state and ref
                 setMessages(formattedMessages);
                 messagesRef.current = formattedMessages;
             }
@@ -99,7 +120,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         setNewMessagesCount(0);
         setIsAtBottom(true);
         isAtBottomRef.current = true;
-        messagesRef.current = []; // Reset reference list
+        messagesRef.current = [];
         setLoadingMessages(true);
         setAttachedImage(null);
         setImagePreviewUrl(null);
@@ -118,7 +139,6 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         };
     }, [selectedChannel?.id]);
 
-    // Clean up image preview URL on unmount
     useEffect(() => {
         return () => {
             if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
@@ -146,19 +166,16 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith("image/")) {
             toast.danger("Solo se permiten imagenes");
             return;
         }
 
-        // Validate file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
             toast.danger("La imagen no puede superar los 10MB");
             return;
         }
 
-        // Clean up previous preview
         if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
 
         setAttachedImage(file);
@@ -174,8 +191,6 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
 
     const handleInputChange = (value: string) => {
         setInputValue(value);
-
-        // Simulate typing indicator
         setIsTyping(true);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 2000);
@@ -205,11 +220,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         try {
             if (!session?.accessToken) throw new Error("No hay sesion activa.");
 
-            // Build message content
             let content = inputValue.trim();
 
-            // If there's an attached image, append it as a placeholder URL
-            // In a real implementation, the image would be uploaded first and its URL added
             if (attachedImage) {
                 const imageNote = imagePreviewUrl
                     ? `[Imagen adjunta: ${attachedImage.name}]`
@@ -221,7 +233,6 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
             setInputValue("");
             handleRemoveImage();
 
-            // Reset textarea height
             if (textareaRef.current) {
                 textareaRef.current.style.height = "auto";
             }
@@ -238,23 +249,46 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         }
     };
 
+    // ── No channel selected ──
     if (!selectedChannel) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center gap-5 p-6 bg-transparent animate-appearance-in">
-                <div className="w-24 h-24 rounded-full border border-[var(--border)] flex items-center justify-center bg-[var(--surface-secondary)] text-5xl">
+            <div style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 16,
+                padding: 24,
+                background: "#000000",
+            }}>
+                <div style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: "#1A1A1E",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#888891",
+                    fontSize: 28,
+                }}>
                     <Comment />
                 </div>
-                <div className="text-center space-y-1">
-                    <h3 className="text-xl font-bold tracking-tight text-[var(--foreground)] mb-2">Rankeao Chat</h3>
-                    <p className="text-[var(--muted)] font-medium text-sm max-w-xs leading-relaxed">
-                        Selecciona una sala o un mensaje directo para comenzar a conversar con la comunidad.
+                <div style={{ textAlign: "center" }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "#F2F2F2", marginBottom: 4 }}>
+                        Rankeao Chat
+                    </p>
+                    <p style={{ fontSize: 12, color: "#888891", maxWidth: 240, lineHeight: "18px" }}>
+                        Selecciona una sala o un mensaje directo para comenzar a conversar.
                     </p>
                 </div>
             </div>
         );
     }
 
-    // Comprobar estado online
+    // ── Resolve channel metadata ──
     const isOnline = selectedChannel.type === "DM"
         ? selectedChannel.members?.some(m => m.username !== myUsername && m.is_online)
         : false;
@@ -262,9 +296,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const isGroup = selectedChannel.type === "GROUP";
     const memberCount = selectedChannel.members?.length || 0;
 
-    // Resolve DM name and avatar
     let displayName = selectedChannel.name || (selectedChannel.type === "DM" ? "Mensaje Directo" : "Sala de Chat");
-    let displayAvatar = selectedChannel.name === "Soporte Rankeao" ? undefined : selectedChannel.name;
+    let displayAvatar: string | undefined = undefined;
 
     if (selectedChannel.type === "DM" && myUsername) {
         const otherMember = selectedChannel.members?.find(m => m.username !== myUsername);
@@ -274,191 +307,436 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         }
     }
 
-    return (
-        <div className="flex-1 flex flex-col min-w-0 h-full max-h-full overflow-hidden relative bg-[var(--surface)]">
-            {/* Header del chat */}
-            <div className="h-[73px] border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--surface-secondary)]/80 backdrop-blur-xl relative z-10 shrink-0">
-                <div className="flex items-center gap-3">
-                    {/* Back button for mobile */}
-                    <Button
-                        isIconOnly
-                        variant="tertiary"
-                        size="sm"
-                        className="md:hidden -ml-2 text-[var(--foreground)]"
-                        onPress={onBack}
-                        aria-label="Volver"
-                    >
-                        <ChevronLeft className="size-5" />
-                    </Button>
+    const initials = displayName?.slice(0, 2).toUpperCase() || "CH";
 
-                    <div className="relative">
-                        {isGroup ? (
-                            <div className="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--surface-tertiary)] flex items-center justify-center text-[var(--muted)]">
-                                <Persons className="size-5" />
-                            </div>
-                        ) : (
-                            <>
-                                <Avatar className="w-10 h-10 border border-[var(--border)] bg-[var(--surface-tertiary)] text-sm">
-                                    <Avatar.Image src={displayAvatar} alt={displayName} />
-                                    <Avatar.Fallback>{displayName?.slice(0, 2).toUpperCase() || "CH"}</Avatar.Fallback>
-                                </Avatar>
-                                {selectedChannel.type === "DM" && (
-                                    <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--surface-secondary)] ${isOnline ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]" : "bg-gray-400"}`}>
-                                        {isOnline && <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />}
-                                    </span>
-                                )}
-                            </>
-                        )}
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-[var(--foreground)] leading-tight">
-                            {displayName}
-                        </h3>
-                        <p className="text-[11px] text-[var(--muted)] font-medium tracking-wide uppercase mt-0.5 flex items-center gap-1">
-                            {isGroup ? (
-                                <>
-                                    <span>Chat Grupal</span>
-                                    <span className="text-[var(--muted)]/70 lowercase normal-case text-[10px]">({memberCount} miembros)</span>
-                                </>
+    const hasText = inputValue.trim().length > 0 || !!attachedImage;
+
+    const dateGroups = groupMessagesByDate(messages);
+
+    return (
+        <div style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            minWidth: 0,
+            height: "100%",
+            maxHeight: "100%",
+            overflow: "hidden",
+            position: "relative",
+            background: "#000000",
+        }}>
+            {/* ── Header ── */}
+            <div style={{
+                height: 64,
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                display: "flex",
+                alignItems: "center",
+                paddingLeft: 12,
+                paddingRight: 12,
+                gap: 10,
+                background: "#000000",
+                flexShrink: 0,
+            }}>
+                {/* Back button */}
+                <button
+                    onClick={onBack}
+                    aria-label="Volver"
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 18,
+                        background: "#1A1A1E",
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                    }}
+                    className="md:hidden"
+                >
+                    <ChevronLeft style={{ width: 20, height: 20, color: "#F2F2F2" }} />
+                </button>
+
+                {/* Avatar */}
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                    {isGroup ? (
+                        <div style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            background: "#1A1A1E",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#888891",
+                        }}>
+                            <Persons style={{ width: 20, height: 20 }} />
+                        </div>
+                    ) : (
+                        <>
+                            {displayAvatar ? (
+                                <img
+                                    src={displayAvatar}
+                                    alt={displayName}
+                                    style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 20,
+                                        objectFit: "cover",
+                                        background: "#1A1A1E",
+                                    }}
+                                />
                             ) : (
-                                <>
-                                    <span>{selectedChannel.type}</span>
-                                    {isOnline && <span className="text-green-500 lowercase normal-case text-[10px] ml-1">en linea</span>}
-                                    {!isOnline && selectedChannel.type === "DM" && <span className="text-[var(--muted)]/60 lowercase normal-case text-[10px] ml-1">desconectado</span>}
-                                </>
+                                <div style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    background: "#1A1A1E",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "#FFFFFF",
+                                    fontSize: 14,
+                                    fontWeight: 700,
+                                }}>
+                                    {initials}
+                                </div>
                             )}
-                        </p>
-                    </div>
+                            {selectedChannel.type === "DM" && (
+                                <span style={{
+                                    position: "absolute",
+                                    bottom: 0,
+                                    right: 0,
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: 6,
+                                    border: "2px solid #000000",
+                                    background: isOnline ? "#23A559" : "#888891",
+                                }} />
+                            )}
+                        </>
+                    )}
                 </div>
+
+                {/* Name & status */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: "#F2F2F2",
+                        lineHeight: "18px",
+                        margin: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                    }}>
+                        {displayName}
+                    </p>
+                    <p style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: isGroup ? "#888891" : (isOnline ? "#23A559" : "#888891"),
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                        margin: 0,
+                        marginTop: 2,
+                    }}>
+                        {isGroup
+                            ? `Chat Grupal (${memberCount} miembros)`
+                            : (isOnline ? "En línea" : (selectedChannel.type === "DM" ? "Desconectado" : selectedChannel.type))
+                        }
+                    </p>
+                </div>
+
+                {/* Settings button */}
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    aria-label="Configuración"
+                    style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 18,
+                        background: "#1A1A1E",
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                    }}
+                >
+                    <Gear style={{ width: 18, height: 18, color: "#888891" }} />
+                </button>
             </div>
 
-            {/* Historial de Mensajes */}
-            <div className="flex-1 relative min-h-0">
-                <ScrollShadow
+            {/* ── Messages area ── */}
+            <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+                <div
+                    ref={messagesContainerRef}
                     onScroll={handleScroll}
-                    className="h-full px-4 md:px-8 py-6 flex flex-col gap-5 overflow-y-auto w-full max-w-5xl mx-auto custom-scrollbar"
+                    style={{
+                        height: "100%",
+                        overflowY: "auto",
+                        paddingLeft: 8,
+                        paddingRight: 8,
+                        paddingTop: 12,
+                        paddingBottom: 12,
+                        display: "flex",
+                        flexDirection: "column",
+                    }}
                 >
                     {loadingMessages && messages.length === 0 ? (
-                        <div className="space-y-6">
-                            <div className="flex gap-3 w-full max-w-[80%]">
-                                <Skeleton className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] shrink-0" />
-                                <Skeleton className="w-56 h-16 rounded-2xl rounded-tl-sm bg-[var(--surface-secondary)]" />
+                        <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "16px 0" }}>
+                            {/* Skeleton placeholders */}
+                            <div style={{ display: "flex", gap: 8, maxWidth: "70%" }}>
+                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "#1A1A1E", flexShrink: 0 }} />
+                                <div style={{ width: 200, height: 48, borderRadius: 18, background: "#1A1A1E" }} />
                             </div>
-                            <div className="flex gap-3 w-full max-w-[80%] self-end flex-row-reverse">
-                                <Skeleton className="w-48 h-12 rounded-2xl rounded-tr-sm bg-[var(--surface-secondary)]" />
+                            <div style={{ display: "flex", gap: 8, maxWidth: "70%", alignSelf: "flex-end", flexDirection: "row-reverse" }}>
+                                <div style={{ width: 180, height: 40, borderRadius: 18, background: "#2C2C30" }} />
+                            </div>
+                            <div style={{ display: "flex", gap: 8, maxWidth: "70%" }}>
+                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "#1A1A1E", flexShrink: 0 }} />
+                                <div style={{ width: 240, height: 56, borderRadius: 18, background: "#1A1A1E" }} />
                             </div>
                         </div>
                     ) : messages.length === 0 ? (
-                        <div className="flex-1 flex flex-col items-center justify-center opacity-60">
-                            <div className="w-16 h-16 bg-[var(--surface-secondary)] rounded-full flex items-center justify-center mb-4 border border-[var(--border)] text-3xl">
+                        /* Empty messages state */
+                        <div style={{
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}>
+                            <div style={{
+                                width: 64,
+                                height: 64,
+                                borderRadius: 32,
+                                background: "#1A1A1E",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#888891",
+                                fontSize: 28,
+                                marginBottom: 12,
+                            }}>
                                 <Comment />
                             </div>
-                            <p className="text-sm font-medium text-[var(--foreground)]">Aun no hay mensajes</p>
-                            <p className="text-xs text-[var(--muted)] mt-1">Se el primero en saludar.</p>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: "#F2F2F2", margin: 0 }}>
+                                Aún no hay mensajes
+                            </p>
+                            <p style={{ fontSize: 12, color: "#888891", margin: 0, marginTop: 4 }}>
+                                Sé el primero en saludar.
+                            </p>
                         </div>
                     ) : (
-                        messages.map((msg, i) => {
-                            const isMine = !!(myUsername && msg.sender_username === myUsername) || !!(myUserId && msg.sender_id === myUserId);
-                            const showHeader = i === 0 || messages[i - 1].sender_id !== msg.sender_id;
+                        dateGroups.map((group) => (
+                            <div key={group.date}>
+                                {/* Date separator */}
+                                <div style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    marginTop: 12,
+                                    marginBottom: 12,
+                                }}>
+                                    <span style={{
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        color: "#888891",
+                                        background: "#1A1A1E",
+                                        paddingLeft: 10,
+                                        paddingRight: 10,
+                                        paddingTop: 4,
+                                        paddingBottom: 4,
+                                        borderRadius: 999,
+                                    }}>
+                                        {group.date}
+                                    </span>
+                                </div>
+                                {group.messages.map((msg, i) => {
+                                    const isMine = !!(myUsername && msg.sender_username === myUsername) || !!(myUserId && msg.sender_id === myUserId);
+                                    const prevMsg = i > 0 ? group.messages[i - 1] : null;
+                                    const showHeader = !prevMsg || prevMsg.sender_id !== msg.sender_id;
 
-                            return (
-                                <ChatMessageBubble
-                                    key={msg.id}
-                                    message={msg}
-                                    isMine={isMine}
-                                    showHeader={showHeader}
-                                    status={msg.status}
-                                />
-                            );
-                        })
+                                    return (
+                                        <ChatMessageBubble
+                                            key={msg.id}
+                                            message={msg}
+                                            isMine={isMine}
+                                            showHeader={showHeader}
+                                            status={msg.status}
+                                            isGroup={isGroup}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        ))
                     )}
-                    <div ref={messagesEndRef} className="h-1" />
-                </ScrollShadow>
+                    <div ref={messagesEndRef} style={{ height: 1 }} />
+                </div>
 
-                {/* Floating "Scroll to Bottom" Button (WhatsApp Style) */}
+                {/* Scroll to bottom button */}
                 {!isAtBottom && (
-                    <div className="absolute bottom-4 right-4 md:right-8 z-20 animate-appearance-in">
-                        <Button
-                            isIconOnly
-                            onPress={scrollToBottom}
-                            className={`rounded-full shadow-xl border border-[var(--border)] font-bold transition-all duration-300 w-10 h-10 min-w-10
-                                ${newMessagesCount > 0
-                                    ? "bg-white text-black border-gray-300 scale-110"
-                                    : "bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-secondary)]"
-                                }`}
+                    <div style={{
+                        position: "absolute",
+                        bottom: 12,
+                        right: 16,
+                        zIndex: 20,
+                    }}>
+                        <button
+                            onClick={scrollToBottom}
+                            style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 20,
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                background: newMessagesCount > 0 ? "#F2F2F2" : "#1A1A1E",
+                                color: newMessagesCount > 0 ? "#000000" : "#F2F2F2",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                                fontSize: 12,
+                                fontWeight: 700,
+                            }}
                         >
                             {newMessagesCount > 0 ? (
-                                <span className="text-xs">{newMessagesCount}</span>
+                                <span>{newMessagesCount}</span>
                             ) : (
-                                <ChevronsDown className="size-5" />
+                                <ChevronsDown style={{ width: 20, height: 20 }} />
                             )}
-                        </Button>
+                        </button>
                     </div>
                 )}
             </div>
 
-            {/* Typing indicator */}
+            {/* ── Typing indicator ── */}
             {isTyping && (
-                <div className="px-4 md:px-5 pt-2 shrink-0">
-                    <div className="max-w-5xl mx-auto">
-                        <p className="text-xs text-[var(--muted)] font-medium animate-pulse flex items-center gap-1.5">
-                            <span className="inline-flex gap-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-bounce" style={{ animationDelay: "0ms" }} />
-                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-bounce" style={{ animationDelay: "150ms" }} />
-                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-bounce" style={{ animationDelay: "300ms" }} />
-                            </span>
-                            escribiendo...
-                        </p>
-                    </div>
+                <div style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 8, flexShrink: 0 }}>
+                    <p style={{
+                        fontSize: 12,
+                        color: "#888891",
+                        fontWeight: 500,
+                        margin: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                    }}>
+                        <span style={{ display: "inline-flex", gap: 2 }}>
+                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "#888891", animationDelay: "0ms" }} />
+                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "#888891", animationDelay: "150ms" }} />
+                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "#888891", animationDelay: "300ms" }} />
+                        </span>
+                        escribiendo...
+                    </p>
                 </div>
             )}
 
-            {/* Image preview */}
+            {/* ── Image preview ── */}
             {imagePreviewUrl && (
-                <div className="px-4 md:px-5 pt-2 shrink-0">
-                    <div className="max-w-5xl mx-auto">
-                        <div className="inline-flex items-start gap-2 p-2 rounded-xl bg-[var(--surface-secondary)]/50 border border-[var(--border)]">
-                            <img
-                                src={imagePreviewUrl}
-                                alt="Vista previa"
-                                className="w-16 h-16 rounded-lg object-cover border border-[var(--border)]"
-                            />
-                            <button
-                                onClick={handleRemoveImage}
-                                className="w-5 h-5 rounded-full bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-500 transition-colors text-[var(--muted)]"
-                            >
-                                <Xmark className="size-3" />
-                            </button>
-                        </div>
+                <div style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 8, flexShrink: 0 }}>
+                    <div style={{
+                        display: "inline-flex",
+                        alignItems: "flex-start",
+                        gap: 8,
+                        padding: 8,
+                        borderRadius: 12,
+                        background: "rgba(26,26,30,0.5)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                    }}>
+                        <img
+                            src={imagePreviewUrl}
+                            alt="Vista previa"
+                            style={{
+                                width: 64,
+                                height: 64,
+                                borderRadius: 8,
+                                objectFit: "cover",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                            }}
+                        />
+                        <button
+                            onClick={handleRemoveImage}
+                            style={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: 10,
+                                background: "#1A1A1E",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                color: "#888891",
+                            }}
+                        >
+                            <Xmark style={{ width: 12, height: 12 }} />
+                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Area de Input */}
-            <div className="p-4 md:p-5 bg-[var(--surface)] backdrop-blur-xl border-t border-[var(--border)] relative z-10 shrink-0">
-                <form onSubmit={handleSend} className="max-w-5xl mx-auto flex items-end gap-3 bg-[var(--surface-secondary)]/50 border border-[var(--border)] rounded-2xl p-2 focus-within:border-[var(--accent)]/50 focus-within:shadow-[0_0_20px_rgba(var(--accent-rgb),0.08)] focus-within:bg-[var(--surface)] transition-all duration-300">
+            {/* ── Input bar ── */}
+            <div style={{
+                paddingLeft: 16,
+                paddingRight: 16,
+                paddingTop: 12,
+                paddingBottom: 16,
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+                background: "#000000",
+                flexShrink: 0,
+            }}>
+                <form
+                    onSubmit={handleSend}
+                    style={{
+                        display: "flex",
+                        alignItems: "flex-end",
+                        gap: 0,
+                        background: "#1A1A1E",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 999,
+                        paddingLeft: 4,
+                        paddingRight: 4,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                    }}
+                >
                     {/* Hidden file input */}
                     <input
                         ref={fileInputRef}
                         type="file"
                         accept="image/jpeg,image/png,image/gif,image/webp"
                         onChange={handleImageSelect}
-                        className="hidden"
+                        style={{ display: "none" }}
                     />
 
                     {/* Attachment button */}
-                    <Button
-                        isIconOnly
+                    <button
                         type="button"
-                        variant="tertiary"
-                        onPress={() => fileInputRef.current?.click()}
-                        className="rounded-xl w-10 h-10 min-w-10 text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-all shrink-0"
+                        onClick={() => fileInputRef.current?.click()}
                         aria-label="Adjuntar imagen"
+                        style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            background: "transparent",
+                            border: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            color: "#888891",
+                            flexShrink: 0,
+                        }}
                     >
-                        <Paperclip width={18} />
-                    </Button>
+                        <Paperclip style={{ width: 18, height: 18 }} />
+                    </button>
 
-                    {/* Textarea for multiline input */}
+                    {/* Textarea */}
                     <textarea
                         ref={textareaRef}
                         value={inputValue}
@@ -469,21 +747,56 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         onKeyDown={handleKeyDown}
                         placeholder="Escribe un mensaje..."
                         rows={1}
-                        className="flex-1 bg-transparent border-none shadow-none outline-none resize-none text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] py-2.5 px-2 max-h-[120px] custom-scrollbar"
+                        style={{
+                            flex: 1,
+                            background: "transparent",
+                            border: "none",
+                            outline: "none",
+                            resize: "none",
+                            color: "#F2F2F2",
+                            fontSize: 14,
+                            paddingLeft: 12,
+                            paddingRight: 12,
+                            paddingTop: 8,
+                            paddingBottom: 8,
+                            maxHeight: 120,
+                            lineHeight: "20px",
+                        }}
                         autoComplete="off"
                     />
 
                     {/* Send button */}
-                    <Button
-                        isIconOnly
+                    <button
                         type="submit"
-                        isDisabled={(!inputValue.trim() && !attachedImage) || isSending}
-                        className="rounded-xl w-12 h-12 min-w-12 bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] data-[disabled=true]:bg-[var(--surface-secondary)] data-[disabled=true]:text-[var(--muted)] transition-all shadow-lg shrink-0"
+                        disabled={(!inputValue.trim() && !attachedImage) || isSending}
+                        aria-label="Enviar"
+                        style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            background: hasText ? "#F2F2F2" : "transparent",
+                            border: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: hasText ? "pointer" : "default",
+                            color: hasText ? "#000000" : "#888891",
+                            flexShrink: 0,
+                            transition: "background 0.15s, color 0.15s",
+                        }}
                     >
-                        <PaperPlane width={18} />
-                    </Button>
+                        <PaperPlane style={{ width: 18, height: 18 }} />
+                    </button>
                 </form>
             </div>
+
+            {/* Settings modal */}
+            <ChatSettingsModal
+                isOpen={isSettingsOpen}
+                onOpenChange={setIsSettingsOpen}
+                channel={selectedChannel}
+                onChannelLeft={onBack}
+            />
         </div>
     );
 }
