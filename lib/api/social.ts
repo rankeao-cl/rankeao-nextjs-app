@@ -15,6 +15,16 @@ export async function getFeedDiscover(params?: Params) {
     return apiFetch<FeedResponse>("/social/feed/discover", params);
 }
 
+// ── Posts ──
+
+export async function createPost(payload: { content: string; image_url?: string }, token?: string) {
+    return apiPost<any>("/social/feed/posts", payload, { token });
+}
+
+export async function deletePost(postId: number, token?: string) {
+    return apiDelete<any>(`/social/feed/posts/${postId}`, { token });
+}
+
 // ── Friends ──
 
 export async function getFriends(params?: Params, token?: string) {

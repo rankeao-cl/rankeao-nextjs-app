@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Chip, Input, Label, TextArea, TextField, toast } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
-import { apiPost } from "@/lib/api/client";
+import { createPost } from "@/lib/api/social";
 
 export default function NewPostPage() {
     const router = useRouter();
@@ -26,11 +26,11 @@ export default function NewPostPage() {
 
         setLoading(true);
         try {
-            await apiPost("/social/feed", { content: content.trim() }, { token: session.accessToken });
+            await createPost({ content: content.trim() }, session.accessToken);
             toast.success("Post publicado");
             router.push("/");
         } catch {
-            toast.danger("No se pudo publicar. Esta funcion estara disponible pronto.");
+            toast.danger("No se pudo publicar el post");
         } finally {
             setLoading(false);
         }
