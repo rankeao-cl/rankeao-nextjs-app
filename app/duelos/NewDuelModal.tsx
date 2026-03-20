@@ -30,7 +30,6 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
     const [selectedGame, setSelectedGame] = useState<CatalogGame | null>(null);
     const [selectedFormat, setSelectedFormat] = useState<CatalogFormat | null>(null);
     const [bestOf, setBestOf] = useState<1 | 3 | 5>(1);
-    const [isRanked, setIsRanked] = useState(false);
     const [sending, setSending] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +81,6 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
             setSelectedGame(null);
             setSelectedFormat(null);
             setBestOf(1);
-            setIsRanked(false);
         }
     }, [open]);
 
@@ -123,7 +121,6 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 game_id: selectedGame.id,
                 format_id: selectedFormat?.id,
                 best_of: bestOf,
-                is_ranked: isRanked,
             }, session.accessToken);
             toast.success("Desafio enviado", { description: `Duelo creado contra @${selectedOpponent.username}` });
             onClose();
@@ -147,7 +144,6 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
         setSelectedGame(null);
         setSelectedFormat(null);
         setBestOf(1);
-        setIsRanked(false);
     };
 
     return (
@@ -401,33 +397,6 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                 }}
                             >
                                 Bo{n}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* 5. Ranked/Casual toggle */}
-                <div style={{ marginBottom: 24 }}>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#888891", marginBottom: 8 }}>Tipo</label>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        {[false, true].map((ranked) => (
-                            <button
-                                key={String(ranked)}
-                                onClick={() => setIsRanked(ranked)}
-                                style={{
-                                    flex: 1,
-                                    padding: "10px 0",
-                                    borderRadius: 12,
-                                    border: isRanked === ranked ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.06)",
-                                    backgroundColor: isRanked === ranked ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.06)",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: isRanked === ranked ? "#F2F2F2" : "#888891",
-                                    transition: "all 0.15s",
-                                }}
-                            >
-                                {ranked ? "Ranked" : "Casual"}
                             </button>
                         ))}
                     </div>

@@ -14,6 +14,7 @@ const STATUS_COLORS: Record<string, string> = {
     PENDING: "#F59E0B",
     ACCEPTED: "#3B82F6",
     IN_PROGRESS: "#22C55E",
+    AWAITING_CONFIRMATION: "#A855F7",
     COMPLETED: "#6B7280",
     DECLINED: "#EF4444",
     CANCELLED: "#6B7280",
@@ -24,6 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
     PENDING: "Pendiente",
     ACCEPTED: "Aceptado",
     IN_PROGRESS: "En curso",
+    AWAITING_CONFIRMATION: "Esperando confirmacion",
     COMPLETED: "Finalizado",
     DECLINED: "Rechazado",
     CANCELLED: "Cancelado",
@@ -43,11 +45,11 @@ type TabKey = (typeof TABS)[number]["key"];
 function filterByTab(duels: Duel[], tab: TabKey): Duel[] {
     switch (tab) {
         case "active":
-            return duels.filter((d) => ["ACCEPTED", "IN_PROGRESS"].includes(d.status));
+            return duels.filter((d) => ["ACCEPTED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(d.status));
         case "invitations":
             return duels.filter((d) => d.status === "PENDING");
         case "history":
-            return duels.filter((d) => ["COMPLETED", "DECLINED", "CANCELLED"].includes(d.status));
+            return duels.filter((d) => ["COMPLETED", "DECLINED", "CANCELLED", "DISPUTED"].includes(d.status));
         default:
             return duels;
     }
@@ -58,7 +60,7 @@ function filterByTab(duels: Duel[], tab: TabKey): Duel[] {
 function DuelCard({ duel }: { duel: Duel }) {
     const sColor = STATUS_COLORS[duel.status] ?? "#888891";
     const sLabel = STATUS_LABELS[duel.status] ?? duel.status;
-    const isActive = ["ACCEPTED", "IN_PROGRESS"].includes(duel.status);
+    const isActive = ["ACCEPTED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(duel.status);
     const isPending = duel.status === "PENDING";
 
     return (
@@ -135,11 +137,6 @@ function DuelCard({ duel }: { duel: Duel }) {
                         <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
                             Bo{duel.best_of}
                         </span>
-                        {duel.is_ranked && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
-                                Ranked
-                            </span>
-                        )}
                     </div>
 
                     {/* Status + CTA */}

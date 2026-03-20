@@ -29,20 +29,18 @@ export default async function DuelosPage({ searchParams }: Props) {
     const params = await searchParams;
     const tab = params.tab || "active";
 
-    let duelsData;
+    let duels: Duel[] = [];
     try {
-        duelsData = await getDuels({
+        const duelsData = await getDuels({
             q: params.q,
             game: params.game,
             page: params.page ? Number(params.page) : undefined,
             per_page: 24,
         }).catch(() => null);
+        duels = duelsData?.duels ?? [];
     } catch {
         // silent fail
     }
-
-    const rawDuels = duelsData?.duels;
-    const duels: Duel[] = Array.isArray(rawDuels) ? rawDuels : [];
 
     let gamesData;
     try {

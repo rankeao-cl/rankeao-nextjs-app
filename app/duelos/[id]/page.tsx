@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         duel = res?.duel ?? null;
     } catch { /* silent */ }
     const title = duel
-        ? `${duel.challenger.username} vs ${duel.opponent.username}`
+        ? `${duel.challenger?.username ?? "?"} vs ${duel.opponent?.username ?? "?"}`
         : "Duelo";
     return { title, description: `Detalle del duelo en Rankeao.` };
 }
@@ -26,6 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
     PENDING: "#F59E0B",
     ACCEPTED: "#3B82F6",
     IN_PROGRESS: "#22C55E",
+    AWAITING_CONFIRMATION: "#A855F7",
     COMPLETED: "#6B7280",
     DECLINED: "#EF4444",
     CANCELLED: "#6B7280",
@@ -36,6 +37,7 @@ const STATUS_LABELS: Record<string, string> = {
     PENDING: "Pendiente",
     ACCEPTED: "Aceptado",
     IN_PROGRESS: "En curso",
+    AWAITING_CONFIRMATION: "Esperando confirmacion",
     COMPLETED: "Finalizado",
     DECLINED: "Rechazado",
     CANCELLED: "Cancelado",
@@ -106,7 +108,7 @@ export default async function DuelDetailPage({ params }: Props) {
 
     const sColor = STATUS_COLORS[duel.status] ?? "#888891";
     const sLabel = STATUS_LABELS[duel.status] ?? duel.status;
-    const isActive = ["ACCEPTED", "IN_PROGRESS"].includes(duel.status);
+    const isActive = ["ACCEPTED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(duel.status);
 
     const challengerIsWinner = duel.winner_id === duel.challenger.id;
     const opponentIsWinner = duel.winner_id === duel.opponent.id;
@@ -180,7 +182,7 @@ export default async function DuelDetailPage({ params }: Props) {
                         Bo{duel.best_of}
                     </span>
                     <span style={{ fontSize: 12, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "6px 12px", borderRadius: 10 }}>
-                        {duel.is_ranked ? "Ranked" : "Casual"}
+                        Casual
                     </span>
                 </div>
             </div>
@@ -191,6 +193,8 @@ export default async function DuelDetailPage({ params }: Props) {
                 status={duel.status as DuelStatus}
                 bestOf={duel.best_of}
                 hasWinner={!!duel.winner_id}
+                challengerId={duel.challenger.id}
+                opponentId={duel.opponent.id}
             />
         </div>
     );

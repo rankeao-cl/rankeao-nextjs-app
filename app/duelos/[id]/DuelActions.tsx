@@ -12,9 +12,11 @@ interface DuelActionsProps {
     status: DuelStatus;
     bestOf: number;
     hasWinner: boolean;
+    challengerId: string;
+    opponentId: string;
 }
 
-export default function DuelActions({ duelId, status, bestOf, hasWinner }: DuelActionsProps) {
+export default function DuelActions({ duelId, status, bestOf, hasWinner, challengerId, opponentId }: DuelActionsProps) {
     const { session } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState<string | null>(null);
@@ -24,6 +26,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner }: DuelA
 
     const isPending = status === "PENDING";
     const isActive = ["ACCEPTED", "IN_PROGRESS"].includes(status);
+    const isAwaiting = status === "AWAITING_CONFIRMATION";
     const isCompleted = status === "COMPLETED";
 
     const token = session?.accessToken;
@@ -56,9 +59,15 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner }: DuelA
             toast.danger("Error", { description: `Maximo ${maxWins} victorias en Bo${bestOf}` });
             return;
         }
+        // Determine winner based on scores
+        const winnerId = challengerWins > opponentWins ? challengerId : opponentId;
         setLoading("report");
         try {
-            await reportDuelResult(duelId, { challenger_wins: challengerWins, opponent_wins: opponentWins }, token);
+            await reportDuelResult(duelId, {
+                winner_id: winnerId,
+                score_challenger: challengerWins,
+                score_challenged: opponentWins,
+            }, token);
             toast.success("Resultado reportado");
             setShowReportForm(false);
             router.refresh();
@@ -83,7 +92,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner }: DuelA
         transition: "all 0.15s",
     });
 
-    if (!isPending && !isActive && !(isCompleted && hasWinner)) return null;
+    if (!isPending && !isActive && !isAwaiting && !(isCompleted && hasWinner)) return null;
 
     return (
         <div style={{
@@ -93,7 +102,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner }: DuelA
             padding: 20,
         }}>
             <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: 0, marginBottom: 14 }}>
-                {isCompleted ? "Resultado" : "Acciones"}
+                {isAwaiting ? "Confirmar resultado" : isCompleted ? "Resultado" : "Acciones"}
             </h3>
 
             {/* Pending: Accept / Decline */}
@@ -199,8 +208,8 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner }: DuelA
                 </div>
             )}
 
-            {/* Completed: Confirm / Dispute */}
-            {isCompleted && hasWinner && (
+            {/* Awaiting confirmation: Confirm / Dispute */}
+            {isAwaiting && (
                 <div style={{ display: "flex", gap: 8 }}>
                     <button
                         onClick={() => exec("Confirmar", () => confirmDuelResult(duelId, token))}
