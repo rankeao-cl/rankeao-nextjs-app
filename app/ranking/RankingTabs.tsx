@@ -1,22 +1,28 @@
 "use client";
 
-import { Card, Chip } from "@heroui/react";
 import LeaderboardTable from "@/components/LeaderboardTable";
 import { RankedAvatar } from "@/components/RankedAvatar";
-import { RankBadge } from "@/components/RankBadge";
 import type { LeaderboardEntry } from "@/lib/types/gamification";
 import type { CatalogFormat, CatalogGame } from "@/lib/types/catalog";
 
-const medals = ["", "🥇", "🥈", "🥉"];
+const medals = ["", "\u{1F947}", "\u{1F948}", "\u{1F949}"];
 const podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd for visual layout
-const podiumPadding = ["pt-8", "pt-0", "pt-12"]; // silver shorter, gold tallest, bronze shortest
+const podiumPadding = ["pt-8", "pt-0", "pt-12"];
 
 function TopThreeCards({ entries, type }: { entries: LeaderboardEntry[]; type: "xp" | "rating" }) {
   const top3 = entries.slice(0, 3);
   if (top3.length === 0) return null;
 
   return (
-    <div className="glass p-4 sm:p-6 mb-6">
+    <div
+      style={{
+        backgroundColor: "#1A1A1E",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 16,
+      }}
+    >
       <div className="flex items-end justify-center gap-3 sm:gap-6">
         {podiumOrder.map((idx, pos) => {
           const entry = top3[idx];
@@ -29,12 +35,10 @@ function TopThreeCards({ entries, type }: { entries: LeaderboardEntry[]; type: "
               key={entry.user_id || idx}
               className={`flex flex-col items-center ${podiumPadding[pos]}`}
             >
-              {/* Medal */}
               <span className={`${isFirst ? "text-3xl" : "text-2xl"} mb-1.5 drop-shadow-md`}>
                 {medals[rank] || rank}
               </span>
 
-              {/* Avatar */}
               <div className={`mb-2 ${isFirst ? "scale-110" : ""}`}>
                 <RankedAvatar
                   src={entry.avatar_url ?? undefined}
@@ -44,18 +48,26 @@ function TopThreeCards({ entries, type }: { entries: LeaderboardEntry[]; type: "
                 />
               </div>
 
-              {/* Name */}
-              <span className="font-bold text-xs sm:text-sm truncate max-w-[70px] sm:max-w-[120px] text-[var(--foreground)]">
+              <span
+                style={{
+                  fontWeight: 700,
+                  color: "#F2F2F2",
+                  fontSize: 13,
+                  maxWidth: 120,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {entry.username}
               </span>
 
-              {/* Score */}
               {type === "rating" ? (
-                <span className="text-xs font-bold mt-1 text-[var(--accent)]">
+                <span style={{ fontSize: 12, fontWeight: 700, marginTop: 4, color: "#3B82F6" }}>
                   {entry.rating} ELO
                 </span>
               ) : (
-                <span className="text-xs font-bold mt-1 text-[var(--accent)]">
+                <span style={{ fontSize: 12, fontWeight: 700, marginTop: 4, color: "#3B82F6" }}>
                   {(entry.total_xp ?? 0).toLocaleString()} XP
                 </span>
               )}
@@ -88,26 +100,30 @@ export default function RankingTabs({
 
   return (
     <div>
-      {/* Podium */}
       <TopThreeCards entries={entries} type={type} />
 
-      {/* Table */}
       {entries.length > 0 ? (
         <LeaderboardTable entries={entries} type={type} />
       ) : (
-        <Card className="glass">
-          <Card.Content className="py-16 text-center">
-            <p className="text-4xl mb-4">{isXp ? "📊" : "⚔️"}</p>
-            <p className="text-lg font-medium text-[var(--foreground)]">
-              {isXp ? "No hay datos de leaderboard" : "Selecciona un juego y formato"}
-            </p>
-            <p className="text-sm mt-1 text-[var(--muted)]">
-              {isXp
-                ? "Aún no hay jugadores en el ranking de XP."
-                : "Usa los filtros de arriba para ver el leaderboard de ratings ELO."}
-            </p>
-          </Card.Content>
-        </Card>
+        <div
+          style={{
+            backgroundColor: "#1A1A1E",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16,
+            padding: "64px 24px",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: 40, marginBottom: 16 }}>{isXp ? "\u{1F4CA}" : "\u2694\uFE0F"}</p>
+          <p style={{ fontSize: 18, fontWeight: 500, color: "#F2F2F2", margin: 0, marginBottom: 4 }}>
+            {isXp ? "No hay datos de leaderboard" : "Selecciona un juego y formato"}
+          </p>
+          <p style={{ fontSize: 14, color: "#888891", margin: 0 }}>
+            {isXp
+              ? "Aun no hay jugadores en el ranking de XP."
+              : "Usa los filtros de arriba para ver el leaderboard de ratings ELO."}
+          </p>
+        </div>
       )}
     </div>
   );

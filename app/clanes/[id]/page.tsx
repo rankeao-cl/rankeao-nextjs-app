@@ -1,8 +1,6 @@
 import { getClan } from "@/lib/api/clans";
 import type { ClanDetail } from "@/lib/types/clan";
 import type { Metadata } from "next";
-import { Card, Chip, Avatar } from "@heroui/react";
-import { RankedAvatar } from "@/components/RankedAvatar";
 import Link from "next/link";
 import ClanDetailClient from "./ClanDetailClient";
 
@@ -28,24 +26,17 @@ export default async function ClanDetailPage({ params }: Props) {
   try {
     const data = await getClan(id).catch(() => null);
     clan = ((data as any)?.data?.clan ?? (data as any)?.clan ?? (data as any)?.data ?? data) as ClanDetail | null;
-  } catch {
-    // silent
-  }
+  } catch {}
 
   if (!clan) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <p className="text-4xl mb-4">🛡️</p>
-        <p className="text-lg font-bold text-[var(--foreground)]">Clan no encontrado</p>
-        <p className="text-sm text-[var(--muted)] mt-1">
-          Este clan no existe o fue eliminado.
-        </p>
-        <Link
-          href="/clanes"
-          className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[var(--accent)]"
-        >
-          ← Volver a clanes
-        </Link>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 16px", textAlign: "center" }}>
+        <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "#1A1A1E", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+          <span style={{ fontSize: 32, opacity: 0.4 }}>🛡️</span>
+        </div>
+        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 700, margin: 0, marginBottom: 4 }}>Clan no encontrado</p>
+        <p style={{ color: "#888891", fontSize: 13, margin: 0, marginBottom: 16 }}>Este clan no existe o fue eliminado.</p>
+        <Link href="/clanes" style={{ color: "#3B82F6", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Volver a clanes</Link>
       </div>
     );
   }
@@ -54,102 +45,150 @@ export default async function ClanDetailPage({ params }: Props) {
   const leader = members.find((m) => m.role === "LEADER");
   const officers = members.filter((m) => m.role === "OFFICER");
   const regularMembers = members.filter((m) => m.role === "MEMBER");
+  const memberCount = clan.member_count ?? members.length;
+  const hasRating = clan.rating != null && clan.rating > 0;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-      {/* Banner */}
-      <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden">
-        {clan.banner_url && (
-          <img
-            src={clan.banner_url}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-20"
-          />
+    <div className="max-w-3xl mx-auto" style={{ paddingBottom: 48 }}>
+      {/* ── Epic Banner ── */}
+      <div style={{ position: "relative", height: 180, overflow: "hidden" }}>
+        {clan.banner_url ? (
+          <img src={clan.banner_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : clan.logo_url ? (
+          <img src={clan.logo_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.2 }} />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
         )}
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)] flex items-center justify-center text-3xl shrink-0">
-            {clan.logo_url ? (
-              <img src={clan.logo_url} alt={clan.name} className="w-16 h-16 rounded-xl object-cover" />
-            ) : (
-              "🛡️"
-            )}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #000000 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%)" }} />
+
+        {/* Back button */}
+        <Link href="/clanes" style={{ position: "absolute", top: 12, left: 12, zIndex: 2, textDecoration: "none" }}>
+          <div style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#F2F2F2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-[var(--foreground)]">{clan.name}</h1>
-              <span className="text-xs font-bold text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded">
-                {clan.tag}
-              </span>
-              {clan.is_recruiting && (
-                <Chip color="success" variant="soft" size="sm">
-                  Reclutando
-                </Chip>
-              )}
-            </div>
-            {clan.description && (
-              <p className="text-sm text-[var(--muted)] mt-1 line-clamp-2">
-                {clan.description}
-              </p>
-            )}
-            <div className="flex items-center gap-3 mt-2 text-xs text-[var(--muted)]">
-              <span>{clan.member_count ?? members.length} miembros</span>
-              {clan.game_name && <span>· {clan.game_name}</span>}
-              {clan.city && <span>· {clan.city}</span>}
-              {clan.rating != null && clan.rating > 0 && (
-                <span>· ⭐ {clan.rating}</span>
-              )}
-            </div>
-          </div>
+        </Link>
+
+        {/* Floating badges */}
+        <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 4, zIndex: 2 }}>
+          {clan.is_recruiting && (
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 999 }}>
+              Reclutando
+            </span>
+          )}
+          {clan.game_name && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#F2F2F2", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 999 }}>
+              {clan.game_name}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Action buttons (client-side: apply, leave, etc.) */}
-      <ClanDetailClient clanId={clan.id} myMembership={clan.my_membership} members={members} />
+      {/* ── Profile section (overlapping banner) ── */}
+      <div style={{ padding: "0 16px", marginTop: -48, position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
+          {/* Logo */}
+          <div style={{
+            width: 80, height: 80, borderRadius: 20, border: "4px solid #000000",
+            backgroundColor: "#1A1A1E", overflow: "hidden",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)", flexShrink: 0,
+          }}>
+            {clan.logo_url ? (
+              <img src={clan.logo_url} alt={clan.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <span style={{ fontSize: 32, fontWeight: 900, color: "#3B82F6" }}>{clan.name?.charAt(0)?.toUpperCase()}</span>
+            )}
+          </div>
 
-      {/* Stats */}
+          {/* Name + meta */}
+          <div style={{ flex: 1, minWidth: 0, marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: "#FFFFFF", margin: 0 }}>{clan.name}</h1>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", backgroundColor: "rgba(59,130,246,0.2)", padding: "2px 8px", borderRadius: 6 }}>{clan.tag}</span>
+            </div>
+            {clan.description && (
+              <p className="line-clamp-2" style={{ fontSize: 13, color: "#888891", margin: 0, marginTop: 4, lineHeight: "18px" }}>{clan.description}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Info row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, fontSize: 12, color: "#888891" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            {memberCount} miembros
+          </span>
+          {clan.city && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+              {clan.city}
+            </span>
+          )}
+          {hasRating && (
+            <span><span style={{ color: "#F59E0B" }}>★</span> {clan.rating!.toFixed(1)}</span>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ marginTop: 16 }}>
+          <ClanDetailClient clanId={clan.id} myMembership={clan.my_membership} members={members} />
+        </div>
+      </div>
+
+      {/* ── Stats ── */}
       {clan.stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="Victorias" value={clan.stats.total_wins ?? 0} />
-          <StatCard label="Derrotas" value={clan.stats.total_losses ?? 0} />
-          <StatCard label="Desafíos ganados" value={clan.stats.challenges_won ?? 0} />
-          <StatCard label="Desafíos perdidos" value={clan.stats.challenges_lost ?? 0} />
+        <div style={{ padding: "0 16px", marginTop: 20 }}>
+          <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10, marginLeft: 4 }}>Estadisticas</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+            {[
+              { label: "Victorias", value: clan.stats.total_wins ?? 0, color: "#22C55E" },
+              { label: "Derrotas", value: clan.stats.total_losses ?? 0, color: "#EF4444" },
+              { label: "Desafios ganados", value: clan.stats.challenges_won ?? 0, color: "#3B82F6" },
+              { label: "Desafios perdidos", value: clan.stats.challenges_lost ?? 0, color: "#888891" },
+            ].map((stat) => (
+              <div key={stat.label} style={{
+                backgroundColor: "#1A1A1E", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)",
+                padding: "14px 12px", textAlign: "center",
+              }}>
+                <p style={{ fontSize: 20, fontWeight: 800, color: stat.color, margin: 0 }}>{stat.value}</p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: "#888891", margin: 0, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Members */}
-      <section>
-        <h2 className="text-base font-bold text-[var(--foreground)] mb-3">
+      {/* ── Members ── */}
+      <div style={{ padding: "0 16px", marginTop: 20 }}>
+        <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10, marginLeft: 4 }}>
           Miembros ({members.length})
-        </h2>
-
-        <div className="space-y-2">
+        </p>
+        <div style={{ backgroundColor: "#1A1A1E", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
           {/* Leader */}
-          {leader && (
-            <MemberRow member={leader} roleLabel="Líder" roleColor="text-yellow-500" />
-          )}
+          {leader && <MemberRow member={leader} roleLabel="Lider" roleColor="#F59E0B" />}
+          {leader && (officers.length > 0 || regularMembers.length > 0) && <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.06)", marginLeft: 64 }} />}
 
           {/* Officers */}
-          {officers.map((m) => (
-            <MemberRow key={m.user_id} member={m} roleLabel="Oficial" roleColor="text-purple-500" />
+          {officers.map((m, i) => (
+            <div key={m.user_id}>
+              <MemberRow member={m} roleLabel="Oficial" roleColor="#A855F7" />
+              {(i < officers.length - 1 || regularMembers.length > 0) && <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.06)", marginLeft: 64 }} />}
+            </div>
           ))}
 
           {/* Regular members */}
-          {regularMembers.map((m) => (
-            <MemberRow key={m.user_id} member={m} />
+          {regularMembers.map((m, i) => (
+            <div key={m.user_id}>
+              <MemberRow member={m} />
+              {i < regularMembers.length - 1 && <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.06)", marginLeft: 64 }} />}
+            </div>
           ))}
         </div>
-      </section>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="glass-sm p-4 flex flex-col items-center gap-1 text-center">
-      <p className="text-lg font-extrabold text-[var(--foreground)]">{value}</p>
-      <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
-        {label}
-      </p>
+      </div>
     </div>
   );
 }
@@ -164,29 +203,42 @@ function MemberRow({
   roleColor?: string;
 }) {
   return (
-    <Link href={`/perfil/${member.username}`}>
-      <div className="glass-sm p-3 flex items-center gap-3 hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer">
-        <RankedAvatar
-          src={member.avatar_url}
-          fallback={member.username[0]?.toUpperCase()}
-          elo={member.rating}
-          size="sm"
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+    <Link href={`/perfil/${member.username}`} style={{ textDecoration: "none", display: "block" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
+        {/* Avatar */}
+        <div style={{
+          width: 40, height: 40, borderRadius: 20, backgroundColor: "#222226",
+          overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0, border: "1px solid rgba(255,255,255,0.06)",
+        }}>
+          {member.avatar_url ? (
+            <img src={member.avatar_url} alt={member.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#F2F2F2" }}>{member.username[0]?.toUpperCase()}</span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#F2F2F2", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {member.username}
           </p>
           {roleLabel && (
-            <p className={`text-[11px] font-bold ${roleColor || "text-[var(--muted)]"}`}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: roleColor || "#888891", margin: 0, marginTop: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>
               {roleLabel}
             </p>
           )}
         </div>
+
+        {/* ELO */}
         {member.rating != null && member.rating > 0 && (
-          <span className="text-xs text-[var(--muted)]">
-            {member.rating} ELO
-          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#888891" }}>{member.rating} ELO</span>
         )}
+
+        {/* Chevron */}
+        <svg width={14} height={14} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <path d="M6 3l5 5-5 5" stroke="#888891" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
     </Link>
   );

@@ -1,15 +1,8 @@
 import { getGameDetail, getGameFormats } from "@/lib/api/catalog";
 import { getTournaments } from "@/lib/api/tournaments";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
-import { Button, Chip, Card } from "@heroui/react";
-import { Plus, ShieldCheck } from "@gravity-ui/icons";
 import { getGameBrand } from "@/lib/gameLogos";
-import GameLeaderboard from "./GameLeaderboard";
-import GameActiveTournaments from "./GameActiveTournaments";
-import GameCommunities from "./GameCommunities";
-import GameFeed from "./GameFeed";
 import GameDetailTabs from "./GameDetailTabs";
 
 interface PageProps {
@@ -54,40 +47,64 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
     const activeTab = resolvedSearch.tab || "info";
 
     return (
-        <div className="flex flex-col w-full">
-            {/* Compact hero with brand gradient */}
-            <div
-                className="relative w-full overflow-hidden"
-                style={{ background: `linear-gradient(135deg, ${brand.bg}, var(--background))` }}
-            >
-                {/* Decorative blurs */}
+        <div className="flex flex-col w-full max-w-7xl mx-auto">
+            {/* Hero header */}
+            <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
                 <div
-                    className="absolute top-0 right-0 w-72 h-72 rounded-full blur-[120px] opacity-15 pointer-events-none"
-                    style={{ background: brand.color }}
-                />
-                <div
-                    className="absolute bottom-0 left-1/4 w-48 h-48 rounded-full blur-[80px] opacity-10 pointer-events-none"
-                    style={{ background: brand.color }}
-                />
+                    style={{
+                        backgroundColor: "#1A1A1E",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 16,
+                        padding: 18,
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        minHeight: 120,
+                        overflow: "hidden",
+                        position: "relative",
+                    }}
+                >
+                    {/* Decorative brand glow */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: -40,
+                            right: -40,
+                            width: 160,
+                            height: 160,
+                            borderRadius: "50%",
+                            background: brand.color,
+                            opacity: 0.06,
+                            filter: "blur(60px)",
+                            pointerEvents: "none",
+                        }}
+                    />
 
-                <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 sm:py-10 relative z-10">
-                    <div className="flex flex-col sm:flex-row gap-5 sm:items-center">
-                        {/* Logo */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, position: "relative", zIndex: 1 }}>
+                        {/* Game logo */}
                         <div
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 shadow-xl flex-shrink-0 bg-[var(--surface)]"
-                            style={{ borderColor: `${brand.color}40` }}
+                            style={{
+                                width: 64,
+                                height: 64,
+                                borderRadius: 14,
+                                overflow: "hidden",
+                                border: `2px solid ${brand.color}40`,
+                                flexShrink: 0,
+                                backgroundColor: "#222226",
+                            }}
                         >
                             {game.logo_url ? (
                                 <Image
                                     src={game.logo_url}
                                     alt={`Logo de ${game.name}`}
-                                    width={96}
-                                    height={96}
-                                    className="w-full h-full object-contain p-2"
+                                    width={64}
+                                    height={64}
+                                    className="w-full h-full object-contain p-1.5"
                                 />
                             ) : (
                                 <div
-                                    className="w-full h-full flex items-center justify-center font-black text-2xl"
+                                    className="w-full h-full flex items-center justify-center font-black text-lg"
                                     style={{ background: brand.bg, color: brand.color }}
                                 >
                                     {game.short_name || game.slug.toUpperCase().slice(0, 3)}
@@ -95,59 +112,84 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                             )}
                         </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight truncate">
-                                    {game.name}
-                                </h1>
-                                <Chip size="sm" color="success" variant="soft" className="font-bold border-none gap-1 shrink-0">
-                                    <ShieldCheck className="size-3" />
-                                    Oficial
-                                </Chip>
-                            </div>
-                            {game.publisher && (
-                                <p className="text-sm text-white/50 font-medium">{game.publisher}</p>
-                            )}
-                            {game.description && (
-                                <p className="text-sm text-white/60 leading-relaxed mt-2 max-w-2xl line-clamp-2">
-                                    {game.description}
-                                </p>
-                            )}
-
-                            {/* Quick stats inline */}
-                            <div className="flex items-center gap-5 mt-4 text-sm">
-                                <div>
-                                    <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">Formatos</span>
-                                    <p className="text-white font-bold text-lg leading-tight">{formats.length}</p>
-                                </div>
-                                <div>
-                                    <span className="text-white/40 text-xs uppercase tracking-wider font-semibold">Torneos</span>
-                                    <p className="text-white font-bold text-lg leading-tight">{tournaments.length}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* CTA */}
-                        <div className="flex gap-2 sm:flex-col shrink-0">
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                className="font-bold shadow-lg"
-                                style={{ background: brand.color, color: brand.bg }}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            {/* Badge */}
+                            <span
+                                style={{
+                                    display: "inline-block",
+                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                    paddingLeft: 10,
+                                    paddingRight: 10,
+                                    paddingTop: 4,
+                                    paddingBottom: 4,
+                                    borderRadius: 999,
+                                    marginBottom: 8,
+                                    color: "#888891",
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                }}
                             >
-                                <Plus className="size-4" /> Yo Juego Esto
-                            </Button>
+                                Detalle del juego
+                            </span>
+                            <h1
+                                style={{
+                                    color: "#F2F2F2",
+                                    fontSize: 22,
+                                    fontWeight: 800,
+                                    margin: 0,
+                                    marginBottom: 4,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {game.name}
+                            </h1>
+                            <p
+                                style={{
+                                    color: "#888891",
+                                    fontSize: 13,
+                                    lineHeight: "18px",
+                                    margin: 0,
+                                }}
+                            >
+                                {game.publisher || `Torneos, rankings y comunidades de ${game.name}.`}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Stats pills */}
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0, marginLeft: 12, position: "relative", zIndex: 1 }}>
+                        <div
+                            style={{
+                                backgroundColor: "#222226",
+                                borderRadius: 12,
+                                padding: "8px 14px",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                textAlign: "center",
+                            }}
+                        >
+                            <p style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0, marginBottom: 2 }}>Formatos</p>
+                            <p style={{ fontSize: 18, fontWeight: 700, color: "#F2F2F2", margin: 0 }}>{formats.length}</p>
+                        </div>
+                        <div
+                            style={{
+                                backgroundColor: "#222226",
+                                borderRadius: 12,
+                                padding: "8px 14px",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                textAlign: "center",
+                            }}
+                        >
+                            <p style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0, marginBottom: 2 }}>Torneos</p>
+                            <p style={{ fontSize: 18, fontWeight: 700, color: "#F2F2F2", margin: 0 }}>{tournaments.length}</p>
                         </div>
                     </div>
                 </div>
-
-                {/* Bottom fade into page */}
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--background)] to-transparent" />
-            </div>
+            </section>
 
             {/* Tab navigation + content */}
-            <div className="max-w-7xl mx-auto px-4 lg:px-6 w-full mb-12">
+            <div className="mx-4 lg:mx-6 mb-12">
                 <GameDetailTabs
                     slug={slug}
                     activeTab={activeTab}

@@ -1,4 +1,3 @@
-import { Chip } from "@heroui/react";
 import { getGameFormats, getGames } from "@/lib/api/catalog";
 import type { CatalogGame } from "@/lib/types/catalog";
 import JuegosExplorer from "./JuegosExplorer";
@@ -36,39 +35,74 @@ export default async function JuegosPage() {
   const rawGames = gamesData?.data ?? gamesData?.games;
   const games = Array.isArray(rawGames) ? rawGames : [];
   const enrichedGames = await enrichGamesWithFormats(games);
-  const totalFormats = enrichedGames.reduce((acc, g) => acc + (g.formats?.length ?? 0), 0);
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col pt-4">
-      <section className="px-4 lg:px-6 mb-6">
-        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="relative z-10 flex-1">
-            <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
-              Catalogo TCG
-            </Chip>
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-              Todos los juegos y formatos
+    <div className="max-w-7xl mx-auto flex flex-col">
+      {/* Hero header */}
+      <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
+        <div
+          style={{
+            backgroundColor: "#1A1A1E",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16,
+            padding: 18,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 120,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            {/* Badge */}
+            <span
+              style={{
+                display: "inline-block",
+                backgroundColor: "rgba(255,255,255,0.06)",
+                alignSelf: "flex-start",
+                paddingLeft: 10,
+                paddingRight: 10,
+                paddingTop: 4,
+                paddingBottom: 4,
+                borderRadius: 999,
+                marginBottom: 8,
+                color: "#888891",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              Catalogo de juegos
+            </span>
+            <h1
+              style={{
+                color: "#F2F2F2",
+                fontSize: 22,
+                fontWeight: 800,
+                margin: 0,
+                marginBottom: 4,
+              }}
+            >
+              Juegos
             </h1>
-            <p className="text-sm text-[var(--muted)] max-w-lg">
-              Revisa los juegos soportados en Rankeao y sus formatos para torneos, rankings y
-              actividad competitiva.
+            <p
+              style={{
+                color: "#888891",
+                fontSize: 13,
+                lineHeight: "18px",
+                margin: 0,
+              }}
+            >
+              Explora los juegos de cartas disponibles en Rankeao.
             </p>
-          </div>
-
-          <div className="flex flex-row md:flex-col gap-2 min-w-0 md:min-w-[200px]">
-            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos</p>
-              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{enrichedGames.length}</p>
-            </div>
-            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Formatos</p>
-              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{totalFormats}</p>
-            </div>
           </div>
         </div>
       </section>
 
-      <JuegosExplorer games={enrichedGames} />
+      {/* Search bar */}
+      <div className="mx-4 lg:mx-6 mb-3">
+        <JuegosExplorer games={enrichedGames} />
+      </div>
     </div>
   );
 }

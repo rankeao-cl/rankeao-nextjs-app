@@ -1,10 +1,7 @@
-import { Card, Chip, Button } from "@heroui/react";
 import { getTenants, getTenant } from "@/lib/api/tenants";
 import type { Tenant } from "@/lib/types/tenant";
-import ComunidadesSearch from "./ComunidadesSearch";
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
+import ComunidadesClient from "./ComunidadesClient";
 
 export const metadata: Metadata = {
   title: "Comunidades",
@@ -20,22 +17,6 @@ interface ComunidadesPageProps {
     sort?: string;
     page?: string;
   }>;
-}
-
-const sortOptions = [
-  { key: "rating-desc", label: "Mejor valoradas" },
-  { key: "newest", label: "Mas recientes" },
-  { key: "name-asc", label: "A-Z" },
-];
-
-function renderStars(rating: number) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  return (
-    <span className="text-yellow-400 text-sm tracking-wide">
-      {"★".repeat(full)}{half ? "☆" : ""}
-    </span>
-  );
 }
 
 export default async function ComunidadesPage({ searchParams }: ComunidadesPageProps) {
@@ -99,202 +80,70 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
     return `/comunidades?${qs}`;
   }
 
-  return (
-    <div className="max-w-7xl mx-auto flex flex-col pt-4">
-      {/* Hero */}
-      <section className="px-4 lg:px-6 mb-6">
-        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-5 blur-[80px] pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div className="flex-1">
-              <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
-                Directorio de tiendas
-              </Chip>
-              <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                Comunidades TCG
-              </h1>
-              <p className="text-sm text-[var(--muted)] max-w-lg mb-5">
-                Encuentra tiendas, clubs y espacios de juego en todo Chile para competir y conectar.
-              </p>
-              <ComunidadesSearch initialQuery={params.q} initialCity={params.city} />
-            </div>
+  // Build sort URLs for server-side links
+  const sortOptions = [
+    { key: "rating-desc", label: "Mejor valoradas" },
+    { key: "newest", label: "Mas recientes" },
+    { key: "name-asc", label: "A-Z" },
+  ];
+  const sortLinks = sortOptions.map((opt) => ({
+    ...opt,
+    href: buildUrl({ sort: opt.key, page: "1" }),
+    active: sort === opt.key,
+  }));
 
-            <div className="flex flex-row md:flex-col gap-2 min-w-0 md:min-w-[180px]">
-              <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-                <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Activas</p>
-                <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
-                  {meta?.total ?? tenants.length}
-                </p>
-              </div>
-              <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-                <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Ciudades</p>
-                <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">
-                  {new Set(tenants.map(t => t.city).filter(Boolean)).size || "—"}
-                </p>
-              </div>
-            </div>
+  const paginationPrev = page > 1 ? buildUrl({ page: String(page - 1) }) : null;
+  const paginationNext = page < totalPages ? buildUrl({ page: String(page + 1) }) : null;
+
+  return (
+    <div className="max-w-7xl mx-auto flex flex-col">
+      {/* ── Hero header ── */}
+      <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
+        <div
+          style={{
+            backgroundColor: "#1A1A1E",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16,
+            padding: 18,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 120,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <span
+              style={{
+                display: "inline-block",
+                backgroundColor: "rgba(255,255,255,0.06)",
+                paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
+                borderRadius: 999, marginBottom: 8,
+                color: "#888891", fontSize: 11, fontWeight: 600,
+              }}
+            >
+              Directorio de tiendas
+            </span>
+            <h1 style={{ color: "#F2F2F2", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
+              Comunidades TCG
+            </h1>
+            <p style={{ color: "#888891", fontSize: 13, lineHeight: "18px", margin: 0 }}>
+              Encuentra tiendas y espacios de juego en Chile.
+            </p>
           </div>
         </div>
-      </section>
-
-      {/* Sort pills */}
-      <div className="px-4 lg:px-6 mb-4">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {sortOptions.map((opt) => (
-            <a
-              key={opt.key}
-              href={buildUrl({ sort: opt.key, page: "1" })}
-              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-                sort === opt.key
-                  ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
-                  : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              {opt.label}
-            </a>
-          ))}
-
-          {meta?.total != null && (
-            <Chip size="sm" className="bg-[var(--surface-secondary)] text-[var(--muted)] border-0 ml-auto shrink-0">
-              {meta.total} resultados
-            </Chip>
-          )}
-        </div>
       </div>
 
-      {/* Results */}
-      <div className="px-4 lg:px-6 mb-12">
-        {tenants.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tenants.map((tenant) => (
-                <Link key={tenant.id} href={`/comunidades/${tenant.slug || tenant.id}`} className="block group">
-                  <div className="surface-card rounded-[22px] overflow-hidden h-full transition-all group-hover:shadow-lg">
-                    {/* Banner area — uses banner_url, logo_url as blur bg, or gradient fallback */}
-                    <div className="h-24 relative overflow-hidden">
-                      {tenant.banner_url ? (
-                        <Image
-                          src={tenant.banner_url}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                        />
-                      ) : tenant.logo_url ? (
-                        <Image
-                          src={tenant.logo_url}
-                          alt=""
-                          fill
-                          className="object-cover scale-[3] blur-2xl opacity-30"
-                          sizes="33vw"
-                        />
-                      ) : null}
-                      <div
-                        className="absolute inset-0"
-                        style={{ background: "linear-gradient(135deg, var(--accent)/20, var(--surface-secondary))" }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-transparent to-transparent" />
-                    </div>
-
-                    <div className="px-4 pb-4 -mt-8 relative z-10">
-                      {/* Avatar */}
-                      <div className="w-14 h-14 rounded-xl border-[3px] border-[var(--bg-solid,#fff)] bg-[var(--surface-secondary)] overflow-hidden mb-3 shadow-lg">
-                        {tenant.logo_url ? (
-                          <Image
-                            src={tenant.logo_url}
-                            alt={tenant.name}
-                            width={56}
-                            height={56}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xl font-black text-[var(--accent)] bg-[var(--surface-secondary)]">
-                            {tenant.name?.charAt(0)?.toUpperCase()}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <h3 className="font-bold text-[var(--foreground)] text-base truncate mb-0.5 group-hover:text-[var(--accent)] transition-colors">
-                        {tenant.name}
-                      </h3>
-
-                      {tenant.city && (
-                        <p className="text-xs text-[var(--muted)] mb-2 truncate">
-                          📍 {tenant.city}{tenant.region ? `, ${tenant.region}` : ""}
-                        </p>
-                      )}
-
-                      {tenant.description && (
-                        <p className="text-xs text-[var(--muted)] line-clamp-2 mb-3 leading-relaxed">
-                          {tenant.description}
-                        </p>
-                      )}
-
-                      {/* Footer row */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {tenant.rating != null && tenant.rating > 0 && (
-                          <div className="flex items-center gap-1">
-                            {renderStars(tenant.rating)}
-                            <span className="text-[var(--muted)] text-[11px] font-semibold">
-                              {tenant.rating.toFixed(1)}
-                            </span>
-                          </div>
-                        )}
-                        {tenant.is_public && (
-                          <Chip size="sm" color="success" variant="soft" className="text-[10px] font-bold">
-                            Activa
-                          </Chip>
-                        )}
-                        {tenant.is_open && (
-                          <Chip size="sm" color="accent" variant="soft" className="text-[10px] font-bold">
-                            Abierta ahora
-                          </Chip>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-10">
-                <div className="flex items-center gap-4 py-3 px-6 rounded-full border border-[var(--border)] bg-[var(--surface-secondary)]">
-                  <a
-                    href={page > 1 ? buildUrl({ page: String(page - 1) }) : "#"}
-                    className={`text-sm font-semibold ${page <= 1 ? "text-[var(--muted)] pointer-events-none" : "text-[var(--foreground)] hover:text-[var(--accent)]"}`}
-                  >
-                    Anterior
-                  </a>
-                  <span className="text-xs font-semibold text-[var(--muted)]">
-                    {page} de {totalPages}
-                  </span>
-                  <a
-                    href={page < totalPages ? buildUrl({ page: String(page + 1) }) : "#"}
-                    className={`text-sm font-semibold ${page >= totalPages ? "text-[var(--muted)] pointer-events-none" : "text-[var(--foreground)] hover:text-[var(--accent)]"}`}
-                  >
-                    Siguiente
-                  </a>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <Card className="glass">
-            <Card.Content className="py-16 text-center">
-              <p className="text-4xl mb-4">🏪</p>
-              <p className="text-lg font-medium text-[var(--foreground)]">
-                No se encontraron comunidades
-              </p>
-              <p className="text-sm mt-1 text-[var(--muted)]">
-                Intenta buscar con otros términos o explorar sin filtros.
-              </p>
-            </Card.Content>
-          </Card>
-        )}
-      </div>
+      <ComunidadesClient
+        tenants={tenants}
+        sortLinks={sortLinks}
+        page={page}
+        totalPages={totalPages}
+        paginationPrev={paginationPrev}
+        paginationNext={paginationNext}
+        initialQuery={params.q}
+      />
     </div>
   );
 }

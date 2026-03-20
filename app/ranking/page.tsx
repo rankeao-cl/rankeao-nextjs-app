@@ -4,7 +4,6 @@ import { getGames, getGameFormats } from "@/lib/api/catalog";
 import type { CatalogFormat, CatalogGame } from "@/lib/types/catalog";
 import type { LeaderboardEntry } from "@/lib/types/gamification";
 import RankingTabs from "./RankingTabs";
-import { Chip } from "@heroui/react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -103,9 +102,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
     : [];
 
   const periods = [
-    { key: "week", label: "Semanal" },
-    { key: "month", label: "Mensual" },
     { key: "all_time", label: "Todo" },
+    { key: "month", label: "Mes" },
+    { key: "week", label: "Semana" },
+  ];
+
+  const tabs = [
+    { key: "xp", label: "XP Global" },
+    { key: "ratings", label: "ELO Rating" },
   ];
 
   function buildUrl(overrides: Record<string, string>) {
@@ -124,108 +128,299 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
   }
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col pt-4">
-      {/* Hero Header */}
-      <section className="px-4 lg:px-6 mb-6">
-        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="relative z-10 flex-1">
-            <Chip size="sm" variant="soft" color="accent" className="mb-3 px-3">
-              Rankings Chile
-            </Chip>
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-              Leaderboard competitivo
+    <div className="max-w-7xl mx-auto flex flex-col">
+      {/* Hero header */}
+      <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
+        <div
+          style={{
+            backgroundColor: "#1A1A1E",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 16,
+            padding: 18,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 120,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            {/* Badge */}
+            <span
+              style={{
+                display: "inline-block",
+                backgroundColor: "rgba(255,255,255,0.06)",
+                alignSelf: "flex-start",
+                paddingLeft: 10,
+                paddingRight: 10,
+                paddingTop: 4,
+                paddingBottom: 4,
+                borderRadius: 999,
+                marginBottom: 8,
+                color: "#888891",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              Clasificacion
+            </span>
+            <h1
+              style={{
+                color: "#F2F2F2",
+                fontSize: 22,
+                fontWeight: 800,
+                margin: 0,
+                marginBottom: 4,
+              }}
+            >
+              Ranking
             </h1>
-            <p className="text-sm text-[var(--muted)] max-w-lg">
-              Consulta el leaderboard global, compara tu rendimiento y sube de rango.
+            <p
+              style={{
+                color: "#888891",
+                fontSize: 13,
+                lineHeight: "18px",
+                margin: 0,
+              }}
+            >
+              Compite y sube en el ranking de jugadores.
             </p>
-          </div>
-
-          <div className="flex flex-row md:flex-col gap-2 min-w-0 md:min-w-[200px]">
-            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Top XP</p>
-              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{xpEntries.length}</p>
-            </div>
-            <div className="flex-1 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
-              <p className="text-[10px] sm:text-xs text-[var(--muted)] uppercase tracking-wider font-semibold mb-1">Juegos</p>
-              <p className="text-lg sm:text-xl font-bold text-[var(--foreground)]">{games.length}</p>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Tab pills + Period pills */}
-      <div className="px-4 lg:px-6 mb-4 space-y-3">
-        {/* Ranking type tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <a
-            href={buildUrl({ tab: "xp" })}
-            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-              selectedTab === "xp"
-                ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
-                : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
-            }`}
+      {/* Search bar */}
+      <section className="mx-4 lg:mx-6 mb-3">
+        <div
+          style={{
+            backgroundColor: "#1A1A1E",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 999,
+            paddingLeft: 14,
+            paddingRight: 14,
+            paddingTop: 10,
+            paddingBottom: 10,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#888891"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ flexShrink: 0 }}
           >
-            XP Global
-          </a>
-          <a
-            href={buildUrl({ tab: "ratings" })}
-            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
-              selectedTab === "ratings"
-                ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
-                : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
-            }`}
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <span
+            style={{
+              color: "#888891",
+              fontSize: 13,
+              flex: 1,
+            }}
           >
-            Ratings ELO
-          </a>
+            Buscar jugador...
+          </span>
+        </div>
+      </section>
 
-          <span className="w-px h-6 bg-[var(--border)] mx-1 shrink-0" />
+      {/* Filter pills — ranking type */}
+      <section className="mx-4 lg:mx-6 mb-3">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            overflowX: "auto",
+          }}
+          className="no-scrollbar"
+        >
+          {tabs.map((t) => (
+            <a
+              key={t.key}
+              href={buildUrl({ tab: t.key })}
+              style={{
+                paddingLeft: 16,
+                paddingRight: 16,
+                paddingTop: 8,
+                paddingBottom: 8,
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                textDecoration: "none",
+                border:
+                  selectedTab === t.key
+                    ? "1px solid transparent"
+                    : "1px solid rgba(255,255,255,0.06)",
+                backgroundColor:
+                  selectedTab === t.key ? "#F2F2F2" : "#1A1A1E",
+                color: selectedTab === t.key ? "#000000" : "#888891",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {t.label}
+            </a>
+          ))}
+
+          {/* Separator */}
+          <span
+            style={{
+              width: 1,
+              height: 24,
+              backgroundColor: "rgba(255,255,255,0.06)",
+              marginLeft: 4,
+              marginRight: 4,
+              flexShrink: 0,
+            }}
+          />
 
           {/* Period pills */}
           {periods.map((p) => (
             <a
               key={p.key}
               href={buildUrl({ period: p.key })}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                period === p.key
-                  ? "bg-[var(--foreground)] text-[var(--background)]"
-                  : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
+              style={{
+                paddingLeft: 16,
+                paddingRight: 16,
+                paddingTop: 8,
+                paddingBottom: 8,
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                textDecoration: "none",
+                border:
+                  period === p.key
+                    ? "1px solid transparent"
+                    : "1px solid rgba(255,255,255,0.06)",
+                backgroundColor:
+                  period === p.key ? "#F2F2F2" : "#1A1A1E",
+                color: period === p.key ? "#000000" : "#888891",
+                transition: "all 0.15s ease",
+              }}
             >
               {p.label}
             </a>
           ))}
         </div>
+      </section>
 
-        {/* Game pills (inline, scrollable) */}
-        {games.length > 0 && selectedTab === "ratings" && (
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-xs font-semibold text-[var(--muted)] shrink-0 mr-1">Juego:</span>
+      {/* Game / format pills (only for ratings tab) */}
+      {games.length > 0 && selectedTab === "ratings" && (
+        <section className="mx-4 lg:mx-6 mb-3">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              overflowX: "auto",
+            }}
+            className="no-scrollbar"
+          >
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#888891",
+                flexShrink: 0,
+                marginRight: 2,
+              }}
+            >
+              Juego:
+            </span>
             {games.map((g) => (
               <a
                 key={g.slug}
                 href={buildUrl({ tab: "ratings", game: g.slug })}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                  selectedGame?.slug === g.slug
-                    ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30"
-                    : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)] border border-transparent"
-                }`}
+                style={{
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  paddingTop: 8,
+                  paddingBottom: 8,
+                  borderRadius: 999,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  textDecoration: "none",
+                  border:
+                    selectedGame?.slug === g.slug
+                      ? "1px solid transparent"
+                      : "1px solid rgba(255,255,255,0.06)",
+                  backgroundColor:
+                    selectedGame?.slug === g.slug ? "#F2F2F2" : "#1A1A1E",
+                  color:
+                    selectedGame?.slug === g.slug ? "#000000" : "#888891",
+                  transition: "all 0.15s ease",
+                }}
               >
                 {g.name}
               </a>
             ))}
+
             {formats.length > 0 && (
               <>
-                <span className="w-px h-5 bg-[var(--border)] mx-1 shrink-0" />
-                <span className="text-xs font-semibold text-[var(--muted)] shrink-0 mr-1">Formato:</span>
+                <span
+                  style={{
+                    width: 1,
+                    height: 20,
+                    backgroundColor: "rgba(255,255,255,0.06)",
+                    marginLeft: 4,
+                    marginRight: 4,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#888891",
+                    flexShrink: 0,
+                    marginRight: 2,
+                  }}
+                >
+                  Formato:
+                </span>
                 {formats.map((f) => (
                   <a
                     key={f.slug}
-                    href={buildUrl({ tab: "ratings", game: selectedGame?.slug || "", format: f.slug })}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                      selectedFormat?.slug === f.slug
-                        ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30"
-                        : "bg-[var(--surface-secondary)] text-[var(--muted)] hover:text-[var(--foreground)] border border-transparent"
-                    }`}
+                    href={buildUrl({
+                      tab: "ratings",
+                      game: selectedGame?.slug || "",
+                      format: f.slug,
+                    })}
+                    style={{
+                      paddingLeft: 16,
+                      paddingRight: 16,
+                      paddingTop: 8,
+                      paddingBottom: 8,
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      textDecoration: "none",
+                      border:
+                        selectedFormat?.slug === f.slug
+                          ? "1px solid transparent"
+                          : "1px solid rgba(255,255,255,0.06)",
+                      backgroundColor:
+                        selectedFormat?.slug === f.slug
+                          ? "#F2F2F2"
+                          : "#1A1A1E",
+                      color:
+                        selectedFormat?.slug === f.slug
+                          ? "#000000"
+                          : "#888891",
+                      transition: "all 0.15s ease",
+                    }}
                   >
                     {f.name}
                   </a>
@@ -233,11 +428,11 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
               </>
             )}
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
-      {/* Content — full width, no sidebar */}
-      <div className="px-4 lg:px-6 mb-12">
+      {/* Content */}
+      <section className="mx-4 lg:mx-6 mb-12">
         <RankingTabs
           xpEntries={xpEntries}
           ratingEntries={ratingEntries}
@@ -247,7 +442,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
           selectedFormatSlug={selectedFormat?.slug}
           selectedTab={selectedTab}
         />
-      </div>
+      </section>
     </div>
   );
 }
