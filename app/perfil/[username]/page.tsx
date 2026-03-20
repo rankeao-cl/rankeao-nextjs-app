@@ -6,6 +6,7 @@ import Image from "next/image";
 import { RankedAvatar } from "@/components/RankedAvatar";
 import { UserDisplayName, getUserRoleData } from "@/components/UserIdentity";
 import PostCard from "@/components/cards/PostCard";
+import type { FeedPost } from "@/components/cards/PostCard";
 import DeckCard from "@/components/cards/DeckCard";
 import ProfileCollectionTab from "./ProfileCollectionTab";
 import ProfileTournamentsTab from "./ProfileTournamentsTab";
@@ -46,6 +47,12 @@ function toArray<T>(value: unknown): T[] {
     if (Array.isArray(value)) return value;
     const v = value as any;
     if (Array.isArray(v.data)) return v.data;
+    if (v.data && typeof v.data === "object") {
+        const inner = v.data as any;
+        if (Array.isArray(inner.activity)) return inner.activity;
+        if (Array.isArray(inner.items)) return inner.items;
+        if (Array.isArray(inner.feed)) return inner.feed;
+    }
     if (Array.isArray(v.items)) return v.items;
     if (Array.isArray(v.users)) return v.users;
     if (Array.isArray(v.activity)) return v.activity;
@@ -518,7 +525,18 @@ export default function PublicProfilePage({
 
                     {/* Actividad */}
                     <Tabs.Panel id="actividad" className="pt-4 space-y-4">
-                        {activity.length > 0 ? activity.map((post, i) => <PostCard key={post.id || i} post={post} />) : <EmptyState emoji="📝" title="Sin actividad reciente" description="Aun no hay publicaciones en este perfil." />}
+                        {activity.length > 0 ? activity.map((item: any, i: number) => {
+                            const user = item.user ?? {};
+                            const post: FeedPost = {
+                                id: String(item.id),
+                                username: user.username ?? item.username ?? profile?.username,
+                                avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
+                                text: item.description ?? item.text ?? item.content ?? item.title ?? "",
+                                images: item.images ?? (item.image_url ? [item.image_url] : undefined),
+                                created_at: item.created_at ?? "",
+                            };
+                            return <PostCard key={post.id || i} post={post} />;
+                        }) : <EmptyState emoji="📝" title="Sin actividad reciente" description="Aun no hay publicaciones en este perfil." />}
                     </Tabs.Panel>
 
                     {/* Mazos */}
