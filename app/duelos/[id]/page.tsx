@@ -2,7 +2,8 @@ import { getDuel } from "@/lib/api/duels";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { Duel } from "@/lib/types/duel";
+import type { Duel, DuelStatus } from "@/lib/types/duel";
+import DuelActions from "./DuelActions";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -106,8 +107,6 @@ export default async function DuelDetailPage({ params }: Props) {
     const sColor = STATUS_COLORS[duel.status] ?? "#888891";
     const sLabel = STATUS_LABELS[duel.status] ?? duel.status;
     const isActive = ["ACCEPTED", "IN_PROGRESS"].includes(duel.status);
-    const isPending = duel.status === "PENDING";
-    const isCompleted = duel.status === "COMPLETED";
 
     const challengerIsWinner = duel.winner_id === duel.challenger.id;
     const opponentIsWinner = duel.winner_id === duel.opponent.id;
@@ -186,117 +185,13 @@ export default async function DuelDetailPage({ params }: Props) {
                 </div>
             </div>
 
-            {/* Action buttons */}
-            {(isPending || isActive) && (
-                <div style={{
-                    backgroundColor: "#1A1A1E",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    borderRadius: 16,
-                    padding: 20,
-                }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: 0, marginBottom: 14 }}>Acciones</h3>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        {isPending && (
-                            <>
-                                <button style={{
-                                    flex: 1,
-                                    padding: "12px 0",
-                                    borderRadius: 12,
-                                    border: "none",
-                                    backgroundColor: "#22C55E",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: "#FFFFFF",
-                                }}>
-                                    Aceptar
-                                </button>
-                                <button style={{
-                                    flex: 1,
-                                    padding: "12px 0",
-                                    borderRadius: 12,
-                                    border: "1px solid rgba(255,255,255,0.06)",
-                                    backgroundColor: "rgba(255,255,255,0.06)",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: "#EF4444",
-                                }}>
-                                    Rechazar
-                                </button>
-                            </>
-                        )}
-                        {isActive && (
-                            <>
-                                <button style={{
-                                    flex: 1,
-                                    padding: "12px 0",
-                                    borderRadius: 12,
-                                    border: "none",
-                                    backgroundColor: "#3B82F6",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: "#FFFFFF",
-                                }}>
-                                    Reportar resultado
-                                </button>
-                                <button style={{
-                                    padding: "12px 20px",
-                                    borderRadius: 12,
-                                    border: "1px solid rgba(255,255,255,0.06)",
-                                    backgroundColor: "rgba(255,255,255,0.06)",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    color: "#888891",
-                                }}>
-                                    Cancelar
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Completed: confirm/dispute */}
-            {isCompleted && duel.winner_id && (
-                <div style={{
-                    backgroundColor: "#1A1A1E",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    borderRadius: 16,
-                    padding: 20,
-                }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: 0, marginBottom: 14 }}>Resultado</h3>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <button style={{
-                            flex: 1,
-                            padding: "12px 0",
-                            borderRadius: 12,
-                            border: "none",
-                            backgroundColor: "#22C55E",
-                            cursor: "pointer",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#FFFFFF",
-                        }}>
-                            Confirmar resultado
-                        </button>
-                        <button style={{
-                            padding: "12px 20px",
-                            borderRadius: 12,
-                            border: "1px solid rgba(239,68,68,0.3)",
-                            backgroundColor: "rgba(239,68,68,0.06)",
-                            cursor: "pointer",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#EF4444",
-                        }}>
-                            Disputar
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Actions (client component) */}
+            <DuelActions
+                duelId={duel.id}
+                status={duel.status as DuelStatus}
+                bestOf={duel.best_of}
+                hasWinner={!!duel.winner_id}
+            />
         </div>
     );
 }

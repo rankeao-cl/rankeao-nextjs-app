@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { toast } from "@heroui/react";
 import { autocompleteUsers } from "@/lib/api/social";
+import { createDuel } from "@/lib/api/duels";
 import { useAuth } from "@/context/AuthContext";
 import type { UserSearchResult } from "@/lib/types/social";
 import type { CatalogGame, CatalogFormat } from "@/lib/types/catalog";
@@ -17,6 +20,7 @@ const BEST_OF_OPTIONS = [1, 3, 5] as const;
 
 export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps) {
     const { session } = useAuth();
+    const router = useRouter();
     const [opponentQuery, setOpponentQuery] = useState("");
     const [selectedOpponent, setSelectedOpponent] = useState<UserSearchResult | null>(null);
     const [suggestions, setSuggestions] = useState<UserSearchResult[]>([]);
@@ -111,13 +115,29 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
     };
 
     const handleSubmit = async () => {
-        if (!selectedOpponent || !selectedGame) return;
+        if (!selectedOpponent || !selectedGame || !session?.accessToken) return;
         setSending(true);
-        // TODO: call createDuel when API is ready
-        setTimeout(() => {
-            setSending(false);
+        try {
+            const res = await createDuel({
+                opponent_id: selectedOpponent.id,
+                game_id: selectedGame.id,
+                format_id: selectedFormat?.id,
+                best_of: bestOf,
+                is_ranked: isRanked,
+            }, session.accessToken);
+            toast.success("Desafio enviado", { description: `Duelo creado contra @${selectedOpponent.username}` });
             onClose();
-        }, 600);
+            const duelId = res?.duel?.id;
+            if (duelId) {
+                router.push(`/duelos/${duelId}`);
+            } else {
+                router.refresh();
+            }
+        } catch (err: any) {
+            toast.danger("Error", { description: err?.message || "No se pudo crear el duelo" });
+        } finally {
+            setSending(false);
+        }
     };
 
     const handleReset = () => {
