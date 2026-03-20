@@ -8,8 +8,8 @@ export async function getClans(params?: Params) {
     return apiFetch<any>("/social/clans", params, { cache: "no-store" });
 }
 
-export async function getClan(clanId: string) {
-    return apiFetch<any>(`/social/clans/${encodeURIComponent(clanId)}`, undefined, { revalidate: 30 });
+export async function getClan(clanId: string, token?: string) {
+    return apiFetch<any>(`/social/clans/${encodeURIComponent(clanId)}`, undefined, { cache: "no-store", token });
 }
 
 export async function getMyClan(token?: string) {

@@ -1,28 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@heroui/react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { applyToClan, leaveClan } from "@/lib/api/clans";
+import { getClan, applyToClan, leaveClan } from "@/lib/api/clans";
 import type { ClanMember } from "@/lib/types/clan";
+import Link from "next/link";
 
 interface Props {
   clanId: string;
   myMembership?: ClanMember;
+  members?: ClanMember[];
 }
 
-export default function ClanDetailClient({ clanId, myMembership }: Props) {
+export default function ClanDetailClient({ clanId, myMembership: serverMembership, members: serverMembers }: Props) {
   const { session, status } = useAuth();
   const isAuth = status === "authenticated";
 
   const [loading, setLoading] = useState(false);
   const [applied, setApplied] = useState(false);
   const [left, setLeft] = useState(false);
+  const [myMembership, setMyMembership] = useState<ClanMember | undefined>(serverMembership);
+  const [checked, setChecked] = useState(!!serverMembership);
+
+  // Client-side: check if user is a member by fetching clan with token or matching members
+  useEffect(() => {
+    if (!isAuth || !session?.username || checked) return;
+
+    // First try: match from server members list
+    if (serverMembers && serverMembers.length > 0) {
+      const match = serverMembers.find(
+        (m) => m.username === session.username || m.user_id === (session as any)?.user_id
+      );
+      if (match) {
+        setMyMembership(match);
+        setChecked(true);
+        return;
+      }
+    }
+
+    // Second try: fetch clan with token to get my_membership
+    getClan(clanId, session?.accessToken)
+      .then((res: any) => {
+        const clan = res?.data ?? res?.clan ?? res;
+        if (clan?.my_membership) {
+          setMyMembership(clan.my_membership);
+        } else if (clan?.members) {
+          const match = clan.members.find(
+            (m: any) => m.username === session.username || m.user_id === (session as any)?.user_id
+          );
+          if (match) setMyMembership(match);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setChecked(true));
+  }, [isAuth, session, clanId, checked, serverMembers]);
 
   if (!isAuth) return null;
 
   const isMember = myMembership && !left;
   const isLeader = myMembership?.role === "LEADER";
+  const isOfficer = myMembership?.role === "OFFICER";
 
   const handleApply = async () => {
     setLoading(true);
@@ -48,50 +85,80 @@ export default function ClanDetailClient({ clanId, myMembership }: Props) {
   };
 
   return (
-    <div className="flex gap-3">
+    <div style={{ display: "flex", gap: 8 }}>
       {isMember ? (
         <>
-          {isLeader && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full font-semibold"
-              onPress={() => window.location.href = `/clanes/${clanId}/manage`}
+          {(isLeader || isOfficer) && (
+            <Link
+              href={`/clanes/${clanId}/manage`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "8px 16px",
+                borderRadius: 999,
+                backgroundColor: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                color: "#F2F2F2",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
             >
               Administrar
-            </Button>
+            </Link>
           )}
           {!isLeader && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full font-semibold text-red-500 hover:bg-red-500/10"
-              onPress={handleLeave}
-              isPending={loading}
+            <button
+              onClick={handleLeave}
+              disabled={loading}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 999,
+                backgroundColor: "transparent",
+                border: "1px solid rgba(239,68,68,0.3)",
+                color: "#EF4444",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.6 : 1,
+              }}
             >
-              Abandonar clan
-            </Button>
+              {loading ? "Saliendo..." : "Abandonar clan"}
+            </button>
           )}
         </>
       ) : applied ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-full font-semibold"
-          isDisabled
+        <span
+          style={{
+            padding: "8px 16px",
+            borderRadius: 999,
+            backgroundColor: "rgba(255,255,255,0.06)",
+            color: "#888891",
+            fontSize: 13,
+            fontWeight: 600,
+          }}
         >
           Solicitud enviada ✓
-        </Button>
+        </span>
       ) : (
-        <Button
-          variant="primary"
-          size="sm"
-          className="rounded-full font-semibold bg-[var(--accent)] text-white"
-          onPress={handleApply}
-          isPending={loading}
+        <button
+          onClick={handleApply}
+          disabled={loading}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 999,
+            backgroundColor: "#3B82F6",
+            border: "none",
+            color: "#FFFFFF",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.6 : 1,
+          }}
         >
-          Solicitar unirse
-        </Button>
+          {loading ? "Enviando..." : "Solicitar unirse"}
+        </button>
       )}
     </div>
   );
