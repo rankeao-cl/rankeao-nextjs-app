@@ -5,7 +5,7 @@ import type { CreateClanRequest, ClanChallengeRequest } from "@/lib/types/clan";
 // ── List / Detail ──
 
 export async function getClans(params?: Params) {
-    return apiFetch<any>("/social/clans", params, { revalidate: 60 });
+    return apiFetch<any>("/social/clans", params, { cache: "no-store" });
 }
 
 export async function getClan(clanId: string) {
