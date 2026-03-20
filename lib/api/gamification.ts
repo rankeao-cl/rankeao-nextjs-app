@@ -83,6 +83,12 @@ export async function getUserStats(username: string) {
     return apiFetch<any>(`/gamification/users/${encodeURIComponent(username)}/stats`, undefined, { revalidate: 60 });
 }
 
+// ── Levels ──
+
+export async function getLevels() {
+    return apiFetch<any>("/gamification/levels", undefined, { revalidate: 300 });
+}
+
 // ── XP Events ──
 
 export async function getXpEvents() {
@@ -103,6 +109,10 @@ export async function getMyXp(token?: string) {
     return apiFetch<any>("/social/me/xp", undefined, { cache: "no-store", token });
 }
 
+/**
+ * NOTE: GET /social/me/equipped is not in the public OpenAPI spec (only PATCH exists).
+ * This may be an internal/undocumented endpoint. Keep for backward compatibility.
+ */
 export async function getMyEquipped(token?: string) {
     return apiFetch<any>("/social/me/equipped", undefined, { cache: "no-store", token });
 }

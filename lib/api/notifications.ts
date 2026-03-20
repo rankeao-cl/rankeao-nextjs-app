@@ -27,8 +27,42 @@ export async function deleteNotification(notificationId: string, token?: string)
     return apiDelete<{ message: string }>(`/notifications/${notificationId}`, { token });
 }
 
+/**
+ * Batch delete notifications.
+ * Spec requires a body: { notification_ids?: number[], all_read?: boolean }.
+ * Pass notificationIds to delete specific ones, or allRead=true to delete all read.
+ */
+export async function batchDeleteNotifications(
+    payload: { notification_ids?: number[]; all_read?: boolean },
+    token?: string
+) {
+    const { getAuthHeaders } = await import("./client");
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
+    const headers: Record<string, string> = { "Content-Type": "application/json", ...getAuthHeaders() };
+    if (token) {
+        const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+        headers.Authorization = `Bearer ${cleanToken}`;
+    }
+    const res = await fetch(`${baseUrl}/notifications`, {
+        method: "DELETE",
+        headers,
+        body: JSON.stringify(payload),
+        cache: "no-store",
+    });
+    if (!res.ok) {
+        const { showErrorToast } = await import("./client");
+        let message = `API error: ${res.status}`;
+        try { const err = await res.json(); message = err.message || err.error || message; } catch {}
+        showErrorToast(message);
+        throw new Error(message);
+    }
+    if (res.status === 204) return {} as { deleted: number };
+    return res.json();
+}
+
+/** @deprecated Use batchDeleteNotifications({ all_read: true }) instead. */
 export async function deleteAllNotifications(token?: string) {
-    return apiDelete<{ message: string }>("/notifications", { token });
+    return batchDeleteNotifications({ all_read: true }, token);
 }
 
 export async function getNotification(notificationId: string, token?: string) {

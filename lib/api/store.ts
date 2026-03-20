@@ -89,6 +89,11 @@ export async function reviewOrder(orderId: string, payload: any) {
     return apiPost<any>(`/store/orders/${encodeURIComponent(orderId)}/review`, payload);
 }
 
+/**
+ * NOTE: /store/checkouts/{id}/pay is not in the public OpenAPI spec.
+ * Store checkout is handled by POST /store/{tenant_slug}/checkout which creates the order directly.
+ * This may be an internal/undocumented endpoint.
+ */
 export async function payCheckout(checkoutId: string, payload: Record<string, any>) {
     return apiPost<any>(`/store/checkouts/${encodeURIComponent(checkoutId)}/pay`, payload);
 }

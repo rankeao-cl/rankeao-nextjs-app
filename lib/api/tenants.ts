@@ -67,6 +67,10 @@ export async function declineStaffInvitation(invitationId: string, token?: strin
 
 // ── Members (Community Features) ──
 
+/**
+ * NOTE: /tenants/{slug}/members is not in the public OpenAPI spec.
+ * This may be an internal/undocumented endpoint.
+ */
 export async function getTenantMembers(slug: string, params?: Params) {
     return apiFetch<any>(`/tenants/${encodeURIComponent(slug)}/members`, params, { revalidate: 30 });
 }

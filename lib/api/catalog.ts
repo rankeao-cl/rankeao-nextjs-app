@@ -39,8 +39,9 @@ export async function getSetDetail(setId: string) {
 
 // ── Cards ──
 
+/** @deprecated Use searchCards() instead — there is no GET /catalog/cards endpoint. */
 export async function getCards(params?: Params) {
-    return apiFetch<{ data?: Card[]; cards?: Card[]; meta?: PaginationMeta }>("/catalog/cards", params);
+    return apiFetch<{ data?: Card[]; cards?: Card[]; meta?: PaginationMeta }>("/catalog/cards/search", params);
 }
 
 export async function getCardDetail(cardId: string) {
@@ -57,10 +58,11 @@ export async function getCardLegality(cardId: string) {
 
 // ── Autocomplete ──
 
-export async function autocompleteCards(q: string, gameId?: string) {
+export async function autocompleteCards(q: string, game?: string, limit?: number) {
     return apiFetch<{ results: AutocompleteResult[] }>("/catalog/autocomplete", {
         q,
-        ...(gameId ? { game_id: gameId } : {}),
+        ...(game ? { game } : {}),
+        ...(limit ? { limit } : {}),
     });
 }
 
@@ -76,16 +78,26 @@ export async function getSetCards(setId: string, params?: Params) {
 
 // ── Price History ──
 
-export async function getPriceHistory(printingId: string, params?: Params) {
+/**
+ * Get price history for a card.
+ * Optionally pass printing_id as a query param to filter to a specific printing.
+ * Spec: GET /catalog/cards/{card_id}/price-history?printing_id=...
+ */
+export async function getCardPriceHistory(cardId: string, params?: Params) {
     return apiFetch<{ prices: PricePoint[] }>(
-        `/catalog/printings/${encodeURIComponent(printingId)}/price-history`,
+        `/catalog/cards/${encodeURIComponent(cardId)}/price-history`,
         params
     );
 }
 
-export async function getCardPriceHistory(cardId: string, params?: Params) {
+/**
+ * @deprecated Use getCardPriceHistory(cardId, { printing_id }) instead.
+ * The spec has no /catalog/printings/{id}/price-history endpoint.
+ */
+export async function getPriceHistory(printingId: string, params?: Params) {
+    console.warn("getPriceHistory() is deprecated. Use getCardPriceHistory(cardId, { printing_id }) instead.");
     return apiFetch<{ prices: PricePoint[] }>(
-        `/catalog/cards/${encodeURIComponent(cardId)}/price-history`,
+        `/catalog/cards/${encodeURIComponent(printingId)}/price-history`,
         params
     );
 }
