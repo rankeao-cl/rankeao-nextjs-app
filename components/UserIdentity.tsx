@@ -75,7 +75,7 @@ export function getUserRoleData(apiUser: any): UserRoleData {
     // Simulate reading roles from API user object. 
     // Usually apiUser might have an array of roles or specific flags.
     // For MVP we map them if they exist, or default to some strings for showcase.
-    const name = apiUser.username || apiUser.name || apiUser.display_name || "Usuario";
+    const name = apiUser.display_name || apiUser.name || apiUser.username || "Usuario";
 
     return {
         name,
