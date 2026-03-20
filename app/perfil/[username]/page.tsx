@@ -12,6 +12,7 @@ import ProfileTournamentsTab from "./ProfileTournamentsTab";
 import ProfileStatsTab from "./ProfileStatsTab";
 import ProfileMarketplaceTab from "./ProfileMarketplaceTab";
 import ProfileLogrosTab from "./ProfileLogrosTab";
+import ProfileWishlistTab from "./ProfileWishlistTab";
 import {
     getUserProfile,
     getUserActivity,
@@ -507,6 +508,7 @@ export default function PublicProfilePage({
                             <Tabs.Tab id="actividad">Actividad<Tabs.Indicator /></Tabs.Tab>
                             <Tabs.Tab id="mazos">Mazos<Tabs.Indicator /></Tabs.Tab>
                             <Tabs.Tab id="coleccion">Coleccion<Tabs.Indicator /></Tabs.Tab>
+                            <Tabs.Tab id="wishlist">Wishlist<Tabs.Indicator /></Tabs.Tab>
                             <Tabs.Tab id="torneos">Torneos<Tabs.Indicator /></Tabs.Tab>
                             <Tabs.Tab id="stats">Stats<Tabs.Indicator /></Tabs.Tab>
                             <Tabs.Tab id="marketplace">Marketplace<Tabs.Indicator /></Tabs.Tab>
@@ -528,7 +530,12 @@ export default function PublicProfilePage({
 
                     {/* Coleccion */}
                     <Tabs.Panel id="coleccion" className="pt-4">
-                        <ProfileCollectionTab collection={collection} wishlist={wishlist} />
+                        <ProfileCollectionTab collection={collection} isOwnProfile={isOwnProfile} token={session?.accessToken} />
+                    </Tabs.Panel>
+
+                    {/* Wishlist */}
+                    <Tabs.Panel id="wishlist" className="pt-4">
+                        <ProfileWishlistTab wishlist={wishlist} isOwnProfile={isOwnProfile} token={session?.accessToken} />
                     </Tabs.Panel>
 
                     {/* Torneos */}
@@ -568,6 +575,8 @@ export default function PublicProfilePage({
                             earnedBadges={badges}
                             allBadges={allBadges}
                             badgesCount={badgesCount}
+                            gamiStats={gamiStats}
+                            isOwnProfile={isOwnProfile}
                         />
                     </Tabs.Panel>
                 </Tabs>
@@ -600,7 +609,7 @@ function EditProfileModal({
 }) {
     const [bio, setBio] = useState(profile?.bio || "");
     const [city, setCity] = useState(profile?.city || "");
-    const [country, setCountry] = useState(profile?.country || "");
+    const [country, setCountry] = useState(profile?.country_code || profile?.country || "");
     const [displayName, setDisplayName] = useState(profile?.display_name || profile?.name || "");
     const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
     const [bannerUrl, setBannerUrl] = useState(profile?.banner_url || "");
@@ -616,7 +625,7 @@ function EditProfileModal({
             const payload: Record<string, string> = {};
             if (bio !== (profile?.bio || "")) payload.bio = bio;
             if (city !== (profile?.city || "")) payload.city = city;
-            if (country !== (profile?.country || "")) payload.country = country;
+            if (country !== (profile?.country_code || profile?.country || "")) payload.country = country;
             if (displayName !== (profile?.display_name || profile?.name || "")) payload.display_name = displayName;
             if (avatarUrl !== (profile?.avatar_url || "")) payload.avatar_url = avatarUrl;
             if (bannerUrl !== (profile?.banner_url || "")) payload.banner_url = bannerUrl;
@@ -682,7 +691,18 @@ function EditProfileModal({
                         </div>
                         <div>
                             <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 block">Pais</label>
-                            <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Ej: Chile" className="w-full" />
+                            <select
+                                value={country}
+                                onChange={(e) => setCountry(e.target.value)}
+                                className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] text-[var(--foreground)] text-sm p-2.5 focus:outline-none focus:border-[var(--accent)] transition-colors"
+                            >
+                                <option value="">Seleccionar pais</option>
+                                <option value="CL">Chile</option>
+                                <option value="AR">Argentina</option>
+                                <option value="MX">Mexico</option>
+                                <option value="CO">Colombia</option>
+                                <option value="PE">Peru</option>
+                            </select>
                         </div>
                     </div>
 
