@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let name = "Clan";
   try {
     const data = await getClan(id).catch(() => null);
-    const clan = (data as any)?.data ?? (data as any)?.clan ?? data;
+    const clan = (data as any)?.data?.clan ?? (data as any)?.clan ?? (data as any)?.data ?? data;
     if (clan?.name) name = clan.name;
   } catch {}
   return { title: name, description: `Clan ${name} en Rankeao.` };
@@ -27,7 +27,7 @@ export default async function ClanDetailPage({ params }: Props) {
 
   try {
     const data = await getClan(id).catch(() => null);
-    clan = ((data as any)?.data ?? (data as any)?.clan ?? data) as ClanDetail | null;
+    clan = ((data as any)?.data?.clan ?? (data as any)?.clan ?? (data as any)?.data ?? data) as ClanDetail | null;
   } catch {
     // silent
   }
@@ -104,7 +104,7 @@ export default async function ClanDetailPage({ params }: Props) {
       </div>
 
       {/* Action buttons (client-side: apply, leave, etc.) */}
-      <ClanDetailClient clanId={clan.id} myMembership={clan.my_membership} />
+      <ClanDetailClient clanId={clan.id} myMembership={clan.my_membership} members={members} />
 
       {/* Stats */}
       {clan.stats && (
