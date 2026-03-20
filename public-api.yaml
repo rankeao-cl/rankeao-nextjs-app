@@ -5019,6 +5019,73 @@ paths:
                     type: array
                     items:
                       type: object
+  /api/v1/social/feed/posts:
+    post:
+      tags:
+      - Feed
+      summary: Create a post
+      description: 'Creates a new user post in the feed. Supports text content (max 2000 chars)
+
+        and an optional image URL. The post appears in the feeds of friends, followers,
+
+        and clan members. Requires authentication.
+
+        '
+      operationId: createPost
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - content
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                image_url:
+                  type: string
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /api/v1/social/feed/posts/{post_id}:
+    delete:
+      tags:
+      - Feed
+      summary: Delete own post
+      description: 'Deletes a post created by the authenticated user. Only the author can
+
+        delete their own posts. Requires authentication.
+
+        '
+      operationId: deletePost
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: post_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          $ref: '#/components/responses/MessageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/v1/social/feed/discover:
     get:
       tags:
