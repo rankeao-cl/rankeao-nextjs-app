@@ -27,6 +27,12 @@ function normalizeListing(item: Record<string, unknown>): Listing {
     return item as unknown as Listing;
 }
 
+// ── Config ──
+
+export async function getMarketplaceConfig() {
+    return apiFetch<Record<string, unknown>>("/marketplace/config", undefined, { revalidate: 300 });
+}
+
 // ── Listings ──
 
 export async function getListings(
@@ -144,8 +150,12 @@ export async function deleteListingImage(listingId: string, imageId: string) {
 
 // ── Checkout & Orders ──
 
+/**
+ * @deprecated Use buyListing() instead — there is no /listings/{id}/checkout endpoint in the spec.
+ * The correct endpoint is POST /marketplace/listings/{id}/buy.
+ */
 export async function checkoutListing(listingId: string, payload: Record<string, unknown>) {
-    return apiPost<{ checkout: MarketplaceCheckout }>(`/marketplace/listings/${encodeURIComponent(listingId)}/checkout`, payload);
+    return buyListing(listingId, payload as { quantity: number; delivery_method: string; shipping_address?: string });
 }
 
 export async function getCheckout(checkoutId: string) {
@@ -170,6 +180,10 @@ export async function confirmDelivery(orderId: string) {
 
 export async function shipOrder(orderId: string, payload: { carrier?: string; tracking_number?: string; tracking_url?: string }) {
     return apiPost<{ order: MarketplaceOrder }>(`/marketplace/orders/${encodeURIComponent(orderId)}/ship`, payload);
+}
+
+export async function cancelOrder(orderId: string) {
+    return apiPost<{ order: MarketplaceOrder }>(`/marketplace/orders/${encodeURIComponent(orderId)}/cancel`, {});
 }
 
 // ── Reviews ──

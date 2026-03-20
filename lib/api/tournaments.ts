@@ -101,8 +101,9 @@ export async function getTournamentRounds(id: string) {
     return apiFetch<{ data?: Round[]; rounds?: Round[] }>(`/tournaments/${encodeURIComponent(id)}/rounds`, undefined, { revalidate: 15 });
 }
 
+/** @deprecated Use getRoundMatches() instead — there is no GET /tournaments/:id/matches endpoint. */
 export async function getTournamentMatches(tournamentId: string, params?: Params) {
-    return apiFetch<{ data?: Match[]; matches?: Match[] }>(`/tournaments/${encodeURIComponent(tournamentId)}/matches`, params, { revalidate: 30 });
+    return apiFetch<{ data?: Match[]; matches?: Match[] }>(`/tournaments/${encodeURIComponent(tournamentId)}/rounds/1/matches`, params, { revalidate: 30 });
 }
 
 export async function getRoundMatches(tournamentId: string, roundNumber: number) {

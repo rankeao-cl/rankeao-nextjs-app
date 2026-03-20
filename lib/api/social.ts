@@ -91,6 +91,10 @@ export async function getUserRatingHistory(username: string) {
     return apiFetch<{ data?: Record<string, unknown>[]; history?: Record<string, unknown>[] }>(`/social/users/${encodeURIComponent(username)}/rating-history`);
 }
 
+/**
+ * NOTE: /social/users/me is not in the public OpenAPI spec.
+ * This may be an internal/undocumented endpoint. Keep for backward compatibility.
+ */
 export async function getProfile(token: string) {
     return apiFetch<{ data?: UserProfile; user?: UserProfile }>("/social/users/me", undefined, { token, cache: "no-store" });
 }
@@ -102,8 +106,9 @@ export async function updateProfile(payload: {
     avatar_url?: string;
     banner_url?: string;
     display_name?: string;
+    language?: string;
 }, token?: string) {
-    return apiPatch<{ user: UserProfile }>("/social/profile", payload, { token });
+    return apiPatch<{ user: UserProfile }>("/social/me/profile", payload, { token });
 }
 
 // ── Follow / Block ──
