@@ -4,6 +4,7 @@ import type { FetchOptions } from "@/lib/types/api";
 // ── Configuration ──
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
+const SESSION_KEY = "rankeao.auth.session";
 
 // ── Helpers ──
 
@@ -16,7 +17,7 @@ export function showErrorToast(errMessage: string) {
 export function getAuthHeaders(): Record<string, string> {
     if (typeof window === "undefined") return {};
     try {
-        const rawSession = localStorage.getItem("rankeao.auth.session");
+        const rawSession = localStorage.getItem(SESSION_KEY);
         if (rawSession) {
             const parsed = JSON.parse(rawSession);
             const token = parsed.accessToken || parsed.token || parsed.access_token;
@@ -45,6 +46,70 @@ function buildHeaders(token?: string): Record<string, string> {
 
 function buildMutationHeaders(token?: string): Record<string, string> {
     return { "Content-Type": "application/json", ...buildHeaders(token) };
+}
+
+// ── 401 handler: refresh token or redirect to login ──
+
+let isRefreshing = false;
+
+function forceLogout() {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(SESSION_KEY);
+    showErrorToast("Tu sesion ha expirado. Inicia sesion nuevamente.");
+    window.location.href = "/login";
+}
+
+async function tryRefreshToken(): Promise<string | null> {
+    if (typeof window === "undefined") return null;
+    try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const refreshToken = parsed.refreshToken || parsed.refresh_token;
+        if (!refreshToken) return null;
+
+        const res = await fetch(`${BASE_URL}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+            cache: "no-store",
+        });
+
+        if (!res.ok) return null;
+
+        const data = await res.json();
+        const tokens = data?.data?.tokens || data?.tokens || data;
+        const newAccessToken = tokens?.access_token || tokens?.accessToken || tokens?.token;
+        const newRefreshToken = tokens?.refresh_token || tokens?.refreshToken;
+
+        if (!newAccessToken) return null;
+
+        const clean = newAccessToken.startsWith("Bearer ") ? newAccessToken.substring(7) : newAccessToken;
+
+        // Update localStorage
+        parsed.accessToken = clean;
+        if (newRefreshToken) parsed.refreshToken = newRefreshToken;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(parsed));
+
+        return clean;
+    } catch {
+        return null;
+    }
+}
+
+async function handle401(): Promise<string | null> {
+    if (isRefreshing) return null;
+    isRefreshing = true;
+    try {
+        const newToken = await tryRefreshToken();
+        if (!newToken) {
+            forceLogout();
+            return null;
+        }
+        return newToken;
+    } finally {
+        isRefreshing = false;
+    }
 }
 
 async function handleError(res: Response, endpoint: string): Promise<never> {
@@ -107,26 +172,69 @@ export async function apiFetch<T>(
     }
 
     const res = await fetch(url.toString(), fetchOptions);
+
+    // 401 → try refresh + retry once (client-side only)
+    if (res.status === 401 && typeof window !== "undefined") {
+        const newToken = await handle401();
+        if (newToken) {
+            const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+            const retryOptions: RequestInit & { next?: { revalidate: number } } = { ...fetchOptions, headers: retryHeaders };
+            const retryRes = await fetch(url.toString(), retryOptions);
+            if (!retryRes.ok) return handleError(retryRes, endpoint);
+            return retryRes.json();
+        }
+        return handleError(res, endpoint);
+    }
+
     if (!res.ok) return handleError(res, endpoint);
     return res.json();
 }
 
 // ── Core POST ──
 
+async function mutationWithRetry<T>(
+    method: string,
+    endpoint: string,
+    body: unknown | undefined,
+    options?: { token?: string }
+): Promise<T> {
+    const headers = method === "DELETE"
+        ? buildMutationHeaders(options?.token)
+        : buildMutationHeaders(options?.token);
+
+    const fetchOpts: RequestInit = {
+        method,
+        headers,
+        cache: "no-store",
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    };
+
+    const res = await fetch(`${BASE_URL}${endpoint}`, fetchOpts);
+
+    // 401 → try refresh + retry once (client-side only)
+    if (res.status === 401 && typeof window !== "undefined") {
+        const newToken = await handle401();
+        if (newToken) {
+            const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+            const retryRes = await fetch(`${BASE_URL}${endpoint}`, { ...fetchOpts, headers: retryHeaders });
+            if (!retryRes.ok) return handleError(retryRes, endpoint);
+            if (retryRes.status === 204) return {} as T;
+            return retryRes.json();
+        }
+        return handleError(res, endpoint);
+    }
+
+    if (!res.ok) return handleError(res, endpoint);
+    if (res.status === 204) return {} as T;
+    return res.json();
+}
+
 export async function apiPost<T>(
     endpoint: string,
     body: unknown,
     options?: { token?: string }
 ): Promise<T> {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-        method: "POST",
-        headers: buildMutationHeaders(options?.token),
-        body: JSON.stringify(body),
-        cache: "no-store",
-    });
-    if (!res.ok) return handleError(res, endpoint);
-    if (res.status === 204) return {} as T;
-    return res.json();
+    return mutationWithRetry<T>("POST", endpoint, body, options);
 }
 
 // ── Core PATCH ──
@@ -136,15 +244,7 @@ export async function apiPatch<T>(
     body: unknown,
     options?: { token?: string }
 ): Promise<T> {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-        method: "PATCH",
-        headers: buildMutationHeaders(options?.token),
-        body: JSON.stringify(body),
-        cache: "no-store",
-    });
-    if (!res.ok) return handleError(res, endpoint);
-    if (res.status === 204) return {} as T;
-    return res.json();
+    return mutationWithRetry<T>("PATCH", endpoint, body, options);
 }
 
 // ── Core PUT ──
@@ -154,15 +254,7 @@ export async function apiPut<T>(
     body: unknown,
     options?: { token?: string }
 ): Promise<T> {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-        method: "PUT",
-        headers: buildMutationHeaders(options?.token),
-        body: JSON.stringify(body),
-        cache: "no-store",
-    });
-    if (!res.ok) return handleError(res, endpoint);
-    if (res.status === 204) return {} as T;
-    return res.json();
+    return mutationWithRetry<T>("PUT", endpoint, body, options);
 }
 
 // ── Core DELETE ──
@@ -171,12 +263,5 @@ export async function apiDelete<T>(
     endpoint: string,
     options?: { token?: string }
 ): Promise<T> {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-        method: "DELETE",
-        headers: buildMutationHeaders(options?.token),
-        cache: "no-store",
-    });
-    if (!res.ok) return handleError(res, endpoint);
-    if (res.status === 204) return {} as T;
-    return res.json();
+    return mutationWithRetry<T>("DELETE", endpoint, undefined, options);
 }
