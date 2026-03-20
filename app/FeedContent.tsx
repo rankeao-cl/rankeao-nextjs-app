@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Compass, ChevronRight } from "@gravity-ui/icons";
-import { useFeed, useFeedDiscover } from "@/lib/hooks/use-social";
+import { useFeedDiscover } from "@/lib/hooks/use-social";
 import { FeedTournamentCard, FeedListingCard, PostCard } from "@/components/cards";
 import type { FeedPost } from "@/components/cards";
 import type { Tournament } from "@/lib/types/tournament";
@@ -27,26 +27,22 @@ export default function FeedContent({
 }) {
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("todo");
 
-  const personalQ = useFeed({ per_page: 20 });
-  const discoverQ = useFeedDiscover({ per_page: 20 });
-
-  // Use personal feed if it has posts, otherwise fallback to discover
-  const personalFeed: any[] = (() => {
-    const d: any = personalQ.data;
-    return d?.data?.feed ?? d?.feed ?? d?.data?.items ?? d?.items ?? (Array.isArray(d) ? d : []);
-  })();
-  const socialQ = personalFeed.length > 0 ? personalQ : discoverQ;
+  const socialQ = useFeedDiscover({ per_page: 20 });
 
   const feedItems = useMemo<FeedItemType[]>(() => {
     const items: FeedItemType[] = [];
 
+    const now = Date.now();
+
     if (feedFilter !== "ventas" && feedFilter !== "posts") {
       for (const t of tournaments) {
+        // Use created_at for sorting so upcoming tournaments don't jump to top
+        const ts = new Date(t.created_at || t.starts_at || 0).getTime();
         items.push({
           id: `tournament-${t.id}`,
           type: "tournament",
           data: t,
-          timestamp: new Date(t.starts_at || t.created_at || 0).getTime(),
+          timestamp: Math.min(ts, now),
         });
       }
     }
