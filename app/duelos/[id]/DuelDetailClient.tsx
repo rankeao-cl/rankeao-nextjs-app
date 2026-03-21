@@ -139,6 +139,19 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [showReportUser, setShowReportUser] = useState(false);
     const [reportReason, setReportReason] = useState("");
 
+    const friendlyError = (err: any): string => {
+        const msg = err?.message || "";
+        if (msg.includes("INVALID_STATUS") || msg.includes("invalid status")) return "El duelo no esta en un estado valido para esta accion";
+        if (msg.includes("NOT_PARTICIPANT") || msg.includes("not a participant")) return "No eres participante de este duelo";
+        if (msg.includes("CONFIRMER_IS_REPORTER") || msg.includes("reporter cannot confirm")) return "No puedes confirmar tu propio resultado. Espera a tu oponente";
+        if (msg.includes("ALREADY_REPORTED") || msg.includes("already reported")) return "El resultado ya fue reportado";
+        if (msg.includes("INVALID_SCORE") || msg.includes("invalid score")) return "El puntaje ingresado no es valido";
+        if (msg.includes("TOO_FAR_AWAY") || msg.includes("too far")) return "Estas demasiado lejos de tu oponente";
+        if (msg.includes("USER_NOT_FOUND") || msg.includes("user not found")) return "Usuario no encontrado";
+        if (msg.includes("DUEL_NOT_FOUND") || msg.includes("duel not found")) return "Duelo no encontrado";
+        return msg || "Ocurrio un error inesperado";
+    };
+
     // Fetch comments
     const fetchComments = useCallback(async () => {
         if (!token) return;
@@ -214,6 +227,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const maxWins = Math.max(1, Math.ceil((duel.best_of || 1) / 2));
 
     const hasActiveStatus = ["ACCEPTED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(duel.status);
+    const isReporter = duel.reporter_id === duel.challenger.id ? isChallenger : isOpponent;
 
     // ── Actions ──
 
@@ -228,7 +242,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             toast.success("Listo", { description: `Accion "${label}" realizada` });
             await refreshDuel();
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || `No se pudo ejecutar "${label}"` });
+            toast.danger("Error", { description: friendlyError(err) });
         } finally {
             setLoading(null);
         }
@@ -260,7 +274,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setShowReport(false);
             await refreshDuel();
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || "No se pudo reportar" });
+            toast.danger("Error", { description: friendlyError(err) });
         } finally {
             setLoading(null);
         }
@@ -273,8 +287,9 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             await createDuelComment(duelId, { content: commentText.trim() }, token);
             setCommentText("");
             await fetchComments();
-        } catch { /* silent */ }
-        finally { setSendingComment(false); }
+        } catch (err: any) {
+            toast.danger("Error", { description: err?.message || "No se pudo enviar el comentario" });
+        } finally { setSendingComment(false); }
     };
 
     const handleReportUser = async () => {
@@ -286,7 +301,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setShowReportUser(false);
             setReportReason("");
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || "No se pudo enviar el reporte" });
+            toast.danger("Error", { description: friendlyError(err) });
         } finally {
             setLoading(null);
         }
@@ -553,22 +568,28 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                                     Resultado reportado: {duel.challenger_wins}-{duel.opponent_wins}
                                 </span>
                             </div>
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <button
-                                    onClick={() => exec("Confirmar", () => confirmDuelResult(duelId, token))}
-                                    disabled={!!loading}
-                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#22C55E", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
-                                >
-                                    {loading === "Confirmar" ? "..." : "Confirmar"}
-                                </button>
-                                <button
-                                    onClick={() => { if (confirm("El resultado sera revisado por un moderador. Continuar?")) exec("Disputar", () => disputeDuel(duelId, token)); }}
-                                    disabled={!!loading}
-                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.1)", color: "#EF4444", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
-                                >
-                                    {loading === "Disputar" ? "..." : "Disputar"}
-                                </button>
-                            </div>
+                            {isReporter ? (
+                                <p style={{ color: "#888891", fontSize: 12, textAlign: "center", margin: 0 }}>
+                                    Esperando que tu oponente confirme el resultado
+                                </p>
+                            ) : (
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <button
+                                        onClick={() => exec("Confirmar", () => confirmDuelResult(duelId, token))}
+                                        disabled={!!loading}
+                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#22C55E", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                    >
+                                        {loading === "Confirmar" ? "..." : "Confirmar"}
+                                    </button>
+                                    <button
+                                        onClick={() => { if (confirm("El resultado sera revisado por un moderador. Continuar?")) exec("Disputar", () => disputeDuel(duelId, token)); }}
+                                        disabled={!!loading}
+                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.1)", color: "#EF4444", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                    >
+                                        {loading === "Disputar" ? "..." : "Disputar"}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 

@@ -37,7 +37,11 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
     const challenger = duel.challenger;
 
     const handleAccept = async () => {
-        if (accepting || accepted || !session?.accessToken) return;
+        if (accepting || accepted) return;
+        if (!session?.accessToken) {
+            toast.danger("Error", { description: "Debes iniciar sesion para aceptar duelos" });
+            return;
+        }
         setAccepting(true);
         try {
             await acceptDuel(duel.id, session.accessToken);

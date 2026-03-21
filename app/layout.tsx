@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/logo.png",
+    apple: "/rankeao-logo.png",
   },
   title: {
     default: "Rankeao.cl | El ranking mas rankeao de Chile",
