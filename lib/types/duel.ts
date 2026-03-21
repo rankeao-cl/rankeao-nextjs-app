@@ -35,6 +35,7 @@ export interface Duel {
     confirmed?: boolean;
     message?: string;
     created_at: string;
+    xp_gained?: number;
     scheduled_at?: string;
     played_at?: string;
 }
@@ -89,6 +90,7 @@ export function mapDuel(raw: DuelInfoRaw): Duel {
         confirmed: raw.confirmed,
         challenger_wins: raw.score_challenger,
         opponent_wins: raw.score_challenged,
+        xp_gained: (raw as any).xp_gained,
         scheduled_at: raw.scheduled_at,
         played_at: raw.played_at,
         created_at: raw.created_at,

@@ -1,12 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { getDuels } from "@/lib/api/duels";
 import type { Duel } from "@/lib/types/duel";
 import type { CatalogGame } from "@/lib/types/catalog";
 import NewDuelModal from "./NewDuelModal";
+
+// ── Helpers ──
+
+function formatRelativeTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "ahora";
+    if (minutes < 60) return `hace ${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `hace ${hours}h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `hace ${days}d`;
+    return new Date(dateStr).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" });
+}
 
 // ── Status config ──
 
@@ -25,37 +41,40 @@ const STATUS_LABELS: Record<string, string> = {
     PENDING: "Pendiente",
     ACCEPTED: "Aceptado",
     IN_PROGRESS: "En curso",
-    AWAITING_CONFIRMATION: "Esperando confirmacion",
+    AWAITING_CONFIRMATION: "Esperando",
     COMPLETED: "Finalizado",
     DECLINED: "Rechazado",
     CANCELLED: "Cancelado",
     DISPUTED: "Disputado",
 };
 
-// ── Tabs config ──
+// ── Tabs config — matches Expo ──
 
 const TABS = [
-    { key: "active", label: "Mis duelos" },
-    { key: "invitations", label: "Invitaciones" },
+    { key: "active", label: "Activos" },
+    { key: "invitations", label: "Recibidos" },
+    { key: "sent", label: "Enviados" },
     { key: "history", label: "Historial" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
 
-function filterByTab(duels: Duel[], tab: TabKey): Duel[] {
+function filterByTab(duels: Duel[], tab: TabKey, myUsername?: string): Duel[] {
     switch (tab) {
         case "active":
             return duels.filter((d) => ["ACCEPTED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(d.status));
         case "invitations":
-            return duels.filter((d) => d.status === "PENDING");
+            return duels.filter((d) => d.status === "PENDING" && d.opponent.username === myUsername);
+        case "sent":
+            return duels.filter((d) => d.status === "PENDING" && d.challenger.username === myUsername);
         case "history":
-            return duels.filter((d) => ["COMPLETED", "DECLINED", "CANCELLED", "DISPUTED"].includes(d.status));
+            return duels.filter((d) => ["COMPLETED", "DECLINED", "CANCELLED"].includes(d.status));
         default:
             return duels;
     }
 }
 
-// ── DuelCard ──
+// ── DuelCard — matches Expo ──
 
 function DuelCard({ duel }: { duel: Duel }) {
     const sColor = STATUS_COLORS[duel.status] ?? "#888891";
@@ -65,13 +84,13 @@ function DuelCard({ duel }: { duel: Duel }) {
 
     return (
         <Link href={`/duelos/${duel.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "#1A1A1E", overflow: "hidden" }}>
-                {/* Top bar */}
-                <div style={{ height: 4, backgroundColor: isActive ? sColor : "rgba(255,255,255,0.08)" }} />
+            <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "#1A1A1E", overflow: "hidden" }}>
+                {/* Top accent */}
+                <div style={{ height: 3, backgroundColor: isActive ? sColor : "rgba(255,255,255,0.06)" }} />
 
-                <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
                     {/* Players row */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                         {/* Challenger */}
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, minWidth: 0 }}>
                             {duel.challenger.avatar_url ? (
@@ -83,22 +102,19 @@ function DuelCard({ duel }: { duel: Duel }) {
                                     </span>
                                 </div>
                             )}
-                            <span className="truncate" style={{ fontSize: 12, fontWeight: 600, color: "#F2F2F2", maxWidth: "100%" }}>
+                            <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: "#F2F2F2", maxWidth: 80, textAlign: "center" }}>
                                 {duel.challenger.display_name || duel.challenger.username}
-                            </span>
-                            <span className="truncate" style={{ fontSize: 10, color: "#888891", maxWidth: "100%" }}>
-                                @{duel.challenger.username}
                             </span>
                         </div>
 
-                        {/* VS divider */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                            {(duel.challenger_wins != null && duel.opponent_wins != null) ? (
+                        {/* VS / Score */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            {(duel.challenger_wins != null && duel.opponent_wins != null && (duel.challenger_wins > 0 || duel.opponent_wins > 0)) ? (
                                 <span style={{ fontSize: 16, fontWeight: 800, color: "#F2F2F2" }}>
                                     {duel.challenger_wins} - {duel.opponent_wins}
                                 </span>
                             ) : (
-                                <span style={{ fontSize: 14, fontWeight: 800, color: "#888891" }}>VS</span>
+                                <span style={{ fontSize: 12, fontWeight: 800, color: "#888891" }}>VS</span>
                             )}
                         </div>
 
@@ -113,52 +129,57 @@ function DuelCard({ duel }: { duel: Duel }) {
                                     </span>
                                 </div>
                             )}
-                            <span className="truncate" style={{ fontSize: 12, fontWeight: 600, color: "#F2F2F2", maxWidth: "100%" }}>
+                            <span className="truncate" style={{ fontSize: 11, fontWeight: 600, color: "#F2F2F2", maxWidth: 80, textAlign: "center" }}>
                                 {duel.opponent.display_name || duel.opponent.username}
-                            </span>
-                            <span className="truncate" style={{ fontSize: 10, color: "#888891", maxWidth: "100%" }}>
-                                @{duel.opponent.username}
                             </span>
                         </div>
                     </div>
 
-                    {/* Tags: game, format, bestof */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-                        {duel.game_name && (
-                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8, display: "flex", alignItems: "center", gap: 4 }}>
-                                {duel.game_name}
+                    {/* Tags + Status row */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                            {duel.game_name && (
+                                <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 6 }}>
+                                    {duel.game_name}
+                                </span>
+                            )}
+                            {duel.format_name && (
+                                <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 6 }}>
+                                    {duel.format_name}
+                                </span>
+                            )}
+                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 6 }}>
+                                Bo{duel.best_of}
                             </span>
-                        )}
-                        {duel.format_name && (
-                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
-                                {duel.format_name}
-                            </span>
-                        )}
-                        <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
-                            Bo{duel.best_of}
+                        </div>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 999, backgroundColor: sColor + "18" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: sColor }}>{sLabel}</span>
                         </span>
                     </div>
 
-                    {/* Status + CTA */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", borderRadius: 999, backgroundColor: sColor + "18" }}>
-                            {isActive && (
-                                <span style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: sColor, animation: "pulse 1.6s ease-in-out infinite" }} />
-                            )}
-                            <span style={{ fontSize: 10, fontWeight: 700, color: sColor }}>{sLabel}</span>
-                        </span>
+                    {/* Time */}
+                    <span style={{ fontSize: 10, color: "#888891" }}>{formatRelativeTime(duel.created_at)}</span>
 
+                    {/* CTA hint — matches Expo */}
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 4,
+                        padding: "10px 0",
+                        borderRadius: 10,
+                        backgroundColor: isPending ? "rgba(245,158,11,0.08)" : isActive ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.03)",
+                    }}>
                         <span style={{
-                            padding: "8px 14px",
-                            borderRadius: 10,
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 700,
-                            color: "#FFFFFF",
-                            backgroundColor: isPending ? "#F59E0B" : isActive ? "#3B82F6" : "rgba(255,255,255,0.06)",
-                            ...((!isPending && !isActive) ? { color: "#888891" } : {}),
+                            color: isPending ? "#F59E0B" : isActive ? "#3B82F6" : "#888891",
                         }}>
-                            {isPending ? "Responder" : isActive ? "Reportar resultado" : "Ver detalle"}
+                            {isPending ? "Responder invitacion" : isActive ? "Ver duelo" : "Ver resultado"}
                         </span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isPending ? "#F59E0B" : isActive ? "#3B82F6" : "#888891"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -175,14 +196,37 @@ interface DuelosClientProps {
     currentQuery: string;
 }
 
-export default function DuelosClient({ duels, games, currentTab, currentQuery }: DuelosClientProps) {
+export default function DuelosClient({ duels: initialDuels, games, currentTab, currentQuery }: DuelosClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { session } = useAuth();
     const [modalOpen, setModalOpen] = useState(false);
+    const [duels, setDuels] = useState<Duel[]>(initialDuels);
+
+    const myUsername = session?.username;
+    const token = session?.accessToken;
+
+    // Re-fetch duels client-side with auth token
+    const fetchDuels = useCallback(async () => {
+        if (!token) return;
+        try {
+            const res = await getDuels({ per_page: 50 }, token);
+            if (res?.duels) setDuels(res.duels);
+        } catch { /* silent */ }
+    }, [token]);
+
+    useEffect(() => {
+        fetchDuels();
+    }, [fetchDuels]);
 
     const tab = (TABS.find((t) => t.key === currentTab) ? currentTab : "active") as TabKey;
-    const filtered = filterByTab(duels, tab);
+    const filtered = useMemo(() => filterByTab(duels, tab, myUsername), [duels, tab, myUsername]);
+
+    const pendingCount = useMemo(
+        () => duels.filter((d) => d.status === "PENDING" && d.opponent.username === myUsername).length,
+        [duels, myUsername]
+    );
 
     const updateParam = (key: string, value: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -194,7 +238,7 @@ export default function DuelosClient({ duels, games, currentTab, currentQuery }:
 
     return (
         <>
-            {/* Hero header */}
+            {/* Hero banner — matches Expo */}
             <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
                 <div
                     style={{
@@ -248,7 +292,7 @@ export default function DuelosClient({ duels, games, currentTab, currentQuery }:
                                 margin: 0,
                             }}
                         >
-                            Desafia a tus amigos o encuentra rivales.
+                            Desafia a tus amigos o encuentra rivales. Solo XP, sin ELO.
                         </p>
                     </div>
 
@@ -306,29 +350,62 @@ export default function DuelosClient({ duels, games, currentTab, currentQuery }:
                 </form>
             </div>
 
-            {/* Tabs */}
+            {/* Tabs — 4 pills matching Expo */}
             <div className="mx-4 lg:mx-6 mb-3">
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                    {TABS.map((t) => (
-                        <button
-                            key={t.key}
-                            onClick={() => updateParam("tab", t.key)}
-                            className={`px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                                tab === t.key
-                                    ? "bg-[#F2F2F2] text-[#000000] border border-transparent"
-                                    : "bg-[#1A1A1E] border border-[rgba(255,255,255,0.06)] text-[#888891] hover:text-[#F2F2F2]"
-                            }`}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
+                    {TABS.map((t) => {
+                        const active = tab === t.key;
+                        const showBadge = t.key === "invitations" && pendingCount > 0;
+                        return (
+                            <button
+                                key={t.key}
+                                onClick={() => updateParam("tab", t.key)}
+                                className="cursor-pointer whitespace-nowrap transition-colors"
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 6,
+                                    paddingLeft: 16,
+                                    paddingRight: 16,
+                                    paddingTop: 8,
+                                    paddingBottom: 8,
+                                    borderRadius: 999,
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    backgroundColor: active ? "#F2F2F2" : "#1A1A1E",
+                                    color: active ? "#000000" : "#888891",
+                                    border: active ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
+                                }}
+                            >
+                                {t.label}
+                                {showBadge && (
+                                    <span style={{
+                                        backgroundColor: "#EF4444",
+                                        minWidth: 18,
+                                        height: 18,
+                                        borderRadius: 9,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        paddingLeft: 4,
+                                        paddingRight: 4,
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        color: "#fff",
+                                    }}>
+                                        {pendingCount}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Content */}
             <div className="mx-4 lg:mx-6 mb-12">
                 {filtered.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[10px]">
                         {filtered.map((d) => (
                             <DuelCard key={d.id} duel={d} />
                         ))}
@@ -337,17 +414,19 @@ export default function DuelosClient({ duels, games, currentTab, currentQuery }:
                     <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#1A1A1E]">
                         <div className="py-16 text-center">
                             <p className="text-4xl mb-4">
-                                {tab === "invitations" ? "📩" : tab === "history" ? "📋" : "⚔️"}
+                                {tab === "invitations" ? "📩" : tab === "sent" ? "📤" : tab === "history" ? "📋" : "⚔️"}
                             </p>
                             <p className="text-lg font-medium text-[#F2F2F2]">
                                 {tab === "invitations"
-                                    ? "No tienes invitaciones pendientes"
+                                    ? "Sin invitaciones"
+                                    : tab === "sent"
+                                    ? "Sin desafios enviados"
                                     : tab === "history"
-                                    ? "Aun no tienes duelos finalizados"
-                                    : "No tienes duelos activos"}
+                                    ? "Sin historial"
+                                    : "Sin duelos activos"}
                             </p>
                             <p className="text-sm mt-1 text-[#888891]">
-                                {tab === "active" && "Desafia a un amigo para comenzar"}
+                                {tab === "active" && "Desafia a alguien para empezar"}
                             </p>
                             {tab === "active" && (
                                 <button
@@ -358,7 +437,7 @@ export default function DuelosClient({ duels, games, currentTab, currentQuery }:
                                         alignItems: "center",
                                         gap: 6,
                                         backgroundColor: "#3B82F6",
-                                        borderRadius: 12,
+                                        borderRadius: 10,
                                         padding: "10px 20px",
                                         border: "none",
                                         cursor: "pointer",
@@ -378,7 +457,7 @@ export default function DuelosClient({ duels, games, currentTab, currentQuery }:
                 )}
             </div>
 
-            <NewDuelModal open={modalOpen} onClose={() => setModalOpen(false)} games={games} />
+            <NewDuelModal open={modalOpen} onClose={() => { setModalOpen(false); fetchDuels(); }} games={games} />
         </>
     );
 }

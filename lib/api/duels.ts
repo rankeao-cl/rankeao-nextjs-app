@@ -66,3 +66,29 @@ export async function confirmDuelResult(duelId: string, token?: string) {
 export async function disputeDuel(duelId: string, token?: string) {
     return apiPost<any>(`/social/duels/${encodeURIComponent(duelId)}/dispute`, {}, { token });
 }
+
+// ── Comments ──
+
+export async function getDuelComments(duelId: string, token?: string) {
+    return apiFetch<any>(`/social/duels/${encodeURIComponent(duelId)}/comments`, undefined, { cache: "no-store", token });
+}
+
+export async function createDuelComment(duelId: string, data: { content: string }, token?: string) {
+    return apiPost<any>(`/social/duels/${encodeURIComponent(duelId)}/comments`, data, { token });
+}
+
+// ── Report opponent ──
+
+export async function reportDuelOpponent(duelId: string, data: { reason: string }, token?: string) {
+    return apiPost<any>(`/social/duels/${encodeURIComponent(duelId)}/report-opponent`, data, { token });
+}
+
+// ── Broadcast search ──
+
+export async function broadcastDuelSearch(data: {
+    game_id?: string;
+    best_of?: number;
+    message?: string;
+}, token?: string) {
+    return apiPost<any>("/social/duels/search", data, { token });
+}

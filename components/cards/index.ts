@@ -12,6 +12,7 @@ export { default as DiscussionCard } from "./DiscussionCard";
 export { default as TournamentResultCard } from "./TournamentResultCard";
 export { default as SaleCardList } from "./SaleCardList";
 export { default as PastTournamentCard } from "./PastTournamentCard";
+export { default as FeedDuelSearchCard } from "./FeedDuelSearchCard";
 
 export type { FeedPost } from "./PostCard";
 export type { FeedDeck } from "./DeckCard";

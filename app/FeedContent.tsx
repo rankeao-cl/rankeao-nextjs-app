@@ -4,19 +4,21 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Compass, ChevronRight } from "@gravity-ui/icons";
 import { useFeedDiscover } from "@/lib/hooks/use-social";
-import { FeedTournamentCard, FeedListingCard, PostCard } from "@/components/cards";
+import { FeedTournamentCard, FeedListingCard, PostCard, FeedDuelSearchCard } from "@/components/cards";
 import type { FeedPost } from "@/components/cards";
 import type { Tournament } from "@/lib/types/tournament";
 import type { Listing } from "@/lib/types/marketplace";
+import type { Duel } from "@/lib/types/duel";
 import FeedTabs from "./FeedTabs";
 import FeedEmptyState from "./FeedEmptyState";
 
 type FeedFilter = "todo" | "torneos" | "ventas" | "posts";
 
 type FeedItemType =
-  | { id: string; type: "tournament"; data: Tournament; timestamp: number }
-  | { id: string; type: "sale"; data: Listing; timestamp: number }
-  | { id: string; type: "post"; data: FeedPost; timestamp: number };
+  | { id: string; type: "tournament"; data: Tournament; timestamp: number; pinned?: boolean }
+  | { id: string; type: "sale"; data: Listing; timestamp: number; pinned?: boolean }
+  | { id: string; type: "post"; data: FeedPost; timestamp: number; pinned?: boolean }
+  | { id: string; type: "duel_search"; data: Duel; timestamp: number; pinned?: boolean };
 
 export default function FeedContent({
   tournaments,
@@ -68,6 +70,37 @@ export default function FeedContent({
         (Array.isArray(socialData) ? socialData : []);
       for (const s of feedArray) {
         const user = s.user ?? {};
+        const itemType = (s.type ?? s.item_type ?? "").toUpperCase();
+
+        // Duel search feed items
+        if (itemType === "DUEL_SEARCH") {
+          const meta = s.metadata ?? {};
+          items.push({
+            id: `duel-search-${s.id}`,
+            type: "duel_search",
+            pinned: true,
+            data: {
+              id: meta.duel_id ?? String(s.entity_id ?? s.id),
+              challenger: {
+                id: user.id ?? "",
+                username: user.username ?? s.username ?? "",
+                display_name: user.display_name,
+                avatar_url: user.avatar_url ?? s.avatar_url,
+                rating: user.rating,
+              },
+              opponent: { id: "", username: "" },
+              game_name: meta.game_name ?? "",
+              format_name: meta.format_name,
+              best_of: meta.best_of ?? 1,
+              status: "PENDING" as const,
+              created_at: s.created_at ?? "",
+              message: s.description,
+            },
+            timestamp: new Date(s.created_at || Date.now()).getTime(),
+          });
+          continue;
+        }
+
         items.push({
           id: `post-${s.id}`,
           type: "post",
@@ -91,7 +124,11 @@ export default function FeedContent({
       }
     }
 
-    items.sort((a, b) => b.timestamp - a.timestamp);
+    items.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.timestamp - a.timestamp;
+    });
     return items;
   }, [feedFilter, tournaments, listings, socialQ.data]);
 
@@ -142,6 +179,15 @@ export default function FeedContent({
                 <FeedTournamentCard
                   key={item.id}
                   tournament={item.data as Tournament}
+                />
+              );
+            }
+            if (item.type === "duel_search") {
+              return (
+                <FeedDuelSearchCard
+                  key={item.id}
+                  duel={item.data as Duel}
+                  onAccepted={() => socialQ.refetch()}
                 />
               );
             }
