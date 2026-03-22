@@ -72,7 +72,7 @@ export default function RightSidebar() {
 
     return (
         <aside
-            className="hidden xl:flex flex-col w-[260px] h-full sticky top-16 border-l overflow-y-auto p-4 gap-5"
+            className="hidden xl:flex flex-col w-[260px] h-full border-l overflow-y-auto p-4 gap-5 shrink-0"
             style={{ borderColor: "rgba(255,255,255,0.08)", background: "#000000" }}
         >
             {/* Trending Games */}
