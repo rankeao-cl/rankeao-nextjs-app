@@ -13,12 +13,9 @@ import {
     Comment,
     Person,
     Gear,
-    ChevronsCollapseToLine,
-    LayoutColumns,
     Shield,
     Pencil
 } from "@gravity-ui/icons";
-import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCreatePostModal } from "@/context/CreatePostModalContext";
 
@@ -36,11 +33,14 @@ const navItems = [
     { href: "/config", label: "Ajustes", icon: Gear, authRequired: true },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+    collapsed?: boolean;
+}
+
+export default function Sidebar({ collapsed = false }: SidebarProps) {
     const pathname = usePathname();
     const { status } = useAuth();
     const { openCreatePost } = useCreatePostModal();
-    const [collapsed, setCollapsed] = useState(false);
 
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -93,24 +93,6 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Collapse toggle */}
-            <div className="p-2 border-t border-[rgba(255,255,255,0.06)]">
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[#888891] hover:bg-[#222226] hover:text-[#F2F2F2] transition-colors cursor-pointer ${collapsed ? "justify-center" : ""
-                        }`}
-                    aria-label={collapsed ? "Expandir" : "Colapsar"}
-                >
-                    {collapsed ? (
-                        <LayoutColumns className="size-4" />
-                    ) : (
-                        <>
-                            <ChevronsCollapseToLine className="size-4" />
-                            <span>Colapsar</span>
-                        </>
-                    )}
-                </button>
-            </div>
         </aside>
     );
 }
