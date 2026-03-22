@@ -15,10 +15,12 @@ import {
     Gear,
     ChevronsCollapseToLine,
     LayoutColumns,
-    Shield
+    Shield,
+    Pencil
 } from "@gravity-ui/icons";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useCreatePostModal } from "@/context/CreatePostModalContext";
 
 const navItems = [
     { href: "/", label: "Feed", icon: House },
@@ -37,6 +39,7 @@ const navItems = [
 export default function Sidebar() {
     const pathname = usePathname();
     const { status } = useAuth();
+    const { openCreatePost } = useCreatePostModal();
     const [collapsed, setCollapsed] = useState(false);
 
     const isActive = (href: string) =>
@@ -53,6 +56,21 @@ export default function Sidebar() {
             style={{ borderColor: "rgba(255,255,255,0.08)", background: "#000000" }}
         >
             <nav className="flex-1 flex flex-col gap-0.5 p-3 pt-4 overflow-y-auto">
+                {status === "authenticated" && (
+                    <button
+                        onClick={openCreatePost}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all mb-2 ${collapsed ? "justify-center px-0" : ""}`}
+                        style={{
+                            backgroundColor: "#3B82F6",
+                            color: "#FFFFFF",
+                            border: "none",
+                            cursor: "pointer",
+                        }}
+                    >
+                        <Pencil className="size-[18px] shrink-0" />
+                        {!collapsed && <span className="truncate">Crear Post</span>}
+                    </button>
+                )}
                 {filteredNavItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.href);
