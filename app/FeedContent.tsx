@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Compass, ChevronRight } from "@gravity-ui/icons";
-import { useFeedDiscover } from "@/lib/hooks/use-social";
+import { useAuth } from "@/context/AuthContext";
+import { useFeed, useFeedDiscover } from "@/lib/hooks/use-social";
 import { FeedTournamentCard, FeedListingCard, PostCard, FeedDuelSearchCard } from "@/components/cards";
 import type { FeedPost } from "@/components/cards";
 import type { Tournament } from "@/lib/types/tournament";
@@ -28,8 +29,12 @@ export default function FeedContent({
   listings: Listing[];
 }) {
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("todo");
+  const { status } = useAuth();
+  const isAuth = status === "authenticated";
 
-  const socialQ = useFeedDiscover({ per_page: 20 });
+  const personalFeedQ = useFeed({ per_page: 20 }, isAuth);
+  const discoverFeedQ = useFeedDiscover({ per_page: 20 }, !isAuth);
+  const socialQ = isAuth ? personalFeedQ : discoverFeedQ;
 
   const feedItems = useMemo<FeedItemType[]>(() => {
     const items: FeedItemType[] = [];
@@ -134,38 +139,40 @@ export default function FeedContent({
 
   return (
     <>
-      {/* Discover button */}
-      <Link
-        href="/feed/discover"
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: "#1A1A1E",
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.06)",
-          paddingLeft: 16,
-          paddingRight: 16,
-          paddingTop: 12,
-          paddingBottom: 12,
-          gap: 8,
-          textDecoration: "none",
-          marginTop: 8,
-        }}
-      >
-        <Compass width={16} height={16} color="#F2F2F2" />
-        <span
+      {/* Discover button — only for unauthenticated users */}
+      {!isAuth && (
+        <Link
+          href="/feed/discover"
           style={{
-            flex: 1,
-            color: "#F2F2F2",
-            fontSize: 13,
-            fontWeight: 600,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#1A1A1E",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.06)",
+            paddingLeft: 16,
+            paddingRight: 16,
+            paddingTop: 12,
+            paddingBottom: 12,
+            gap: 8,
+            textDecoration: "none",
+            marginTop: 8,
           }}
         >
-          Descubrir
-        </span>
-        <ChevronRight width={14} height={14} color="#888891" />
-      </Link>
+          <Compass width={16} height={16} color="#F2F2F2" />
+          <span
+            style={{
+              flex: 1,
+              color: "#F2F2F2",
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            Descubrir
+          </span>
+          <ChevronRight width={14} height={14} color="#888891" />
+        </Link>
+      )}
 
       {/* Feed tabs */}
       <FeedTabs active={feedFilter} onChange={setFeedFilter} />

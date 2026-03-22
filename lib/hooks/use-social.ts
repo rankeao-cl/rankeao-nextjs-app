@@ -6,17 +6,19 @@ import type { Params } from "@/lib/types/api";
 
 // ── Feed ──
 
-export function useFeed(params?: Params) {
+export function useFeed(params?: Params, enabled = true) {
     return useQuery({
         queryKey: ["social", "feed", params],
         queryFn: () => socialApi.getFeed(params),
+        enabled,
     });
 }
 
-export function useFeedDiscover(params?: Params) {
+export function useFeedDiscover(params?: Params, enabled = true) {
     return useQuery({
         queryKey: ["social", "feed-discover", params],
         queryFn: () => socialApi.getFeedDiscover(params),
+        enabled,
     });
 }
 
