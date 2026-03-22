@@ -1,19 +1,17 @@
 "use client";
 
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Button } from "@heroui/react";
-import { useCallback } from "react";
+import { useFilterParams } from "@/lib/hooks/use-filter-params";
 
-export default function TorneosPagination({ currentPage, totalPages }: { currentPage: number, totalPages: number }) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+interface PaginationProps {
+    currentPage: number;
+    totalPages: number;
+}
 
-    const handlePage = useCallback((newPage: number) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("page", String(newPage));
-        router.push(`${pathname}?${params.toString()}`);
-    }, [router, pathname, searchParams]);
+export default function Pagination({ currentPage, totalPages }: PaginationProps) {
+    const { updateFilter } = useFilterParams();
+
+    if (totalPages <= 1) return null;
 
     return (
         <div className="flex justify-center mt-6 mb-8">
@@ -22,7 +20,7 @@ export default function TorneosPagination({ currentPage, totalPages }: { current
                     size="sm"
                     variant="ghost"
                     isDisabled={currentPage <= 1}
-                    onPress={() => handlePage(currentPage - 1)}
+                    onPress={() => updateFilter("page", String(currentPage - 1))}
                 >
                     Anterior
                 </Button>
@@ -33,7 +31,7 @@ export default function TorneosPagination({ currentPage, totalPages }: { current
                     size="sm"
                     variant="ghost"
                     isDisabled={currentPage >= totalPages}
-                    onPress={() => handlePage(currentPage + 1)}
+                    onPress={() => updateFilter("page", String(currentPage + 1))}
                 >
                     Siguiente
                 </Button>

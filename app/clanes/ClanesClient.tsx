@@ -8,6 +8,7 @@ import { getGames } from "@/lib/api/catalog";
 import type { Clan } from "@/lib/types/clan";
 import type { CatalogGame } from "@/lib/types/catalog";
 import { Persons } from "@gravity-ui/icons";
+import ViewToggle, { GRID_ICON, LIST_ICON } from "@/components/ViewToggle";
 
 export default function ClanesClient({ initialClans, initialQuery }: { initialClans: Clan[]; initialQuery?: string }) {
     const { session, status } = useAuth();
@@ -92,21 +93,14 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
                     )}
                 </div>
                 {/* View toggle */}
-                <button
-                    onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
-                    style={{ backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 8, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-                >
-                    {viewMode === "grid" ? (
-                        <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
-                            <rect x="1" y="1" width="14" height="3.5" rx="1" fill="#F2F2F2" /><rect x="1" y="6.25" width="14" height="3.5" rx="1" fill="#F2F2F2" /><rect x="1" y="11.5" width="14" height="3.5" rx="1" fill="#F2F2F2" />
-                        </svg>
-                    ) : (
-                        <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
-                            <rect x="1" y="1" width="6" height="6" rx="1" fill="#F2F2F2" /><rect x="9" y="1" width="6" height="6" rx="1" fill="#F2F2F2" />
-                            <rect x="1" y="9" width="6" height="6" rx="1" fill="#F2F2F2" /><rect x="9" y="9" width="6" height="6" rx="1" fill="#F2F2F2" />
-                        </svg>
-                    )}
-                </button>
+                <ViewToggle
+                    currentView={viewMode}
+                    options={[
+                        { key: "grid", icon: GRID_ICON, ariaLabel: "Vista cuadricula" },
+                        { key: "list", icon: LIST_ICON, ariaLabel: "Vista lista" },
+                    ]}
+                    onChange={(v) => setViewMode(v as "grid" | "list")}
+                />
             </div>
 
             {/* Filter pills */}
