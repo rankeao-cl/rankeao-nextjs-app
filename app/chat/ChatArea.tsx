@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@heroui/react";
-import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear } from "@gravity-ui/icons";
+import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear, Shield } from "@gravity-ui/icons";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
@@ -319,6 +319,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         : false;
 
     const isGroup = selectedChannel.type === "GROUP";
+    const isClan = selectedChannel.type === "CLAN";
     const memberCount = selectedChannel.members?.length || 0;
 
     let displayName = selectedChannel.name || (selectedChannel.type === "DM" ? "Mensaje Directo" : "Sala de Chat");
@@ -385,7 +386,20 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
 
                 {/* Avatar */}
                 <div style={{ position: "relative", flexShrink: 0 }}>
-                    {isGroup ? (
+                    {isClan ? (
+                        <div style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            background: "rgba(59,130,246,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#3B82F6",
+                        }}>
+                            <Shield style={{ width: 20, height: 20 }} />
+                        </div>
+                    ) : isGroup ? (
                         <div style={{
                             width: 40,
                             height: 40,
@@ -446,30 +460,47 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
 
                 {/* Name & status */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                        fontSize: 15,
-                        fontWeight: 700,
-                        color: "#F2F2F2",
-                        lineHeight: "18px",
-                        margin: 0,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                    }}>
-                        {displayName}
-                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <p style={{
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: "#F2F2F2",
+                            lineHeight: "18px",
+                            margin: 0,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                        }}>
+                            {displayName}
+                        </p>
+                        {isClan && (
+                            <span style={{
+                                fontSize: 9,
+                                fontWeight: 700,
+                                color: "#3B82F6",
+                                backgroundColor: "rgba(59,130,246,0.15)",
+                                padding: "2px 6px",
+                                borderRadius: 4,
+                                flexShrink: 0,
+                            }}>
+                                CLAN
+                            </span>
+                        )}
+                    </div>
                     <p style={{
                         fontSize: 11,
                         fontWeight: 500,
-                        color: isGroup ? "#888891" : (isOnline ? "#23A559" : "#888891"),
+                        color: isClan ? "#3B82F6" : isGroup ? "#888891" : (isOnline ? "#23A559" : "#888891"),
                         textTransform: "uppercase",
                         letterSpacing: 0.5,
                         margin: 0,
                         marginTop: 2,
                     }}>
-                        {isGroup
-                            ? `Chat Grupal (${memberCount} miembros)`
-                            : (isOnline ? "En línea" : (selectedChannel.type === "DM" ? "Desconectado" : selectedChannel.type))
+                        {isClan
+                            ? `Chat del Clan · ${memberCount} miembros`
+                            : isGroup
+                                ? `Chat Grupal (${memberCount} miembros)`
+                                : (isOnline ? "En línea" : (selectedChannel.type === "DM" ? "Desconectado" : selectedChannel.type))
                         }
                     </p>
                 </div>
