@@ -2,8 +2,8 @@ import { getTournaments } from "@/lib/api/tournaments";
 import { getGames } from "@/lib/api/catalog";
 import { TournamentCard, PastTournamentCard } from "@/components/cards";
 import TorneosFilters from "./TorneosFilters";
-import TorneosPagination from "./TorneosPagination";
-import TorneosViewToggle from "./TorneosViewToggle";
+import Pagination from "@/components/Pagination";
+import ViewToggle, { LIST_ICON, CALENDAR_ICON } from "@/components/ViewToggle";
 import TorneosCalendar from "./TorneosCalendar";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -133,7 +133,7 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
 
       {/* Pagination info */}
       {meta && meta.total > 0 && (
-        <TorneosPagination currentPage={page} totalPages={meta.total_pages} />
+        <Pagination currentPage={page} totalPages={meta.total_pages} />
       )}
     </>
   );
@@ -271,7 +271,10 @@ export default async function TorneosPage({ searchParams }: Props) {
             </a>
           )}
         </form>
-        <TorneosViewToggle currentView={currentView} />
+        <ViewToggle currentView={currentView} options={[
+                            { key: "list", icon: LIST_ICON, ariaLabel: "Vista lista" },
+                            { key: "calendar", icon: CALENDAR_ICON, ariaLabel: "Vista calendario" },
+                        ]} defaultView="list" />
       </div>
 
       {/* Tabs — matches Expo pill style */}

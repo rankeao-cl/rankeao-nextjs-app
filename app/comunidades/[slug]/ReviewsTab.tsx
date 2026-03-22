@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { timeAgo } from "@/lib/utils/format";
 import { useTenantReviews, useCreateTenantReview } from "@/lib/hooks/use-tenants";
 import { Avatar, Button, Modal, Input } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import StarRating from "@/components/StarRating";
+import RatingBar from "@/components/RatingBar";
 import type { TenantReview } from "@/lib/types/tenant";
 
 interface Props {
@@ -11,64 +14,6 @@ interface Props {
     tenantName: string;
 }
 
-function StarRating({
-    value,
-    onChange,
-    readonly = false,
-    size = "md",
-}: {
-    value: number;
-    onChange?: (v: number) => void;
-    readonly?: boolean;
-    size?: "sm" | "md" | "lg";
-}) {
-    const sizeClass = size === "sm" ? "text-sm" : size === "lg" ? "text-2xl" : "text-lg";
-    return (
-        <div className={`flex gap-0.5 ${sizeClass}`}>
-            {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                    key={star}
-                    type="button"
-                    disabled={readonly}
-                    onClick={() => onChange?.(star)}
-                    className={`transition-colors ${readonly ? "cursor-default" : "cursor-pointer hover:scale-110"} ${
-                        star <= value ? "text-[var(--warning)]" : "text-[var(--border)]"
-                    }`}
-                >
-                    ★
-                </button>
-            ))}
-        </div>
-    );
-}
-
-function RatingBar({ label, value, max = 5 }: { label: string; value: number; max?: number }) {
-    const pct = max > 0 ? (value / max) * 100 : 0;
-    return (
-        <div className="flex items-center gap-2 text-xs">
-            <span className="w-4 text-right text-[var(--muted)] font-medium">{label}</span>
-            <div className="flex-1 h-2 rounded-full bg-[var(--surface-tertiary)] overflow-hidden">
-                <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${pct}%`, background: "var(--warning)" }}
-                />
-            </div>
-        </div>
-    );
-}
-
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "hace instantes";
-    if (mins < 60) return `hace ${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `hace ${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 30) return `hace ${days}d`;
-    const months = Math.floor(days / 30);
-    return `hace ${months} mes${months > 1 ? "es" : ""}`;
-}
 
 export default function ReviewsTab({ tenantSlug, tenantName }: Props) {
     const { session, status } = useAuth();
@@ -186,7 +131,7 @@ export default function ReviewsTab({ tenantSlug, tenantName }: Props) {
                                         </span>
                                         {review.created_at && (
                                             <span className="text-xs text-[var(--muted)] flex-shrink-0">
-                                                {timeAgo(review.created_at)}
+                                                {timeAgo(review.created_at, { verbose: true })}
                                             </span>
                                         )}
                                     </div>

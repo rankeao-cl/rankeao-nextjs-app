@@ -13,6 +13,11 @@ export { default as TournamentResultCard } from "./TournamentResultCard";
 export { default as SaleCardList } from "./SaleCardList";
 export { default as PastTournamentCard } from "./PastTournamentCard";
 export { default as FeedDuelSearchCard } from "./FeedDuelSearchCard";
+export { default as DuelCard } from "./DuelCard";
+export { default as MyClanBanner } from "./MyClanBanner";
+export { default as ClanCard } from "./ClanCard";
+export { default as ClanListRow } from "./ClanListRow";
+export { default as MemberCard } from "./MemberCard";
 
 export type { FeedPost } from "./PostCard";
 export type { FeedDeck } from "./DeckCard";

@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Checkbox, Button, Select, ListBox, Input, Accordion } from "@heroui/react";
-import { useCallback } from "react";
+import { useFilterParams } from "@/lib/hooks/use-filter-params";
 import type { CatalogGame } from "@/lib/types/catalog";
 
 const statusOptions = [
@@ -22,24 +21,8 @@ interface Props {
 }
 
 export default function TorneosFilters({ games, currentFilters, activeStatus }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { updateFilter, clearFilters } = useFilterParams();
   const safeGames = Array.isArray(games) ? games : [];
-
-  const updateFilter = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-      if (key !== "page") params.set("page", "1");
-      router.push(`${pathname}?${params.toString()}`);
-    },
-    [router, pathname, searchParams]
-  );
 
   const hasActiveFilters = Object.values(currentFilters).some(Boolean);
 
@@ -51,7 +34,7 @@ export default function TorneosFilters({ games, currentFilters, activeStatus }: 
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-[var(--foreground)]">Filtros</h3>
         {hasActiveFilters && (
-          <Button size="sm" variant="danger-soft" onPress={() => router.push(pathname)} className="h-7 text-xs">
+          <Button size="sm" variant="danger-soft" onPress={clearFilters} className="h-7 text-xs">
             Limpiar
           </Button>
         )}
@@ -70,12 +53,7 @@ export default function TorneosFilters({ games, currentFilters, activeStatus }: 
           return (
             <button
               key={t.key}
-              onClick={() => {
-                const params = new URLSearchParams(searchParams.toString());
-                params.set("tab", t.key);
-                params.set("page", "1");
-                router.push(`${pathname}?${params.toString()}`);
-              }}
+              onClick={() => updateFilter("tab", t.key)}
               className={`text-left px-3 py-2 rounded-lg text-sm transition-colors border ${isActive
                 ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] font-medium"
                 : "bg-[var(--surface-secondary)] border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"

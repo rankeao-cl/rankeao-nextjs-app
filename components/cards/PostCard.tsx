@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { timeAgo } from "@/lib/utils/format";
 import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
 
 export interface FeedPost {
@@ -22,7 +23,7 @@ export interface FeedPost {
 }
 
 export default function PostCard({ post }: { post: FeedPost }) {
-    const timeAgo = getTimeAgo(post.created_at);
+    const relativeTime = timeAgo(post.created_at);
 
     const authorUsername = post.author?.username || post.username || "Usuario";
     const authorAvatar = post.author?.avatar_url || post.avatar_url;
@@ -110,7 +111,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             </span>
                         )}
                     </div>
-                    <span style={{ fontSize: 10, color: "#888891" }}>{timeAgo}</span>
+                    <span style={{ fontSize: 10, color: "#888891" }}>{relativeTime}</span>
                 </div>
             </div>
 
@@ -274,14 +275,3 @@ export default function PostCard({ post }: { post: FeedPost }) {
     );
 }
 
-function getTimeAgo(dateStr: string): string {
-    const now = Date.now();
-    const diff = now - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "ahora";
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `${days}d`;
-}

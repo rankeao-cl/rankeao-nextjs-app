@@ -4,7 +4,7 @@ import { getGames } from "@/lib/api/catalog";
 import type { CatalogGame } from "@/lib/types/catalog";
 import MarketplaceFilters from "./MarketplaceFilters";
 import MarketplaceSearch from "./MarketplaceSearch";
-import MarketplaceViewToggle from "./MarketplaceViewToggle";
+import ViewToggle, { GRID_ICON, LIST_ICON } from "@/components/ViewToggle";
 import ConditionFilterChips from "./ConditionFilterChips";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -165,7 +165,10 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         <div className="flex-1 min-w-0">
           <MarketplaceSearch initialQuery={params.q} />
         </div>
-        <MarketplaceViewToggle currentView={viewMode} />
+        <ViewToggle currentView={viewMode} options={[
+                            { key: "grid", icon: GRID_ICON, ariaLabel: "Vista cuadricula" },
+                            { key: "list", icon: LIST_ICON, ariaLabel: "Vista lista" },
+                        ]} defaultView="grid" />
       </div>
 
       {/* ── Condition filters (mobile only) ── */}

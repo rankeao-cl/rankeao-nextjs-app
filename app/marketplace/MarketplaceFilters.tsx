@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { Input, Button, Slider, Accordion } from "@heroui/react";
+import { useFilterParams } from "@/lib/hooks/use-filter-params";
 import type { CatalogGame } from "@/lib/types/catalog";
 
 const conditionOptions = [
@@ -46,9 +46,7 @@ interface Props {
 }
 
 export default function MarketplaceFilters({ currentFilters, games = [] }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { updateFilter, clearFilters: resetUrl } = useFilterParams();
 
   // Local state for price range to debounce Slider updates
   const [priceRange, setPriceRange] = useState<number[]>([
@@ -56,36 +54,13 @@ export default function MarketplaceFilters({ currentFilters, games = [] }: Props
     currentFilters.max_price ? Number(currentFilters.max_price) : 100000,
   ]);
 
-  const updateFilter = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-      if (key !== "page") {
-        params.set("page", "1");
-      }
-      router.push(`${pathname}?${params.toString()}`);
-    },
-    [router, pathname, searchParams]
-  );
-
   const applyPriceFilter = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (priceRange[0] > 0) params.set("min_price", String(priceRange[0]));
-    else params.delete("min_price");
-
-    if (priceRange[1] < 100000) params.set("max_price", String(priceRange[1]));
-    else params.delete("max_price");
-
-    params.set("page", "1");
-    router.push(`${pathname}?${params.toString()}`);
+    updateFilter("min_price", priceRange[0] > 0 ? String(priceRange[0]) : "");
+    updateFilter("max_price", priceRange[1] < 100000 ? String(priceRange[1]) : "");
   };
 
   const clearFilters = () => {
-    router.push(pathname);
+    resetUrl();
     setPriceRange([0, 100000]);
   };
 
