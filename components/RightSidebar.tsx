@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { Chip } from "@heroui/react";
-import { Flame, Cup, Persons, ArrowRight } from "@gravity-ui/icons";
+import { Flame, Cup, Persons, ArrowRight, ShoppingCart, ChartColumn } from "@gravity-ui/icons";
 import Link from "next/link";
 import Image from "next/image";
 import { getTournaments } from "@/lib/api/tournaments";
 import { getGames } from "@/lib/api/catalog";
 import { getTenants } from "@/lib/api/tenants";
+import { getListings } from "@/lib/api/marketplace";
+import { getRatingLeaderboard } from "@/lib/api/ratings";
 import type { Tournament } from "@/lib/types/tournament";
 import type { CatalogGame } from "@/lib/types/catalog";
 import type { Tenant } from "@/lib/types/tenant";
+import type { Listing } from "@/lib/types/marketplace";
 import { getGameBrand } from "@/lib/gameLogos";
 
 function SidebarSection({ title, icon, children, viewAllHref }: {
@@ -41,6 +44,8 @@ export default function RightSidebar() {
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [games, setGames] = useState<CatalogGame[]>([]);
     const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [listings, setListings] = useState<Listing[]>([]);
+    const [topPlayers, setTopPlayers] = useState<{ username: string; avatar_url?: string; elo: number; rank: number }[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -48,7 +53,9 @@ export default function RightSidebar() {
             getTournaments({ status: "ROUND_IN_PROGRESS", per_page: 3 }).catch(() => null),
             getGames().catch(() => null),
             getTenants({ per_page: 3 }).catch(() => null),
-        ]).then(async ([tournamentsRes, gamesRes, tenantsRes]) => {
+            getListings({ sort: "newest", per_page: 4 }).catch(() => null),
+            getRatingLeaderboard({ game: "pokemon-tcg", format: "standard", per_page: 5 }).catch(() => null),
+        ]).then(async ([tournamentsRes, gamesRes, tenantsRes, listingsRes, leaderboardRes]) => {
             // Tournaments: prefer live, fallback to upcoming
             let t = tournamentsRes?.tournaments;
             if (!t?.length) {
@@ -65,6 +72,21 @@ export default function RightSidebar() {
             // Tenants
             const tn = tenantsRes?.tenants ?? (tenantsRes as any)?.data?.tenants;
             if (Array.isArray(tn)) setTenants(tn.slice(0, 3));
+
+            // Listings
+            const ls = listingsRes?.listings ?? (listingsRes as any)?.data?.listings;
+            if (Array.isArray(ls)) setListings(ls.slice(0, 4));
+
+            // Top players
+            const lb = leaderboardRes?.leaderboard ?? (leaderboardRes as any)?.data?.leaderboard ?? (leaderboardRes as any)?.data;
+            if (Array.isArray(lb)) {
+                setTopPlayers(lb.slice(0, 5).map((p: any, i: number) => ({
+                    username: p.username ?? p.user?.username ?? "",
+                    avatar_url: p.avatar_url ?? p.user?.avatar_url,
+                    elo: p.elo ?? p.rating ?? 0,
+                    rank: i + 1,
+                })));
+            }
 
             setLoading(false);
         });
@@ -199,6 +221,83 @@ export default function RightSidebar() {
                     ))}
                 </div>
             </SidebarSection>
+
+            {/* Top Players */}
+            {topPlayers.length > 0 && (
+                <SidebarSection
+                    title="Top Jugadores"
+                    icon={<ChartColumn className="size-3.5 text-[#F59E0B]" />}
+                    viewAllHref="/ranking"
+                >
+                    <div className="space-y-0.5">
+                        {topPlayers.map((player) => (
+                            <Link
+                                key={player.username}
+                                href={`/perfil/${player.username}`}
+                                className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[#222226] transition-colors group"
+                            >
+                                <span className="text-[10px] font-bold text-[#888891] w-4 text-right shrink-0">
+                                    #{player.rank}
+                                </span>
+                                {player.avatar_url ? (
+                                    <Image src={player.avatar_url} alt={player.username} width={28} height={28} className="rounded-full object-cover shrink-0" />
+                                ) : (
+                                    <div className="w-7 h-7 rounded-full bg-[#222226] flex items-center justify-center text-[10px] font-bold text-[#888891] shrink-0">
+                                        {player.username.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-[#F2F2F2] truncate group-hover:text-[#3B82F6] transition-colors">
+                                        {player.username}
+                                    </p>
+                                </div>
+                                <span className="text-[10px] font-bold text-[#F59E0B] shrink-0">
+                                    {player.elo}
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </SidebarSection>
+            )}
+
+            {/* Recent Listings */}
+            {listings.length > 0 && (
+                <SidebarSection
+                    title="Publicaciones"
+                    icon={<ShoppingCart className="size-3.5 text-[#22C55E]" />}
+                    viewAllHref="/marketplace"
+                >
+                    <div className="space-y-1.5">
+                        {listings.map((listing) => {
+                            const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
+                            const price = listing.price != null ? `$${Number(listing.price).toLocaleString("es-CL")}` : "";
+                            return (
+                                <Link
+                                    key={listing.id}
+                                    href={`/marketplace/${listing.id}`}
+                                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-[#222226] transition-colors group"
+                                >
+                                    <div className="w-9 h-12 rounded-lg bg-[#222226] border border-[rgba(255,255,255,0.06)] overflow-hidden shrink-0">
+                                        {imageUrl ? (
+                                            <Image src={imageUrl} alt={listing.card_name || ""} width={36} height={48} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-[8px] text-[#888891]">TCG</div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold text-[#F2F2F2] truncate group-hover:text-[#3B82F6] transition-colors">
+                                            {listing.card_name || listing.title || "Carta"}
+                                        </p>
+                                        {price && (
+                                            <p className="text-[11px] font-bold text-[#22C55E]">{price}</p>
+                                        )}
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </SidebarSection>
+            )}
 
             {/* Footer */}
             <div className="mt-auto pt-3 border-t border-[rgba(255,255,255,0.06)] px-1">
