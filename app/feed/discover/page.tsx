@@ -60,7 +60,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
   ].sort((a, b) => b.timestamp - a.timestamp);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+    <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
       {/* Header */}
       <div className="glass rounded-2xl p-5">
         <p className="text-xs font-semibold text-[var(--accent)] uppercase tracking-wider mb-1">

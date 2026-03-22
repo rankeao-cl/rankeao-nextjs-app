@@ -26,7 +26,7 @@ export default async function HomePage() {
   const listings = asArray<Listing>(listingsData?.listings);
 
   return (
-    <div style={{ maxWidth: 672, marginLeft: "auto", marginRight: "auto", paddingLeft: 8, paddingRight: 8 }}>
+    <div style={{ maxWidth: 768, marginLeft: "auto", marginRight: "auto", paddingLeft: 8, paddingRight: 8 }}>
       <div style={{ paddingTop: 8 }}>
         {/* Create post widget */}
         <FeedClient />
