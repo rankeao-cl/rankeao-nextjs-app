@@ -1,4 +1,5 @@
-import { getGameFormats, getGames } from "@/lib/api/catalog";
+import { getGameFormats, getGames, getGameSets } from "@/lib/api/catalog";
+import { getTournaments } from "@/lib/api/tournaments";
 import type { CatalogGame } from "@/lib/types/catalog";
 import JuegosExplorer from "./JuegosExplorer";
 
@@ -7,18 +8,25 @@ export const metadata = {
   description: "Explora todos los juegos TCG disponibles y sus formatos competitivos.",
 };
 
-async function enrichGamesWithFormats(games: CatalogGame[]): Promise<CatalogGame[]> {
+async function enrichGames(games: CatalogGame[]): Promise<(CatalogGame & { tournaments_count?: number; sets_count?: number })[]> {
   const enriched = await Promise.all(
     games.map(async (game) => {
-      if ((game.formats?.length ?? 0) > 0) return game;
-      try {
-        const formatsRes = await getGameFormats(game.slug).catch(() => null);
-        const rawFormats = formatsRes?.formats ?? formatsRes?.data;
-        const formats = Array.isArray(rawFormats) ? rawFormats : [];
-        return { ...game, formats };
-      } catch {
-        return game;
-      }
+      const [formatsRes, tournamentsRes, setsRes] = await Promise.all([
+        (game.formats?.length ?? 0) > 0 ? null : getGameFormats(game.slug).catch(() => null),
+        getTournaments({ game: game.slug, per_page: 1 }).catch(() => null),
+        getGameSets(game.slug, { per_page: 1 }).catch(() => null),
+      ]);
+
+      const formats = game.formats?.length
+        ? game.formats
+        : Array.isArray(formatsRes?.formats ?? formatsRes?.data)
+          ? (formatsRes?.formats ?? formatsRes?.data)
+          : [];
+
+      const tournamentsCount = (tournamentsRes as any)?.meta?.total ?? (tournamentsRes?.tournaments?.length ?? 0);
+      const setsCount = (setsRes as any)?.meta?.total ?? 0;
+
+      return { ...game, formats, tournaments_count: tournamentsCount, sets_count: setsCount };
     })
   );
   return enriched;
@@ -34,7 +42,7 @@ export default async function JuegosPage() {
 
   const rawGames = gamesData?.data ?? gamesData?.games;
   const games = Array.isArray(rawGames) ? rawGames : [];
-  const enrichedGames = await enrichGamesWithFormats(games);
+  const enrichedGames = await enrichGames(games);
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
