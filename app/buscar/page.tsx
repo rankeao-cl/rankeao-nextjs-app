@@ -1,259 +1,392 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Avatar, Spinner, Tabs, Card } from "@heroui/react";
-import { Magnifier, Person, Cup, Persons, ShoppingCart } from "@gravity-ui/icons";
+import { Spinner } from "@heroui/react";
+import { Magnifier, Person, Cup, Persons, ShoppingCart, Shield, SquareDashed } from "@gravity-ui/icons";
 import Link from "next/link";
+import Image from "next/image";
 
 import { autocompleteUsers } from "@/lib/api/social";
 import { getTournaments } from "@/lib/api/tournaments";
 import { getTenants } from "@/lib/api/tenants";
 import { getListings } from "@/lib/api/marketplace";
+import { getClans } from "@/lib/api/clans";
+import { searchCards } from "@/lib/api/catalog";
 
-type SearchResult = {
-  id: string;
-  type: "user" | "tournament" | "community" | "listing";
-  title: string;
-  subtitle?: string;
-  image?: string;
-  href: string;
+// ── Types ──
+
+type ResultType = "user" | "tournament" | "community" | "listing" | "clan" | "card";
+
+interface SearchResult {
+    id: string;
+    type: ResultType;
+    title: string;
+    subtitle?: string;
+    image?: string;
+    href: string;
+    meta?: Record<string, unknown>;
+}
+
+const TAB_CONFIG: Record<ResultType | "all", { icon: typeof Person; label: string; color: string; bg: string }> = {
+    all:        { icon: Magnifier,    label: "Todo",         color: "#F2F2F2",  bg: "rgba(255,255,255,0.06)" },
+    user:       { icon: Person,       label: "Jugadores",    color: "#3B82F6",  bg: "rgba(59,130,246,0.12)" },
+    tournament: { icon: Cup,          label: "Torneos",      color: "#A855F7",  bg: "rgba(168,85,247,0.12)" },
+    clan:       { icon: Shield,       label: "Clanes",       color: "#3B82F6",  bg: "rgba(59,130,246,0.12)" },
+    card:       { icon: SquareDashed, label: "Cartas",       color: "#F59E0B",  bg: "rgba(245,158,11,0.12)" },
+    community:  { icon: Persons,      label: "Comunidades",  color: "#22C55E",  bg: "rgba(34,197,94,0.12)" },
+    listing:    { icon: ShoppingCart,  label: "Marketplace",  color: "#F97316",  bg: "rgba(249,115,22,0.12)" },
 };
 
-const TYPE_CONFIG = {
-  user: { icon: Person, label: "Jugadores", color: "text-blue-500", bg: "bg-blue-500/15" },
-  tournament: { icon: Cup, label: "Torneos", color: "text-purple-500", bg: "bg-purple-500/15" },
-  community: { icon: Persons, label: "Comunidades", color: "text-emerald-500", bg: "bg-emerald-500/15" },
-  listing: { icon: ShoppingCart, label: "Marketplace", color: "text-orange-500", bg: "bg-orange-500/15" },
-} as const;
+const TAB_ORDER: (ResultType | "all")[] = ["all", "user", "tournament", "clan", "card", "community", "listing"];
+
+// ── Search Content ──
 
 function SearchContent() {
-  const searchParams = useSearchParams();
-  const query = searchParams.get("q") || "";
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+    const searchParams = useSearchParams();
+    const query = searchParams.get("q") || "";
+    const [results, setResults] = useState<SearchResult[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState<ResultType | "all">("all");
 
-  useEffect(() => {
-    if (!query) return;
+    useEffect(() => {
+        if (!query || query.length < 2) { setResults([]); return; }
 
-    const performSearch = async () => {
-      setIsLoading(true);
-      try {
-        const [usersRes, tournamentsRes, tenantsRes, listingsRes] = await Promise.allSettled([
-          autocompleteUsers(query),
-          getTournaments({ q: query, per_page: 20 }),
-          getTenants({ q: query, per_page: 20 }),
-          getListings({ q: query, per_page: 20 }),
-        ]);
+        const controller = new AbortController();
+        setIsLoading(true);
+        setActiveTab("all");
 
-        const items: SearchResult[] = [];
+        Promise.allSettled([
+            autocompleteUsers(query),
+            getTournaments({ q: query, per_page: 20 }),
+            getTenants({ q: query, per_page: 20 }),
+            getListings({ q: query, per_page: 20 }),
+            getClans({ q: query, per_page: 20 }),
+            searchCards({ q: query, per_page: 20 }),
+        ]).then(([usersRes, tournamentsRes, tenantsRes, listingsRes, clansRes, cardsRes]) => {
+            if (controller.signal.aborted) return;
+            const items: SearchResult[] = [];
 
-        if (usersRes.status === "fulfilled") {
-          const val = usersRes.value as any;
-          const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
-          users.forEach((u: any) => {
-            items.push({
-              id: u.id || u.username,
-              type: "user",
-              title: u.username || u.display_name || "Usuario",
-              subtitle: u.display_name && u.display_name !== u.username ? u.display_name : undefined,
-              image: u.avatar_url,
-              href: `/perfil/${encodeURIComponent(u.username)}`,
-            });
-          });
-        }
+            // Users
+            if (usersRes.status === "fulfilled") {
+                const val = usersRes.value as any;
+                const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
+                for (const u of users) {
+                    items.push({
+                        id: u.id || u.username, type: "user",
+                        title: u.username || "Usuario",
+                        subtitle: u.display_name && u.display_name !== u.username ? u.display_name : u.city || undefined,
+                        image: u.avatar_url,
+                        href: `/perfil/${encodeURIComponent(u.username)}`,
+                        meta: { elo: u.elo, rating: u.rating, rank_badge: u.rank_badge },
+                    });
+                }
+            }
 
-        if (tournamentsRes.status === "fulfilled") {
-          const val = tournamentsRes.value as any;
-          const tournaments = val?.data?.tournaments || val?.tournaments || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-          tournaments.forEach((t: any) => {
-            items.push({
-              id: t.id,
-              type: "tournament",
-              title: t.name,
-              subtitle: t.game || t.tenant_name || undefined,
-              href: `/torneos/${t.id}`,
-            });
-          });
-        }
+            // Tournaments
+            if (tournamentsRes.status === "fulfilled") {
+                const val = tournamentsRes.value as any;
+                const tournaments = val?.data?.tournaments || val?.tournaments || [];
+                for (const t of tournaments) {
+                    items.push({
+                        id: t.id, type: "tournament",
+                        title: t.name,
+                        subtitle: [t.game, t.format_type, t.status].filter(Boolean).join(" · "),
+                        href: `/torneos/${t.id}`,
+                        meta: { status: t.status, game: t.game, registered_count: t.registered_count },
+                    });
+                }
+            }
 
-        if (tenantsRes.status === "fulfilled") {
-          const val = tenantsRes.value as any;
-          const tenants = val?.data?.tenants || val?.tenants || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-          tenants.forEach((t: any) => {
-            items.push({
-              id: t.id || t.slug,
-              type: "community",
-              title: t.name,
-              subtitle: t.city ? `${t.city}${t.region ? `, ${t.region}` : ""}` : undefined,
-              image: t.logo_url,
-              href: `/comunidades/${t.slug}`,
-            });
-          });
-        }
+            // Clans
+            if (clansRes.status === "fulfilled") {
+                const val = clansRes.value as any;
+                const clans = val?.data?.clans || val?.clans || (Array.isArray(val?.data) ? val.data : []);
+                for (const c of clans) {
+                    items.push({
+                        id: c.id || c.public_id, type: "clan",
+                        title: c.name,
+                        subtitle: [c.tag ? `[${c.tag}]` : null, c.game_name, c.city].filter(Boolean).join(" · "),
+                        image: c.logo_url,
+                        href: `/clanes/${c.id || c.public_id}`,
+                        meta: { member_count: c.member_count, is_recruiting: c.is_recruiting },
+                    });
+                }
+            }
 
-        if (listingsRes.status === "fulfilled") {
-          const val = listingsRes.value as any;
-          const listings = val?.data?.listings || val?.listings || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-          listings.forEach((l: any) => {
-            items.push({
-              id: l.id,
-              type: "listing",
-              title: l.title || l.card_name || "Producto",
-              subtitle: l.price ? `$${Number(l.price).toLocaleString("es-CL")}` : undefined,
-              image: l.images?.[0] || l.image_url,
-              href: `/marketplace/${l.id}`,
-            });
-          });
-        }
+            // Cards
+            if (cardsRes.status === "fulfilled") {
+                const val = cardsRes.value as any;
+                const cards = val?.data?.cards || val?.cards || val?.data || [];
+                if (Array.isArray(cards)) {
+                    for (const card of cards) {
+                        items.push({
+                            id: card.id || card.public_id, type: "card",
+                            title: card.name,
+                            subtitle: [card.game_name, card.set_name].filter(Boolean).join(" · "),
+                            image: card.image_url,
+                            href: `/catalogo/${card.game_slug || "pokemon-tcg"}/${card.id || card.public_id}`,
+                            meta: { rarity: card.rarity, collector_number: card.collector_number },
+                        });
+                    }
+                }
+            }
 
-        setResults(items);
-      } catch (error) {
-        console.error("Search failed:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+            // Communities
+            if (tenantsRes.status === "fulfilled") {
+                const val = tenantsRes.value as any;
+                const tenants = val?.data?.tenants || val?.tenants || [];
+                for (const t of tenants) {
+                    items.push({
+                        id: t.id || t.slug, type: "community",
+                        title: t.name,
+                        subtitle: t.city ? `${t.city}${t.region ? `, ${t.region}` : ""}` : undefined,
+                        image: t.logo_url,
+                        href: `/comunidades/${t.slug}`,
+                        meta: { rating: t.average_rating },
+                    });
+                }
+            }
 
-    performSearch();
-  }, [query]);
+            // Listings
+            if (listingsRes.status === "fulfilled") {
+                const val = listingsRes.value as any;
+                const listings = val?.data?.listings || val?.listings || [];
+                for (const l of listings) {
+                    items.push({
+                        id: l.id, type: "listing",
+                        title: l.title || l.card_name || "Producto",
+                        subtitle: l.price ? `$${Number(l.price).toLocaleString("es-CL")}` : undefined,
+                        image: l.images?.[0]?.thumbnail_url || l.images?.[0]?.url || l.card_image_url,
+                        href: `/marketplace/${l.id}`,
+                        meta: { condition: l.card_condition, seller: l.seller_username },
+                    });
+                }
+            }
 
-  const groupedResults = results.reduce<Record<string, SearchResult[]>>((acc, r) => {
-    if (!acc[r.type]) acc[r.type] = [];
-    acc[r.type].push(r);
-    return acc;
-  }, {});
+            setResults(items);
+            setIsLoading(false);
+        });
 
-  if (!query) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-20 h-20 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center mb-6">
-          <Magnifier className="size-8 text-[var(--muted)]" />
-        </div>
-        <h1 className="text-2xl font-black font-reddit mb-2 lowercase">Busca algo increíble</h1>
-        <p className="text-[var(--muted)]">Escribe en la barra de arriba para empezar tu búsqueda.</p>
-      </div>
-    );
-  }
+        return () => controller.abort();
+    }, [query]);
 
-  return (
-    <div className="rk-container py-8 max-w-5xl">
-      <header className="mb-8">
-        <h1 className="text-3xl font-black font-reddit lowercase mb-2">
-          Resultados para <span className="text-[var(--brand)]">&quot;{query}&quot;</span>
-        </h1>
-        <p className="text-[var(--muted)] text-sm">
-          Encontramos {results.length} coincidencias en toda la plataforma.
-        </p>
-      </header>
+    const counts = useMemo(() => {
+        const c: Record<string, number> = { all: results.length };
+        for (const r of results) c[r.type] = (c[r.type] || 0) + 1;
+        return c;
+    }, [results]);
 
-      {isLoading ? (
-        <div className="flex justify-center py-20">
-          <Spinner size="lg" color="warning" />
-        </div>
-      ) : results.length > 0 ? (
-        <Tabs
-          aria-label="Filtros de búsqueda"
-          variant="primary"
-        >
-          <Tabs.ListContainer className="border-b border-[var(--border)]">
-            <Tabs.List className="gap-6 w-full relative p-0" aria-label="Filtros de búsqueda">
-              <Tabs.Tab id="all" className="max-w-fit px-0 h-12 flex items-center space-x-2 font-bold text-sm">
-                <span>Todo</span>
-                <span className="text-[10px] bg-[var(--surface-tertiary)] px-1.5 py-0.5 rounded-full">{results.length}</span>
-                <Tabs.Indicator className="bg-[var(--brand)]" />
-              </Tabs.Tab>
-              {(Object.keys(TYPE_CONFIG) as Array<keyof typeof TYPE_CONFIG>).map((type) => {
-                const items = groupedResults[type] || [];
-                if (items.length === 0) return null;
-                return (
-                  <Tabs.Tab key={type} id={type} className="max-w-fit px-0 h-12 flex items-center space-x-2 font-bold text-sm">
-                    <span>{TYPE_CONFIG[type].label}</span>
-                    <span className="text-[10px] bg-[var(--surface-tertiary)] px-1.5 py-0.5 rounded-full">{items.length}</span>
-                    <Tabs.Indicator className="bg-[var(--brand)]" />
-                  </Tabs.Tab>
-                );
-              })}
-            </Tabs.List>
-          </Tabs.ListContainer>
+    const filtered = activeTab === "all" ? results : results.filter(r => r.type === activeTab);
 
-          <Tabs.Panel id="all">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              {results.map((item) => (
-                <ResultCard key={`${item.type}-${item.id}`} item={item} />
-              ))}
-            </div>
-          </Tabs.Panel>
-
-          {(Object.keys(TYPE_CONFIG) as Array<keyof typeof TYPE_CONFIG>).map((type) => {
-            const items = groupedResults[type] || [];
-            if (items.length === 0) return null;
-            return (
-              <Tabs.Panel key={type} id={type}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  {items.map((item) => (
-                    <ResultCard key={`${item.type}-${item.id}`} item={item} />
-                  ))}
+    // ── Empty state ──
+    if (!query) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                    <Magnifier style={{ width: 32, height: 32, color: "#888891" }} />
                 </div>
-              </Tabs.Panel>
-            );
-          })}
-        </Tabs>
-      ) : (
-        <div className="py-20 text-center border-2 border-dashed border-[var(--border)] rounded-2xl">
-          <p className="text-lg font-bold text-[var(--foreground)] mb-2">No hubo suerte esta vez</p>
-          <p className="text-[var(--muted)]">Prueba con otras palabras o revisa que todo esté bien escrito.</p>
+                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#F2F2F2", margin: "0 0 8px" }}>Buscar en Rankeao</h1>
+                <p style={{ fontSize: 14, color: "#888891", maxWidth: 320 }}>Jugadores, torneos, clanes, cartas, comunidades y publicaciones.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 16px" }}>
+            {/* Header */}
+            <div style={{ marginBottom: 24 }}>
+                <h1 style={{ fontSize: 24, fontWeight: 800, color: "#F2F2F2", margin: "0 0 4px" }}>
+                    Resultados para <span style={{ color: "#3B82F6" }}>&quot;{query}&quot;</span>
+                </h1>
+                <p style={{ fontSize: 13, color: "#888891", margin: 0 }}>
+                    {results.length} resultado{results.length !== 1 ? "s" : ""} en toda la plataforma
+                </p>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }} className="no-scrollbar">
+                {TAB_ORDER.map((tab) => {
+                    const count = counts[tab] || 0;
+                    if (tab !== "all" && count === 0) return null;
+                    const config = TAB_CONFIG[tab];
+                    const isActive2 = activeTab === tab;
+                    return (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            style={{
+                                display: "flex", alignItems: "center", gap: 6,
+                                padding: "8px 14px", borderRadius: 10,
+                                backgroundColor: isActive2 ? config.bg : "transparent",
+                                border: isActive2 ? `1px solid ${config.color}30` : "1px solid rgba(255,255,255,0.06)",
+                                color: isActive2 ? config.color : "#888891",
+                                fontSize: 13, fontWeight: 600, cursor: "pointer",
+                                whiteSpace: "nowrap", flexShrink: 0,
+                                transition: "all 0.15s",
+                            }}
+                        >
+                            {config.label}
+                            <span style={{
+                                fontSize: 10, fontWeight: 700,
+                                backgroundColor: isActive2 ? config.color + "20" : "rgba(255,255,255,0.06)",
+                                color: isActive2 ? config.color : "#888891",
+                                padding: "2px 6px", borderRadius: 999,
+                            }}>
+                                {count}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Results */}
+            {isLoading ? (
+                <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
+                    <Spinner size="lg" />
+                </div>
+            ) : filtered.length > 0 ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                    {filtered.map((item) => (
+                        <ResultCard key={`${item.type}-${item.id}`} item={item} />
+                    ))}
+                </div>
+            ) : (
+                <div style={{
+                    padding: "80px 16px", textAlign: "center",
+                    border: "2px dashed rgba(255,255,255,0.06)", borderRadius: 16,
+                }}>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Sin resultados</p>
+                    <p style={{ fontSize: 13, color: "#888891", margin: 0 }}>Prueba con otras palabras o revisa la escritura.</p>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
+
+// ── Result Card (enriched per type) ──
 
 function ResultCard({ item }: { item: SearchResult }) {
-  const config = TYPE_CONFIG[item.type];
-  const Icon = config.icon;
+    const config = TAB_CONFIG[item.type];
+    const Icon = config.icon;
+    const meta = item.meta || {};
 
-  return (
-    <Link href={item.href}>
-      <Card
-        className="w-full border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--brand)]/30 transition-all shadow-sm hover:shadow-md"
-      >
-        <Card.Content className="flex items-center gap-4 p-4">
-          {item.image ? (
-            <Avatar className="w-12 h-12 shrink-0 rounded-xl">
-              <Avatar.Image src={item.image} alt={item.title} />
-              <Avatar.Fallback className="text-xl font-reddit">{item.title[0]}</Avatar.Fallback>
-            </Avatar>
-          ) : (
-            <div className={`w-12 h-12 rounded-xl ${config.bg} flex items-center justify-center shrink-0`}>
-              <Icon className={`size-6 ${config.color}`} />
+    return (
+        <Link href={item.href} style={{ textDecoration: "none" }}>
+            <div style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: 14, borderRadius: 14,
+                backgroundColor: "#1A1A1E",
+                border: "1px solid rgba(255,255,255,0.06)",
+                transition: "border-color 0.15s",
+            }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = config.color + "40")}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+            >
+                {/* Image / Icon */}
+                {item.image ? (
+                    <div style={{
+                        width: item.type === "card" ? 42 : 44,
+                        height: item.type === "card" ? 58 : 44,
+                        borderRadius: item.type === "card" ? 6 : item.type === "user" ? 22 : 10,
+                        overflow: "hidden", flexShrink: 0,
+                        backgroundColor: "#222226",
+                    }}>
+                        <Image src={item.image} alt={item.title} width={44} height={item.type === "card" ? 58 : 44}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                ) : (
+                    <div style={{
+                        width: 44, height: 44, borderRadius: 10,
+                        backgroundColor: config.bg,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, color: config.color,
+                    }}>
+                        <Icon style={{ width: 20, height: 20 }} />
+                    </div>
+                )}
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                        <span style={{
+                            fontSize: 9, fontWeight: 700, textTransform: "uppercase",
+                            color: config.color, backgroundColor: config.bg,
+                            padding: "2px 6px", borderRadius: 4, flexShrink: 0,
+                        }}>
+                            {config.label}
+                        </span>
+                        {/* Enriched badges */}
+                        {item.type === "tournament" && meta.status && (
+                            <span style={{
+                                fontSize: 9, fontWeight: 700,
+                                color: meta.status === "ROUND_IN_PROGRESS" ? "#22C55E" : "#F59E0B",
+                                backgroundColor: meta.status === "ROUND_IN_PROGRESS" ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)",
+                                padding: "2px 6px", borderRadius: 4,
+                            }}>
+                                {meta.status === "ROUND_IN_PROGRESS" ? "En vivo" : String(meta.status)}
+                            </span>
+                        )}
+                        {item.type === "clan" && meta.is_recruiting && (
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(34,197,94,0.12)", padding: "2px 6px", borderRadius: 4 }}>
+                                Reclutando
+                            </span>
+                        )}
+                        {item.type === "listing" && meta.condition && (
+                            <span style={{ fontSize: 9, fontWeight: 600, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 4 }}>
+                                {String(meta.condition)}
+                            </span>
+                        )}
+                    </div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: "#F2F2F2", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {item.title}
+                    </p>
+                    {item.subtitle && (
+                        <p style={{ fontSize: 12, color: "#888891", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {item.subtitle}
+                        </p>
+                    )}
+                    {/* Enriched meta line */}
+                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                        {item.type === "user" && meta.rank_badge && (
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "#F59E0B" }}>{String(meta.rank_badge)}</span>
+                        )}
+                        {item.type === "tournament" && meta.registered_count != null && (
+                            <span style={{ fontSize: 10, color: "#888891", display: "flex", alignItems: "center", gap: 2 }}>
+                                <Persons style={{ width: 10, height: 10 }} /> {String(meta.registered_count)}
+                            </span>
+                        )}
+                        {item.type === "clan" && meta.member_count != null && (
+                            <span style={{ fontSize: 10, color: "#888891", display: "flex", alignItems: "center", gap: 2 }}>
+                                <Persons style={{ width: 10, height: 10 }} /> {String(meta.member_count)} miembros
+                            </span>
+                        )}
+                        {item.type === "card" && meta.rarity && (
+                            <span style={{ fontSize: 10, color: "#888891" }}>{String(meta.rarity)}</span>
+                        )}
+                        {item.type === "listing" && meta.seller && (
+                            <span style={{ fontSize: 10, color: "#888891" }}>@{String(meta.seller)}</span>
+                        )}
+                        {item.type === "community" && meta.rating != null && Number(meta.rating) > 0 && (
+                            <span style={{ fontSize: 10, color: "#F59E0B" }}>★ {Number(meta.rating).toFixed(1)}</span>
+                        )}
+                    </div>
+                </div>
             </div>
-          )}
-          <div className="flex-1 min-w-0 text-left">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${config.bg} ${config.color}`}>
-                {config.label === "Marketplace" ? "Venta" : config.label.slice(0, -1)}
-              </span>
-            </div>
-            <h3 className="font-bold text-[var(--foreground)] truncate leading-tight">{item.title}</h3>
-            {item.subtitle && (
-              <p className="text-xs text-[var(--muted)] truncate mt-0.5">{item.subtitle}</p>
-            )}
-          </div>
-        </Card.Content>
-      </Card>
-    </Link>
-  );
+        </Link>
+    );
 }
 
+// ── Page wrapper ──
+
 export default function BuscarPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex justify-center py-20">
-        <Spinner size="lg" color="warning" />
-      </div>
-    }>
-      <SearchContent />
-    </Suspense>
-  );
+    return (
+        <Suspense fallback={
+            <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
+                <Spinner size="lg" />
+            </div>
+        }>
+            <SearchContent />
+        </Suspense>
+    );
 }
