@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { timeAgo, stripHtml } from "@/lib/utils/format";
 import Image from "next/image";
 import { RankeaoLogo } from "./icons/RankeaoLogo";
 import NavbarSearch from "./NavbarSearch";
@@ -31,20 +32,6 @@ import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead 
 import { getUserProfile } from "@/lib/api/social";
 import type { Notification } from "@/lib/types/notification";
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "hace instantes";
-  if (mins < 60) return `hace ${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `hace ${days}d`;
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "");
-}
 
 function getNotifCategory(notif: Notification): string {
   return notif.category || notif.type || "system";
@@ -285,7 +272,7 @@ export default function Navbar() {
                                           <p className={`text-[13px] text-[#F2F2F2] leading-relaxed ${!notif.is_read ? "font-semibold" : ""}`}>
                                             {stripHtml(notif.title || "Nueva notificación")}
                                           </p>
-                                          <p className="text-[11px] text-[#888891] mt-1 font-medium">{timeAgo(notif.created_at)}</p>
+                                          <p className="text-[11px] text-[#888891] mt-1 font-medium">{timeAgo(notif.created_at, { verbose: true })}</p>
                                         </div>
                                       </div>
                                     );

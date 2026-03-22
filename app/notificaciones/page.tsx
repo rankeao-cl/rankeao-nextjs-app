@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ScrollShadow, Button, Chip } from "@heroui/react";
+import { timeAgo, stripHtml } from "@/lib/utils/format";
 import { useAuth } from "@/context/AuthContext";
 import { Person, Bell, ShoppingCart, StarFill, Gear } from "@gravity-ui/icons";
 import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
@@ -28,20 +29,6 @@ const categoryColors: Record<string, { bg: string; text: string }> = {
     system: { bg: "bg-[var(--default)]", text: "text-[var(--muted)]" },
 };
 
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "hace instantes";
-    if (mins < 60) return `hace ${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `hace ${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `hace ${days}d`;
-}
-
-function stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, "");
-}
 
 function getNotifCategory(notif: Notification): string {
     return notif.category?.toLowerCase() || notif.channel?.toLowerCase() || notif.type?.toLowerCase() || "system";
@@ -260,7 +247,7 @@ export default function NotificacionesPage() {
                                                 </p>
                                             )}
                                             <div className="flex items-center gap-2 mt-1">
-                                                <p className="text-[10px] text-[var(--muted)] font-medium">{timeAgo(notif.created_at)}</p>
+                                                <p className="text-[10px] text-[var(--muted)] font-medium">{timeAgo(notif.created_at, { verbose: true })}</p>
                                                 <Chip size="sm" variant="secondary" className="text-[9px] h-4 px-1.5">
                                                     {CATEGORIES.find((c) => c.id === cat)?.label || cat}
                                                 </Chip>

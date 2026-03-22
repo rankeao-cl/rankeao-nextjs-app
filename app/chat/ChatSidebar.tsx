@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { timeAgo } from "@/lib/utils/format";
 import type { Channel, ChannelMember } from "@/lib/types/chat";
 import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";
@@ -21,18 +22,6 @@ function formatLastSeen(member?: ChannelMember): string | null {
     return "desconectado";
 }
 
-function timeAgo(dateStr?: string): string {
-    if (!dateStr) return "";
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "ahora";
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d`;
-    return new Date(dateStr).toLocaleDateString("es-CL", { day: "numeric", month: "short" });
-}
 
 type ChatFilter = "todo" | "dm" | "grupos" | "comunidades";
 
@@ -237,7 +226,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                             fontWeight: hasUnread ? 600 : 400,
                                         }}
                                     >
-                                        {timeAgo(channel.last_message.created_at)}
+                                        {timeAgo(channel.last_message.created_at, { fallbackDays: 7 })}
                                     </span>
                                 )}
                                 {hasUnread && (

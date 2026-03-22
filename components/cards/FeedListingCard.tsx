@@ -1,20 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { timeAgo } from "@/lib/utils/format";
 import type { Listing } from "@/lib/types/marketplace";
 import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark, MapPin } from "@gravity-ui/icons";
 
-function timeAgo(dateStr?: string): string {
-    if (!dateStr) return "";
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "ahora";
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d`;
-    return `${Math.floor(days / 7)}sem`;
-}
 
 export default function FeedListingCard({ listing }: { listing: Listing }) {
     const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;

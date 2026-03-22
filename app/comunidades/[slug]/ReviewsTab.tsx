@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { timeAgo } from "@/lib/utils/format";
 import { useTenantReviews, useCreateTenantReview } from "@/lib/hooks/use-tenants";
 import { Avatar, Button, Modal, Input } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
@@ -57,18 +58,6 @@ function RatingBar({ label, value, max = 5 }: { label: string; value: number; ma
     );
 }
 
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "hace instantes";
-    if (mins < 60) return `hace ${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `hace ${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 30) return `hace ${days}d`;
-    const months = Math.floor(days / 30);
-    return `hace ${months} mes${months > 1 ? "es" : ""}`;
-}
 
 export default function ReviewsTab({ tenantSlug, tenantName }: Props) {
     const { session, status } = useAuth();
@@ -186,7 +175,7 @@ export default function ReviewsTab({ tenantSlug, tenantName }: Props) {
                                         </span>
                                         {review.created_at && (
                                             <span className="text-xs text-[var(--muted)] flex-shrink-0">
-                                                {timeAgo(review.created_at)}
+                                                {timeAgo(review.created_at, { verbose: true })}
                                             </span>
                                         )}
                                     </div>

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 import { mapErrorMessage } from "@/lib/api/errors";
+import { timeAgo } from "@/lib/utils/format";
 import {
     acceptDuel,
     declineDuel,
@@ -21,19 +22,6 @@ import {
 } from "@/lib/api/duels";
 import type { Duel, DuelStatus } from "@/lib/types/duel";
 
-// ── Helpers ──
-
-function formatRelativeTime(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "ahora";
-    if (minutes < 60) return `hace ${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `hace ${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `hace ${days}d`;
-    return new Date(dateStr).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" });
-}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     PENDING: { label: "Pendiente", color: "#F59E0B" },
@@ -351,7 +339,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         )}
                         <span style={{ fontSize: 10, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
                     </span>
-                    <span style={{ fontSize: 11, color: "#888891" }}>{formatRelativeTime(duel.created_at)}</span>
+                    <span style={{ fontSize: 11, color: "#888891" }}>{timeAgo(duel.created_at, { verbose: true, fallbackDays: 7 })}</span>
                 </div>
 
                 {/* Title */}
@@ -620,7 +608,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
                                         <span style={{ color: "#F2F2F2", fontSize: 11, fontWeight: 700 }}>{c.username || "Usuario"}</span>
-                                        {c.created_at && <span style={{ color: "#888891", fontSize: 9 }}>{formatRelativeTime(c.created_at)}</span>}
+                                        {c.created_at && <span style={{ color: "#888891", fontSize: 9 }}>{timeAgo(c.created_at, { verbose: true })}</span>}
                                     </div>
                                     <span style={{ color: "#E5E5E5", fontSize: 13, lineHeight: "18px" }}>{c.content || c.text}</span>
                                 </div>
