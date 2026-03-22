@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import RightSidebar from "./RightSidebar";
+import CreatePostModal from "./CreatePostModal";
+import CreatePostFAB from "./CreatePostFAB";
 
 const SwipeWrapper = dynamic(() => import("./SwipeWrapper"), {
     ssr: false,
@@ -47,6 +49,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <RightSidebar />
 
             <BottomNav />
+
+            <CreatePostModal />
+            <CreatePostFAB />
         </div>
     );
 }
