@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { toast } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { mapErrorMessage } from "@/lib/api/errors";
 import {
     acceptDuel,
     declineDuel,
@@ -139,19 +140,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [showReportUser, setShowReportUser] = useState(false);
     const [reportReason, setReportReason] = useState("");
 
-    const friendlyError = (err: any): string => {
-        const msg = err?.message || "";
-        if (msg.includes("INVALID_STATUS") || msg.includes("invalid status")) return "El duelo no esta en un estado valido para esta accion";
-        if (msg.includes("NOT_PARTICIPANT") || msg.includes("not a participant")) return "No eres participante de este duelo";
-        if (msg.includes("CONFIRMER_IS_REPORTER") || msg.includes("reporter cannot confirm")) return "No puedes confirmar tu propio resultado. Espera a tu oponente";
-        if (msg.includes("ALREADY_REPORTED") || msg.includes("already reported")) return "El resultado ya fue reportado";
-        if (msg.includes("INVALID_SCORE") || msg.includes("invalid score")) return "El puntaje ingresado no es valido";
-        if (msg.includes("TOO_FAR_AWAY") || msg.includes("too far")) return "Estas demasiado lejos de tu oponente";
-        if (msg.includes("USER_NOT_FOUND") || msg.includes("user not found")) return "Usuario no encontrado";
-        if (msg.includes("DUEL_NOT_FOUND") || msg.includes("duel not found")) return "Duelo no encontrado";
-        return msg || "Ocurrio un error inesperado";
-    };
-
     // Fetch comments
     const fetchComments = useCallback(async () => {
         if (!token) return;
@@ -242,7 +230,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             toast.success("Listo", { description: `Accion "${label}" realizada` });
             await refreshDuel();
         } catch (err: any) {
-            toast.danger("Error", { description: friendlyError(err) });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);
         }
@@ -274,7 +262,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setShowReport(false);
             await refreshDuel();
         } catch (err: any) {
-            toast.danger("Error", { description: friendlyError(err) });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);
         }
@@ -288,7 +276,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setCommentText("");
             await fetchComments();
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || "No se pudo enviar el comentario" });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally { setSendingComment(false); }
     };
 
@@ -301,7 +289,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setShowReportUser(false);
             setReportReason("");
         } catch (err: any) {
-            toast.danger("Error", { description: friendlyError(err) });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);
         }

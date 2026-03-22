@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { acceptDuel, declineDuel, cancelDuel, reportDuelResult, confirmDuelResult, disputeDuel } from "@/lib/api/duels";
 import type { DuelStatus } from "@/lib/types/duel";
 
@@ -42,7 +43,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner, challen
             toast.success("Listo", { description: `Accion "${label}" realizada` });
             router.refresh();
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || `No se pudo ejecutar "${label}"` });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);
         }
@@ -72,7 +73,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner, challen
             setShowReportForm(false);
             router.refresh();
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || "No se pudo reportar" });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);
         }

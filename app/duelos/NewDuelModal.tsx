@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { autocompleteUsers, getFriends } from "@/lib/api/social";
 import { createDuel, broadcastDuelSearch } from "@/lib/api/duels";
 import { useAuth } from "@/context/AuthContext";
@@ -151,7 +152,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 onClose();
                 router.refresh();
             } catch (err: any) {
-                toast.danger("Error", { description: err?.message || "No se pudo iniciar la busqueda" });
+                toast.danger("Error", { description: mapErrorMessage(err) });
             } finally {
                 setSending(false);
             }
@@ -175,7 +176,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                     router.refresh();
                 }
             } catch (err: any) {
-                toast.danger("Error", { description: err?.message || "No se pudo crear el duelo" });
+                toast.danger("Error", { description: mapErrorMessage(err) });
             } finally {
                 setSending(false);
             }

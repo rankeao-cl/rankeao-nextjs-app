@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button, Input, Switch, Chip, toast } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { getGames, getGameFormats } from "@/lib/api/catalog";
 import { createTournament } from "@/lib/api/tournaments";
 import type { CatalogGame, CatalogFormat } from "@/lib/types/catalog";
@@ -140,7 +141,7 @@ export default function CreateTournamentForm() {
             toast.success("Torneo creado exitosamente");
             router.push(`/torneos/${tournament.id || tournament.public_id}`);
         } catch (e: any) {
-            toast.danger(e.message || "Error al crear el torneo");
+            toast.danger(mapErrorMessage(e));
         }
         setSubmitting(false);
     }

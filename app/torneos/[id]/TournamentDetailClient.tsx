@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock, MapPin, Persons, Cup, Person, ShieldCheck, ArrowRight } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { Tournament, Round, Standing, Match } from "@/lib/types/tournament";
 import TournamentBracket from "@/components/TournamentBracket";
 import FollowTournamentButton from "@/components/FollowTournamentButton";
@@ -152,7 +153,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
             toast.success(successMsg);
             window.location.reload();
         } catch (e: any) {
-            toast.danger(e.message || "Error al ejecutar la acción");
+            toast.danger(mapErrorMessage(e));
         }
         setActionLoading(false);
     }
@@ -613,28 +614,28 @@ function MatchCard({ match, tournamentId, role, currentUsername, onUpdate }: {
             await reportMatch(tournamentId, match.id, { player1_wins: p1Wins, player2_wins: p2Wins, draws });
             toast.success(asJudge ? "Resultado registrado por juez" : "Resultado reportado");
             setShowReport(false); onUpdate();
-        } catch (e: any) { toast.danger(e.message || "Error al reportar"); }
+        } catch (e: any) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 
     async function handleConfirm() {
         setSubmitting(true);
         try { await confirmMatch(tournamentId, match.id); toast.success("Resultado confirmado"); onUpdate(); }
-        catch (e: any) { toast.danger(e.message || "Error al confirmar"); }
+        catch (e: any) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 
     async function handleDispute() {
         setSubmitting(true);
         try { await disputeMatch(tournamentId, match.id, { reason: "Resultado incorrecto" }); toast.warning("Resultado disputado"); onUpdate(); }
-        catch (e: any) { toast.danger(e.message || "Error al disputar"); }
+        catch (e: any) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 
     async function handleResolve() {
         setSubmitting(true);
         try { await resolveDispute(tournamentId, match.id, { player1_wins: p1Wins, player2_wins: p2Wins, draws }); toast.success("Disputa resuelta"); setShowReport(false); onUpdate(); }
-        catch (e: any) { toast.danger(e.message || "Error al resolver"); }
+        catch (e: any) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 

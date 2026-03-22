@@ -6,6 +6,7 @@ import {
     Button, Card, Chip, Input, Label, ListBox, Select, TextArea, TextField, toast,
 } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { createListing } from "@/lib/api/marketplace";
 import { getGames, autocompleteCards, getCardPrintings } from "@/lib/api/catalog";
 import type { CatalogGame } from "@/lib/types/catalog";
@@ -147,8 +148,7 @@ export default function NewListingPage() {
             toast.success("Publicacion creada exitosamente");
             router.push("/marketplace");
         } catch (err: any) {
-            const msg = err?.message || "No se pudo crear la publicacion";
-            toast.danger(msg);
+            toast.danger(mapErrorMessage(err));
         } finally {
             setLoading(false);
         }
