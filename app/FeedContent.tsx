@@ -5,21 +5,22 @@ import Link from "next/link";
 import { Compass, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useFeed, useFeedDiscover } from "@/lib/hooks/use-social";
-import { FeedTournamentCard, FeedListingCard, PostCard, FeedDuelSearchCard } from "@/components/cards";
-import type { FeedPost } from "@/components/cards";
+import { FeedTournamentCard, FeedListingCard, PostCard, FeedDuelSearchCard, FeedActivityCard } from "@/components/cards";
+import type { FeedPost, ActivityData } from "@/components/cards";
 import type { Tournament } from "@/lib/types/tournament";
 import type { Listing } from "@/lib/types/marketplace";
 import type { Duel } from "@/lib/types/duel";
 import FeedTabs from "./FeedTabs";
 import FeedEmptyState from "./FeedEmptyState";
 
-type FeedFilter = "todo" | "torneos" | "ventas" | "posts";
+type FeedFilter = "todo" | "torneos" | "ventas" | "posts" | "actividad";
 
 type FeedItemType =
   | { id: string; type: "tournament"; data: Tournament; timestamp: number; pinned?: boolean }
   | { id: string; type: "sale"; data: Listing; timestamp: number; pinned?: boolean }
   | { id: string; type: "post"; data: FeedPost; timestamp: number; pinned?: boolean }
-  | { id: string; type: "duel_search"; data: Duel; timestamp: number; pinned?: boolean };
+  | { id: string; type: "duel_search"; data: Duel; timestamp: number; pinned?: boolean }
+  | { id: string; type: "activity"; data: ActivityData; timestamp: number; pinned?: boolean };
 
 export default function FeedContent({
   tournaments,
@@ -41,7 +42,7 @@ export default function FeedContent({
 
     const now = Date.now();
 
-    if (feedFilter !== "ventas" && feedFilter !== "posts") {
+    if (feedFilter !== "ventas" && feedFilter !== "posts" && feedFilter !== "actividad") {
       for (const t of tournaments) {
         // Use created_at for sorting so upcoming tournaments don't jump to top
         const ts = new Date(t.created_at || t.starts_at || 0).getTime();
@@ -54,7 +55,7 @@ export default function FeedContent({
       }
     }
 
-    if (feedFilter !== "torneos" && feedFilter !== "posts") {
+    if (feedFilter !== "torneos" && feedFilter !== "posts" && feedFilter !== "actividad") {
       for (const l of listings) {
         items.push({
           id: `listing-${l.id}`,
@@ -106,26 +107,56 @@ export default function FeedContent({
           continue;
         }
 
-        items.push({
-          id: `post-${s.id}`,
-          type: "post",
-          data: {
-            id: String(s.id),
-            author: {
-              username: user.username ?? s.username ?? "",
-              avatar_url: user.avatar_url ?? s.avatar_url,
-              rank_badge: user.rank_badge,
+        // User-generated posts → PostCard
+        if (itemType === "POST" || !itemType) {
+          if (feedFilter !== "actividad") {
+            items.push({
+              id: `post-${s.id}`,
+              type: "post",
+              data: {
+                id: String(s.id),
+                author: {
+                  username: user.username ?? s.username ?? "",
+                  avatar_url: user.avatar_url ?? s.avatar_url,
+                  rank_badge: user.rank_badge,
+                },
+                text: s.description ?? s.text ?? s.content ?? "",
+                images: s.images ?? (s.image_url ? [s.image_url] : undefined),
+                tags: s.tags,
+                game: s.game ?? s.game_name,
+                likes_count: s.likes_count ?? s.like_count,
+                comments_count: s.comments_count ?? s.comment_count,
+                created_at: s.created_at ?? "",
+              },
+              timestamp: new Date(s.created_at || Date.now()).getTime(),
+            });
+          }
+          continue;
+        }
+
+        // All other activity types → FeedActivityCard
+        if (feedFilter !== "posts") {
+          items.push({
+            id: `activity-${s.id}`,
+            type: "activity",
+            data: {
+              id: String(s.id),
+              type: itemType,
+              user: {
+                username: user.username ?? s.username ?? "",
+                avatar_url: user.avatar_url ?? s.avatar_url,
+              },
+              title: s.title ?? s.description ?? "",
+              description: s.title ? (s.description ?? undefined) : undefined,
+              image_url: s.image_url,
+              entity_type: s.entity_type,
+              entity_id: s.entity_id,
+              metadata: s.metadata,
+              created_at: s.created_at ?? "",
             },
-            text: s.description ?? s.text ?? s.content ?? "",
-            images: s.images ?? (s.image_url ? [s.image_url] : undefined),
-            tags: s.tags,
-            game: s.game ?? s.game_name,
-            likes_count: s.likes_count ?? s.like_count,
-            comments_count: s.comments_count ?? s.comment_count,
-            created_at: s.created_at ?? "",
-          },
-          timestamp: new Date(s.created_at || Date.now()).getTime(),
-        });
+            timestamp: new Date(s.created_at || Date.now()).getTime(),
+          });
+        }
       }
     }
 
@@ -203,6 +234,14 @@ export default function FeedContent({
                 <FeedListingCard
                   key={item.id}
                   listing={item.data as Listing}
+                />
+              );
+            }
+            if (item.type === "activity") {
+              return (
+                <FeedActivityCard
+                  key={item.id}
+                  activity={item.data as ActivityData}
                 />
               );
             }
