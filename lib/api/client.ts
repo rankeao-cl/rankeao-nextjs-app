@@ -1,5 +1,6 @@
 import { toast } from "@heroui/react";
 import type { FetchOptions } from "@/lib/types/api";
+import { ApiError, mapErrorMessage, parseErrorResponse } from "./errors";
 
 // ── Configuration ──
 
@@ -8,9 +9,9 @@ const SESSION_KEY = "rankeao.auth.session";
 
 // ── Helpers ──
 
-export function showErrorToast(errMessage: string) {
+export function showErrorToast(err: unknown) {
     if (typeof window !== "undefined") {
-        toast.danger("Error", { description: errMessage });
+        toast.danger("Error", { description: mapErrorMessage(err) });
     }
 }
 
@@ -55,7 +56,7 @@ let isRefreshing = false;
 function forceLogout() {
     if (typeof window === "undefined") return;
     localStorage.removeItem(SESSION_KEY);
-    showErrorToast("Tu sesion ha expirado. Inicia sesion nuevamente.");
+    toast.danger("Error", { description: "Tu sesion ha expirado. Inicia sesion nuevamente." });
     window.location.href = "/login";
 }
 
@@ -116,26 +117,15 @@ async function handleError(res: Response, endpoint: string): Promise<never> {
     if (res.status !== 401 && res.status !== 404) {
         console.error(`API ERROR ${res.status} to ${endpoint}`);
     }
-    let message = `API error: ${res.status} ${res.statusText}`;
-    try {
-        const errorPayload = await res.json();
-        if (typeof errorPayload === "object" && errorPayload !== null) {
-            const anyPayload = errorPayload as any;
-            if (typeof anyPayload.message === "string") {
-                message = anyPayload.message;
-            } else if (typeof anyPayload.error === "string") {
-                message = anyPayload.error;
-            } else if (anyPayload.error && typeof anyPayload.error.message === "string") {
-                message = anyPayload.error.message;
-            } else {
-                message = JSON.stringify(errorPayload);
-            }
-        }
-    } catch { }
+
+    const { code, message } = await parseErrorResponse(res);
+    const error = new ApiError(code, message, res.status);
+
     if (res.status !== 401 && res.status !== 404) {
-        showErrorToast(message);
+        showErrorToast(error);
     }
-    throw new Error(message);
+
+    throw error;
 }
 
 // ── Core Fetch (GET) ──

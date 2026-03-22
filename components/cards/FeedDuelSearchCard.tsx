@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { acceptDuel } from "@/lib/api/duels";
 import { useAuth } from "@/context/AuthContext";
 import type { Duel } from "@/lib/types/duel";
@@ -49,7 +50,7 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
             onAccepted?.();
             setTimeout(() => router.push(`/duelos/${duel.id}`), 600);
         } catch (err: any) {
-            toast.danger("Error", { description: err?.message || "No se pudo aceptar el duelo" });
+            toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setAccepting(false);
         }

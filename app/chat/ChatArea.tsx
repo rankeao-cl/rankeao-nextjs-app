@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@heroui/react";
 import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear } from "@gravity-ui/icons";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
 import type { Channel, ChatMessage } from "@/lib/types/chat";
@@ -266,7 +267,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         } catch (err: any) {
             console.error("Error al enviar", err);
             toast.danger("Error al enviar mensaje", {
-                description: err.message || "Hubo un problema de conexion con el servidor.",
+                description: mapErrorMessage(err),
             });
         } finally {
             setIsSending(false);

@@ -51,10 +51,11 @@ export async function batchDeleteNotifications(
     });
     if (!res.ok) {
         const { showErrorToast } = await import("./client");
-        let message = `API error: ${res.status}`;
-        try { const err = await res.json(); message = err.message || err.error || message; } catch {}
-        showErrorToast(message);
-        throw new Error(message);
+        const { ApiError, parseErrorResponse } = await import("./errors");
+        const { code, message } = await parseErrorResponse(res);
+        const error = new ApiError(code, message, res.status);
+        showErrorToast(error);
+        throw error;
     }
     if (res.status === 204) return {} as { deleted: number };
     return res.json();
