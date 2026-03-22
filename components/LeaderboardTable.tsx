@@ -1,177 +1,146 @@
 "use client";
 
-import { Table, Avatar, Chip } from "@heroui/react";
-import type { LeaderboardEntry } from "@/lib/types/gamification";
-import { RankedAvatar } from "./RankedAvatar";
-import { RankBadge } from "./RankBadge";
-import { UserDisplayName, getUserRoleData } from "./UserIdentity";
 import Link from "next/link";
-
-const medalColors = ["", "text-yellow-400", "text-[var(--muted)]", "text-amber-700"];
-const medalEmoji = ["", "\u{1F947}", "\u{1F948}", "\u{1F949}"];
+import type { LeaderboardEntry } from "@/lib/types/gamification";
 
 interface Props {
-  entries: LeaderboardEntry[];
-  type?: "xp" | "rating";
+    entries: LeaderboardEntry[];
+    type?: "xp" | "rating";
 }
 
-function XpColumns() {
-  return (
-    <>
-      <Table.Column id="pos">Pos</Table.Column>
-      <Table.Column id="player" isRowHeader>Jugador</Table.Column>
-      <Table.Column id="level">Nivel</Table.Column>
-      <Table.Column id="xp">Total XP</Table.Column>
-    </>
-  );
-}
-
-function RatingColumns() {
-  return (
-    <>
-      <Table.Column id="pos">Pos</Table.Column>
-      <Table.Column id="player" isRowHeader>Jugador</Table.Column>
-      <Table.Column id="elo">ELO</Table.Column>
-      <Table.Column id="wl">W/L</Table.Column>
-      <Table.Column id="tourneys" className="hidden sm:table-cell">Torneos</Table.Column>
-      <Table.Column id="streak" className="hidden sm:table-cell">Racha</Table.Column>
-    </>
-  );
-}
+const MEDALS = ["", "\u{1F947}", "\u{1F948}", "\u{1F949}"];
 
 export default function LeaderboardTable({ entries, type = "xp" }: Props) {
-  const isXp = type === "xp";
+    const isXp = type === "xp";
 
-  return (
-    <Table
-      aria-label="Leaderboard"
-      className="surface-panel border border-[var(--border)] rounded-[22px] overflow-hidden [&_table]:p-0 [&_table]:bg-transparent [&_th]:bg-[var(--surface-secondary)] [&_th]:text-[var(--muted)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_th]:border-b [&_th]:border-[var(--border)] [&_td]:text-sm [&_td]:border-b [&_td]:border-[var(--border)] [&_td]:py-4"
-    >
-      <Table.Content>
-        <Table.Header>
-          {isXp ? <XpColumns /> : <RatingColumns />}
-        </Table.Header>
-        <Table.Body>
-          {entries.map((entry, i) => {
-            const rank = entry.rank || i + 1;
-            const isTop3 = rank <= 3;
+    if (entries.length === 0) return null;
 
-            let winRateStr = "-";
-            if (!isXp && (entry.wins || entry.losses)) {
-              const wins = entry.wins || 0;
-              const losses = entry.losses || 0;
-              const total = wins + losses;
-              if (total > 0) {
-                winRateStr = `${Math.round((wins / total) * 100)}%`;
-              }
-            }
-
-            const streak = entry.current_streak;
-            let streakDisplay = "-";
-            let streakColor = "var(--muted)";
-            if (streak !== undefined && streak !== null) {
-              if (streak > 0) {
-                streakDisplay = `\u{1F525} ${streak}W`;
-                streakColor = "var(--success)";
-              } else if (streak < 0) {
-                streakDisplay = `${Math.abs(streak)}L`;
-                streakColor = "var(--danger)";
-              }
-            }
-
-            const tourneysCount = entry.tournaments_played ?? entry.games_played ?? "-";
-            const playerLink = `/perfil/${entry.username}`;
-
-            return (
-              <Table.Row
-                key={entry.user_id || i}
-                className={`${isTop3 ? "bg-[var(--surface-secondary)]" : ""} hover:bg-[var(--surface-secondary)]/50 transition-colors cursor-pointer`}
-              >
-                <Table.Cell>
-                  <span className={`font-extrabold ${isTop3 ? medalColors[rank] : "text-[var(--muted)]"}`}>
-                    {isTop3 ? medalEmoji[rank] : rank}
-                  </span>
-                </Table.Cell>
-
-                <Table.Cell>
-                  <Link href={playerLink} className="flex items-center gap-3 group">
-                    {!isXp ? (
-                      <RankedAvatar
-                        src={entry.avatar_url}
-                        fallback={entry.username?.charAt(0)?.toUpperCase()}
-                        elo={entry.rating}
-                        size="sm"
-                      />
-                    ) : (
-                      <Avatar
-                        size="sm"
-                        className={isTop3 ? "ring-2 ring-[var(--accent)]" : ""}
-                      >
-                        <Avatar.Image src={entry.avatar_url ?? undefined} />
-                        <Avatar.Fallback>
-                          {entry.username?.charAt(0)?.toUpperCase()}
-                        </Avatar.Fallback>
-                      </Avatar>
-                    )}
-
-                    <div className="flex flex-col justify-center">
-                      <UserDisplayName
-                        user={getUserRoleData(entry)}
-                        className={`${isTop3 ? "font-bold" : ""} text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors`}
-                      />
-                      {!isXp && (
-                        <div className="mt-0.5 sm:hidden">
-                          <RankBadge elo={entry.rating} size="sm" />
-                        </div>
-                      )}
-                    </div>
-
-                    {!isXp && (
-                      <div className="hidden sm:block ml-2">
-                        <RankBadge elo={entry.rating} size="sm" showText={false} />
-                      </div>
-                    )}
-                  </Link>
-                </Table.Cell>
-
+    return (
+        <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
+            {/* Header */}
+            <div style={{
+                display: "flex", alignItems: "center", padding: "10px 16px", gap: 12,
+                backgroundColor: "#222226", borderBottom: "1px solid rgba(255,255,255,0.06)",
+                fontSize: 10, fontWeight: 700, color: "#888891", textTransform: "uppercase", letterSpacing: 0.5,
+            }}>
+                <span style={{ width: 36, textAlign: "center" }}>#</span>
+                <span style={{ flex: 1 }}>Jugador</span>
                 {isXp ? (
-                  <>
-                    <Table.Cell>
-                      <span className="text-[var(--foreground)] font-medium">
-                        Lv. {entry.level ?? "-"}
-                      </span>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Chip size="sm" color="accent" variant="soft">
-                        {(entry.total_xp ?? 0).toLocaleString()} XP
-                      </Chip>
-                    </Table.Cell>
-                  </>
+                    <>
+                        <span style={{ width: 50, textAlign: "center" }}>Nivel</span>
+                        <span style={{ width: 80, textAlign: "right" }}>XP</span>
+                    </>
                 ) : (
-                  <>
-                    <Table.Cell>
-                      <span className="font-bold text-[var(--accent)]">
-                        {entry.rating ?? "-"}
-                      </span>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <span className="text-[var(--muted)]">{winRateStr}</span>
-                    </Table.Cell>
-                    <Table.Cell className="hidden sm:table-cell">
-                      <span className="text-[var(--muted)]">{tourneysCount}</span>
-                    </Table.Cell>
-                    <Table.Cell className="hidden sm:table-cell">
-                      <span className="font-medium text-xs" style={{ color: streakColor }}>
-                        {streakDisplay}
-                      </span>
-                    </Table.Cell>
-                  </>
+                    <>
+                        <span style={{ width: 60, textAlign: "right" }}>ELO</span>
+                        <span style={{ width: 50, textAlign: "right" }}>W/L</span>
+                        <span className="hidden sm:block" style={{ width: 60, textAlign: "right" }}>Torneos</span>
+                        <span className="hidden sm:block" style={{ width: 60, textAlign: "right" }}>Racha</span>
+                    </>
                 )}
-              </Table.Row>
-            );
-          })}
-        </Table.Body>
-      </Table.Content>
-    </Table>
-  );
+            </div>
+
+            {/* Rows */}
+            {entries.map((entry, i) => {
+                const rank = entry.rank || i + 1;
+                const isTop3 = rank <= 3;
+
+                const wins = entry.wins || 0;
+                const losses = entry.losses || 0;
+                const total = wins + losses;
+                const winRate = total > 0 ? `${Math.round((wins / total) * 100)}%` : "—";
+
+                const streak = entry.current_streak;
+                let streakText = "—";
+                let streakColor = "#888891";
+                if (streak != null && streak !== 0) {
+                    if (streak > 0) { streakText = `${streak}W`; streakColor = "#22C55E"; }
+                    else { streakText = `${Math.abs(streak)}L`; streakColor = "#EF4444"; }
+                }
+
+                return (
+                    <Link
+                        key={entry.user_id || i}
+                        href={`/perfil/${entry.username}`}
+                        style={{ textDecoration: "none", display: "block" }}
+                    >
+                        <div style={{
+                            display: "flex", alignItems: "center", padding: "10px 16px", gap: 12,
+                            backgroundColor: isTop3 ? "rgba(59,130,246,0.04)" : "#1A1A1E",
+                            borderBottom: i < entries.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                            transition: "background-color 0.15s",
+                        }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222226"}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = isTop3 ? "rgba(59,130,246,0.04)" : "#1A1A1E"}
+                        >
+                            {/* Rank */}
+                            <span style={{
+                                width: 36, textAlign: "center",
+                                fontSize: isTop3 ? 16 : 13, fontWeight: 700,
+                                color: isTop3 ? undefined : "#888891",
+                            }}>
+                                {isTop3 ? MEDALS[rank] : rank}
+                            </span>
+
+                            {/* Player */}
+                            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                                {entry.avatar_url ? (
+                                    <img src={entry.avatar_url} alt={entry.username} style={{
+                                        width: 32, height: 32, borderRadius: 16, objectFit: "cover", flexShrink: 0,
+                                        border: isTop3 ? "2px solid rgba(59,130,246,0.3)" : "none",
+                                    }} />
+                                ) : (
+                                    <div style={{
+                                        width: 32, height: 32, borderRadius: 16, backgroundColor: "#222226",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 12, fontWeight: 700, color: "#888891", flexShrink: 0,
+                                    }}>
+                                        {entry.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div style={{ minWidth: 0 }}>
+                                    <p style={{
+                                        fontSize: 13, fontWeight: isTop3 ? 700 : 600, color: "#F2F2F2", margin: 0,
+                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                    }}>
+                                        {entry.username}
+                                    </p>
+                                    {entry.title && (
+                                        <p style={{ fontSize: 10, color: "#888891", margin: 0 }}>{entry.title}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            {isXp ? (
+                                <>
+                                    <span style={{ width: 50, textAlign: "center", fontSize: 12, fontWeight: 600, color: "#F2F2F2" }}>
+                                        Lv.{entry.level ?? "—"}
+                                    </span>
+                                    <span style={{ width: 80, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#3B82F6" }}>
+                                        {(entry.total_xp ?? 0).toLocaleString()}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span style={{ width: 60, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#F59E0B" }}>
+                                        {entry.rating ?? "—"}
+                                    </span>
+                                    <span style={{ width: 50, textAlign: "right", fontSize: 12, color: "#888891" }}>
+                                        {winRate}
+                                    </span>
+                                    <span className="hidden sm:block" style={{ width: 60, textAlign: "right", fontSize: 12, color: "#888891" }}>
+                                        {entry.tournaments_played ?? entry.games_played ?? "—"}
+                                    </span>
+                                    <span className="hidden sm:block" style={{ width: 60, textAlign: "right", fontSize: 12, fontWeight: 600, color: streakColor }}>
+                                        {streakText}
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </Link>
+                );
+            })}
+        </div>
+    );
 }
