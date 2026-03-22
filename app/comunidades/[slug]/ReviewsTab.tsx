@@ -5,57 +5,13 @@ import { timeAgo } from "@/lib/utils/format";
 import { useTenantReviews, useCreateTenantReview } from "@/lib/hooks/use-tenants";
 import { Avatar, Button, Modal, Input } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import StarRating from "@/components/StarRating";
+import RatingBar from "@/components/RatingBar";
 import type { TenantReview } from "@/lib/types/tenant";
 
 interface Props {
     tenantSlug: string;
     tenantName: string;
-}
-
-function StarRating({
-    value,
-    onChange,
-    readonly = false,
-    size = "md",
-}: {
-    value: number;
-    onChange?: (v: number) => void;
-    readonly?: boolean;
-    size?: "sm" | "md" | "lg";
-}) {
-    const sizeClass = size === "sm" ? "text-sm" : size === "lg" ? "text-2xl" : "text-lg";
-    return (
-        <div className={`flex gap-0.5 ${sizeClass}`}>
-            {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                    key={star}
-                    type="button"
-                    disabled={readonly}
-                    onClick={() => onChange?.(star)}
-                    className={`transition-colors ${readonly ? "cursor-default" : "cursor-pointer hover:scale-110"} ${
-                        star <= value ? "text-[var(--warning)]" : "text-[var(--border)]"
-                    }`}
-                >
-                    ★
-                </button>
-            ))}
-        </div>
-    );
-}
-
-function RatingBar({ label, value, max = 5 }: { label: string; value: number; max?: number }) {
-    const pct = max > 0 ? (value / max) * 100 : 0;
-    return (
-        <div className="flex items-center gap-2 text-xs">
-            <span className="w-4 text-right text-[var(--muted)] font-medium">{label}</span>
-            <div className="flex-1 h-2 rounded-full bg-[var(--surface-tertiary)] overflow-hidden">
-                <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${pct}%`, background: "var(--warning)" }}
-                />
-            </div>
-        </div>
-    );
 }
 
 
