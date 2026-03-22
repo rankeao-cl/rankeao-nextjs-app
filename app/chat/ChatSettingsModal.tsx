@@ -363,7 +363,7 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
                                 {members.map((member, idx) => {
                                     const isMe = member.username === myUsername;
                                     return (
-                                        <div key={member.user_id}>
+                                        <div key={member.user_id || idx}>
                                             {idx > 0 && <Divider />}
                                             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
                                                 <div style={{ position: "relative", flexShrink: 0 }}>
