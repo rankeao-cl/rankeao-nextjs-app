@@ -1,7 +1,8 @@
-import { getGameDetail, getGameFormats } from "@/lib/api/catalog";
+import { getGameDetail, getGameFormats, getGameSets } from "@/lib/api/catalog";
 import { getTournaments } from "@/lib/api/tournaments";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { getGameBrand } from "@/lib/gameLogos";
 import GameDetailTabs from "./GameDetailTabs";
 
@@ -28,10 +29,11 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
     const resolvedSearch = (await searchParams) ?? {};
     const { slug } = resolvedParams;
 
-    const [gameDetailRes, formatsRes, tournamentsData] = await Promise.all([
+    const [gameDetailRes, formatsRes, tournamentsData, setsData] = await Promise.all([
         getGameDetail(slug).catch(() => null),
         getGameFormats(slug).catch(() => null),
         getTournaments({ game: slug, per_page: 6 }).catch(() => null),
+        getGameSets(slug, { per_page: 1 }).catch(() => null),
     ]);
 
     const game = gameDetailRes?.data;
@@ -45,145 +47,94 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
     const tournaments = tournamentsData?.tournaments || [];
     const brand = getGameBrand(slug);
     const activeTab = resolvedSearch.tab || "info";
+    const rankedCount = formats.filter((f: any) => f.is_ranked).length;
+    const setsCount = (setsData as any)?.meta?.total ?? 0;
 
     return (
         <div className="flex flex-col w-full max-w-7xl mx-auto">
-            {/* Hero header */}
+            {/* ── Hero header — comunidades style with brand gradient ── */}
             <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
-                <div
-                    style={{
-                        backgroundColor: "#1A1A1E",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        borderRadius: 16,
-                        padding: 18,
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        minHeight: 120,
-                        overflow: "hidden",
-                        position: "relative",
-                    }}
-                >
-                    {/* Decorative brand glow */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: -40,
-                            right: -40,
-                            width: 160,
-                            height: 160,
-                            borderRadius: "50%",
-                            background: brand.color,
-                            opacity: 0.06,
-                            filter: "blur(60px)",
-                            pointerEvents: "none",
-                        }}
-                    />
+                <div style={{
+                    borderRadius: 20,
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    overflow: "hidden",
+                    position: "relative",
+                }}>
+                    {/* Banner gradient */}
+                    <div style={{ height: 140, position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, #1A1A1E)` }} />
+                        {/* Brand glow */}
+                        <div style={{ position: "absolute", top: -20, right: -20, width: 200, height: 200, borderRadius: "50%", background: brand.color, opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #1A1A1E 0%, rgba(26,26,30,0.4) 60%, rgba(0,0,0,0.1) 100%)" }} />
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, position: "relative", zIndex: 1 }}>
-                        {/* Game logo */}
-                        <div
-                            style={{
-                                width: 64,
-                                height: 64,
-                                borderRadius: 14,
-                                overflow: "hidden",
-                                border: `2px solid ${brand.color}40`,
-                                flexShrink: 0,
-                                backgroundColor: "#222226",
-                            }}
-                        >
-                            {game.logo_url ? (
-                                <Image
-                                    src={game.logo_url}
-                                    alt={`Logo de ${game.name}`}
-                                    width={64}
-                                    height={64}
-                                    className="w-full h-full object-contain p-1.5"
-                                />
-                            ) : (
-                                <div
-                                    className="w-full h-full flex items-center justify-center font-black text-lg"
-                                    style={{ background: brand.bg, color: brand.color }}
-                                >
-                                    {game.short_name || game.slug.toUpperCase().slice(0, 3)}
-                                </div>
+                        {/* Floating badges */}
+                        <div style={{ position: "absolute", top: 12, right: 14, display: "flex", gap: 4 }}>
+                            {formats.length > 0 && (
+                                <span style={{ fontSize: 10, fontWeight: 700, color: brand.color, backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                    {formats.length} formato{formats.length !== 1 ? "s" : ""}
+                                </span>
+                            )}
+                            {rankedCount > 0 && (
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "#EAB308", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                    {rankedCount} ranked
+                                </span>
                             )}
                         </div>
 
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            {/* Badge */}
-                            <span
-                                style={{
-                                    display: "inline-block",
-                                    backgroundColor: "rgba(255,255,255,0.06)",
-                                    paddingLeft: 10,
-                                    paddingRight: 10,
-                                    paddingTop: 4,
-                                    paddingBottom: 4,
-                                    borderRadius: 999,
-                                    marginBottom: 8,
-                                    color: "#888891",
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                }}
-                            >
-                                Detalle del juego
-                            </span>
-                            <h1
-                                style={{
-                                    color: "#F2F2F2",
-                                    fontSize: 22,
-                                    fontWeight: 800,
-                                    margin: 0,
-                                    marginBottom: 4,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {game.name}
-                            </h1>
-                            <p
-                                style={{
-                                    color: "#888891",
-                                    fontSize: 13,
-                                    lineHeight: "18px",
-                                    margin: 0,
-                                }}
-                            >
-                                {game.publisher || `Torneos, rankings y comunidades de ${game.name}.`}
-                            </p>
+                        {/* Logo + Name on banner */}
+                        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 18px 16px", display: "flex", alignItems: "flex-end", gap: 16 }}>
+                            <div style={{
+                                width: 64, height: 64, borderRadius: 16,
+                                border: "3px solid #1A1A1E", backgroundColor: "#222226", overflow: "hidden",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                flexShrink: 0, boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+                            }}>
+                                {game.logo_url ? (
+                                    <Image src={game.logo_url} alt={game.name} width={64} height={64} className="w-full h-full object-contain p-1.5" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center font-black text-lg" style={{ background: brand.bg, color: brand.color }}>
+                                        {game.short_name || game.slug.toUpperCase().slice(0, 3)}
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0, marginBottom: 4 }}>
+                                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#FFFFFF", margin: 0, textShadow: "0 1px 4px rgba(0,0,0,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {game.name}
+                                </h1>
+                                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: "2px 0 0" }}>
+                                    {game.publisher || "Juego de cartas coleccionables"}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Stats pills */}
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0, marginLeft: 12, position: "relative", zIndex: 1 }}>
-                        <div
-                            style={{
-                                backgroundColor: "#222226",
-                                borderRadius: 12,
-                                padding: "8px 14px",
-                                border: "1px solid rgba(255,255,255,0.06)",
-                                textAlign: "center",
-                            }}
-                        >
-                            <p style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0, marginBottom: 2 }}>Formatos</p>
-                            <p style={{ fontSize: 18, fontWeight: 700, color: "#F2F2F2", margin: 0 }}>{formats.length}</p>
+                    {/* Stats row below banner */}
+                    <div style={{
+                        backgroundColor: "#1A1A1E",
+                        display: "flex", alignItems: "center",
+                        padding: "12px 18px", gap: 4,
+                    }}>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                            <p style={{ fontSize: 16, fontWeight: 800, color: brand.color, margin: 0 }}>{formats.length}</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
                         </div>
-                        <div
-                            style={{
-                                backgroundColor: "#222226",
-                                borderRadius: 12,
-                                padding: "8px 14px",
-                                border: "1px solid rgba(255,255,255,0.06)",
-                                textAlign: "center",
-                            }}
-                        >
-                            <p style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0, marginBottom: 2 }}>Torneos</p>
-                            <p style={{ fontSize: 18, fontWeight: 700, color: "#F2F2F2", margin: 0 }}>{tournaments.length}</p>
+                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                            <p style={{ fontSize: 16, fontWeight: 800, color: "#EAB308", margin: 0 }}>{rankedCount}</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ranked</p>
                         </div>
+                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                            <p style={{ fontSize: 16, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{tournaments.length}</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
+                        </div>
+                        {setsCount > 0 && (<>
+                            <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                            <div style={{ flex: 1, textAlign: "center" }}>
+                                <p style={{ fontSize: 16, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{setsCount}</p>
+                                <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Sets</p>
+                            </div>
+                        </>)}
                     </div>
                 </div>
             </section>
