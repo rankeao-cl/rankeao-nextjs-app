@@ -48,7 +48,7 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-full sticky top-16 border-r transition-all duration-300 ${collapsed ? "w-[68px]" : "w-[220px]"
+            className={`hidden lg:flex flex-col h-full border-r transition-all duration-300 shrink-0 ${collapsed ? "w-[68px]" : "w-[220px]"
                 }`}
             style={{ borderColor: "rgba(255,255,255,0.08)", background: "#000000" }}
         >
