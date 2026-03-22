@@ -90,6 +90,9 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
 
     const activeBubbleBg = chatSettings.theme === "green" ? "#25D366" : "#2C2C30";
 
+    // Members panel state (CLAN rooms)
+    const [showMembersPanel, setShowMembersPanel] = useState(false);
+
     // Typing indicator state
     const [isTyping, setIsTyping] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -505,6 +508,28 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     </p>
                 </div>
 
+                {/* Members panel toggle (CLAN only) */}
+                {isClan && (
+                    <button
+                        onClick={() => setShowMembersPanel(!showMembersPanel)}
+                        aria-label="Miembros"
+                        style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 18,
+                            background: showMembersPanel ? "rgba(59,130,246,0.15)" : "#1A1A1E",
+                            border: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Persons style={{ width: 18, height: 18, color: showMembersPanel ? "#3B82F6" : "#888891" }} />
+                    </button>
+                )}
+
                 {/* Settings button */}
                 <button
                     onClick={() => setIsSettingsOpen(true)}
@@ -526,7 +551,10 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 </button>
             </div>
 
-            {/* ── Messages area ── */}
+            {/* ── Messages + Members panel ── */}
+            <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
+
+            {/* Messages area */}
             <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
                 <div
                     ref={messagesContainerRef}
@@ -673,6 +701,81 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         </button>
                     </div>
                 )}
+            </div>
+
+            {/* ── Members panel (CLAN only) ── */}
+            {isClan && showMembersPanel && (() => {
+                const members = selectedChannel.members || [];
+                const online = members.filter(m => m.is_online);
+                const offline = members.filter(m => !m.is_online);
+
+                const renderMember = (m: import("@/lib/types/chat").ChannelMember) => (
+                    <div key={m.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 12px" }}>
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                            {m.avatar_url ? (
+                                <img src={m.avatar_url} alt={m.username} style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }} />
+                            ) : (
+                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "#1A1A1E", display: "flex", alignItems: "center", justifyContent: "center", color: "#888891", fontSize: 12, fontWeight: 700 }}>
+                                    {m.username?.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <span style={{
+                                position: "absolute", bottom: 0, right: 0,
+                                width: 10, height: 10, borderRadius: 5,
+                                border: "2px solid #000000",
+                                background: m.is_online ? "#23A559" : "#888891",
+                            }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: "#F2F2F2", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {m.username}
+                            </p>
+                            {m.role && m.role !== "MEMBER" && (
+                                <span style={{
+                                    fontSize: 9, fontWeight: 700, color: m.role === "ADMIN" ? "#F59E0B" : "#3B82F6",
+                                    backgroundColor: m.role === "ADMIN" ? "rgba(245,158,11,0.15)" : "rgba(59,130,246,0.15)",
+                                    padding: "1px 5px", borderRadius: 3,
+                                }}>
+                                    {m.role}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                );
+
+                return (
+                    <div className="hidden md:flex" style={{
+                        width: 240, flexShrink: 0,
+                        borderLeft: "1px solid rgba(255,255,255,0.06)",
+                        background: "#000000",
+                        flexDirection: "column",
+                        overflowY: "auto",
+                    }}>
+                        <div style={{ padding: "14px 12px 8px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: "#F2F2F2", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                Miembros ({members.length})
+                            </p>
+                        </div>
+                        {online.length > 0 && (
+                            <div style={{ paddingTop: 8 }}>
+                                <p style={{ fontSize: 10, fontWeight: 600, color: "#23A559", padding: "0 12px 4px", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                    En linea — {online.length}
+                                </p>
+                                {online.map(renderMember)}
+                            </div>
+                        )}
+                        {offline.length > 0 && (
+                            <div style={{ paddingTop: 8 }}>
+                                <p style={{ fontSize: 10, fontWeight: 600, color: "#888891", padding: "0 12px 4px", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                    Desconectados — {offline.length}
+                                </p>
+                                {offline.map(renderMember)}
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
+
             </div>
 
             {/* ── Typing indicator ── */}
