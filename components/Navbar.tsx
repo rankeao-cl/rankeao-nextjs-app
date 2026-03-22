@@ -10,6 +10,7 @@ import NavbarSearch from "./NavbarSearch";
 
 import { Avatar, Button, Popover, ScrollShadow } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
+import { useCreatePostModal } from "@/context/CreatePostModalContext";
 import {
   ArrowRightFromSquare,
   Person,
@@ -43,6 +44,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { session, status, logout } = useAuth();
+  const { openCreatePost } = useCreatePostModal();
   const isAuthenticated = status === "authenticated" && Boolean(session?.email);
 
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -183,14 +185,14 @@ export default function Navbar() {
 
                 {/* Create */}
                 {isAuthenticated && (
-                  <Link
-                    href="/feed/new"
+                  <button
+                    onClick={openCreatePost}
                     className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "#3B82F6" }}
+                    style={{ background: "#3B82F6", border: "none", cursor: "pointer" }}
                     aria-label="Crear"
                   >
                     <Plus className="size-4 text-white" />
-                  </Link>
+                  </button>
                 )}
               </div>
 
@@ -312,7 +314,7 @@ export default function Navbar() {
                           <p className="text-xs font-bold uppercase tracking-wider text-[#888891]">Crear nuevo</p>
                         </div>
                         <div className="p-1.5 flex flex-col gap-0.5">
-                          <Link href="/feed/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer">
+                          <button onClick={openCreatePost} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer w-full text-left" style={{ background: "none", border: "none" }}>
                             <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0 group-hover:bg-blue-500/25 transition-colors">
                               <Pencil className="size-4 text-blue-500" />
                             </div>
@@ -320,7 +322,7 @@ export default function Navbar() {
                               <p className="text-sm font-semibold text-[#F2F2F2]">Crear Post</p>
                               <p className="text-[11px] text-[#888891] leading-tight">Comparte con la comunidad</p>
                             </div>
-                          </Link>
+                          </button>
                           <Link href="/decks/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0 group-hover:bg-purple-500/25 transition-colors">
                               <SquareDashed className="size-4 text-purple-500" />

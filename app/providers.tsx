@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
+import { CreatePostModalProvider } from "@/context/CreatePostModalContext";
 import { Toast } from "@heroui/react";
 import { ThemeProvider } from "next-themes";
 
@@ -23,10 +24,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {children}
-          <Toast.Provider placement="top end" />
-        </ThemeProvider>
+        <CreatePostModalProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            {children}
+            <Toast.Provider placement="top end" />
+          </ThemeProvider>
+        </CreatePostModalProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { timeAgo } from "@/lib/utils/format";
 import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 export interface FeedPost {
     id: string;
@@ -117,17 +118,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
 
             {/* Text content */}
             {postText && (
-                <p
-                    style={{
-                        fontSize: 14,
-                        color: "#F2F2F2",
-                        lineHeight: 1.6,
-                        margin: 0,
-                        whiteSpace: "pre-wrap",
-                    }}
-                >
-                    {postText}
-                </p>
+                <MarkdownRenderer content={postText} />
             )}
 
             {/* Tags */}
