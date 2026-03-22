@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getChatChannels } from "@/lib/api/chat";
 import type { Channel } from "@/lib/types/chat";
@@ -9,6 +10,8 @@ import ChatArea from "./ChatArea";
 
 export default function ChatPage() {
   const { session, status } = useAuth();
+  const searchParams = useSearchParams();
+  const initialFilter = searchParams.get("filter") as "clanes" | "torneos" | null;
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [loadingChannels, setLoadingChannels] = useState(true);
@@ -104,6 +107,7 @@ export default function ChatPage() {
           channels={channels}
           loading={loadingChannels}
           selectedChannel={selectedChannel}
+          initialFilter={initialFilter || undefined}
           onSelectChannel={(channel) => {
             setSelectedChannel(channel);
             if (channel.unread_count && channel.unread_count > 0) {

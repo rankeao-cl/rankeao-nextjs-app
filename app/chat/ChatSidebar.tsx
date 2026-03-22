@@ -14,6 +14,7 @@ interface ChatSidebarProps {
     onSelectChannel: (channel: Channel) => void;
     onChannelCreated: (channel: Channel) => void;
     onChannelLeft?: () => void;
+    initialFilter?: ChatFilter;
 }
 
 function formatLastSeen(member?: ChannelMember): string | null {
@@ -46,11 +47,11 @@ const C = {
     offline: "#888891",
 } as const;
 
-export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft }: ChatSidebarProps) {
+export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft, initialFilter }: ChatSidebarProps) {
     const { session } = useAuth();
     const myUsername = session?.username;
     const [search, setSearch] = useState("");
-    const [chatFilter, setChatFilter] = useState<ChatFilter>("todo");
+    const [chatFilter, setChatFilter] = useState<ChatFilter>(initialFilter || "todo");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 

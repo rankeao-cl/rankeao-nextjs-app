@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getClan, applyToClan, leaveClan } from "@/lib/api/clans";
 import type { ClanMember } from "@/lib/types/clan";
 import Link from "next/link";
+import { Comment } from "@gravity-ui/icons";
 
 interface Props {
   clanId: string;
@@ -14,6 +16,7 @@ interface Props {
 
 export default function ClanDetailClient({ clanId, myMembership: serverMembership, members: serverMembers }: Props) {
   const { session, status } = useAuth();
+  const router = useRouter();
   const isAuth = status === "authenticated";
 
   const [loading, setLoading] = useState(false);
@@ -108,6 +111,25 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
               Administrar
             </Link>
           )}
+          <button
+            onClick={() => router.push("/chat?filter=clanes")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 16px",
+              borderRadius: 999,
+              backgroundColor: "rgba(59,130,246,0.1)",
+              border: "1px solid rgba(59,130,246,0.25)",
+              color: "#3B82F6",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            <Comment style={{ width: 14, height: 14 }} />
+            Chat del Clan
+          </button>
           {!isLeader && (
             <button
               onClick={handleLeave}
