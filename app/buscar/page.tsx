@@ -269,7 +269,7 @@ function SearchContent() {
 function ResultCard({ item }: { item: SearchResult }) {
     const config = TAB_CONFIG[item.type];
     const Icon = config.icon;
-    const meta = item.meta || {};
+    const meta = (item.meta || {}) as Record<string, string | number | boolean | null | undefined>;
 
     return (
         <Link href={item.href} style={{ textDecoration: "none" }}>
