@@ -14,6 +14,7 @@ interface ChatSidebarProps {
     onSelectChannel: (channel: Channel) => void;
     onChannelCreated: (channel: Channel) => void;
     onChannelLeft?: () => void;
+    initialFilter?: ChatFilter;
 }
 
 function formatLastSeen(member?: ChannelMember): string | null {
@@ -23,13 +24,14 @@ function formatLastSeen(member?: ChannelMember): string | null {
 }
 
 
-type ChatFilter = "todo" | "dm" | "grupos" | "comunidades";
+type ChatFilter = "todo" | "dm" | "grupos" | "clanes" | "torneos";
 
 const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
     { key: "todo", label: "Todo" },
     { key: "dm", label: "Directos" },
     { key: "grupos", label: "Grupos" },
-    { key: "comunidades", label: "Comunidades" },
+    { key: "clanes", label: "Clanes" },
+    { key: "torneos", label: "Torneos" },
 ];
 
 // Hardcoded color palette
@@ -45,11 +47,11 @@ const C = {
     offline: "#888891",
 } as const;
 
-export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft }: ChatSidebarProps) {
+export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft, initialFilter }: ChatSidebarProps) {
     const { session } = useAuth();
     const myUsername = session?.username;
     const [search, setSearch] = useState("");
-    const [chatFilter, setChatFilter] = useState<ChatFilter>("todo");
+    const [chatFilter, setChatFilter] = useState<ChatFilter>(initialFilter || "todo");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -58,7 +60,8 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
 
         if (chatFilter === "dm") result = result.filter(c => c.type === "DM");
         else if (chatFilter === "grupos") result = result.filter(c => c.type === "GROUP");
-        else if (chatFilter === "comunidades") result = result.filter(c => c.type === "CLAN" || c.type === "TOURNAMENT");
+        else if (chatFilter === "clanes") result = result.filter(c => c.type === "CLAN");
+        else if (chatFilter === "torneos") result = result.filter(c => c.type === "TOURNAMENT");
 
         if (search.trim()) {
             const q = search.toLowerCase();
@@ -79,7 +82,8 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
         return {
             DMs: filteredChannels.filter(c => c.type === "DM"),
             GROUPS: filteredChannels.filter(c => c.type === "GROUP"),
-            COMMUNITIES: filteredChannels.filter(c => c.type === "CLAN" || c.type === "TOURNAMENT"),
+            CLANS: filteredChannels.filter(c => c.type === "CLAN"),
+            TOURNAMENTS: filteredChannels.filter(c => c.type === "TOURNAMENT"),
         };
     }, [filteredChannels]);
 
@@ -535,7 +539,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     renderEmptyState(
                         search.length > 0
                             ? "No se encontraron chats con ese nombre."
-                            : `No tienes ${chatFilter === "dm" ? "mensajes directos" : chatFilter === "grupos" ? "grupos" : chatFilter === "comunidades" ? "comunidades" : "chats"}.`
+                            : `No tienes ${chatFilter === "dm" ? "mensajes directos" : chatFilter === "grupos" ? "grupos" : chatFilter === "clanes" ? "chats de clan" : chatFilter === "torneos" ? "chats de torneo" : "chats"}.`
                     )
                 ) : chatFilter !== "todo" ? (
                     <div>
@@ -556,10 +560,16 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 {channelsByType.GROUPS.map((ch, i, arr) => renderChannel(ch, i, arr))}
                             </div>
                         )}
-                        {channelsByType.COMMUNITIES.length > 0 && (
+                        {channelsByType.CLANS.length > 0 && (
                             <div>
-                                {renderSectionHeader("Comunidades y Torneos")}
-                                {channelsByType.COMMUNITIES.map((ch, i, arr) => renderChannel(ch, i, arr))}
+                                {renderSectionHeader("Clanes")}
+                                {channelsByType.CLANS.map((ch, i, arr) => renderChannel(ch, i, arr))}
+                            </div>
+                        )}
+                        {channelsByType.TOURNAMENTS.length > 0 && (
+                            <div>
+                                {renderSectionHeader("Torneos")}
+                                {channelsByType.TOURNAMENTS.map((ch, i, arr) => renderChannel(ch, i, arr))}
                             </div>
                         )}
                     </>
