@@ -30,7 +30,6 @@ const navItems = [
     { href: "/clanes", label: "Clanes", icon: Shield },
     { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
     { href: "/perfil/me", label: "Perfil", icon: Person, authRequired: true },
-    { href: "/config", label: "Ajustes", icon: Gear, authRequired: true },
 ];
 
 interface SidebarProps {
@@ -93,6 +92,23 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                 })}
             </nav>
 
+            {/* Settings — fixed at bottom */}
+            {status === "authenticated" && (
+                <div className="p-3 pt-0 border-t border-[rgba(255,255,255,0.06)] shrink-0">
+                    <Link
+                        href="/config"
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center px-0" : ""
+                            } ${isActive("/config")
+                                ? "text-[#F2F2F2]"
+                                : "text-[#888891] hover:text-[#F2F2F2]"
+                            }`}
+                        aria-label="Ajustes"
+                    >
+                        <Gear className="size-[18px] shrink-0" />
+                        {!collapsed && <span className="truncate">Ajustes</span>}
+                    </Link>
+                </div>
+            )}
         </aside>
     );
 }
