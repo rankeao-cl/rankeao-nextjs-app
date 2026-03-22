@@ -18,7 +18,9 @@ export { default as MyClanBanner } from "./MyClanBanner";
 export { default as ClanCard } from "./ClanCard";
 export { default as ClanListRow } from "./ClanListRow";
 export { default as MemberCard } from "./MemberCard";
+export { default as FeedActivityCard } from "./FeedActivityCard";
 
+export type { ActivityData } from "./FeedActivityCard";
 export type { FeedPost } from "./PostCard";
 export type { FeedDeck } from "./DeckCard";
 export type { FeedCollection } from "./CollectionCard";
