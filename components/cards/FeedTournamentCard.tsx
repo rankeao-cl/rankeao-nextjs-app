@@ -6,20 +6,20 @@ import type { Tournament } from "@/lib/types/tournament";
 import { Heart, Comment, ArrowShapeTurnUpRight, Clock, Persons, MapPin, Cup, Bookmark } from "@gravity-ui/icons";
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
-    active: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "EN VIVO" },
-    ROUND_IN_PROGRESS: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "EN VIVO" },
-    STARTED: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "EN CURSO" },
-    in_progress: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "EN CURSO" },
-    upcoming: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "Proximo" },
-    registration: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "Abierto" },
-    OPEN: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "Abierto" },
-    check_in: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "Check-in" },
-    CHECK_IN: { color: "#F2F2F2", bg: "rgba(255,255,255,0.08)", label: "Check-in" },
-    completed: { color: "#888891", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
-    finished: { color: "#888891", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
-    FINISHED: { color: "#888891", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
-    cancelled: { color: "#888891", bg: "rgba(255,255,255,0.06)", label: "Cancelado" },
-    CLOSED: { color: "#888891", bg: "rgba(255,255,255,0.06)", label: "Cerrado" },
+    active: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN VIVO" },
+    ROUND_IN_PROGRESS: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN VIVO" },
+    STARTED: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN CURSO" },
+    in_progress: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN CURSO" },
+    upcoming: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Proximo" },
+    registration: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Abierto" },
+    OPEN: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Abierto" },
+    check_in: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Check-in" },
+    CHECK_IN: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Check-in" },
+    completed: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
+    finished: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
+    FINISHED: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
+    cancelled: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Cancelado" },
+    CLOSED: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Cerrado" },
 };
 
 const isLiveStatus = (s: string) =>
@@ -54,14 +54,14 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
         <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
             <article
                 style={{
-                    backgroundColor: "#1A1A1E",
+                    backgroundColor: "var(--surface-solid)",
                     borderRadius: 20,
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    border: "1px solid var(--border)",
                     overflow: "hidden",
                 }}
             >
                 {/* Top accent line */}
-                <div style={{ height: 3, backgroundColor: "rgba(255,255,255,0.06)" }} />
+                <div style={{ height: 3, backgroundColor: "var(--border)" }} />
 
                 {/* Header: organizer + status */}
                 <div
@@ -81,7 +81,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 height: 40,
                                 borderRadius: 10,
                                 overflow: "hidden",
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                border: "1px solid var(--border)",
                                 flexShrink: 0,
                             }}
                         >
@@ -105,7 +105,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 justifyContent: "center",
                                 fontSize: 14,
                                 fontWeight: 700,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 flexShrink: 0,
                             }}
                         >
@@ -118,7 +118,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                             style={{
                                 fontSize: 14,
                                 fontWeight: 700,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 display: "block",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -127,7 +127,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                         >
                             {organizerName}
                         </span>
-                        <span style={{ fontSize: 11, color: "#888891", marginTop: 1 }}>
+                        <span style={{ fontSize: 11, color: "var(--muted)", marginTop: 1 }}>
                             publico un torneo
                         </span>
                     </div>
@@ -174,7 +174,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 height: 44,
                                 borderRadius: 10,
                                 overflow: "hidden",
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                border: "1px solid var(--border)",
                                 backgroundColor: "rgba(255,255,255,0.06)",
                                 display: "flex",
                                 alignItems: "center",
@@ -191,7 +191,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                     style={{ objectFit: "contain" }}
                                 />
                             ) : (
-                                <span style={{ fontSize: 11, fontWeight: 900, color: "#F2F2F2" }}>
+                                <span style={{ fontSize: 11, fontWeight: 900, color: "var(--foreground)" }}>
                                     {tournament.game?.slice(0, 3).toUpperCase() ?? "TCG"}
                                 </span>
                             )}
@@ -213,17 +213,17 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                             {/* Tags */}
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
                                 {tournament.game && (
-                                    <span style={{ fontSize: 11, color: "#888891", backgroundColor: "#1A1A1E", padding: "3px 8px", borderRadius: 8 }}>
+                                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface-solid)", padding: "3px 8px", borderRadius: 8 }}>
                                         {tournament.game}
                                     </span>
                                 )}
                                 {tournament.format && (
-                                    <span style={{ fontSize: 11, color: "#888891", backgroundColor: "#1A1A1E", padding: "3px 8px", borderRadius: 8 }}>
+                                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface-solid)", padding: "3px 8px", borderRadius: 8 }}>
                                         {tournament.format}
                                     </span>
                                 )}
                                 {tournament.is_ranked && (
-                                    <span style={{ fontSize: 11, fontWeight: 700, color: "#F2F2F2", backgroundColor: "#1A1A1E", padding: "3px 8px", borderRadius: 8 }}>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", backgroundColor: "var(--surface-solid)", padding: "3px 8px", borderRadius: 8 }}>
                                         Ranked
                                     </span>
                                 )}
@@ -246,16 +246,16 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                             {dateFormatted && (
                                 <span style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
-                                    <Clock style={{ width: 14, height: 14, color: "#888891" }} />
-                                    <span style={{ fontSize: 12, color: "#888891", textTransform: "capitalize" }}>
+                                    <Clock style={{ width: 14, height: 14, color: "var(--muted)" }} />
+                                    <span style={{ fontSize: 12, color: "var(--muted)", textTransform: "capitalize" }}>
                                         {dateFormatted} · {timeFormatted}
                                     </span>
                                 </span>
                             )}
                             {tournament.city && (
                                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <MapPin style={{ width: 14, height: 14, color: "#888891", flexShrink: 0 }} />
-                                    <span className="truncate" style={{ fontSize: 12, color: "#888891" }}>
+                                    <MapPin style={{ width: 14, height: 14, color: "var(--muted)", flexShrink: 0 }} />
+                                    <span className="truncate" style={{ fontSize: 12, color: "var(--muted)" }}>
                                         {tournament.city}
                                     </span>
                                 </span>
@@ -265,23 +265,23 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                         {/* Capacity + prize */}
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <Persons style={{ width: 14, height: 14, color: "#888891" }} />
-                                <span style={{ fontSize: 12, fontWeight: 700, color: "#E5E5E5" }}>{registered}</span>
+                                <Persons style={{ width: 14, height: 14, color: "var(--muted)" }} />
+                                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{registered}</span>
                                 {maxPlayers != null && (
-                                    <span style={{ fontSize: 12, color: "#888891" }}>/ {maxPlayers}</span>
+                                    <span style={{ fontSize: 12, color: "var(--muted)" }}>/ {maxPlayers}</span>
                                 )}
                             </span>
                             <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 {tournament.prize_pool && (
                                     <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                        <Cup style={{ width: 13, height: 13, color: "#888891" }} />
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#F2F2F2" }}>
+                                        <Cup style={{ width: 13, height: 13, color: "var(--muted)" }} />
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>
                                             {formatCLP(Number(tournament.prize_pool))}
                                         </span>
                                     </span>
                                 )}
                                 {tournament.entry_fee ? (
-                                    <span style={{ fontSize: 11, color: "#888891" }}>
+                                    <span style={{ fontSize: 11, color: "var(--muted)" }}>
                                         Entrada {formatCLP(Number(tournament.entry_fee))}
                                     </span>
                                 ) : isOpen ? (
@@ -289,7 +289,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                         style={{
                                             fontSize: 11,
                                             fontWeight: 700,
-                                            color: "#F2F2F2",
+                                            color: "var(--foreground)",
                                             backgroundColor: "rgba(255,255,255,0.08)",
                                             padding: "2px 8px",
                                             borderRadius: 6,
@@ -307,7 +307,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 style={{
                                     height: 4,
                                     borderRadius: 9999,
-                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                    backgroundColor: "var(--border)",
                                     overflow: "hidden",
                                 }}
                             >
@@ -316,7 +316,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                         height: "100%",
                                         borderRadius: 9999,
                                         width: `${progress}%`,
-                                        backgroundColor: "#F2F2F2",
+                                        backgroundColor: "var(--foreground)",
                                     }}
                                 />
                             </div>
@@ -336,7 +336,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 borderRadius: 12,
                                 fontSize: 13,
                                 fontWeight: 700,
-                                color: isLive ? "#F2F2F2" : "#F2F2F2",
+                                color: isLive ? "#FFFFFF" : "#FFFFFF",
                                 backgroundColor: "#3B82F6",
                             }}
                         >
@@ -355,21 +355,21 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                         paddingRight: 14,
                         paddingTop: 10,
                         paddingBottom: 10,
-                        borderTop: "1px solid rgba(255,255,255,0.04)",
+                        borderTop: "1px solid var(--border)",
                     }}
                 >
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "#888891", cursor: "pointer", padding: 0 }}>
+                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
                             <Heart style={{ width: 16, height: 16 }} />
                         </button>
-                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "#888891", cursor: "pointer", padding: 0 }}>
+                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
                             <Comment style={{ width: 16, height: 16 }} />
                         </button>
-                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "#888891", cursor: "pointer", padding: 0 }}>
+                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
                             <ArrowShapeTurnUpRight style={{ width: 16, height: 16 }} />
                         </button>
                     </div>
-                    <button type="button" style={{ background: "none", border: "none", color: "#888891", cursor: "pointer", padding: 0 }}>
+                    <button type="button" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
                         <Bookmark style={{ width: 16, height: 16 }} />
                     </button>
                 </div>

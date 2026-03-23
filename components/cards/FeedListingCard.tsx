@@ -13,9 +13,9 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
     return (
         <article
             style={{
-                background: "#1A1A1E",
+                background: "var(--surface-solid)",
                 borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid var(--border)",
                 overflow: "hidden",
             }}
         >
@@ -27,7 +27,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         width: 36,
                         height: 36,
                         borderRadius: "50%",
-                        background: "#2A2A2E",
+                        background: "var(--surface-solid)",
                         overflow: "hidden",
                         flexShrink: 0,
                         display: "flex",
@@ -35,7 +35,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         justifyContent: "center",
                         fontSize: 13,
                         fontWeight: 600,
-                        color: "#F2F2F2",
+                        color: "var(--foreground)",
                     }}
                 >
                     {listing.seller_avatar_url ? (
@@ -57,7 +57,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             style={{
                                 fontSize: 13,
                                 fontWeight: 600,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -69,7 +69,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>✓</span>
                         )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "#888891" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "var(--muted)" }}>
                         {listing.city && (
                             <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
                                 <MapPin style={{ width: 10, height: 10 }} />
@@ -89,7 +89,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             position: "relative",
                             width: "100%",
                             aspectRatio: "63 / 88",
-                            background: "#111113",
+                            background: "var(--background)",
                         }}
                     >
                         <Image
@@ -112,7 +112,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             style={{
                                 fontSize: 14,
                                 fontWeight: 600,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -161,7 +161,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             style={{
                                 fontSize: 10,
                                 fontWeight: 600,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 background: "rgba(255,255,255,0.08)",
                                 padding: "3px 8px",
                                 borderRadius: 6,
@@ -175,7 +175,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             style={{
                                 fontSize: 10,
                                 fontWeight: 600,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 background: "rgba(255,255,255,0.08)",
                                 padding: "3px 8px",
                                 borderRadius: 6,
@@ -208,10 +208,10 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "8px 14px 10px",
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                    borderTop: "1px solid var(--border)",
                 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "#888891" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "var(--muted)" }}>
                     <button
                         type="button"
                         style={{
@@ -270,7 +270,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             alignItems: "center",
                             background: "none",
                             border: "none",
-                            color: "#888891",
+                            color: "var(--muted)",
                             cursor: "pointer",
                             padding: 0,
                         }}

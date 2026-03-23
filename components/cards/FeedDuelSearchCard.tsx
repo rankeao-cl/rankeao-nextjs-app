@@ -23,10 +23,10 @@ function TimeSince({ dateStr }: { dateStr: string }) {
 
     const ms = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(ms / 60_000);
-    if (mins < 1) return <span style={{ color: "#888891", fontSize: 11 }}>Ahora</span>;
-    if (mins < 60) return <span style={{ color: "#888891", fontSize: 11 }}>{mins}m buscando</span>;
+    if (mins < 1) return <span style={{ color: "var(--muted)", fontSize: 11 }}>Ahora</span>;
+    if (mins < 60) return <span style={{ color: "var(--muted)", fontSize: 11 }}>{mins}m buscando</span>;
     const hrs = Math.floor(mins / 60);
-    return <span style={{ color: "#888891", fontSize: 11 }}>{hrs}h {mins % 60}m buscando</span>;
+    return <span style={{ color: "var(--muted)", fontSize: 11 }}>{hrs}h {mins % 60}m buscando</span>;
 }
 
 export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchCardProps) {
@@ -78,7 +78,7 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
 
     return (
         <div style={{
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             borderRadius: 20,
             border: "1.5px solid rgba(59,130,246,0.15)",
             overflow: "hidden",
@@ -109,9 +109,9 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
                     </svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                    <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700, display: "block" }}>Busca oponente para duelo</span>
+                    <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700, display: "block" }}>Busca oponente para duelo</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                         </svg>
                         <TimeSince dateStr={duel.created_at} />
@@ -145,18 +145,18 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
                     </div>
                 )}
                 <div style={{ flex: 1 }}>
-                    <span style={{ color: "#F2F2F2", fontSize: 14, fontWeight: 700, display: "block" }}>
+                    <span style={{ color: "var(--foreground)", fontSize: 14, fontWeight: 700, display: "block" }}>
                         {challenger.display_name || challenger.username}
                     </span>
-                    <span style={{ color: "#888891", fontSize: 11 }}>@{challenger.username}</span>
+                    <span style={{ color: "var(--muted)", fontSize: 11 }}>@{challenger.username}</span>
                 </div>
                 {challenger.rating != null && challenger.rating > 0 && (
                     <div style={{
                         display: "flex", flexDirection: "column", alignItems: "center",
                         backgroundColor: "rgba(255,255,255,0.06)", padding: "6px 10px", borderRadius: 6,
                     }}>
-                        <span style={{ color: "#F2F2F2", fontSize: 14, fontWeight: 800 }}>{challenger.rating}</span>
-                        <span style={{ color: "#888891", fontSize: 8, fontWeight: 700, letterSpacing: 0.5 }}>ELO</span>
+                        <span style={{ color: "var(--foreground)", fontSize: 14, fontWeight: 800 }}>{challenger.rating}</span>
+                        <span style={{ color: "var(--muted)", fontSize: 8, fontWeight: 700, letterSpacing: 0.5 }}>ELO</span>
                     </div>
                 )}
             </div>
@@ -164,17 +164,17 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
             {/* Game + Format + BO */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {duel.game_name && (
-                    <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 8 }}>
                         {duel.game_name}
                     </span>
                 )}
                 {duel.format_name && (
-                    <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 8 }}>
                         {duel.format_name}
                     </span>
                 )}
                 {duel.best_of != null && duel.best_of > 0 && (
-                    <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 8 }}>
                         Bo{duel.best_of}
                     </span>
                 )}
@@ -192,7 +192,7 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-                <span style={{ color: "#888891", fontSize: 11 }}>Solo XP, no afecta ELO</span>
+                <span style={{ color: "var(--muted)", fontSize: 11 }}>Solo XP, no afecta ELO</span>
             </div>
 
             {/* Accept button */}
