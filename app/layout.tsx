@@ -76,7 +76,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${poppins.variable} ${redditSans.variable} antialiased min-h-screen flex flex-col`}
-        style={{ background: "#000000", color: "#F2F2F2" }}
+        style={{ background: "var(--background)", color: "var(--foreground)" }}
       >
         <Providers>
           <Navbar />

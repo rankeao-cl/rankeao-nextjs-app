@@ -56,12 +56,12 @@ export default function BottomNav() {
     return (
         <nav
             className="lg:hidden fixed bottom-0 inset-x-0 z-50"
-            style={{ background: "#000000" }}
+            style={{ background: "var(--background)" }}
         >
             {/* Hairline divider */}
             <div
                 className="h-px w-full"
-                style={{ background: "rgba(255,255,255,0.08)" }}
+                style={{ background: "var(--border)" }}
             />
 
             <div className="flex items-center justify-around pt-2 pb-[max(env(safe-area-inset-bottom,8px),8px)] px-1">
@@ -81,8 +81,8 @@ export default function BottomNav() {
                                     className="size-[22px] transition-opacity duration-200"
                                     style={{
                                         color: active
-                                            ? "#F2F2F2"
-                                            : "#888891",
+                                            ? "var(--foreground)"
+                                            : "var(--muted)",
                                     }}
                                 />
                             </div>
@@ -92,7 +92,7 @@ export default function BottomNav() {
                                     fontSize: "10px",
                                     fontWeight: 600,
                                     letterSpacing: "0.1px",
-                                    color: "#F2F2F2",
+                                    color: "var(--foreground)",
                                     opacity: active ? 1 : 0.5,
                                 }}
                             >
@@ -115,7 +115,7 @@ export default function BottomNav() {
                                 borderWidth: "2px",
                                 borderStyle: "solid",
                                 borderColor: profileActive
-                                    ? "#F2F2F2"
+                                    ? "var(--foreground)"
                                     : "transparent",
                             }}
                         >
@@ -128,11 +128,11 @@ export default function BottomNav() {
                             ) : (
                                 <div
                                     className="w-[22px] h-[22px] rounded-full flex items-center justify-center"
-                                    style={{ background: "#1A1A1E" }}
+                                    style={{ background: "var(--surface-solid)" }}
                                 >
                                     <span
                                         className="text-[11px] font-bold"
-                                        style={{ color: "#F2F2F2" }}
+                                        style={{ color: "var(--foreground)" }}
                                     >
                                         {initial}
                                     </span>
@@ -143,7 +143,7 @@ export default function BottomNav() {
                         {isAuth && (
                             <div
                                 className="absolute -bottom-px -right-px w-3 h-3 rounded-full flex items-center justify-center"
-                                style={{ background: "#000000" }}
+                                style={{ background: "var(--background)" }}
                             >
                                 <div
                                     className="w-2 h-2 rounded-full"
@@ -158,7 +158,7 @@ export default function BottomNav() {
                             fontSize: "10px",
                             fontWeight: 600,
                             letterSpacing: "0.1px",
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             opacity: profileActive ? 1 : 0.5,
                         }}
                     >

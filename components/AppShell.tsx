@@ -48,8 +48,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     width: 24,
                     height: 48,
                     borderRadius: "0 8px 8px 0",
-                    backgroundColor: "#000000",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    backgroundColor: "var(--background)",
+                    border: "1px solid var(--border)",
                     borderLeft: "none",
                     cursor: "pointer",
                     alignItems: "center",
@@ -63,7 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     height={14}
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#888891"
+                    stroke="var(--muted)"
                     strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"

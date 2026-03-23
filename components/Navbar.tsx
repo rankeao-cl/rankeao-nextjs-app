@@ -83,8 +83,8 @@ export default function Navbar() {
     <header
       className="sticky top-0 z-50 h-16"
       style={{
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        background: "#000000",
+        borderBottom: "1px solid var(--border)",
+        background: "var(--background)",
       }}
     >
       <div className="w-full h-full px-4 flex items-center justify-between relative">
@@ -95,7 +95,7 @@ export default function Navbar() {
             <button
               onClick={() => setIsSearchExpanded(false)}
               className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer"
-              style={{ background: "#1A1A1E" }}
+              style={{ background: "var(--surface-solid)" }}
               aria-label="Cerrar búsqueda"
             >
               <Xmark className="size-4" style={{ color: "var(--muted)" }} />
@@ -193,7 +193,7 @@ export default function Navbar() {
                     {/* Notifications — opens sidebar */}
                     <button
                       onClick={() => setNotifSidebarOpen(true)}
-                      className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-muted cursor-pointer hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
+                      className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-muted cursor-pointer hover:bg-black/5 rounded-lg transition-colors"
                       aria-label="Notificaciones"
                     >
                       <Bell className="size-[18px]" />
