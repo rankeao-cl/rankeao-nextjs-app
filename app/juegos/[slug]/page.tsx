@@ -54,18 +54,13 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
         <div className="flex flex-col w-full max-w-7xl mx-auto">
             {/* ── Hero header — comunidades style with brand gradient ── */}
             <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
-                <div style={{
-                    borderRadius: 20,
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    overflow: "hidden",
-                    position: "relative",
-                }}>
+                <div className="rounded-[20px] border border-border overflow-hidden relative">
                     {/* Banner gradient */}
                     <div style={{ height: 140, position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, #1A1A1E)` }} />
+                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, var(--surface-solid))` }} />
                         {/* Brand glow */}
                         <div style={{ position: "absolute", top: -20, right: -20, width: 200, height: 200, borderRadius: "50%", background: brand.color, opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #1A1A1E 0%, rgba(26,26,30,0.4) 60%, rgba(0,0,0,0.1) 100%)" }} />
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--surface-solid) 0%, color-mix(in srgb, var(--surface-solid) 40%, transparent) 60%, rgba(0,0,0,0.1) 100%)" }} />
 
                         {/* Floating badges */}
                         <div style={{ position: "absolute", top: 12, right: 14, display: "flex", gap: 4 }}>
@@ -83,12 +78,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
 
                         {/* Logo + Name on banner */}
                         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 18px 16px", display: "flex", alignItems: "flex-end", gap: 16 }}>
-                            <div style={{
-                                width: 64, height: 64, borderRadius: 16,
-                                border: "3px solid #1A1A1E", backgroundColor: "#222226", overflow: "hidden",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                flexShrink: 0, boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-                            }}>
+                            <div className="bg-surface-solid border-[3px] border-surface-solid rounded-2xl overflow-hidden flex items-center justify-center shrink-0 shadow-[0_4px_16px_rgba(0,0,0,0.5)]" style={{ width: 64, height: 64 }}>
                                 {game.logo_url ? (
                                     <Image src={game.logo_url} alt={game.name} width={64} height={64} className="w-full h-full object-contain p-1.5" />
                                 ) : (
@@ -98,10 +88,10 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                                 )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0, marginBottom: 4 }}>
-                                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#FFFFFF", margin: 0, textShadow: "0 1px 4px rgba(0,0,0,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                <h1 className="text-foreground" style={{ fontSize: 22, fontWeight: 800, margin: 0, textShadow: "0 1px 4px rgba(0,0,0,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {game.name}
                                 </h1>
-                                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: "2px 0 0" }}>
+                                <p className="text-muted" style={{ fontSize: 12, margin: "2px 0 0" }}>
                                     {game.publisher || "Juego de cartas coleccionables"}
                                 </p>
                             </div>
@@ -109,30 +99,26 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                     </div>
 
                     {/* Stats row below banner */}
-                    <div style={{
-                        backgroundColor: "#1A1A1E",
-                        display: "flex", alignItems: "center",
-                        padding: "12px 18px", gap: 4,
-                    }}>
+                    <div className="bg-surface-solid flex items-center" style={{ padding: "12px 18px", gap: 4 }}>
                         <div style={{ flex: 1, textAlign: "center" }}>
                             <p style={{ fontSize: 16, fontWeight: 800, color: brand.color, margin: 0 }}>{formats.length}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
+                            <p className="text-muted" style={{ fontSize: 9, fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
                         </div>
-                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                        <div className="border-l border-border" style={{ width: 0.5, height: 28 }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
                             <p style={{ fontSize: 16, fontWeight: 800, color: "#EAB308", margin: 0 }}>{rankedCount}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ranked</p>
+                            <p className="text-muted" style={{ fontSize: 9, fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ranked</p>
                         </div>
-                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                        <div className="border-l border-border" style={{ width: 0.5, height: 28 }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 16, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{tournaments.length}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
+                            <p className="text-foreground" style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{tournaments.length}</p>
+                            <p className="text-muted" style={{ fontSize: 9, fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
                         </div>
                         {setsCount > 0 && (<>
-                            <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                            <div className="border-l border-border" style={{ width: 0.5, height: 28 }} />
                             <div style={{ flex: 1, textAlign: "center" }}>
-                                <p style={{ fontSize: 16, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{setsCount}</p>
-                                <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Sets</p>
+                                <p className="text-foreground" style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>{setsCount}</p>
+                                <p className="text-muted" style={{ fontSize: 9, fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Sets</p>
                             </div>
                         </>)}
                     </div>
