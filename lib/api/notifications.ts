@@ -8,11 +8,18 @@ import type {
 // ── List / Read / Delete ──
 
 export async function getNotifications(params?: Params, token?: string) {
-    return apiFetch<NotificationsResponse>("/notifications", params, { cache: "no-store", token });
+    const res = await apiFetch<any>("/notifications", params, { cache: "no-store", token });
+    // Backend returns { success, data: [...], meta: {...} }
+    const data = res?.data ?? res;
+    const items: Notification[] = Array.isArray(data) ? data : [];
+    return { notifications: items, meta: res?.meta } as NotificationsResponse;
 }
 
 export async function getUnreadNotificationCount(token?: string) {
-    return apiFetch<UnreadCountResponse>("/notifications/unread-count", undefined, { cache: "no-store", token });
+    const res = await apiFetch<any>("/notifications/unread-count", undefined, { cache: "no-store", token });
+    // Backend returns { success, data: { total: N, by_category: {...} } }
+    const data = res?.data ?? res;
+    return { total: data?.total ?? 0, by_category: data?.by_category } as UnreadCountResponse;
 }
 
 export async function markNotificationRead(notificationId: string, token?: string) {
