@@ -115,7 +115,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
     return (
         <aside
             className={`hidden lg:flex flex-col h-full border-r transition-all duration-300 shrink-0 ${collapsed ? "w-[68px]" : "w-[220px]"}`}
-            style={{ borderColor: "rgba(255,255,255,0.08)", background: "#000000" }}
+            style={{ borderColor: "var(--border)", background: "var(--background)" }}
         >
             <nav className="flex-1 flex flex-col gap-1 p-3 pt-4 overflow-y-auto">
                 {/* Create Post */}
@@ -151,14 +151,14 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                                 >
                                     <span
                                         className="text-[10px] font-bold uppercase tracking-wider"
-                                        style={{ color: hasActiveItem ? "#F2F2F2" : "#555" }}
+                                        style={{ color: hasActiveItem ? "var(--foreground)" : "var(--muted)" }}
                                     >
                                         {section.label}
                                     </span>
                                     <ChevronDown
                                         className="size-3 transition-transform duration-200"
                                         style={{
-                                            color: "#555",
+                                            color: "var(--muted)",
                                             transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
                                         }}
                                     />
@@ -181,7 +181,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                                             key={item.href}
                                             href={item.href}
                                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center px-0" : ""
-                                                } ${active ? "text-[#F2F2F2]" : "text-[#888891] hover:text-[#F2F2F2]"}`}
+                                                } ${active ? "text-foreground" : "text-muted hover:text-foreground"}`}
                                             aria-label={item.label}
                                         >
                                             <Icon className="size-[18px] shrink-0" />
@@ -197,11 +197,11 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
 
             {/* Settings — fixed at bottom */}
             {isAuth && (
-                <div className="p-3 pt-0 border-t border-[rgba(255,255,255,0.06)] shrink-0">
+                <div className="p-3 pt-0 border-t border-border shrink-0">
                     <Link
                         href="/config"
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center px-0" : ""
-                            } ${isActive("/config") ? "text-[#F2F2F2]" : "text-[#888891] hover:text-[#F2F2F2]"}`}
+                            } ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Ajustes"
                     >
                         <Gear className="size-[18px] shrink-0" />
