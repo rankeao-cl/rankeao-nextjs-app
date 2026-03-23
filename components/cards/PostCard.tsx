@@ -158,28 +158,42 @@ export default function PostCard({ post }: { post: FeedPost }) {
 
             {/* Image gallery */}
             {post.images && post.images.length > 0 && (
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: post.images.length === 1 ? "1fr" : "1fr 1fr",
-                        gap: 4,
-                        borderRadius: 10,
-                        overflow: "hidden",
-                    }}
-                >
-                    {post.images.slice(0, 4).map((src, i) => (
-                        <div
-                            key={i}
-                            style={{
-                                position: "relative",
-                                aspectRatio: "1 / 1",
-                                background: "var(--background)",
-                            }}
-                        >
-                            <Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="50vw" />
-                        </div>
-                    ))}
-                </div>
+                post.images.length === 1 ? (
+                    <div
+                        style={{
+                            position: "relative",
+                            height: 380,
+                            borderRadius: 10,
+                            overflow: "hidden",
+                            background: "var(--background)",
+                        }}
+                    >
+                        <Image src={post.images[0]} alt="" fill style={{ objectFit: "cover" }} sizes="(max-width: 768px) 100vw, 50vw" />
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: 4,
+                            borderRadius: 10,
+                            overflow: "hidden",
+                        }}
+                    >
+                        {post.images.slice(0, 4).map((src, i) => (
+                            <div
+                                key={i}
+                                style={{
+                                    position: "relative",
+                                    aspectRatio: "1 / 1",
+                                    background: "var(--background)",
+                                }}
+                            >
+                                <Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="25vw" />
+                            </div>
+                        ))}
+                    </div>
+                )
             )}
 
             {/* Reaction bar */}
