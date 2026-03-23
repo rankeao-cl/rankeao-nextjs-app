@@ -98,7 +98,7 @@ export default function Navbar() {
               style={{ background: "#1A1A1E" }}
               aria-label="Cerrar búsqueda"
             >
-              <Xmark className="size-4" style={{ color: "#888891" }} />
+              <Xmark className="size-4" style={{ color: "var(--muted)" }} />
             </button>
           </div>
         ) : (
@@ -107,7 +107,7 @@ export default function Navbar() {
             <div className="flex items-center z-10">
               <Link href="/" className="flex items-center shrink-0">
                 <RankeaoLogo
-                  className={`h-7 w-auto transition-colors ${isDark ? "text-white" : "text-zinc-700"}`}
+                  className="h-7 w-auto transition-colors text-foreground"
                 />
               </Link>
             </div>
@@ -127,10 +127,10 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsSearchExpanded(true)}
                   className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
-                  style={{ background: "#1A1A1E" }}
+                  style={{ background: "var(--surface-solid)" }}
                   aria-label="Buscar"
                 >
-                  <Magnifier className="size-4" style={{ color: "#888891" }} />
+                  <Magnifier className="size-4" style={{ color: "var(--muted)" }} />
                 </button>
 
                 {/* Bell */}
@@ -138,10 +138,10 @@ export default function Navbar() {
                   <Link
                     href="/notificaciones"
                     className="relative w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "#1A1A1E" }}
+                    style={{ background: "var(--surface-solid)" }}
                     aria-label="Notificaciones"
                   >
-                    <Bell className="size-4" style={{ color: "#888891" }} />
+                    <Bell className="size-4" style={{ color: "var(--muted)" }} />
                     {unreadCount > 0 && (
                       <span
                         className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none px-1"
@@ -151,8 +151,8 @@ export default function Navbar() {
                           minWidth: "18px",
                           height: "18px",
                           fontSize: "10px",
-                          background: "#ED4245",
-                          border: "2px solid #000000",
+                          background: "var(--danger)",
+                          border: "2px solid var(--background)",
                         }}
                       >
                         {unreadCount > 99 ? "99+" : unreadCount}
@@ -181,7 +181,7 @@ export default function Navbar() {
                   isIconOnly
                   variant="tertiary"
                   size="sm"
-                  className="text-[#888891]"
+                  className="text-muted"
                   onPress={() => setTheme(isDark ? "light" : "dark")}
                   aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
                 >
@@ -193,12 +193,12 @@ export default function Navbar() {
                     {/* Notifications — opens sidebar */}
                     <button
                       onClick={() => setNotifSidebarOpen(true)}
-                      className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-[#888891] cursor-pointer hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
+                      className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-muted cursor-pointer hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
                       aria-label="Notificaciones"
                     >
                       <Bell className="size-[18px]" />
                       {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 border-2 border-[#000000]">
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-danger text-white text-[10px] font-bold leading-none px-1 border-2 border-background">
                           {unreadCount > 9 ? "9+" : unreadCount}
                         </span>
                       )}
@@ -207,50 +207,50 @@ export default function Navbar() {
                     {/* Create Menu */}
                     <Popover>
                       <Popover.Trigger
-                        className="flex items-center justify-center min-w-8 min-h-8 rounded-full shadow-brand-sm bg-[#3B82F6] text-[#ffffff] cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                        className="flex items-center justify-center min-w-8 min-h-8 rounded-full shadow-brand-sm bg-accent text-white cursor-pointer hover:scale-105 active:scale-95 transition-transform"
                         aria-label="Crear"
                       >
                         <Plus className="size-4 font-bold" />
                       </Popover.Trigger>
                       <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
-                        <div className="px-3.5 py-2.5 border-b border-[rgba(255,255,255,0.06)] bg-[#222226]">
-                          <p className="text-xs font-bold uppercase tracking-wider text-[#888891]">Crear nuevo</p>
+                        <div className="px-3.5 py-2.5 border-b border-border bg-surface-solid">
+                          <p className="text-xs font-bold uppercase tracking-wider text-muted">Crear nuevo</p>
                         </div>
                         <div className="p-1.5 flex flex-col gap-0.5">
-                          <button onClick={openCreatePost} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer w-full text-left" style={{ background: "none", border: "none" }}>
+                          <button onClick={openCreatePost} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer w-full text-left" style={{ background: "none", border: "none" }}>
                             <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0 group-hover:bg-blue-500/25 transition-colors">
                               <Pencil className="size-4 text-blue-500" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-[#F2F2F2]">Crear Post</p>
-                              <p className="text-[11px] text-[#888891] leading-tight">Comparte con la comunidad</p>
+                              <p className="text-sm font-semibold text-foreground">Crear Post</p>
+                              <p className="text-[11px] text-muted leading-tight">Comparte con la comunidad</p>
                             </div>
                           </button>
-                          <Link href="/decks/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer">
+                          <Link href="/decks/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0 group-hover:bg-purple-500/25 transition-colors">
                               <SquareDashed className="size-4 text-purple-500" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-[#F2F2F2]">Publicar Mazo</p>
-                              <p className="text-[11px] text-[#888891] leading-tight">Muestra tu mejor deck</p>
+                              <p className="text-sm font-semibold text-foreground">Publicar Mazo</p>
+                              <p className="text-[11px] text-muted leading-tight">Muestra tu mejor deck</p>
                             </div>
                           </Link>
-                          <Link href="/marketplace/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer">
+                          <Link href="/marketplace/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0 group-hover:bg-orange-500/25 transition-colors">
                               <ShoppingCart className="size-4 text-orange-500" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-[#F2F2F2]">Vender Carta</p>
-                              <p className="text-[11px] text-[#888891] leading-tight">Listado en el marketplace</p>
+                              <p className="text-sm font-semibold text-foreground">Vender Carta</p>
+                              <p className="text-[11px] text-muted leading-tight">Listado en el marketplace</p>
                             </div>
                           </Link>
-                          <Link href="/torneos/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#222226] transition-colors group cursor-pointer">
+                          <Link href="/torneos/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/25 transition-colors">
                               <Cup className="size-4 text-emerald-500" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-[#F2F2F2]">Crear Torneo</p>
-                              <p className="text-[11px] text-[#888891] leading-tight">Organiza un evento competitivo</p>
+                              <p className="text-sm font-semibold text-foreground">Crear Torneo</p>
+                              <p className="text-[11px] text-muted leading-tight">Organiza un evento competitivo</p>
                             </div>
                           </Link>
                         </div>
@@ -260,7 +260,7 @@ export default function Navbar() {
                     {/* Avatar dropdown */}
                     <div className="ml-1">
                       <Popover>
-                        <Popover.Trigger className="rounded-full cursor-pointer flex border-2 border-transparent hover:border-[#3B82F6]/40 transition-colors outline-none">
+                        <Popover.Trigger className="rounded-full cursor-pointer flex border-2 border-transparent hover:border-accent/40 transition-colors outline-none">
                           <Avatar size="sm">
                             <Avatar.Image
                               alt="Avatar"
@@ -274,9 +274,9 @@ export default function Navbar() {
                         <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
                           {/* User Info Header */}
                           <div className="relative">
-                            <div className="absolute top-0 inset-x-0 h-0.5 bg-[#3B82F6]" />
+                            <div className="absolute top-0 inset-x-0 h-0.5 bg-accent" />
                             <div className="flex items-center gap-3 px-4 py-4 pt-5">
-                              <Avatar size="sm" className="ring-2 ring-[#3B82F6]/30">
+                              <Avatar size="sm" className="ring-2 ring-accent/30">
                                 <Avatar.Image
                                   alt="Avatar"
                                   src={userAvatarUrl || undefined}
@@ -286,27 +286,27 @@ export default function Navbar() {
                                 </Avatar.Fallback>
                               </Avatar>
                               <div className="flex flex-col min-w-0">
-                                <p className="text-sm font-bold text-[#F2F2F2] truncate">{session?.username}</p>
-                                <p className="text-[11px] text-[#888891] truncate">{session?.email}</p>
+                                <p className="text-sm font-bold text-foreground truncate">{session?.username}</p>
+                                <p className="text-[11px] text-muted truncate">{session?.email}</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Menu Sections */}
-                          <div className="border-t border-[rgba(255,255,255,0.06)]">
+                          <div className="border-t border-border">
                             <div className="p-1.5">
-                              <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#888891]">Mi cuenta</p>
-                              <Link href="/perfil/me" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#222226] transition-colors cursor-pointer">
-                                <Person className="size-4 text-[#888891]" />
-                                <span className="text-sm text-[#F2F2F2]">Mi Perfil</span>
+                              <p className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted">Mi cuenta</p>
+                              <Link href="/perfil/me" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-solid transition-colors cursor-pointer">
+                                <Person className="size-4 text-muted" />
+                                <span className="text-sm text-foreground">Mi Perfil</span>
                               </Link>
-                              <Link href="/config" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#222226] transition-colors cursor-pointer">
-                                <Gear className="size-4 text-[#888891]" />
-                                <span className="text-sm text-[#F2F2F2]">Configuración</span>
+                              <Link href="/config" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-solid transition-colors cursor-pointer">
+                                <Gear className="size-4 text-muted" />
+                                <span className="text-sm text-foreground">Configuración</span>
                               </Link>
                             </div>
 
-                            <div className="border-t border-[rgba(255,255,255,0.06)] p-1.5">
+                            <div className="border-t border-border p-1.5">
                               <button
                                 onClick={() => logout()}
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer text-left"
@@ -335,7 +335,7 @@ export default function Navbar() {
                       <Button
                         variant="primary"
                         size="md"
-                        className="font-bold px-5 h-9 rounded-full bg-[#3B82F6] text-white shadow-none"
+                        className="font-bold px-5 h-9 rounded-full bg-accent text-white shadow-none"
                       >
                         Regístrate
                       </Button>

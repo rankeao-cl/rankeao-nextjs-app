@@ -159,8 +159,8 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
       <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
         <div
           style={{
-            backgroundColor: "#1A1A1E",
-            border: "1px solid rgba(255,255,255,0.06)",
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
             borderRadius: 16,
             padding: 18,
             display: "flex",
@@ -175,18 +175,18 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
             <span
               style={{
                 display: "inline-block",
-                backgroundColor: "rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface)",
                 paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
                 borderRadius: 999, marginBottom: 8,
-                color: "#888891", fontSize: 11, fontWeight: 600,
+                color: "var(--muted)", fontSize: 11, fontWeight: 600,
               }}
             >
               Clasificacion
             </span>
-            <h1 style={{ color: "#F2F2F2", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
+            <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
               Ranking
             </h1>
-            <p style={{ color: "#888891", fontSize: 13, lineHeight: "18px", margin: 0 }}>
+            <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: "18px", margin: 0 }}>
               Compite y sube en el ranking de jugadores.
             </p>
           </div>
@@ -197,18 +197,18 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
       <div className="flex flex-col lg:flex-row gap-6 mx-4 lg:mx-6 mb-12">
         {/* Sidebar filters (desktop) */}
         <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-20 p-4 rounded-2xl" style={{ backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="sticky top-20 p-4 rounded-2xl" style={{ backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* Ranking type */}
               <div>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Tipo</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Tipo</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {tabs.map((t) => (
                     <a key={t.key} href={buildUrl({ tab: t.key })} style={{
                       display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                       textDecoration: "none", transition: "all 0.15s",
                       backgroundColor: selectedTab === t.key ? "rgba(59,130,246,0.1)" : "transparent",
-                      color: selectedTab === t.key ? "#3B82F6" : "#888891",
+                      color: selectedTab === t.key ? "var(--accent)" : "var(--muted)",
                       border: selectedTab === t.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
                     }}>
                       {t.label}
@@ -219,14 +219,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
 
               {/* Period */}
               <div>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Periodo</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Periodo</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {periods.map((p) => (
                     <a key={p.key} href={buildUrl({ period: p.key })} style={{
                       display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                       textDecoration: "none", transition: "all 0.15s",
                       backgroundColor: period === p.key ? "rgba(59,130,246,0.1)" : "transparent",
-                      color: period === p.key ? "#3B82F6" : "#888891",
+                      color: period === p.key ? "var(--accent)" : "var(--muted)",
                       border: period === p.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
                     }}>
                       {p.label}
@@ -238,14 +238,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
               {/* Game (ratings only) */}
               {selectedTab === "ratings" && games.length > 0 && (
                 <div>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Juego</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Juego</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {games.map((g) => (
                       <a key={g.slug} href={buildUrl({ tab: "ratings", game: g.slug })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
                         backgroundColor: selectedGame?.slug === g.slug ? "rgba(59,130,246,0.1)" : "transparent",
-                        color: selectedGame?.slug === g.slug ? "#3B82F6" : "#888891",
+                        color: selectedGame?.slug === g.slug ? "var(--accent)" : "var(--muted)",
                         border: selectedGame?.slug === g.slug ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
                       }}>
                         {g.name}
@@ -258,14 +258,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
               {/* Format (ratings only) */}
               {selectedTab === "ratings" && formats.length > 0 && (
                 <div>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Formato</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Formato</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {formats.map((f) => (
                       <a key={f.slug} href={buildUrl({ tab: "ratings", game: selectedGame?.slug || "", format: f.slug })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
                         backgroundColor: selectedFormat?.slug === f.slug ? "rgba(59,130,246,0.1)" : "transparent",
-                        color: selectedFormat?.slug === f.slug ? "#3B82F6" : "#888891",
+                        color: selectedFormat?.slug === f.slug ? "var(--accent)" : "var(--muted)",
                         border: selectedFormat?.slug === f.slug ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
                       }}>
                         {f.name}
@@ -278,14 +278,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
               {/* Region (ratings only) */}
               {selectedTab === "ratings" && (
                 <div>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Region</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Region</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {REGIONS.map((r) => (
                       <a key={r.key} href={buildUrl({ country: r.key, city: "" })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
                         backgroundColor: selectedCountry === r.key ? "rgba(59,130,246,0.1)" : "transparent",
-                        color: selectedCountry === r.key ? "#3B82F6" : "#888891",
+                        color: selectedCountry === r.key ? "var(--accent)" : "var(--muted)",
                         border: selectedCountry === r.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
                       }}>
                         {r.label}
@@ -298,14 +298,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
               {/* City (Chile only) */}
               {selectedTab === "ratings" && selectedCountry === "CL" && (
                 <div>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Ciudad</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Ciudad</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {CL_CITIES.map((c) => (
                       <a key={c.key} href={buildUrl({ country: "CL", city: c.key })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
                         backgroundColor: selectedCity === c.key ? "rgba(59,130,246,0.1)" : "transparent",
-                        color: selectedCity === c.key ? "#3B82F6" : "#888891",
+                        color: selectedCity === c.key ? "var(--accent)" : "var(--muted)",
                         border: selectedCity === c.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
                       }}>
                         {c.label}
@@ -323,20 +323,20 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
           {tabs.map((t) => (
             <a key={t.key} href={buildUrl({ tab: t.key })} style={{
               padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", textDecoration: "none",
-              border: selectedTab === t.key ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
-              backgroundColor: selectedTab === t.key ? "#F2F2F2" : "#1A1A1E",
-              color: selectedTab === t.key ? "#000000" : "#888891",
+              border: selectedTab === t.key ? "1px solid transparent" : "1px solid var(--border)",
+              backgroundColor: selectedTab === t.key ? "var(--foreground)" : "var(--surface-solid)",
+              color: selectedTab === t.key ? "var(--background)" : "var(--muted)",
             }}>
               {t.label}
             </a>
           ))}
-          <span style={{ width: 1, height: 24, backgroundColor: "rgba(255,255,255,0.06)", flexShrink: 0 }} />
+          <span style={{ width: 1, height: 24, backgroundColor: "var(--border)", flexShrink: 0 }} />
           {periods.map((p) => (
             <a key={p.key} href={buildUrl({ period: p.key })} style={{
               padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", textDecoration: "none",
-              border: period === p.key ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
-              backgroundColor: period === p.key ? "#F2F2F2" : "#1A1A1E",
-              color: period === p.key ? "#000000" : "#888891",
+              border: period === p.key ? "1px solid transparent" : "1px solid var(--border)",
+              backgroundColor: period === p.key ? "var(--foreground)" : "var(--surface-solid)",
+              color: period === p.key ? "var(--background)" : "var(--muted)",
             }}>
               {p.label}
             </a>

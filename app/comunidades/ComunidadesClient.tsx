@@ -29,7 +29,7 @@ function renderStars(rating: number) {
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;
   return (
-    <span style={{ color: "#F59E0B", fontSize: 12, letterSpacing: 1 }}>
+    <span style={{ color: "var(--warning)", fontSize: 12, letterSpacing: 1 }}>
       {"★".repeat(full)}{half ? "☆" : ""}
     </span>
   );
@@ -66,14 +66,14 @@ export default function ComunidadesClient({
             flex: 1,
             display: "flex",
             alignItems: "center",
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             borderRadius: 999,
             padding: "10px 14px",
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--border)",
             gap: 8,
           }}
         >
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
@@ -87,13 +87,13 @@ export default function ComunidadesClient({
               border: "none",
               outline: "none",
               fontSize: 14,
-              color: "#F2F2F2",
+              color: "var(--foreground)",
               padding: 0,
             }}
           />
           {search && (
             <button onClick={() => setSearch("")} type="button" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
               </svg>
             </button>
@@ -124,9 +124,9 @@ export default function ComunidadesClient({
               whiteSpace: "nowrap",
               cursor: "pointer",
               textDecoration: "none",
-              backgroundColor: opt.active ? "#F2F2F2" : "#1A1A1E",
-              color: opt.active ? "#000000" : "#888891",
-              border: opt.active ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
+              backgroundColor: opt.active ? "var(--foreground)" : "var(--surface-solid)",
+              color: opt.active ? "var(--background)" : "var(--muted)",
+              border: opt.active ? "1px solid transparent" : "1px solid var(--border)",
               flexShrink: 0,
             }}
           >
@@ -163,8 +163,8 @@ export default function ComunidadesClient({
                     gap: 16,
                     padding: "12px 24px",
                     borderRadius: 999,
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    backgroundColor: "#1A1A1E",
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--surface-solid)",
                   }}
                 >
                   <a
@@ -173,13 +173,13 @@ export default function ComunidadesClient({
                       fontSize: 14,
                       fontWeight: 600,
                       textDecoration: "none",
-                      color: paginationPrev ? "#F2F2F2" : "#888891",
+                      color: paginationPrev ? "var(--foreground)" : "var(--muted)",
                       pointerEvents: paginationPrev ? "auto" : "none",
                     }}
                   >
                     Anterior
                   </a>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#888891" }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)" }}>
                     {page} de {totalPages}
                   </span>
                   <a
@@ -188,7 +188,7 @@ export default function ComunidadesClient({
                       fontSize: 14,
                       fontWeight: 600,
                       textDecoration: "none",
-                      color: paginationNext ? "#F2F2F2" : "#888891",
+                      color: paginationNext ? "var(--foreground)" : "var(--muted)",
                       pointerEvents: paginationNext ? "auto" : "none",
                     }}
                   >
@@ -205,22 +205,22 @@ export default function ComunidadesClient({
                 width: 72,
                 height: 72,
                 borderRadius: 36,
-                backgroundColor: "#1A1A1E",
+                backgroundColor: "var(--surface-solid)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: 16,
               }}
             >
-              <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+              <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <p style={{ color: "#F2F2F2", fontSize: 15, fontWeight: 600, margin: 0, marginBottom: 4 }}>
+            <p style={{ color: "var(--foreground)", fontSize: 15, fontWeight: 600, margin: 0, marginBottom: 4 }}>
               No se encontraron comunidades
             </p>
-            <p style={{ color: "#888891", fontSize: 13, margin: 0 }}>
+            <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>
               Intenta buscar con otros terminos o explorar sin filtros.
             </p>
           </div>
@@ -238,9 +238,9 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
     <Link href={`/comunidades/${tenant.slug || tenant.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
       <div
         style={{
-          backgroundColor: "#1A1A1E",
+          backgroundColor: "var(--surface-solid)",
           borderRadius: 20,
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--border)",
           overflow: "hidden",
           height: "100%",
           display: "flex",
@@ -257,7 +257,7 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
           )}
           {/* Dark overlay */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #1A1A1E 0%, rgba(26,26,30,0.6) 50%, rgba(0,0,0,0.2) 100%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--bg-solid) 0%, rgba(26,26,30,0.6) 50%, rgba(0,0,0,0.2) 100%)" }} />
 
           {/* Floating badges */}
           <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -292,8 +292,8 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             <div
               style={{
                 width: 52, height: 52, borderRadius: 14,
-                border: "3px solid #1A1A1E",
-                backgroundColor: "#222226", overflow: "hidden",
+                border: "3px solid var(--surface-solid)",
+                backgroundColor: "var(--surface-solid-secondary)", overflow: "hidden",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0, boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
               }}
@@ -301,13 +301,13 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
               {tenant.logo_url ? (
                 <Image src={tenant.logo_url} alt={tenant.name} width={52} height={52} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
-                <span style={{ fontSize: 20, fontWeight: 900, color: "#3B82F6" }}>
+                <span style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>
                   {tenant.name?.charAt(0)?.toUpperCase()}
                 </span>
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0, marginBottom: 2 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: "#FFFFFF", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
                 {tenant.name}
               </h3>
             </div>
@@ -317,7 +317,7 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
         {/* Content */}
         <div style={{ padding: "10px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
           {tenant.description ? (
-            <p className="line-clamp-2" style={{ fontSize: 12, color: "#888891", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
+            <p className="line-clamp-2" style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
               {tenant.description}
             </p>
           ) : (
@@ -329,31 +329,31 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             style={{
               display: "flex",
               alignItems: "center",
-              backgroundColor: "rgba(255,255,255,0.03)",
+              backgroundColor: "var(--surface)",
               borderRadius: 10,
               padding: "8px 10px",
               gap: 4,
             }}
           >
             <div style={{ flex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "#F59E0B" : "#F2F2F2", margin: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--foreground)", margin: 0 }}>
                 {hasRating ? tenant.rating!.toFixed(1) : "—"}
               </p>
-              <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
+              <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
             </div>
-            <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
+            <div style={{ width: 0.5, height: 24, backgroundColor: "var(--border)" }} />
             <div style={{ flex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
                 {tenant.review_count ?? 0}
               </p>
-              <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Reviews</p>
+              <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Reviews</p>
             </div>
-            <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
+            <div style={{ width: 0.5, height: 24, backgroundColor: "var(--border)" }} />
             <div style={{ flex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 12, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>
+              <p style={{ fontSize: 12, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
                 {tenant.city ?? "—"}
               </p>
-              <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ciudad</p>
+              <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ciudad</p>
             </div>
           </div>
         </div>
@@ -370,9 +370,9 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
     <Link href={`/comunidades/${tenant.slug || tenant.id}`} style={{ textDecoration: "none", display: "block" }}>
       <div
         style={{
-          backgroundColor: "#1A1A1E",
+          backgroundColor: "var(--surface-solid)",
           borderRadius: 16,
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--border)",
           overflow: "hidden",
           display: "flex",
           position: "relative",
@@ -396,45 +396,45 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
           <div
             style={{
               width: 52, height: 52, borderRadius: 14,
-              backgroundColor: "#222226", overflow: "hidden",
+              backgroundColor: "var(--surface-solid-secondary)", overflow: "hidden",
               display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, border: "2px solid rgba(255,255,255,0.1)",
+              flexShrink: 0, border: "2px solid var(--border)",
               boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
             }}
           >
             {tenant.logo_url ? (
               <Image src={tenant.logo_url} alt={tenant.name} width={52} height={52} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
-              <span style={{ fontSize: 20, fontWeight: 900, color: "#3B82F6" }}>{tenant.name?.charAt(0)?.toUpperCase()}</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>{tenant.name?.charAt(0)?.toUpperCase()}</span>
             )}
           </div>
 
           {/* Info */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-              <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>
+              <span style={{ fontSize: 15, fontWeight: 800, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>
                 {tenant.name}
               </span>
               {tenant.is_public && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success)", backgroundColor: "rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
                   Activa
                 </span>
               )}
               {tenant.is_open && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#3B82F6", backgroundColor: "rgba(59,130,246,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
                   Abierta
                 </span>
               )}
             </div>
             {tenant.description && (
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {tenant.description}
               </p>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "#888891" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--muted)" }}>
               {hasRating && (
                 <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                  <span style={{ color: "#F59E0B" }}>★</span> {tenant.rating!.toFixed(1)}
+                  <span style={{ color: "var(--warning)" }}>★</span> {tenant.rating!.toFixed(1)}
                 </span>
               )}
               <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -454,15 +454,15 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
           {/* Stats mini on desktop */}
           <div className="hidden sm:flex" style={{ gap: 2, flexShrink: 0 }}>
             <div style={{ textAlign: "center", padding: "4px 10px" }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "#F59E0B" : "#888891", margin: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--muted)", margin: 0 }}>
                 {hasRating ? tenant.rating!.toFixed(1) : "—"}
               </p>
-              <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
+              <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
             </div>
-            <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)", alignSelf: "center" }} />
+            <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)", alignSelf: "center" }} />
             <div style={{ textAlign: "center", padding: "4px 10px" }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{tenant.review_count ?? 0}</p>
-              <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Reviews</p>
+              <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{tenant.review_count ?? 0}</p>
+              <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Reviews</p>
             </div>
           </div>
 
