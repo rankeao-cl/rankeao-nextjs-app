@@ -88,7 +88,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         return map[chatSettings.fontSize] ?? 15;
     })();
 
-    const activeBubbleBg = chatSettings.theme === "green" ? "#25D366" : "#2C2C30";
+    const activeBubbleBg = chatSettings.theme === "green" ? "#25D366" : "var(--surface)";
 
     // Members panel state (CLAN rooms)
     const [showMembersPanel, setShowMembersPanel] = useState(false);

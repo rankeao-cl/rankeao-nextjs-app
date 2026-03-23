@@ -34,19 +34,6 @@ const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
     { key: "torneos", label: "Torneos" },
 ];
 
-// Hardcoded color palette
-const C = {
-    bg: "#000000",
-    surface: "#1A1A1E",
-    surfaceLight: "#222226",
-    border: "rgba(255,255,255,0.06)",
-    text: "#F2F2F2",
-    muted: "#888891",
-    accent: "#3B82F6",
-    online: "#23A559",
-    offline: "#888891",
-} as const;
-
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft, initialFilter }: ChatSidebarProps) {
     const { session } = useAuth();
     const myUsername = session?.username;
@@ -148,13 +135,13 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                     width: 44,
                                     height: 44,
                                     borderRadius: 22,
-                                    backgroundColor: C.surface,
+                                    backgroundColor: "var(--surface-solid)",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
                                 }}
                             >
-                                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={C.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                                     <circle cx="9" cy="7" r="4" />
                                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -168,11 +155,11 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                         width: 44,
                                         height: 44,
                                         borderRadius: 22,
-                                        backgroundColor: C.surface,
+                                        backgroundColor: "var(--surface-solid)",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        color: C.text,
+                                        color: "var(--foreground)",
                                         fontSize: 14,
                                         fontWeight: 700,
                                         overflow: "hidden",
@@ -197,8 +184,8 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                             width: 12,
                                             height: 12,
                                             borderRadius: "50%",
-                                            border: `2px solid ${C.bg}`,
-                                            backgroundColor: isOnline ? C.online : C.offline,
+                                            border: "2px solid var(--background)",
+                                            backgroundColor: isOnline ? "#23A559" : "var(--muted)",
                                         }}
                                     />
                                 )}
@@ -213,7 +200,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 style={{
                                     fontSize: 15,
                                     fontWeight: hasUnread ? 700 : 500,
-                                    color: hasUnread ? C.text : C.muted,
+                                    color: hasUnread ? "var(--foreground)" : "var(--muted)",
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
@@ -226,7 +213,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                     <span
                                         style={{
                                             fontSize: 11,
-                                            color: hasUnread ? C.text : C.muted,
+                                            color: hasUnread ? "var(--foreground)" : "var(--muted)",
                                             fontWeight: hasUnread ? 600 : 400,
                                         }}
                                     >
@@ -239,7 +226,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                             minWidth: 10,
                                             height: 10,
                                             borderRadius: 5,
-                                            backgroundColor: C.accent,
+                                            backgroundColor: "#3B82F6",
                                         }}
                                     />
                                 )}
@@ -248,7 +235,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         <p
                             style={{
                                 fontSize: 13,
-                                color: hasUnread ? C.text : C.muted,
+                                color: hasUnread ? "var(--foreground)" : "var(--muted)",
                                 fontWeight: hasUnread ? 500 : 400,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -263,7 +250,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                             ) : channel.type === "CLAN" ? (
                                 <>Comunidad</>
                             ) : lastSeenText ? (
-                                <span style={isOnline ? { color: C.online } : undefined}>{lastSeenText}</span>
+                                <span style={isOnline ? { color: "#23A559" } : undefined}>{lastSeenText}</span>
                             ) : (
                                 <>Mensaje directo</>
                             )}
@@ -275,7 +262,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     <div
                         style={{
                             height: 1,
-                            backgroundColor: C.border,
+                            backgroundColor: "var(--border)",
                             marginLeft: 72,
                         }}
                     />
@@ -290,7 +277,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 padding: "20px 16px 8px 16px",
                 fontSize: 11,
                 fontWeight: 700,
-                color: C.muted,
+                color: "var(--muted)",
                 textTransform: "uppercase",
                 letterSpacing: 1.2,
             }}
@@ -316,21 +303,21 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     width: 64,
                     height: 64,
                     borderRadius: "50%",
-                    backgroundColor: C.surface,
+                    backgroundColor: "var(--surface-solid)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 16,
                 }}
             >
-                <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: "0 0 4px 0" }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: "0 0 4px 0" }}>
                 Sin chats
             </h3>
-            <p style={{ fontSize: 13, color: C.muted, margin: 0 }}>
+            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
                 {message}
             </p>
             {showButton && (
@@ -338,7 +325,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     onClick={() => setIsNewChatOpen(true)}
                     style={{
                         marginTop: 16,
-                        backgroundColor: C.accent,
+                        backgroundColor: "#3B82F6",
                         color: "#FFFFFF",
                         border: "none",
                         borderRadius: 999,
@@ -363,7 +350,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                             width: 44,
                             height: 44,
                             borderRadius: 22,
-                            backgroundColor: C.surface,
+                            backgroundColor: "var(--surface-solid)",
                             flexShrink: 0,
                             animation: "pulse 1.5s ease-in-out infinite",
                         }}
@@ -374,7 +361,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 height: 12,
                                 width: "70%",
                                 borderRadius: 6,
-                                backgroundColor: C.surface,
+                                backgroundColor: "var(--surface-solid)",
                                 marginBottom: 8,
                                 animation: "pulse 1.5s ease-in-out infinite",
                             }}
@@ -384,7 +371,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 height: 12,
                                 width: "45%",
                                 borderRadius: 6,
-                                backgroundColor: C.surface,
+                                backgroundColor: "var(--surface-solid)",
                                 animation: "pulse 1.5s ease-in-out infinite",
                             }}
                         />
@@ -396,14 +383,14 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     );
 
     return (
-        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", backgroundColor: C.bg }}>
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", backgroundColor: "var(--background)" }}>
             {/* Hero header */}
             <div
                 style={{
                     margin: "12px 16px 14px 16px",
-                    backgroundColor: C.surface,
+                    backgroundColor: "var(--surface-solid)",
                     borderRadius: 16,
-                    border: `1px solid ${C.border}`,
+                    border: "1px solid var(--border)",
                     padding: 18,
                     minHeight: 120,
                     display: "flex",
@@ -415,22 +402,22 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     <span
                         style={{
                             display: "inline-block",
-                            backgroundColor: C.border,
+                            backgroundColor: "var(--border)",
                             paddingLeft: 10,
                             paddingRight: 10,
                             paddingTop: 4,
                             paddingBottom: 4,
                             borderRadius: 999,
                             marginBottom: 8,
-                            color: C.muted,
+                            color: "var(--muted)",
                             fontSize: 11,
                             fontWeight: 600,
                         }}
                     >
                         Mensajes
                     </span>
-                    <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: 0, marginBottom: 4 }}>Tus Chats</h2>
-                    <p style={{ fontSize: 13, color: C.muted, lineHeight: "18px", margin: 0 }}>
+                    <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", margin: 0, marginBottom: 4 }}>Tus Chats</h2>
+                    <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: "18px", margin: 0 }}>
                         Conversa con jugadores de tu comunidad.
                     </p>
                 </div>
@@ -442,7 +429,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         flexDirection: "row",
                         alignItems: "center",
                         gap: 4,
-                        backgroundColor: C.accent,
+                        backgroundColor: "#3B82F6",
                         borderRadius: 12,
                         paddingLeft: 14,
                         paddingRight: 14,
@@ -467,16 +454,16 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
             <div
                 style={{
                     margin: "0 16px 12px 16px",
-                    backgroundColor: C.surface,
+                    backgroundColor: "var(--surface-solid)",
                     borderRadius: 999,
                     padding: "10px 14px",
-                    border: `1px solid ${C.border}`,
+                    border: "1px solid var(--border)",
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
                 }}
             >
-                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -491,7 +478,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         border: "none",
                         outline: "none",
                         fontSize: 14,
-                        color: C.text,
+                        color: "var(--foreground)",
                         padding: 0,
                         margin: 0,
                         lineHeight: "normal",
@@ -519,9 +506,9 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                             fontWeight: 600,
                             whiteSpace: "nowrap",
                             cursor: "pointer",
-                            border: chatFilter === f.key ? "1px solid transparent" : `1px solid ${C.border}`,
-                            backgroundColor: chatFilter === f.key ? C.text : C.surface,
-                            color: chatFilter === f.key ? C.bg : C.muted,
+                            border: chatFilter === f.key ? "1px solid transparent" : "1px solid var(--border)",
+                            backgroundColor: chatFilter === f.key ? "var(--foreground)" : "var(--surface-solid)",
+                            color: chatFilter === f.key ? "var(--background)" : "var(--muted)",
                         }}
                     >
                         {f.label}
