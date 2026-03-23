@@ -1,6 +1,21 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+/* ── Tokens semánticos como clases Tailwind (v4 @theme) ── */
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-solid: var(--surface-solid);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-brand: var(--brand);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
@@ -223,15 +238,15 @@
 }
 
 body {
-  background: #000000;
-  color: #F2F2F2;
+  background: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
   font-family: var(--font-sans), sans-serif;
 }
 
 /* Revert to full bleed */
 #root, .app-shell-container {
-  background: #000000;
+  background: var(--background);
   width: 100%;
   min-height: 100vh;
 }

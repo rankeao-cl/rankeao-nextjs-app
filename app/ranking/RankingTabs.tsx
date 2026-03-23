@@ -29,14 +29,14 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
     if (entries.length === 0) {
         return (
             <div style={{
-                backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)",
                 borderRadius: 16, padding: "64px 24px", textAlign: "center",
             }}>
                 <p style={{ fontSize: 40, marginBottom: 16 }}>{isXp ? "\u{1F4CA}" : "\u2694\uFE0F"}</p>
-                <p style={{ fontSize: 18, fontWeight: 500, color: "#F2F2F2", margin: "0 0 4px" }}>
+                <p style={{ fontSize: 18, fontWeight: 500, color: "var(--foreground)", margin: "0 0 4px" }}>
                     {isXp ? "No hay datos de leaderboard" : "Selecciona un juego y formato"}
                 </p>
-                <p style={{ fontSize: 14, color: "#888891", margin: 0 }}>
+                <p style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>
                     {isXp ? "Aun no hay jugadores en el ranking de XP." : "Usa los filtros para ver el leaderboard de ratings ELO."}
                 </p>
             </div>
@@ -48,7 +48,7 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
             {/* Podium — Top 3 */}
             {top3.length >= 3 && (
                 <div style={{
-                    backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)",
                     borderRadius: 16, padding: "24px 16px 20px",
                 }}>
                     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 12 }}>
@@ -60,7 +60,7 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
                             const value = isXp
                                 ? `${(entry.total_xp ?? 0).toLocaleString()} XP`
                                 : `${entry.rating ?? 0} ELO`;
-                            const valueColor = isXp ? "#3B82F6" : "#F59E0B";
+                            const valueColor = isXp ? "var(--accent)" : "var(--warning)";
 
                             return (
                                 <Link
@@ -79,15 +79,15 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
                                             <img src={entry.avatar_url} alt={entry.username} style={{
                                                 width: isFirst ? 56 : 44, height: isFirst ? 56 : 44,
                                                 borderRadius: 999, objectFit: "cover",
-                                                border: `2px solid ${isFirst ? "#F59E0B" : "rgba(255,255,255,0.12)"}`,
+                                                border: `2px solid ${isFirst ? "var(--warning)" : "var(--border)"}`,
                                             }} />
                                         ) : (
                                             <div style={{
                                                 width: isFirst ? 56 : 44, height: isFirst ? 56 : 44,
-                                                borderRadius: 999, backgroundColor: "#222226",
+                                                borderRadius: 999, backgroundColor: "var(--surface-solid-secondary)",
                                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                                fontSize: isFirst ? 18 : 14, fontWeight: 700, color: "#888891",
-                                                border: `2px solid ${isFirst ? "#F59E0B" : "rgba(255,255,255,0.12)"}`,
+                                                fontSize: isFirst ? 18 : 14, fontWeight: 700, color: "var(--muted)",
+                                                border: `2px solid ${isFirst ? "var(--warning)" : "var(--border)"}`,
                                             }}>
                                                 {entry.username?.charAt(0).toUpperCase()}
                                             </div>
@@ -96,7 +96,7 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
 
                                     {/* Name */}
                                     <span style={{
-                                        fontWeight: 700, color: "#F2F2F2", fontSize: 12,
+                                        fontWeight: 700, color: "var(--foreground)", fontSize: 12,
                                         maxWidth: isFirst ? 100 : 80, overflow: "hidden",
                                         textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center",
                                     }}>
@@ -116,11 +116,11 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
                                         background: isFirst
                                             ? "linear-gradient(180deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05))"
                                             : "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-                                        border: "1px solid rgba(255,255,255,0.06)",
+                                        border: "1px solid var(--border)",
                                         borderBottom: "none",
                                         display: "flex", alignItems: "center", justifyContent: "center",
                                     }}>
-                                        <span style={{ fontSize: 14, fontWeight: 800, color: isFirst ? "#F59E0B" : "#888891" }}>
+                                        <span style={{ fontSize: 14, fontWeight: 800, color: isFirst ? "var(--warning)" : "var(--muted)" }}>
                                             #{rank}
                                         </span>
                                     </div>

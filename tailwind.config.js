@@ -9,6 +9,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Tokens semánticos — se mapean a variables CSS del tema
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        surface: "var(--surface)",
+        "surface-solid": "var(--surface-solid)",
+        muted: "var(--muted)",
+        border: "var(--border)",
+        accent: "var(--accent)",
+        brand: "var(--brand)",
+        danger: "var(--danger)",
+        success: "var(--success)",
+        warning: "var(--warning)",
+        // Alias legacy para retrocompatibilidad
         rankeao: {
           bg: "var(--background)",
           surface: "var(--surface)",

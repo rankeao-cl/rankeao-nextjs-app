@@ -24,8 +24,8 @@ export default function ResetPasswordForm() {
         <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
           <Card.Content className="p-6 space-y-4">
             <p className="kicker">Error</p>
-            <h1 className="text-3xl font-bold text-white">Enlace invalido</h1>
-            <p className="text-sm text-gray-400">
+            <h1 className="text-3xl font-bold text-foreground">Enlace invalido</h1>
+            <p className="text-sm text-muted">
               El enlace no contiene un token valido. Solicita uno nuevo desde la pagina de recuperacion.
             </p>
             <Link href="/forgot-password">
@@ -78,7 +78,7 @@ export default function ResetPasswordForm() {
       <Card className="surface-panel rounded-[22px] max-w-md mx-auto">
         <Card.Content className="p-6 space-y-4">
           <p className="kicker">Seguridad</p>
-          <h1 className="text-3xl font-bold text-white">Nueva contrasena</h1>
+          <h1 className="text-3xl font-bold text-foreground">Nueva contrasena</h1>
 
           {success ? (
             <>
@@ -124,7 +124,7 @@ export default function ResetPasswordForm() {
                   required
                 />
 
-                {error ? <p className="text-sm text-zinc-200">{error}</p> : null}
+                {error ? <p className="text-sm text-foreground">{error}</p> : null}
 
                 <Button
                   type="submit"

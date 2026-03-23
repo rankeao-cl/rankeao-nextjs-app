@@ -21,9 +21,9 @@ export default function FeedClient() {
   return (
     <div
       style={{
-        backgroundColor: "#1A1A1E",
+        backgroundColor: "var(--surface-solid)",
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid var(--border)",
         overflow: "hidden",
       }}
     >
@@ -44,7 +44,7 @@ export default function FeedClient() {
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -53,7 +53,7 @@ export default function FeedClient() {
         >
           <span
             style={{
-              color: "#F2F2F2",
+              color: "var(--foreground)",
               fontSize: 15,
               fontWeight: 700,
             }}
@@ -66,14 +66,14 @@ export default function FeedClient() {
         <div
           style={{
             flex: 1,
-            backgroundColor: "rgba(255,255,255,0.04)",
+            backgroundColor: "var(--field-background)",
             borderRadius: 12,
             paddingLeft: 16,
             paddingRight: 16,
             paddingTop: 10,
             paddingBottom: 10,
-            border: "1px solid rgba(255,255,255,0.06)",
-            color: "#888891",
+            border: "1px solid var(--border)",
+            color: "var(--muted)",
             fontSize: 14,
           }}
         >
@@ -85,7 +85,7 @@ export default function FeedClient() {
       <div
         style={{
           display: "flex",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid var(--border)",
         }}
       >
         {/* Post action — opens modal */}
@@ -104,13 +104,13 @@ export default function FeedClient() {
             marginTop: 6,
             marginBottom: 6,
             borderRadius: 10,
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             border: "none",
             cursor: "pointer",
           }}
         >
-          <Pencil width={14} height={14} color="#F2F2F2" />
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#F2F2F2" }}>Post</span>
+          <Pencil width={14} height={14} color="var(--foreground)" />
+          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>Post</span>
         </button>
 
         {/* Other quick actions */}
@@ -131,12 +131,12 @@ export default function FeedClient() {
               marginTop: 6,
               marginBottom: 6,
               borderRadius: 10,
-              backgroundColor: "#1A1A1E",
+              backgroundColor: "var(--surface-solid)",
               textDecoration: "none",
             }}
           >
-            <action.Icon width={14} height={14} color="#F2F2F2" />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#F2F2F2" }}>{action.label}</span>
+            <action.Icon width={14} height={14} color="var(--foreground)" />
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>{action.label}</span>
           </Link>
         ))}
       </div>

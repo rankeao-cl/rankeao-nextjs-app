@@ -42,11 +42,11 @@ export default function FeedTabs({
               paddingTop: 8,
               paddingBottom: 8,
               borderRadius: 999,
-              backgroundColor: isActive ? "#F2F2F2" : "#1A1A1E",
+              backgroundColor: isActive ? "var(--foreground)" : "var(--surface-solid)",
               border: isActive
                 ? "1px solid transparent"
-                : "1px solid rgba(255,255,255,0.06)",
-              color: isActive ? "#000000" : "#888891",
+                : "1px solid var(--border)",
+              color: isActive ? "var(--background)" : "var(--muted)",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
