@@ -40,7 +40,7 @@ export default function ChatPage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#000000",
+          backgroundColor: "var(--background)",
           gap: 16,
           padding: 16,
           textAlign: "center",
@@ -52,7 +52,7 @@ export default function ChatPage() {
               style={{
                 width: 32,
                 height: 32,
-                border: "3px solid rgba(255,255,255,0.06)",
+                border: "3px solid var(--border)",
                 borderTopColor: "#3B82F6",
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -67,23 +67,23 @@ export default function ChatPage() {
                 width: 64,
                 height: 64,
                 borderRadius: "50%",
-                backgroundColor: "#1A1A1E",
-                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface-solid)",
+                border: "1px solid var(--border)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: "#F2F2F2", margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
               Acceso Denegado
             </h2>
-            <p style={{ fontSize: 13, color: "#888891", margin: 0 }}>
+            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
               Inicia sesión o regístrate para usar el chat.
             </p>
           </>
@@ -93,11 +93,11 @@ export default function ChatPage() {
   }
 
   return (
-    <div style={{ height: "100%", display: "flex", backgroundColor: "#000000", color: "#F2F2F2", overflow: "hidden", position: "relative" }}>
+    <div style={{ height: "100%", display: "flex", backgroundColor: "var(--background)", color: "var(--foreground)", overflow: "hidden", position: "relative" }}>
       {/* Sidebar */}
       <div
         style={{
-          borderRight: "1px solid rgba(255,255,255,0.06)",
+          borderRight: "1px solid var(--border)",
           flexShrink: 0,
           height: "100%",
         }}

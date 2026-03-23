@@ -24,10 +24,10 @@ function StatusIndicator({ status, isMine }: { status?: MessageStatus; isMine: b
     const s = status || "sent";
 
     if (s === "sent") {
-        return <span style={{ color: "#888891", fontSize: 10 }}>&#10003;</span>;
+        return <span style={{ color: "var(--muted)", fontSize: 10 }}>&#10003;</span>;
     }
     if (s === "delivered") {
-        return <span style={{ color: "#888891", fontSize: 10 }}>&#10003;&#10003;</span>;
+        return <span style={{ color: "var(--muted)", fontSize: 10 }}>&#10003;&#10003;</span>;
     }
     // read
     return <span style={{ color: "#3B82F6", fontSize: 10 }}>&#10003;&#10003;</span>;
@@ -45,7 +45,7 @@ function ImageThumbnail({ url }: { url: string }) {
                     borderRadius: 12,
                     overflow: "hidden",
                     maxWidth: 260,
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    border: "1px solid var(--border)",
                     cursor: "pointer",
                     marginTop: 4,
                     padding: 0,
@@ -74,7 +74,7 @@ function ImageThumbnail({ url }: { url: string }) {
                         position: "fixed",
                         inset: 0,
                         zIndex: 9999,
-                        background: "rgba(0,0,0,0.85)",
+                        background: "rgba(0,0,0,0.85)", // intentional overlay — keep
                         backdropFilter: "blur(8px)",
                         display: "flex",
                         alignItems: "center",
@@ -105,8 +105,8 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
         <div style={{
             marginTop: 8,
             borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(26,26,30,0.6)",
+            border: "1px solid var(--border)",
+            background: "var(--surface-solid)",
             overflow: "hidden",
             maxWidth: 280,
         }}>
@@ -120,7 +120,7 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
                             height: 56,
                             borderRadius: 8,
                             objectFit: "cover",
-                            border: "1px solid rgba(255,255,255,0.06)",
+                            border: "1px solid var(--border)",
                             flexShrink: 0,
                         }}
                     />
@@ -129,7 +129,7 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
                     <p style={{
                         fontSize: 13,
                         fontWeight: 700,
-                        color: "#F2F2F2",
+                        color: "var(--foreground)",
                         margin: 0,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -155,7 +155,7 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
                         justifyContent: "center",
                         gap: 6,
                         padding: "8px 10px",
-                        borderTop: "1px solid rgba(255,255,255,0.06)",
+                        borderTop: "1px solid var(--border)",
                         fontSize: 12,
                         fontWeight: 700,
                         color: "#3B82F6",
@@ -178,20 +178,20 @@ function PostEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
         <div style={{
             marginTop: 8,
             borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(26,26,30,0.6)",
+            border: "1px solid var(--border)",
+            background: "var(--surface-solid)",
             padding: 10,
             maxWidth: 280,
         }}>
             {metadata.author_name && (
-                <p style={{ fontSize: 12, fontWeight: 700, color: "#F2F2F2", margin: 0, marginBottom: 4 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: 0, marginBottom: 4 }}>
                     {metadata.author_name}
                 </p>
             )}
             {metadata.post_text && (
                 <p style={{
                     fontSize: 12,
-                    color: "#888891",
+                    color: "var(--muted)",
                     margin: 0,
                     lineHeight: "18px",
                     display: "-webkit-box",
@@ -254,7 +254,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                     margin: 0,
                     fontSize,
                     lineHeight: `${Math.round(fontSize * 1.4)}px`,
-                    color: isMine ? "#FFFFFF" : "#F2F2F2",
+                    color: isMine ? "#FFFFFF" : "var(--foreground)",
                 }}>
                     {text}
                 </p>
@@ -281,8 +281,8 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                                     display: "block",
                                     padding: 10,
                                     borderRadius: 12,
-                                    border: "1px solid rgba(255,255,255,0.06)",
-                                    background: "rgba(26,26,30,0.5)",
+                                    border: "1px solid var(--border)",
+                                    background: "var(--surface-solid)",
                                     fontSize: 13,
                                     textDecoration: "none",
                                     marginTop: 4,
@@ -296,7 +296,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                                 </div>
                                 <p style={{
                                     fontSize: 11,
-                                    color: "#888891",
+                                    color: "var(--muted)",
                                     margin: 0,
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
@@ -308,7 +308,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                                 <p style={{
                                     fontSize: 11,
                                     fontWeight: 600,
-                                    color: "#F2F2F2",
+                                    color: "var(--foreground)",
                                     margin: 0,
                                     marginTop: 6,
                                     opacity: 0.8,
@@ -323,7 +323,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             whiteSpace: "pre-wrap",
                             fontSize,
                             lineHeight: `${Math.round(fontSize * 1.4)}px`,
-                            color: isMine ? "#FFFFFF" : "#F2F2F2",
+                            color: isMine ? "#FFFFFF" : "var(--foreground)",
                         }}>
                             {part}
                         </span>
@@ -347,7 +347,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                 marginRight: isMine ? 0 : "auto",
             }}>
                 <div style={{
-                    background: "rgba(26,26,30,0.50)",
+                    background: "var(--surface-solid)",
                     borderRadius: 18,
                     paddingLeft: 14,
                     paddingRight: 14,
@@ -356,7 +356,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                 }}>
                     <p style={{
                         margin: 0,
-                        color: "#888891",
+                        color: "var(--muted)",
                         fontStyle: "italic",
                         fontSize: 14,
                     }}>
@@ -386,7 +386,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             width: 32,
                             height: 32,
                             borderRadius: 16,
-                            background: "#1A1A1E",
+                            background: "var(--surface-solid)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -399,7 +399,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                                     style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }}
                                 />
                             ) : (
-                                <span style={{ color: "#F2F2F2", fontSize: 12, fontWeight: 600 }}>
+                                <span style={{ color: "var(--foreground)", fontSize: 12, fontWeight: 600 }}>
                                     {message.sender_username?.charAt(0).toUpperCase() || "U"}
                                 </span>
                             )}
@@ -420,7 +420,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                     <span style={{
                         fontSize: 11,
                         fontWeight: 500,
-                        color: "#888891",
+                        color: "var(--muted)",
                         marginBottom: 3,
                         marginLeft: 4,
                         letterSpacing: 0.3,
@@ -431,7 +431,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
 
                 {/* Bubble */}
                 <div style={{
-                    background: isMine ? (bubbleBg || "#2C2C30") : "#1A1A1E",
+                    background: isMine ? (bubbleBg || "#2C2C30") : "var(--surface-solid)",
                     borderRadius: 18,
                     ...(showHeader
                         ? { borderBottomRightRadius: isMine ? 4 : 18, borderBottomLeftRadius: isMine ? 18 : 4 }
@@ -440,7 +440,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                     paddingRight: compactMode ? 10 : 14,
                     paddingTop: compactMode ? 4 : 8,
                     paddingBottom: compactMode ? 4 : 8,
-                    border: isMine ? "none" : "1px solid rgba(255,255,255,0.06)",
+                    border: isMine ? "none" : "1px solid var(--border)",
                 }}>
                     {/* Text content */}
                     {renderContent(textContent)}
@@ -475,7 +475,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             marginTop: 4,
                         }}>
                             {showTimestamps && (
-                                <span style={{ fontSize: 10, fontWeight: 500, color: isMine ? "rgba(255,255,255,0.60)" : "#888891" }}>
+                                <span style={{ fontSize: 10, fontWeight: 500, color: isMine ? "rgba(255,255,255,0.60)" : "var(--muted)" }}>
                                     {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                             )}

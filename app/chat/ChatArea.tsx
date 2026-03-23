@@ -288,27 +288,27 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 justifyContent: "center",
                 gap: 16,
                 padding: 24,
-                background: "#000000",
+                background: "var(--background)",
             }}>
                 <div style={{
                     width: 64,
                     height: 64,
                     borderRadius: 32,
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    background: "#1A1A1E",
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-solid)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#888891",
+                    color: "var(--muted)",
                     fontSize: 28,
                 }}>
                     <Comment />
                 </div>
                 <div style={{ textAlign: "center" }}>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: "#F2F2F2", marginBottom: 4 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>
                         Rankeao Chat
                     </p>
-                    <p style={{ fontSize: 12, color: "#888891", maxWidth: 240, lineHeight: "18px" }}>
+                    <p style={{ fontSize: 12, color: "var(--muted)", maxWidth: 240, lineHeight: "18px" }}>
                         Selecciona una sala o un mensaje directo para comenzar a conversar.
                     </p>
                 </div>
@@ -352,18 +352,18 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
             maxHeight: "100%",
             overflow: "hidden",
             position: "relative",
-            background: "#000000",
+            background: "var(--background)",
         }}>
             {/* ── Header ── */}
             <div style={{
                 height: 64,
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                borderBottom: "1px solid var(--border)",
                 display: "flex",
                 alignItems: "center",
                 paddingLeft: 12,
                 paddingRight: 12,
                 gap: 10,
-                background: "#000000",
+                background: "var(--background)",
                 flexShrink: 0,
             }}>
                 {/* Back button */}
@@ -374,7 +374,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         width: 36,
                         height: 36,
                         borderRadius: 18,
-                        background: "#1A1A1E",
+                        background: "var(--surface-solid)",
                         border: "none",
                         display: "flex",
                         alignItems: "center",
@@ -384,7 +384,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     }}
                     className="md:hidden"
                 >
-                    <ChevronLeft style={{ width: 20, height: 20, color: "#F2F2F2" }} />
+                    <ChevronLeft style={{ width: 20, height: 20, color: "var(--foreground)" }} />
                 </button>
 
                 {/* Avatar */}
@@ -407,11 +407,11 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             width: 40,
                             height: 40,
                             borderRadius: 20,
-                            background: "#1A1A1E",
+                            background: "var(--surface-solid)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "#888891",
+                            color: "var(--muted)",
                         }}>
                             <Persons style={{ width: 20, height: 20 }} />
                         </div>
@@ -426,7 +426,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                         height: 40,
                                         borderRadius: 20,
                                         objectFit: "cover",
-                                        background: "#1A1A1E",
+                                        background: "var(--surface-solid)",
                                     }}
                                 />
                             ) : (
@@ -434,11 +434,11 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                     width: 40,
                                     height: 40,
                                     borderRadius: 20,
-                                    background: "#1A1A1E",
+                                    background: "var(--surface-solid)",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    color: "#FFFFFF",
+                                    color: "var(--foreground)",
                                     fontSize: 14,
                                     fontWeight: 700,
                                 }}>
@@ -453,8 +453,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                     width: 12,
                                     height: 12,
                                     borderRadius: 6,
-                                    border: "2px solid #000000",
-                                    background: isOnline ? "#23A559" : "#888891",
+                                    border: "2px solid var(--background)",
+                                    background: isOnline ? "#23A559" : "var(--muted)",
                                 }} />
                             )}
                         </>
@@ -467,7 +467,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         <p style={{
                             fontSize: 15,
                             fontWeight: 700,
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             lineHeight: "18px",
                             margin: 0,
                             overflow: "hidden",
@@ -493,7 +493,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     <p style={{
                         fontSize: 11,
                         fontWeight: 500,
-                        color: isClan ? "#3B82F6" : isGroup ? "#888891" : (isOnline ? "#23A559" : "#888891"),
+                        color: isClan ? "#3B82F6" : isGroup ? "var(--muted)" : (isOnline ? "#23A559" : "var(--muted)"),
                         textTransform: "uppercase",
                         letterSpacing: 0.5,
                         margin: 0,
@@ -517,7 +517,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             width: 36,
                             height: 36,
                             borderRadius: 18,
-                            background: showMembersPanel ? "rgba(59,130,246,0.15)" : "#1A1A1E",
+                            background: showMembersPanel ? "rgba(59,130,246,0.15)" : "var(--surface-solid)",
                             border: "none",
                             display: "flex",
                             alignItems: "center",
@@ -526,7 +526,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             flexShrink: 0,
                         }}
                     >
-                        <Persons style={{ width: 18, height: 18, color: showMembersPanel ? "#3B82F6" : "#888891" }} />
+                        <Persons style={{ width: 18, height: 18, color: showMembersPanel ? "#3B82F6" : "var(--muted)" }} />
                     </button>
                 )}
 
@@ -538,7 +538,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         width: 36,
                         height: 36,
                         borderRadius: 18,
-                        background: "#1A1A1E",
+                        background: "var(--surface-solid)",
                         border: "none",
                         display: "flex",
                         alignItems: "center",
@@ -547,7 +547,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         flexShrink: 0,
                     }}
                 >
-                    <Gear style={{ width: 18, height: 18, color: "#888891" }} />
+                    <Gear style={{ width: 18, height: 18, color: "var(--muted)" }} />
                 </button>
             </div>
 
@@ -574,15 +574,15 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "16px 0" }}>
                             {/* Skeleton placeholders */}
                             <div style={{ display: "flex", gap: 8, maxWidth: "70%" }}>
-                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "#1A1A1E", flexShrink: 0 }} />
-                                <div style={{ width: 200, height: 48, borderRadius: 18, background: "#1A1A1E" }} />
+                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "var(--surface-solid)", flexShrink: 0 }} />
+                                <div style={{ width: 200, height: 48, borderRadius: 18, background: "var(--surface-solid)" }} />
                             </div>
                             <div style={{ display: "flex", gap: 8, maxWidth: "70%", alignSelf: "flex-end", flexDirection: "row-reverse" }}>
-                                <div style={{ width: 180, height: 40, borderRadius: 18, background: "#2C2C30" }} />
+                                <div style={{ width: 180, height: 40, borderRadius: 18, background: "var(--surface-solid)" }} />
                             </div>
                             <div style={{ display: "flex", gap: 8, maxWidth: "70%" }}>
-                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "#1A1A1E", flexShrink: 0 }} />
-                                <div style={{ width: 240, height: 56, borderRadius: 18, background: "#1A1A1E" }} />
+                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "var(--surface-solid)", flexShrink: 0 }} />
+                                <div style={{ width: 240, height: 56, borderRadius: 18, background: "var(--surface-solid)" }} />
                             </div>
                         </div>
                     ) : messages.length === 0 ? (
@@ -598,21 +598,21 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                 width: 64,
                                 height: 64,
                                 borderRadius: 32,
-                                background: "#1A1A1E",
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                background: "var(--surface-solid)",
+                                border: "1px solid var(--border)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                color: "#888891",
+                                color: "var(--muted)",
                                 fontSize: 28,
                                 marginBottom: 12,
                             }}>
                                 <Comment />
                             </div>
-                            <p style={{ fontSize: 14, fontWeight: 600, color: "#F2F2F2", margin: 0 }}>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
                                 Aún no hay mensajes
                             </p>
-                            <p style={{ fontSize: 12, color: "#888891", margin: 0, marginTop: 4 }}>
+                            <p style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginTop: 4 }}>
                                 Sé el primero en saludar.
                             </p>
                         </div>
@@ -629,8 +629,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                     <span style={{
                                         fontSize: 11,
                                         fontWeight: 600,
-                                        color: "#888891",
-                                        background: "#1A1A1E",
+                                        color: "var(--muted)",
+                                        background: "var(--surface-solid)",
                                         paddingLeft: 10,
                                         paddingRight: 10,
                                         paddingTop: 4,
@@ -681,9 +681,9 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                 width: 40,
                                 height: 40,
                                 borderRadius: 20,
-                                border: "1px solid rgba(255,255,255,0.06)",
-                                background: newMessagesCount > 0 ? "#F2F2F2" : "#1A1A1E",
-                                color: newMessagesCount > 0 ? "#000000" : "#F2F2F2",
+                                border: "1px solid var(--border)",
+                                background: newMessagesCount > 0 ? "var(--foreground)" : "var(--surface-solid)",
+                                color: newMessagesCount > 0 ? "var(--background)" : "var(--foreground)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -715,19 +715,19 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             {m.avatar_url ? (
                                 <img src={m.avatar_url} alt={m.username} style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }} />
                             ) : (
-                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "#1A1A1E", display: "flex", alignItems: "center", justifyContent: "center", color: "#888891", fontSize: 12, fontWeight: 700 }}>
+                                <div style={{ width: 32, height: 32, borderRadius: 16, background: "var(--surface-solid)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontSize: 12, fontWeight: 700 }}>
                                     {m.username?.charAt(0).toUpperCase()}
                                 </div>
                             )}
                             <span style={{
                                 position: "absolute", bottom: 0, right: 0,
                                 width: 10, height: 10, borderRadius: 5,
-                                border: "2px solid #000000",
-                                background: m.is_online ? "#23A559" : "#888891",
+                                border: "2px solid var(--background)",
+                                background: m.is_online ? "#23A559" : "var(--muted)",
                             }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 13, fontWeight: 600, color: "#F2F2F2", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {m.username}
                             </p>
                             {m.role && m.role !== "MEMBER" && (
@@ -746,13 +746,13 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 return (
                     <div className="hidden md:flex" style={{
                         width: 240, flexShrink: 0,
-                        borderLeft: "1px solid rgba(255,255,255,0.06)",
-                        background: "#000000",
+                        borderLeft: "1px solid var(--border)",
+                        background: "var(--background)",
                         flexDirection: "column",
                         overflowY: "auto",
                     }}>
-                        <div style={{ padding: "14px 12px 8px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                            <p style={{ fontSize: 12, fontWeight: 700, color: "#F2F2F2", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                        <div style={{ padding: "14px 12px 8px", borderBottom: "1px solid var(--border)" }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
                                 Miembros ({members.length})
                             </p>
                         </div>
@@ -766,7 +766,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         )}
                         {offline.length > 0 && (
                             <div style={{ paddingTop: 8 }}>
-                                <p style={{ fontSize: 10, fontWeight: 600, color: "#888891", padding: "0 12px 4px", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                <p style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", padding: "0 12px 4px", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
                                     Desconectados — {offline.length}
                                 </p>
                                 {offline.map(renderMember)}
@@ -783,7 +783,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 <div style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 8, flexShrink: 0 }}>
                     <p style={{
                         fontSize: 12,
-                        color: "#888891",
+                        color: "var(--muted)",
                         fontWeight: 500,
                         margin: 0,
                         display: "flex",
@@ -791,9 +791,9 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         gap: 6,
                     }}>
                         <span style={{ display: "inline-flex", gap: 2 }}>
-                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "#888891", animationDelay: "0ms" }} />
-                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "#888891", animationDelay: "150ms" }} />
-                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "#888891", animationDelay: "300ms" }} />
+                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "var(--muted)", animationDelay: "0ms" }} />
+                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "var(--muted)", animationDelay: "150ms" }} />
+                            <span className="animate-bounce" style={{ width: 5, height: 5, borderRadius: 3, background: "var(--muted)", animationDelay: "300ms" }} />
                         </span>
                         escribiendo...
                     </p>
@@ -809,8 +809,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         gap: 8,
                         padding: 8,
                         borderRadius: 12,
-                        background: "rgba(26,26,30,0.5)",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        background: "var(--surface-solid)",
+                        border: "1px solid var(--border)",
                     }}>
                         <img
                             src={imagePreviewUrl}
@@ -820,7 +820,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                 height: 64,
                                 borderRadius: 8,
                                 objectFit: "cover",
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                border: "1px solid var(--border)",
                             }}
                         />
                         <button
@@ -829,13 +829,13 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                 width: 20,
                                 height: 20,
                                 borderRadius: 10,
-                                background: "#1A1A1E",
-                                border: "1px solid rgba(255,255,255,0.06)",
+                                background: "var(--surface-solid)",
+                                border: "1px solid var(--border)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 cursor: "pointer",
-                                color: "#888891",
+                                color: "var(--muted)",
                             }}
                         >
                             <Xmark style={{ width: 12, height: 12 }} />
@@ -850,8 +850,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 paddingRight: 16,
                 paddingTop: 12,
                 paddingBottom: 16,
-                borderTop: "1px solid rgba(255,255,255,0.06)",
-                background: "#000000",
+                borderTop: "1px solid var(--border)",
+                background: "var(--background)",
                 flexShrink: 0,
             }}>
                 <form
@@ -860,8 +860,8 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         display: "flex",
                         alignItems: "flex-end",
                         gap: 0,
-                        background: "#1A1A1E",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        background: "var(--surface-solid)",
+                        border: "1px solid var(--border)",
                         borderRadius: 999,
                         paddingLeft: 4,
                         paddingRight: 4,
@@ -893,7 +893,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
-                            color: "#888891",
+                            color: "var(--muted)",
                             flexShrink: 0,
                         }}
                     >
@@ -917,7 +917,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             border: "none",
                             outline: "none",
                             resize: "none",
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             fontSize: 14,
                             paddingLeft: 12,
                             paddingRight: 12,
@@ -938,13 +938,13 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             width: 36,
                             height: 36,
                             borderRadius: 18,
-                            background: hasText ? "#F2F2F2" : "transparent",
+                            background: hasText ? "var(--foreground)" : "transparent",
                             border: "none",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: hasText ? "pointer" : "default",
-                            color: hasText ? "#000000" : "#888891",
+                            color: hasText ? "var(--background)" : "var(--muted)",
                             flexShrink: 0,
                             transition: "background 0.15s, color 0.15s",
                         }}

@@ -13,19 +13,19 @@ import { useRouter } from "next/navigation";
 
 // ── Colors ──
 const C = {
-  bg: "#000000",
-  surface: "#1A1A1E",
-  border: "rgba(255,255,255,0.06)",
-  text: "#F2F2F2",
-  muted: "#888891",
-  gray: "#5C5C66",
+  bg: "var(--background)",
+  surface: "var(--surface-solid)",
+  border: "var(--border)",
+  text: "var(--foreground)",
+  muted: "var(--muted)",
+  gray: "var(--muted)",
   accent: "#3B82F6",
   danger: "#ED4245",
   dangerBg: "rgba(237,66,69,0.1)",
-  iconBg: "rgba(255,255,255,0.05)",
-  switchOff: "#3a3a3c",
-  switchOn: "#F2F2F2",
-  versionText: "#3C3C43",
+  iconBg: "var(--surface-solid)",
+  switchOff: "var(--muted)",
+  switchOn: "var(--foreground)",
+  versionText: "var(--muted)",
 };
 
 // ── Inline SVG Icons ──
@@ -238,7 +238,7 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
           display: "flex", flexDirection: "column",
           overflowY: "auto",
         }}
-        className="flex-1 md:flex-none md:w-full md:max-w-[440px] md:rounded-2xl md:border md:border-[rgba(255,255,255,0.06)] md:max-h-[80vh]"
+        className="flex-1 md:flex-none md:w-full md:max-w-[440px] md:rounded-2xl md:border md:border-border md:max-h-[80vh]"
       >
         {children}
       </div>
@@ -589,7 +589,7 @@ export default function ConfigPage() {
                   style={{
                     display: "flex", alignItems: "center", padding: "10px 12px",
                     borderRadius: 10, border: "none", cursor: "pointer",
-                    backgroundColor: activeSection === s.key ? "rgba(255,255,255,0.08)" : "transparent",
+                    backgroundColor: activeSection === s.key ? "var(--surface-solid)" : "transparent",
                     color: activeSection === s.key ? C.text : C.muted,
                     fontSize: 14, fontWeight: activeSection === s.key ? 600 : 500,
                     textAlign: "left", width: "100%",
