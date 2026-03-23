@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { timeAgo, stripHtml } from "@/lib/utils/format";
-import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { RankeaoLogo } from "./icons/RankeaoLogo";
 import NavbarSearch from "./NavbarSearch";
 
-import { Avatar, Button, Popover, ScrollShadow } from "@heroui/react";
+import { Avatar, Button, Popover } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 import { useCreatePostModal } from "@/context/CreatePostModalContext";
 import {
@@ -17,7 +15,6 @@ import {
   Bell,
   Magnifier,
   ShoppingCart,
-  StarFill,
   Plus,
   Xmark,
   SquareDashed,
@@ -26,23 +23,16 @@ import {
   Cup,
   Gear,
   Pencil,
-  Comment,
 } from "@gravity-ui/icons";
 import { useTheme } from "next-themes";
-import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
+import { getUnreadNotificationCount } from "@/lib/api/notifications";
 import { getUserProfile } from "@/lib/api/social";
-import type { Notification } from "@/lib/types/notification";
-
-
-function getNotifCategory(notif: Notification): string {
-  return notif.category || notif.type || "system";
-}
+import NotificationSidebar from "./NotificationSidebar";
 
 const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { session, status, logout } = useAuth();
   const { openCreatePost } = useCreatePostModal();
   const isAuthenticated = status === "authenticated" && Boolean(session?.email);
@@ -52,9 +42,9 @@ export default function Navbar() {
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [notifSidebarOpen, setNotifSidebarOpen] = useState(false);
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
@@ -63,25 +53,15 @@ export default function Navbar() {
 
     const token = session.accessToken;
 
-    const fetchAll = () => {
-      Promise.all([
-        getNotifications({ per_page: 10 }, token).catch(() => null),
-        getUnreadNotificationCount(token).catch(() => null),
-      ]).then(([notifRes, countRes]) => {
-        const raw = notifRes?.notifications ?? [];
-        if (Array.isArray(raw)) setNotifications(raw);
+    const pollCount = () => {
+      getUnreadNotificationCount(token).catch(() => null).then((countRes) => {
         const total = countRes?.total;
         if (typeof total === "number") setUnreadCount(total);
       });
     };
 
-    fetchAll();
-    const interval = setInterval(() => {
-      getUnreadNotificationCount(token).catch(() => null).then((countRes) => {
-        const total = countRes?.total;
-        if (typeof total === "number") setUnreadCount(total);
-      });
-    }, 30_000);
+    pollCount();
+    const interval = setInterval(pollCount, 30_000);
 
     // Fetch user avatar once
     if (session.username) {
@@ -98,17 +78,6 @@ export default function Navbar() {
     return null;
   }
 
-  const handleMarkAllRead = async () => {
-    try {
-      if (session?.accessToken) {
-        await markAllNotificationsRead(session.accessToken);
-        setUnreadCount(0);
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-      }
-    } catch {
-      // ignore
-    }
-  };
 
   return (
     <header
@@ -221,94 +190,19 @@ export default function Navbar() {
 
                 {isAuthenticated ? (
                   <>
-                    {/* Notifications */}
-                    <Popover>
-                      <Popover.Trigger
-                        className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-[#888891] cursor-pointer hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
-                      >
-                        <Bell className="size-[18px]" />
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 border-2 border-[#000000]">
-                            {unreadCount > 9 ? "9+" : unreadCount}
-                          </span>
-                        )}
-                      </Popover.Trigger>
-                      <Popover.Content className="w-[340px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
-                        <div className="flex flex-col w-full">
-                          {/* Header with gradient bar */}
-                          <div className="relative">
-                            <div className="absolute top-0 inset-x-0 h-0.5 bg-[#3B82F6]" />
-                            <div className="px-4 py-3 pt-4 flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-sm text-[#F2F2F2]">Notificaciones</h3>
-                                {unreadCount > 0 && (
-                                  <span className="text-[11px] font-bold bg-[#3B82F6]/15 text-[#3B82F6] px-1.5 py-0.5 rounded-full">{unreadCount} nuevas</span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {notifications.length > 0 && (
-                                  <button onClick={handleMarkAllRead} className="text-[11px] text-[#3B82F6] hover:underline font-bold cursor-pointer">Marcar leídas</button>
-                                )}
-                                <Link href="/config" className="text-[11px] text-[#888891] hover:text-[#F2F2F2] transition-colors font-semibold">⚙️</Link>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="border-t border-[rgba(255,255,255,0.06)]">
-                            <ScrollShadow className="max-h-[360px] w-full custom-scrollbar">
-                              <div className="flex flex-col">
-                                {notifications.length === 0 ? (
-                                  <div className="py-10 px-6 text-center">
-                                    <div className="w-14 h-14 rounded-2xl bg-[#3B82F6]/10 flex items-center justify-center mx-auto mb-3">
-                                      <Bell className="size-6 text-[#3B82F6] opacity-60" />
-                                    </div>
-                                    <p className="text-sm font-semibold text-[#F2F2F2] mb-1">Todo al día</p>
-                                    <p className="text-xs text-[#888891]">No tienes notificaciones pendientes</p>
-                                  </div>
-                                ) : (
-                                  notifications.map((notif) => {
-                                    const cat = getNotifCategory(notif);
-                                    const inner = (
-                                      <div className={`flex gap-3 px-3 py-3 mx-1.5 my-0.5 rounded-lg hover:bg-[#222226] transition-colors cursor-pointer relative ${!notif.is_read ? "bg-[#3B82F6]/5" : ""}`}>
-                                        {!notif.is_read && (
-                                          <div className="absolute top-3 left-1 w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
-                                        )}
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cat === "social" ? "bg-blue-500/15 text-blue-500" : cat === "marketplace" ? "bg-orange-500/15 text-orange-500" : cat === "tournament" ? "bg-purple-500/15 text-purple-500" : "bg-[rgba(255,255,255,0.08)] text-[#888891]"}`}>
-                                          {cat === "social" && <Person className="size-4" />}
-                                          {cat === "marketplace" && <ShoppingCart className="size-4" />}
-                                          {cat === "tournament" && <StarFill className="size-4" />}
-                                          {cat === "system" && <Bell className="size-4" />}
-                                        </div>
-                                        <div className="flex flex-col flex-1 leading-snug min-w-0">
-                                          <p className={`text-[13px] text-[#F2F2F2] leading-relaxed ${!notif.is_read ? "font-semibold" : ""}`}>
-                                            {stripHtml(notif.title || "Nueva notificación")}
-                                          </p>
-                                          <p className="text-[11px] text-[#888891] mt-1 font-medium">{timeAgo(notif.created_at, { verbose: true })}</p>
-                                        </div>
-                                      </div>
-                                    );
-                                    return notif.action_url ? (
-                                      <Link key={notif.id} href={notif.action_url}>{inner}</Link>
-                                    ) : (
-                                      <div key={notif.id}>{inner}</div>
-                                    );
-                                  })
-                                )}
-                              </div>
-                            </ScrollShadow>
-                          </div>
-
-                          {/* Footer */}
-                          {notifications.length > 0 && (
-                            <div className="p-2 border-t border-[rgba(255,255,255,0.06)]">
-                              <Link href="/notificaciones" className="flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold text-[#3B82F6] hover:bg-[#3B82F6]/10 transition-colors">
-                                Ver todas las notificaciones →
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      </Popover.Content>
-                    </Popover>
+                    {/* Notifications — opens sidebar */}
+                    <button
+                      onClick={() => setNotifSidebarOpen(true)}
+                      className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-[#888891] cursor-pointer hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-colors"
+                      aria-label="Notificaciones"
+                    >
+                      <Bell className="size-[18px]" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 border-2 border-[#000000]">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
 
                     {/* Create Menu */}
                     <Popover>
@@ -452,6 +346,16 @@ export default function Navbar() {
             </div>
           </>
         )}
+      </div>
+
+      {/* Notification sidebar — desktop only (mobile uses /notificaciones page) */}
+      <div className="hidden md:block">
+        <NotificationSidebar
+          isOpen={notifSidebarOpen}
+          onClose={() => setNotifSidebarOpen(false)}
+          accessToken={session?.accessToken}
+          onUnreadCountChange={setUnreadCount}
+        />
       </div>
     </header>
   );
