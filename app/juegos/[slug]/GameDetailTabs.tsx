@@ -27,10 +27,10 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                 {game.description && (
                     <section style={{
                         padding: "16px 18px", borderRadius: 16,
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        backgroundColor: "#1A1A1E",
+                        border: "1px solid var(--border)",
+                        backgroundColor: "var(--surface-solid)",
                     }}>
-                        <p style={{ fontSize: 13, color: "#C8C8CC", lineHeight: "20px", margin: 0, whiteSpace: "pre-wrap" }}>
+                        <p style={{ fontSize: 13, color: "var(--foreground)", lineHeight: "20px", margin: 0, whiteSpace: "pre-wrap" }}>
                             {game.description}
                         </p>
                     </section>
@@ -39,14 +39,14 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                 {/* Formats */}
                 <section>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <h2 style={{ fontSize: 15, fontWeight: 700, color: "#F2F2F2", margin: 0 }}>Formatos Competitivos</h2>
+                        <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Formatos Competitivos</h2>
                     </div>
                     {formats.length > 0 ? (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
                             {formats.map((format) => (
                                 <div key={format.id} style={{
                                     padding: "14px 16px", borderRadius: 14,
-                                    border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "#1A1A1E",
+                                    border: "1px solid var(--border)", backgroundColor: "var(--surface-solid)",
                                     display: "flex", alignItems: "center", gap: 12,
                                 }}>
                                     <div style={{
@@ -59,7 +59,7 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                                         </span>
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <p style={{ fontWeight: 600, fontSize: 13, color: "#F2F2F2", margin: 0 }}>{format.name}</p>
+                                        <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{format.name}</p>
                                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                                             {format.is_ranked && (
                                                 <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 999, backgroundColor: "rgba(234,179,8,0.1)", color: "#EAB308" }}>
@@ -79,8 +79,8 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                             ))}
                         </div>
                     ) : (
-                        <div style={{ padding: 32, borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "#1A1A1E", textAlign: "center" }}>
-                            <p style={{ fontSize: 13, color: "#888891", margin: 0 }}>No hay formatos registrados aun.</p>
+                        <div style={{ padding: 32, borderRadius: 14, border: "1px solid var(--border)", backgroundColor: "var(--surface-solid)", textAlign: "center" }}>
+                            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>No hay formatos registrados aun.</p>
                         </div>
                     )}
                 </section>
@@ -105,8 +105,8 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                     ].map((link) => (
                         <Link key={link.href} href={link.href} style={{
                             display: "inline-flex", alignItems: "center", gap: 4,
-                            backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10,
-                            padding: "8px 14px", fontSize: 12, fontWeight: 600, color: "#F2F2F2", textDecoration: "none",
+                            backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", borderRadius: 10,
+                            padding: "8px 14px", fontSize: 12, fontWeight: 600, color: "var(--foreground)", textDecoration: "none",
                         }} className="hover:border-[rgba(255,255,255,0.15)]">
                             {link.label} &rarr;
                         </Link>

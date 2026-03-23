@@ -39,15 +39,15 @@ export default function JuegosExplorer({ games }: Props) {
         <div>
             {/* Search + toggle */}
             <div className="flex items-center gap-2 mb-3">
-                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 999, padding: "10px 14px" }}>
-                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", borderRadius: 999, padding: "10px 14px" }}>
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <input type="text" placeholder="Buscar juego..." value={query} onChange={(e) => setQuery(e.target.value)}
-                        style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: 14, color: "#F2F2F2", padding: 0 }} />
+                        style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: 14, color: "var(--foreground)", padding: 0 }} />
                     {query && (
                         <button onClick={() => setQuery("")} style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
                             </svg>
                         </button>
@@ -69,11 +69,11 @@ export default function JuegosExplorer({ games }: Props) {
                     {filtered.map((game) => <GameCard key={game.slug} game={game} />)}
                     {filtered.length === 0 && (
                         <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 0" }}>
-                            <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "#1A1A1E", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                            <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "var(--surface-solid)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
                                 <span style={{ fontSize: 28, opacity: 0.4 }}>🎮</span>
                             </div>
-                            <p style={{ color: "#F2F2F2", fontSize: 15, fontWeight: 600, margin: "0 0 4px" }}>No se encontraron juegos</p>
-                            <p style={{ color: "#888891", fontSize: 13, margin: 0 }}>Intenta con otro termino de busqueda</p>
+                            <p style={{ color: "var(--foreground)", fontSize: 15, fontWeight: 600, margin: "0 0 4px" }}>No se encontraron juegos</p>
+                            <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>Intenta con otro termino de busqueda</p>
                         </div>
                     )}
                 </div>
@@ -82,8 +82,8 @@ export default function JuegosExplorer({ games }: Props) {
                     {filtered.map((game) => <GameListRow key={game.slug} game={game} />)}
                     {filtered.length === 0 && (
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 0" }}>
-                            <p style={{ color: "#F2F2F2", fontSize: 15, fontWeight: 600, margin: "0 0 4px" }}>No se encontraron juegos</p>
-                            <p style={{ color: "#888891", fontSize: 13, margin: 0 }}>Intenta con otro termino de busqueda</p>
+                            <p style={{ color: "var(--foreground)", fontSize: 15, fontWeight: 600, margin: "0 0 4px" }}>No se encontraron juegos</p>
+                            <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>Intenta con otro termino de busqueda</p>
                         </div>
                     )}
                 </div>
@@ -100,14 +100,14 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
     return (
         <Link href={`/juegos/${game.slug}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <div style={{
-                backgroundColor: "#1A1A1E", borderRadius: 20,
-                border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+                backgroundColor: "var(--surface-solid)", borderRadius: 20,
+                border: "1px solid var(--border)", overflow: "hidden",
                 height: "100%", display: "flex", flexDirection: "column",
             }}>
                 {/* Banner area with brand gradient */}
                 <div style={{ height: 100, position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, #1A1A1E)` }} />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #1A1A1E 0%, rgba(26,26,30,0.4) 60%, rgba(0,0,0,0.1) 100%)" }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, var(--surface-solid))` }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--surface-solid) 0%, color-mix(in srgb, var(--surface-solid) 40%, transparent) 60%, rgba(0,0,0,0.1) 100%)" }} />
 
                     {/* Floating badges */}
                     <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 4 }}>
@@ -122,14 +122,14 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
                     <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 14px 12px", display: "flex", alignItems: "flex-end", gap: 12 }}>
                         <div style={{
                             width: 52, height: 52, borderRadius: 14,
-                            border: "3px solid #1A1A1E", backgroundColor: "#222226", overflow: "hidden",
+                            border: "3px solid var(--surface-solid)", backgroundColor: "var(--surface)", overflow: "hidden",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             flexShrink: 0, boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
                         }}>
                             <GameLogo game={game} size={52} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0, marginBottom: 2 }}>
-                            <h3 style={{ fontSize: 16, fontWeight: 800, color: "#FFFFFF", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
+                            <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
                                 {game.name}
                             </h3>
                             {game.publisher && (
@@ -142,7 +142,7 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
                 {/* Content */}
                 <div style={{ padding: "10px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
                     {game.description ? (
-                        <p className="line-clamp-2" style={{ fontSize: 12, color: "#888891", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
+                        <p className="line-clamp-2" style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
                             {game.description}
                         </p>
                     ) : (
@@ -161,7 +161,7 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
                                 </span>
                             ))}
                             {formats.length > 4 && (
-                                <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6, color: "#888891", backgroundColor: "#222226" }}>
+                                <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6, color: "var(--muted)", backgroundColor: "var(--surface)" }}>
                                     +{formats.length - 4}
                                 </span>
                             )}
@@ -175,18 +175,18 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
                     }}>
                         <div style={{ flex: 1, textAlign: "center" }}>
                             <p style={{ fontSize: 14, fontWeight: 800, color: brand.color, margin: 0 }}>{formats.length}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
                         </div>
                         <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{game.tournaments_count ?? 0}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{game.tournaments_count ?? 0}</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
                         </div>
                         {(game.sets_count ?? 0) > 0 && (<>
                             <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
                             <div style={{ flex: 1, textAlign: "center" }}>
-                                <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{game.sets_count}</p>
-                                <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Sets</p>
+                                <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{game.sets_count}</p>
+                                <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Sets</p>
                             </div>
                         </>)}
                     </div>
@@ -204,8 +204,8 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
     return (
         <Link href={`/juegos/${game.slug}`} style={{ textDecoration: "none", display: "block" }}>
             <div style={{
-                backgroundColor: "#1A1A1E", borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+                backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                border: "1px solid var(--border)", overflow: "hidden",
                 display: "flex", position: "relative",
             }}>
                 {/* Brand gradient background */}
@@ -217,7 +217,7 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
                 <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", width: "100%" }}>
                     {/* Logo */}
                     <div style={{
-                        width: 48, height: 48, borderRadius: 12, backgroundColor: "#222226", overflow: "hidden",
+                        width: 48, height: 48, borderRadius: 12, backgroundColor: "var(--surface)", overflow: "hidden",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0, border: `2px solid ${brand.color}30`, boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
                     }}>
@@ -227,10 +227,10 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
                     {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                            <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{game.name}</span>
-                            {game.publisher && <span style={{ fontSize: 11, color: "#888891", flexShrink: 0 }}>{game.publisher}</span>}
+                            <span style={{ fontSize: 15, fontWeight: 800, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{game.name}</span>
+                            {game.publisher && <span style={{ fontSize: 11, color: "var(--muted)", flexShrink: 0 }}>{game.publisher}</span>}
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#888891" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--muted)" }}>
                             <span><span style={{ fontWeight: 700, color: brand.color }}>{formats.length}</span> formatos</span>
                             {formats.slice(0, 3).map((f) => (
                                 <span key={f.id || f.slug} style={{ backgroundColor: `${brand.color}15`, color: brand.color, padding: "1px 6px", borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
@@ -245,12 +245,12 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
                     <div className="hidden sm:flex" style={{ gap: 2, flexShrink: 0 }}>
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
                             <p style={{ fontSize: 14, fontWeight: 800, color: brand.color, margin: 0 }}>{formats.length}</p>
-                            <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
+                            <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
                         </div>
                         <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)", alignSelf: "center" }} />
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{game.tournaments_count ?? 0}</p>
-                            <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{game.tournaments_count ?? 0}</p>
+                            <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
                         </div>
                     </div>
 
