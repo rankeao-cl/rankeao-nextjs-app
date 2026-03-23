@@ -81,14 +81,14 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                 </div>
             </div>
 
-            {/* Card image - aspect ratio 63:88 */}
+            {/* Card image */}
             {imageUrl && (
                 <Link href={`/marketplace/${listing.id}`}>
                     <div
                         style={{
                             position: "relative",
                             width: "100%",
-                            aspectRatio: "63 / 88",
+                            height: 320,
                             background: "var(--background)",
                         }}
                     >
