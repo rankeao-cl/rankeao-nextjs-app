@@ -180,7 +180,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     return (
         <div className="flex flex-col w-full">
             {/* ── Banner Hero con imagen de fondo y overlay degradado ── */}
-            <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden" style={{ backgroundColor: "#0e0e14" }}>
+            <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden" style={{ backgroundColor: "var(--surface-solid)" }}>
                 {/* Imagen de fondo */}
                 {bannerBg ? (
                     <Image
