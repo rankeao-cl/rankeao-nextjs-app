@@ -29,11 +29,14 @@ import {
 import { getUserStats, getBadges } from "@/lib/api/gamification";
 import { getUserTournamentHistory } from "@/lib/api/ratings";
 import { getListings } from "@/lib/api/marketplace";
+import { getDuels } from "@/lib/api/duels";
 import SaleCard from "@/components/cards/SaleCard";
-import { Person, Envelope, Cup, MapPin, Xmark, EllipsisVertical, CircleCheck, Star } from "@gravity-ui/icons";
+import { Person, Envelope, Cup, MapPin, Xmark, EllipsisVertical, CircleCheck, Star, Shield } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getRankForElo } from "@/lib/rankSystem";
+import type { Duel } from "@/lib/types/duel";
+import type { Clan } from "@/lib/types/clan";
 
 type ProfileTab =
     | "actividad"
@@ -112,6 +115,8 @@ export default function PublicProfilePage({
     const [ratingHistory, setRatingHistory] = useState<any[]>([]);
     const [gamiStats, setGamiStats] = useState<any>(null);
     const [tournamentHistory, setTournamentHistory] = useState<any>(null);
+    const [userClan, setUserClan] = useState<Clan | null>(null);
+    const [recentDuels, setRecentDuels] = useState<Duel[]>([]);
 
     // Follow state
     const [isFollowing, setIsFollowing] = useState(false);
@@ -211,11 +216,22 @@ export default function PublicProfilePage({
                 setGamiStats(gamiRes?.data || gamiRes);
                 setTournamentHistory(tourneyRes);
 
+                // Clan del usuario (campo en perfil si viene de la API)
+                const clanData = profile?.clan || profile?.user_clan;
+                if (clanData?.id) {
+                    setUserClan(clanData as Clan);
+                }
+
                 // Marketplace listings
                 if (userUUID) {
                     getListings({ seller_id: userUUID } as any)
                         .then(res => setListings(res.listings || []))
                         .catch(() => setListings([]));
+
+                    // Últimos 5 duelos completados
+                    getDuels({ user_id: userUUID, per_page: 5, status: "COMPLETED" })
+                        .then(res => setRecentDuels(res.duels.slice(0, 5)))
+                        .catch(() => setRecentDuels([]));
                 }
 
             } catch (error) {
@@ -343,6 +359,9 @@ export default function PublicProfilePage({
 
     const xpProgress = xpToNextLevel > 0 ? Math.min(100, Math.round((currentLevelXp / xpToNextLevel) * 100)) : 0;
 
+    // Borde de avatar según nivel
+    const levelBorderColor = level >= 50 ? "#A855F7" : level >= 25 ? "#FBBF24" : level >= 10 ? "#3B82F6" : "";
+
     // User type badges
     const isVerified = profile?.is_verified || profile?.verified;
     const isPremium = profile?.is_premium || profile?.premium;
@@ -447,34 +466,118 @@ export default function PublicProfilePage({
         </div>
     );
 
-    const avatarBlock = (size: number, borderColor: string) => (
-        <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-            {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt={name} style={{
-                    width: size, height: size, borderRadius: size / 2,
-                    border: `4px solid ${borderColor}`, objectFit: "cover",
-                }} />
+    // Bloque de clan del usuario
+    const clanBlock = userClan ? (
+        <a
+            href={`/clanes/${userClan.id}`}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+        >
+            {userClan.logo_url ? (
+                <img src={userClan.logo_url} alt={userClan.name} style={{ width: 18, height: 18, borderRadius: 4, objectFit: "cover" }} />
             ) : (
-                <div style={{
-                    width: size, height: size, borderRadius: size / 2,
-                    backgroundColor: "#1A1A1E", border: `4px solid ${borderColor}`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                    <Person width={size * 0.4} height={size * 0.4} color="#888891" />
-                </div>
+                <Shield width={12} height={12} color="#888891" />
             )}
-            {isOwnProfile && (
-                <div style={{
-                    position: "absolute", bottom: 2, right: 2,
-                    width: 20, height: 20, borderRadius: 10,
-                    backgroundColor: borderColor,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                    <div style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "#22C55E" }} />
-                </div>
-            )}
+            <span style={{ color: "#888891", fontSize: 12 }}>
+                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>[{userClan.tag}]</span>{" "}
+                {userClan.name}
+            </span>
+        </a>
+    ) : null;
+
+    // Bloque de historial reciente de duelos
+    const recentDuelsBlock = recentDuels.length > 0 ? (
+        <div style={{
+            backgroundColor: "#1A1A1E", borderRadius: 16,
+            border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+        }}>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                    Duelos recientes
+                </p>
+            </div>
+            <div>
+                {recentDuels.map((duel) => {
+                    const isChallenger = duel.challenger.id === (profile?.id || profile?.user_id);
+                    const opponent = isChallenger ? duel.opponent : duel.challenger;
+                    const myWins = isChallenger ? (duel.challenger_wins ?? 0) : (duel.opponent_wins ?? 0);
+                    const opponentWins = isChallenger ? (duel.opponent_wins ?? 0) : (duel.challenger_wins ?? 0);
+                    const isWin = duel.winner_id === (profile?.id || profile?.user_id);
+                    const isDraw = duel.status === "COMPLETED" && !duel.winner_id;
+                    const resultLabel = isDraw ? "EMPATE" : isWin ? "VICTORIA" : "DERROTA";
+                    const resultColor = isDraw ? "#888891" : isWin ? "#22C55E" : "#EF4444";
+                    const date = duel.played_at || duel.created_at;
+                    return (
+                        <div key={duel.id} style={{
+                            display: "flex", alignItems: "center", gap: 10,
+                            padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        }}>
+                            <div style={{
+                                width: 56, textAlign: "center", flexShrink: 0,
+                                backgroundColor: resultColor + "18", borderRadius: 6, padding: "3px 0",
+                            }}>
+                                <span style={{ color: resultColor, fontSize: 9, fontWeight: 800, letterSpacing: 0.5 }}>{resultLabel}</span>
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 600 }}>
+                                    vs{" "}
+                                    <a href={`/perfil/${opponent.username}`} style={{ color: "#F2F2F2", textDecoration: "none" }}>
+                                        {opponent.username}
+                                    </a>
+                                </span>
+                                {duel.game_name && (
+                                    <p style={{ color: "#888891", fontSize: 11, margin: 0, marginTop: 1 }}>{duel.game_name}</p>
+                                )}
+                            </div>
+                            <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700 }}>{myWins}-{opponentWins}</span>
+                                {date && (
+                                    <p style={{ color: "#888891", fontSize: 10, margin: 0, marginTop: 1 }}>
+                                        {new Date(date).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
-    );
+    ) : null;
+
+    const avatarBlock = (size: number, bgColor: string) => {
+        const effectiveBorder = levelBorderColor || bgColor;
+        const hasBorderGlow = !!levelBorderColor;
+        return (
+            <div style={{
+                position: "relative", width: size, height: size, flexShrink: 0,
+                ...(hasBorderGlow ? { filter: `drop-shadow(0 0 6px ${levelBorderColor}60)` } : {}),
+            }}>
+                {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt={name} style={{
+                        width: size, height: size, borderRadius: size / 2,
+                        border: `4px solid ${effectiveBorder}`, objectFit: "cover",
+                    }} />
+                ) : (
+                    <div style={{
+                        width: size, height: size, borderRadius: size / 2,
+                        backgroundColor: "#1A1A1E", border: `4px solid ${effectiveBorder}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                        <Person width={size * 0.4} height={size * 0.4} color="#888891" />
+                    </div>
+                )}
+                {isOwnProfile && (
+                    <div style={{
+                        position: "absolute", bottom: 2, right: 2,
+                        width: 20, height: 20, borderRadius: 10,
+                        backgroundColor: bgColor,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                        <div style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "#22C55E" }} />
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     const bannerBlock = (height: number) => (
         <div style={{ position: "relative", width: "100%", height, overflow: "hidden" }}>
@@ -534,25 +637,41 @@ export default function PublicProfilePage({
         </div>
     );
 
+    const xpBarColor = levelBorderColor || "#F2F2F2";
     const xpProgressBlock = (totalXp > 0 || level > 0) ? (
         <div style={{
             padding: 14, backgroundColor: "#1A1A1E", borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: `1px solid ${levelBorderColor ? levelBorderColor + "30" : "rgba(255,255,255,0.06)"}`,
         }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{
+                        width: 26, height: 26, borderRadius: 13,
+                        backgroundColor: xpBarColor + "25",
+                        border: `1.5px solid ${xpBarColor}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: xpBarColor }}>{level}</span>
+                    </div>
                     <span style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
                         NIVEL {level} &rarr; {level + 1}
                     </span>
                     {xpRank > 0 && (
-                        <span style={{ fontSize: 10, color: "#888891", fontWeight: 600, marginLeft: 8 }}>#{xpRank} XP Rank</span>
+                        <span style={{ fontSize: 10, color: "#888891", fontWeight: 600 }}>#{xpRank} XP</span>
                     )}
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#F2F2F2" }}>{currentLevelXp} / {xpToNextLevel} XP</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: xpBarColor }}>{currentLevelXp} / {xpToNextLevel} XP</span>
             </div>
             <div style={{ height: 6, borderRadius: 3, backgroundColor: "#000000", overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 3, backgroundColor: "#F2F2F2", width: `${xpProgress}%`, transition: "width 0.5s ease" }} />
+                <div style={{ height: "100%", borderRadius: 3, backgroundColor: xpBarColor, width: `${xpProgress}%`, transition: "width 0.5s ease" }} />
             </div>
+            {xpToNextLevel > 0 && (
+                <div style={{ marginTop: 4, textAlign: "right" }}>
+                    <span style={{ fontSize: 10, color: "#888891" }}>
+                        Faltan <span style={{ color: xpBarColor, fontWeight: 700 }}>{Math.max(0, xpToNextLevel - currentLevelXp).toLocaleString()}</span> XP
+                    </span>
+                </div>
+            )}
         </div>
     ) : null;
 
@@ -789,6 +908,7 @@ export default function PublicProfilePage({
                         <div style={{ flex: 1, marginTop: 40 }}>
                             <h1 style={{ color: "#FFFFFF", fontSize: 20, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
                             <p style={{ color: "#888891", fontSize: 14, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
+                            {clanBlock && <div style={{ marginTop: 4 }}>{clanBlock}</div>}
                         </div>
                     </div>
 
@@ -828,6 +948,9 @@ export default function PublicProfilePage({
 
                     {/* XP */}
                     {xpProgressBlock && <div style={{ marginTop: 16 }}>{xpProgressBlock}</div>}
+
+                    {/* Duelos recientes */}
+                    {recentDuelsBlock && <div style={{ marginTop: 16 }}>{recentDuelsBlock}</div>}
                 </div>
 
                 {/* Tab pills */}
@@ -866,6 +989,7 @@ export default function PublicProfilePage({
                             <div style={{ padding: "8px 16px 20px 16px" }}>
                                 <h1 style={{ color: "#FFFFFF", fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
                                 <p style={{ color: "#888891", fontSize: 13, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
+                                {clanBlock && <div style={{ marginTop: 4 }}>{clanBlock}</div>}
 
                                 <div style={{ marginTop: 10 }}>{badgesRow}</div>
 
@@ -906,13 +1030,23 @@ export default function PublicProfilePage({
                                 {(totalXp > 0 || level > 0) && (
                                     <div style={{ marginTop: 8 }}>
                                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                                            <span style={{ fontSize: 9, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                                                NV. {level} &rarr; {level + 1}
-                                            </span>
-                                            <span style={{ fontSize: 10, fontWeight: 700, color: "#F2F2F2" }}>{currentLevelXp}/{xpToNextLevel}</span>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                                <div style={{
+                                                    width: 20, height: 20, borderRadius: 10,
+                                                    backgroundColor: xpBarColor + "25",
+                                                    border: `1.5px solid ${xpBarColor}`,
+                                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                                }}>
+                                                    <span style={{ fontSize: 8, fontWeight: 800, color: xpBarColor }}>{level}</span>
+                                                </div>
+                                                <span style={{ fontSize: 9, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                                    NV. {level} &rarr; {level + 1}
+                                                </span>
+                                            </div>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: xpBarColor }}>{currentLevelXp}/{xpToNextLevel}</span>
                                         </div>
                                         <div style={{ height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                                            <div style={{ height: "100%", borderRadius: 2, backgroundColor: "#F2F2F2", width: `${xpProgress}%` }} />
+                                            <div style={{ height: "100%", borderRadius: 2, backgroundColor: xpBarColor, width: `${xpProgress}%` }} />
                                         </div>
                                     </div>
                                 )}
@@ -965,6 +1099,48 @@ export default function PublicProfilePage({
                                     </div>
                                 </div>
                             )}
+
+                            {/* ELO por juego */}
+                            {Array.isArray(gamiStats?.game_stats) && gamiStats.game_stats.length > 0 && (
+                                <div style={{
+                                    backgroundColor: "#1A1A1E", borderRadius: 16,
+                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                }}>
+                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                        ELO por juego
+                                    </p>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
+                                        {(gamiStats.game_stats as any[]).map((gs: any, i: number) => {
+                                            const gameName: string = gs.game || gs.name || "Juego";
+                                            const gameRating: number = gs.rating ?? gs.elo ?? gs.current_rating ?? 0;
+                                            const gameRank = getRankForElo(gameRating);
+                                            return (
+                                                <div key={gameName + i} style={{
+                                                    display: "flex", alignItems: "center", gap: 10,
+                                                    padding: "8px 12px", borderRadius: 10,
+                                                    backgroundColor: "rgba(255,255,255,0.04)",
+                                                    border: "1px solid rgba(255,255,255,0.06)",
+                                                }}>
+                                                    <span style={{ fontSize: 16 }}>🎮</span>
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        <p style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 600, margin: 0, lineHeight: 1 }}>{gameName}</p>
+                                                        <p style={{ color: "#888891", fontSize: 10, margin: 0, marginTop: 2 }}>{gameRank.name}</p>
+                                                    </div>
+                                                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                                        <p style={{ color: gameRank.cssColor, fontSize: 14, fontWeight: 800, margin: 0 }}>
+                                                            {gameRating > 0 ? gameRating : "-"}
+                                                        </p>
+                                                        <p style={{ color: "#888891", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5, margin: 0 }}>ELO</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Duelos recientes (desktop) */}
+                            {recentDuelsBlock}
 
                             {/* Insignias destacadas */}
                             {badges.length > 0 && (
