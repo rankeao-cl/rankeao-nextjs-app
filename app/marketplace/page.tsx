@@ -95,7 +95,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             <span
               style={{
                 display: "inline-block",
-                backgroundColor: "rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface)",
                 alignSelf: "flex-start",
                 paddingLeft: 10,
                 paddingRight: 10,
