@@ -254,7 +254,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                     margin: 0,
                     fontSize,
                     lineHeight: `${Math.round(fontSize * 1.4)}px`,
-                    color: isMine ? "#FFFFFF" : "var(--foreground)",
+                    color: "var(--foreground)",
                 }}>
                     {text}
                 </p>
@@ -323,7 +323,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             whiteSpace: "pre-wrap",
                             fontSize,
                             lineHeight: `${Math.round(fontSize * 1.4)}px`,
-                            color: isMine ? "#FFFFFF" : "var(--foreground)",
+                            color: "var(--foreground)",
                         }}>
                             {part}
                         </span>
@@ -431,7 +431,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
 
                 {/* Bubble */}
                 <div style={{
-                    background: isMine ? (bubbleBg || "#2C2C30") : "var(--surface-solid)",
+                    background: isMine ? (bubbleBg || "var(--surface)") : "var(--surface-solid)",
                     borderRadius: 18,
                     ...(showHeader
                         ? { borderBottomRightRadius: isMine ? 4 : 18, borderBottomLeftRadius: isMine ? 18 : 4 }
@@ -475,7 +475,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             marginTop: 4,
                         }}>
                             {showTimestamps && (
-                                <span style={{ fontSize: 10, fontWeight: 500, color: isMine ? "rgba(255,255,255,0.60)" : "var(--muted)" }}>
+                                <span style={{ fontSize: 10, fontWeight: 500, color: "var(--muted)" }}>
                                     {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                             )}
