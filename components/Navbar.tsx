@@ -59,30 +59,39 @@ export default function Navbar() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   useEffect(() => {
-    if (status === "authenticated" && session?.accessToken) {
+    if (status !== "authenticated" || !session?.accessToken) return;
+
+    const token = session.accessToken;
+
+    const fetchAll = () => {
       Promise.all([
-        getNotifications({ per_page: 10 }, session.accessToken).catch(() => null),
-        getUnreadNotificationCount(session.accessToken).catch(() => null),
+        getNotifications({ per_page: 10 }, token).catch(() => null),
+        getUnreadNotificationCount(token).catch(() => null),
       ]).then(([notifRes, countRes]) => {
         const raw = notifRes?.notifications ?? [];
-        if (Array.isArray(raw)) {
-          setNotifications(raw);
-        }
-
+        if (Array.isArray(raw)) setNotifications(raw);
         const total = countRes?.total;
-        if (typeof total === "number") {
-          setUnreadCount(total);
-        }
+        if (typeof total === "number") setUnreadCount(total);
       });
+    };
 
-      // Fetch user avatar
-      if (session.username) {
-        getUserProfile(session.username).then((res: any) => {
-          const profile = res?.data ?? res;
-          if (profile?.avatar_url) setUserAvatarUrl(profile.avatar_url);
-        }).catch(() => {});
-      }
+    fetchAll();
+    const interval = setInterval(() => {
+      getUnreadNotificationCount(token).catch(() => null).then((countRes) => {
+        const total = countRes?.total;
+        if (typeof total === "number") setUnreadCount(total);
+      });
+    }, 30_000);
+
+    // Fetch user avatar once
+    if (session.username) {
+      getUserProfile(session.username).then((res: any) => {
+        const profile = res?.data ?? res;
+        if (profile?.avatar_url) setUserAvatarUrl(profile.avatar_url);
+      }).catch(() => {});
     }
+
+    return () => clearInterval(interval);
   }, [status, session]);
 
   if (authPages.some((p) => pathname.startsWith(p))) {

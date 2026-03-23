@@ -62,31 +62,33 @@ export default function NotificacionesPage() {
     const [showPreferences, setShowPreferences] = useState(false);
 
     useEffect(() => {
-        if (isAuthenticated && session?.accessToken) {
-            setLoading(true);
+        if (!isAuthenticated || !session?.accessToken) return;
+
+        const token = session.accessToken;
+
+        const fetchNotifications = () => {
             Promise.all([
-                getNotifications({ per_page: 100 }, session.accessToken).catch(() => null),
-                getUnreadNotificationCount(session.accessToken).catch(() => null),
+                getNotifications({ per_page: 100 }, token).catch(() => null),
+                getUnreadNotificationCount(token).catch(() => null),
             ]).then(([notifRes, countRes]) => {
-                const raw = notifRes?.notifications ?? notifRes;
+                const raw = notifRes?.notifications ?? [];
                 const list = Array.isArray(raw) ? raw : [];
-                if (list.length > 0) {
-                    // Normalize: API returns read_at (timestamp|null), frontend uses is_read (boolean)
-                    const normalized = list.map((n: Notification) => ({
-                        ...n,
-                        is_read: n.is_read ?? (n.read_at != null),
-                        category: n.category || n.channel,
-                    }));
-                    setNotifications(normalized);
-                }
+                const normalized = list.map((n: Notification) => ({
+                    ...n,
+                    is_read: n.is_read ?? (n.read_at != null),
+                    category: (n.category || n.channel)?.toLowerCase(),
+                }));
+                setNotifications(normalized);
 
                 const total = countRes?.total;
-                if (typeof total === "number") {
-                    setUnreadCount(total);
-                }
+                if (typeof total === "number") setUnreadCount(total);
                 setLoading(false);
             });
-        }
+        };
+
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 30_000);
+        return () => clearInterval(interval);
     }, [isAuthenticated, session]);
 
     const handleMarkAllRead = async () => {
