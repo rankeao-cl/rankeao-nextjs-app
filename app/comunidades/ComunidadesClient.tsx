@@ -386,7 +386,7 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
             ) : tenant.logo_url ? (
               <Image src={tenant.logo_url} alt="" fill style={{ objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.15 }} sizes="100vw" />
             ) : null}
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(26,26,30,0.92), rgba(26,26,30,0.75))" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, color-mix(in srgb, var(--surface-solid) 92%, transparent), color-mix(in srgb, var(--surface-solid) 75%, transparent))" }} />
           </div>
         )}
 
@@ -468,7 +468,7 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
 
           {/* Chevron */}
           <svg width={16} height={16} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-            <path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6 3l5 5-5 5" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
       </div>
