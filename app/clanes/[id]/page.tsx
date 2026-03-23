@@ -59,7 +59,7 @@ export default async function ClanDetailPage({ params }: Props) {
         ) : (
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
         )}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #000000 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
 
         {/* Back button */}
         <Link href="/clanes" style={{ position: "absolute", top: 12, left: 12, zIndex: 2, textDecoration: "none" }}>

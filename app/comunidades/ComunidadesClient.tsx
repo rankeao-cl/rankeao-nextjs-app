@@ -257,7 +257,7 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
           )}
           {/* Dark overlay */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--bg-solid) 0%, rgba(26,26,30,0.6) 50%, rgba(0,0,0,0.2) 100%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
 
           {/* Floating badges */}
           <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
