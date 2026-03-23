@@ -63,14 +63,14 @@ const ACTIVITY_CONFIG: Record<string, ActivityConfig> = {
     // Clan
     CLAN_JOIN:       { icon: <Shield {...ICON_SIZE} />,      color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
     CLAN_CREATE:     { icon: <Shield {...ICON_SIZE} />,      color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
-    CLAN_LEAVE:      { icon: <Shield {...ICON_SIZE} />,      color: "#888891", bgColor: "rgba(255,255,255,0.06)" },
+    CLAN_LEAVE:      { icon: <Shield {...ICON_SIZE} />,      color: "var(--muted)", bgColor: "rgba(255,255,255,0.06)" },
     // Deck
     DECK_PUBLISH:    { icon: <SquareDashed {...ICON_SIZE} />, color: "#8B5CF6", bgColor: "rgba(139,92,246,0.12)" },
 };
 
 const FALLBACK_CONFIG: ActivityConfig = {
     icon: <CircleInfo {...ICON_SIZE} />,
-    color: "#888891",
+    color: "var(--muted)",
     bgColor: "rgba(255,255,255,0.06)",
 };
 
@@ -117,9 +117,9 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
 
     return (
         <article style={{
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--border)",
             overflow: "hidden",
         }}>
             {/* Header: avatar + username + time */}
@@ -135,15 +135,15 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                         width: 32, height: 32, borderRadius: 16,
                         backgroundColor: "rgba(255,255,255,0.06)",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "#888891", fontSize: 13, fontWeight: 700,
+                        color: "var(--muted)", fontSize: 13, fontWeight: 700,
                     }}>
                         {activity.user.username?.charAt(0).toUpperCase()}
                     </div>
                 )}
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#F2F2F2", flex: 1 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", flex: 1 }}>
                     @{activity.user.username}
                 </span>
-                <span style={{ fontSize: 11, color: "#888891" }}>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>
                     {timeAgo(activity.created_at)}
                 </span>
             </div>
@@ -171,14 +171,14 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                     {/* Text */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{
-                            fontSize: 14, fontWeight: 700, color: "#F2F2F2",
+                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
                             margin: 0, lineHeight: "20px",
                         }}>
                             {activity.title}
                         </p>
                         {activity.description && (
                             <p style={{
-                                fontSize: 12, color: "#888891",
+                                fontSize: 12, color: "var(--muted)",
                                 margin: "4px 0 0", lineHeight: "16px",
                             }}>
                                 {activity.description}

@@ -26,9 +26,9 @@ export default function ClanCard({ clan }: { clan: Clan }) {
     return (
         <Link href={`/clanes/${clan.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <div style={{
-                backgroundColor: "#1A1A1E",
+                backgroundColor: "var(--surface-solid)",
                 borderRadius: 20,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid var(--border)",
                 overflow: "hidden",
                 height: "100%",
                 display: "flex",
@@ -44,7 +44,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
                     )}
                     {/* Dark overlay */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #1A1A1E 0%, rgba(26,26,30,0.6) 50%, rgba(0,0,0,0.2) 100%)" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--surface-solid) 0%, rgba(26,26,30,0.6) 50%, rgba(0,0,0,0.2) 100%)" }} />
 
                     {/* Badges floating on banner */}
                     <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -65,7 +65,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                                 </span>
                             )}
                             {clan.game_name && (
-                                <span style={{ fontSize: 10, fontWeight: 600, color: "#F2F2F2", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
                                     {clan.game_name}
                                 </span>
                             )}
@@ -76,8 +76,8 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                     <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 14px 12px", display: "flex", alignItems: "flex-end", gap: 12 }}>
                         <div style={{
                             width: 52, height: 52, borderRadius: 14,
-                            border: "3px solid #1A1A1E",
-                            backgroundColor: "#222226", overflow: "hidden",
+                            border: "3px solid var(--surface-solid)",
+                            backgroundColor: "var(--surface-solid)", overflow: "hidden",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             flexShrink: 0, boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
                         }}>
@@ -106,7 +106,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                 <div style={{ padding: "10px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
                     {/* Description */}
                     {clan.description ? (
-                        <p className="line-clamp-2" style={{ fontSize: 12, color: "#888891", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
+                        <p className="line-clamp-2" style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
                             {clan.description}
                         </p>
                     ) : (
@@ -121,22 +121,22 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                         gap: 4,
                     }}>
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{memberCount}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Miembros</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{memberCount}</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Miembros</p>
                         </div>
                         <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "#F59E0B" : "#F2F2F2", margin: 0 }}>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "#F59E0B" : "var(--foreground)", margin: 0 }}>
                                 {hasRating ? clan.rating!.toFixed(1) : "—"}
                             </p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
                         </div>
                         <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
                                 {clan.recruit_min_elo ?? "—"}
                             </p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>ELO Min</p>
+                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>ELO Min</p>
                         </div>
                     </div>
 

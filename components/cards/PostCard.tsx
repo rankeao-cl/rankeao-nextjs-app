@@ -45,9 +45,9 @@ export default function PostCard({ post }: { post: FeedPost }) {
     return (
         <article
             style={{
-                background: "#1A1A1E",
+                background: "var(--surface-solid)",
                 borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid var(--border)",
                 padding: 14,
                 display: "flex",
                 flexDirection: "column",
@@ -62,7 +62,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         width: 36,
                         height: 36,
                         borderRadius: "50%",
-                        background: "#2A2A2E",
+                        background: "var(--surface-solid)",
                         overflow: "hidden",
                         flexShrink: 0,
                         display: "flex",
@@ -70,7 +70,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         justifyContent: "center",
                         fontSize: 13,
                         fontWeight: 600,
-                        color: "#F2F2F2",
+                        color: "var(--foreground)",
                     }}
                 >
                     {authorAvatar ? (
@@ -92,7 +92,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             style={{
                                 fontSize: 13,
                                 fontWeight: 600,
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                             }}
                         >
                             {authorUsername}
@@ -112,7 +112,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             </span>
                         )}
                     </div>
-                    <span style={{ fontSize: 10, color: "#888891" }}>{relativeTime}</span>
+                    <span style={{ fontSize: 10, color: "var(--muted)" }}>{relativeTime}</span>
                 </div>
             </div>
 
@@ -173,7 +173,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             style={{
                                 position: "relative",
                                 aspectRatio: "1 / 1",
-                                background: "#111113",
+                                background: "var(--background)",
                             }}
                         >
                             <Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="50vw" />
@@ -189,10 +189,10 @@ export default function PostCard({ post }: { post: FeedPost }) {
                     alignItems: "center",
                     justifyContent: "space-between",
                     paddingTop: 8,
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                    borderTop: "1px solid var(--border)",
                 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "#888891" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "var(--muted)" }}>
                     <button
                         type="button"
                         onClick={handleLike}
@@ -202,7 +202,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             gap: 4,
                             background: "none",
                             border: "none",
-                            color: liked ? "#ef4444" : "#888891",
+                            color: liked ? "#ef4444" : "var(--muted)",
                             cursor: "pointer",
                             padding: 0,
                             fontSize: "inherit",
@@ -219,7 +219,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             gap: 4,
                             background: "none",
                             border: "none",
-                            color: "#888891",
+                            color: "var(--muted)",
                             cursor: "pointer",
                             padding: 0,
                             fontSize: "inherit",
@@ -236,7 +236,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             gap: 4,
                             background: "none",
                             border: "none",
-                            color: "#888891",
+                            color: "var(--muted)",
                             cursor: "pointer",
                             padding: 0,
                             fontSize: "inherit",
@@ -254,7 +254,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         alignItems: "center",
                         background: "none",
                         border: "none",
-                        color: bookmarked ? "#3B82F6" : "#888891",
+                        color: bookmarked ? "#3B82F6" : "var(--muted)",
                         cursor: "pointer",
                         padding: 0,
                     }}

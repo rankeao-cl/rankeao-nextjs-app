@@ -35,9 +35,9 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
     return (
         <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
             <div style={{
-                backgroundColor: "#1A1A1E",
+                backgroundColor: "var(--surface-solid)",
                 borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid var(--border)",
                 overflow: "hidden",
             }}>
                 {/* Banner con overlay degradado */}
@@ -59,14 +59,14 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                     {/* Overlay degradado inferior hacia fondo de la card */}
                     <div
                         className="absolute inset-0"
-                        style={{ background: "linear-gradient(to bottom, rgba(26,26,30,0.2) 0%, rgba(26,26,30,0.75) 60%, #1A1A1E 100%)" }}
+                        style={{ background: "linear-gradient(to bottom, rgba(26,26,30,0.2) 0%, rgba(26,26,30,0.75) 60%, var(--surface-solid) 100%)" }}
                     />
 
                     {/* Chip Finalizado */}
                     <div className="absolute top-2.5 right-2.5">
                         <span
                             className="px-2 py-1 rounded-full text-[10px] font-semibold"
-                            style={{ backgroundColor: "rgba(255,255,255,0.08)", color: "#888891" }}
+                            style={{ backgroundColor: "rgba(255,255,255,0.08)", color: "var(--muted)" }}
                         >
                             Finalizado
                         </span>
@@ -108,17 +108,17 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                     {/* Tags */}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                         {tournament.game && (
-                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
+                            <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
                                 {tournament.game_name || tournament.game}
                             </span>
                         )}
                         {tournament.format && (
-                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
+                            <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
                                 {tournament.format_name || tournament.format}
                             </span>
                         )}
                         {tournament.is_ranked && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
                                 Ranked
                             </span>
                         )}
@@ -126,17 +126,17 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
 
                     {/* Podium */}
                     <div style={{
-                        borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 12, border: "1px solid var(--border)",
                         overflow: "hidden", backgroundColor: "rgba(255,255,255,0.02)",
                     }}>
                         <div style={{
                             display: "flex", alignItems: "center", gap: 6,
                             paddingLeft: 12, paddingRight: 12, paddingTop: 8, paddingBottom: 8,
                             backgroundColor: "rgba(255,255,255,0.03)",
-                            borderBottom: "1px solid rgba(255,255,255,0.06)",
+                            borderBottom: "1px solid var(--border)",
                         }}>
-                            <Cup style={{ width: 13, height: 13, color: "#888891" }} />
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#888891", textTransform: "uppercase", letterSpacing: 1 }}>
+                            <Cup style={{ width: 13, height: 13, color: "var(--muted)" }} />
+                            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1 }}>
                                 Podio
                             </span>
                         </div>
@@ -145,7 +145,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                                 <div style={{ paddingTop: 14, paddingBottom: 14, display: "flex", justifyContent: "center" }}>
                                     <div style={{
                                         width: 16, height: 16, border: "2px solid rgba(255,255,255,0.1)",
-                                        borderTopColor: "#888891", borderRadius: "50%",
+                                        borderTopColor: "var(--muted)", borderRadius: "50%",
                                         animation: "spin 0.8s linear infinite",
                                     }} />
                                 </div>
@@ -165,27 +165,27 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                                         <div style={{
                                             width: 26, height: 26, borderRadius: 13,
                                             backgroundColor: "rgba(255,255,255,0.06)",
-                                            border: "1px solid rgba(255,255,255,0.06)",
+                                            border: "1px solid var(--border)",
                                             display: "flex", alignItems: "center", justifyContent: "center",
                                             flexShrink: 0,
                                         }}>
-                                            <span style={{ fontSize: 10, fontWeight: 700, color: "#F2F2F2" }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--foreground)" }}>
                                                 {p.username?.[0]?.toUpperCase() || "?"}
                                             </span>
                                         </div>
                                         <span style={{
-                                            flex: 1, fontSize: 13, fontWeight: 600, color: "#F2F2F2",
+                                            flex: 1, fontSize: 13, fontWeight: 600, color: "var(--foreground)",
                                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                         }}>
                                             {p.username}
                                         </span>
-                                        <span style={{ fontSize: 10, color: "#888891", flexShrink: 0 }}>
+                                        <span style={{ fontSize: 10, color: "var(--muted)", flexShrink: 0 }}>
                                             {p.points}pts · {p.wins}W-{p.losses}L
                                         </span>
                                     </div>
                                 ))
                             ) : (
-                                <div style={{ fontSize: 11, color: "#888891", textAlign: "center", paddingTop: 12, paddingBottom: 12, fontStyle: "italic" }}>
+                                <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", paddingTop: 12, paddingBottom: 12, fontStyle: "italic" }}>
                                     Sin resultados
                                 </div>
                             )}
@@ -196,17 +196,17 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                             {date && (
-                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#888891" }}>
+                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--muted)" }}>
                                     <Clock style={{ width: 12, height: 12 }} /> {date}
                                 </span>
                             )}
                             {tournament.city && (
-                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#888891", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     <MapPin style={{ width: 12, height: 12 }} /> {tournament.city}
                                 </span>
                             )}
                         </div>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#888891" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--muted)" }}>
                             <Persons style={{ width: 12, height: 12 }} /> {tournament.registered_count ?? tournament.current_players ?? 0}
                         </span>
                     </div>
