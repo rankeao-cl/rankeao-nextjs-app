@@ -119,7 +119,7 @@ export default function ProfileCollectionTab({
 
     if (collection.length === 0 && !isOwnProfile) {
         return (
-            <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <Card className="bg-surface border border-border">
                 <Card.Content className="py-14 text-center">
                     <p className="text-3xl mb-3 opacity-50">📦</p>
                     <p className="text-sm font-medium text-[var(--foreground)]">Coleccion vacia</p>
@@ -364,8 +364,7 @@ function AddCardModal({
             onClick={onClose}
         >
             <div
-                className="w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto"
-                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                className="w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto bg-surface border border-border"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between">
