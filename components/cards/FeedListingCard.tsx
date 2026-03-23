@@ -31,18 +31,18 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                 {imageUrl && (
                     <Link
                         href={`/marketplace/${listing.id}`}
+                        className="w-[130px] md:w-[260px]"
                         style={{
                             flexShrink: 0,
-                            width: 130,
                             position: "relative",
                             background: "var(--background)",
                             display: "block",
                         }}
                     >
                         <div
+                            className="w-[130px] md:w-[260px]"
                             style={{
                                 position: "relative",
-                                width: 130,
                                 aspectRatio: "63 / 88",
                             }}
                         >
@@ -51,7 +51,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 alt={listing.title}
                                 fill
                                 style={{ objectFit: "contain" }}
-                                sizes="130px"
+                                sizes="(max-width: 768px) 130px, 260px"
                             />
                         </div>
                     </Link>
