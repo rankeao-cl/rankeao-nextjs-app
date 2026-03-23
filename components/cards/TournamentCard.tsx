@@ -7,10 +7,10 @@ import { Clock, Persons, MapPin, Cup } from "@gravity-ui/icons";
 
 const STATUS_COLORS: Record<string, string> = {
     ROUND_IN_PROGRESS: "#22C55E", STARTED: "#22C55E", ROUND_COMPLETE: "#22C55E",
-    CHECK_IN: "#888891", OPEN: "#888891",
-    FINISHED: "#6B7280", CLOSED: "#EF4444",
-    in_progress: "#22C55E", check_in: "#888891", registration: "#888891",
-    upcoming: "#888891", completed: "#6B7280", cancelled: "#EF4444",
+    CHECK_IN: "#F59E0B", OPEN: "#3B82F6",
+    FINISHED: "#6B7280", CLOSED: "#6B7280",
+    in_progress: "#22C55E", check_in: "#F59E0B", registration: "#3B82F6",
+    upcoming: "#3B82F6", completed: "#6B7280", cancelled: "#EF4444",
 };
 const STATUS_LABELS: Record<string, string> = {
     ROUND_IN_PROGRESS: "EN VIVO", STARTED: "EN CURSO", ROUND_COMPLETE: "EN CURSO",
@@ -20,10 +20,10 @@ const STATUS_LABELS: Record<string, string> = {
     upcoming: "Próximo", completed: "Finalizado", cancelled: "Cancelado",
 };
 
-function isLive(s: string) {
+function isLiveStatus(s: string) {
     return ["ROUND_IN_PROGRESS", "STARTED", "ROUND_COMPLETE", "CHECK_IN", "in_progress", "check_in"].includes(s);
 }
-function isOpen(s: string) {
+function isOpenStatus(s: string) {
     return ["OPEN", "registration", "upcoming"].includes(s);
 }
 function fmtPrice(n: number) {
@@ -33,12 +33,11 @@ function fmtPrice(n: number) {
 export default function TournamentCard({ tournament }: { tournament: Tournament }) {
     const sColor = STATUS_COLORS[tournament.status] ?? "#888891";
     const sLabel = STATUS_LABELS[tournament.status] ?? tournament.status;
-    const live = isLive(tournament.status);
-    const open = isOpen(tournament.status);
+    const live = isLiveStatus(tournament.status);
+    const open = isOpenStatus(tournament.status);
 
     const registered = tournament.registered_count ?? 0;
     const maxPlayers = tournament.max_players ?? 0;
-    const progress = maxPlayers > 0 ? Math.min((registered / maxPlayers) * 100, 100) : null;
 
     const date = tournament.starts_at
         ? new Date(tournament.starts_at).toLocaleDateString("es-CL", {
@@ -46,143 +45,147 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
         })
         : null;
 
-    const roundLabel = tournament.current_round
-        ? tournament.total_rounds
-            ? `Ronda ${tournament.current_round}/${tournament.total_rounds}`
-            : `Ronda ${tournament.current_round}`
-        : null;
-
     const organizerName = tournament.tenant_name || tournament.organizer_username || "Torneo";
+
+    // Imagen de fondo: usar game_logo_url o tenant_logo_url como fallback
+    const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
 
     return (
         <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "#1A1A1E", overflow: "hidden" }}>
-                {/* Top bar */}
-                <div style={{ height: 4, backgroundColor: live ? sColor : "rgba(255,255,255,0.08)" }} />
+            <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                {/* Imagen de fondo */}
+                {bgImage ? (
+                    <Image
+                        src={bgImage}
+                        alt={tournament.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover"
+                    />
+                ) : (
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: live
+                                ? "linear-gradient(135deg, #0d2b1a 0%, #1a3a28 50%, #0a1a10 100%)"
+                                : open
+                                    ? "linear-gradient(135deg, #0d1b2b 0%, #1a2a3a 50%, #0a1020 100%)"
+                                    : "linear-gradient(135deg, #131318 0%, #1e1e24 50%, #0e0e14 100%)",
+                        }}
+                    />
+                )}
 
-                <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                    {/* Header: logo + title/subtitle + status */}
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                        {/* Logo */}
-                        {tournament.tenant_logo_url ? (
-                            <div style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
-                                <Image src={tournament.tenant_logo_url} alt={organizerName} width={44} height={44} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            </div>
-                        ) : (
-                            <div style={{ width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(136,136,145,0.19)", backgroundColor: "rgba(136,136,145,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                <span style={{ fontSize: 12, fontWeight: 900, color: "#888891" }}>
-                                    {(tournament.game?.slice(0, 3) || "TCG").toUpperCase()}
-                                </span>
-                            </div>
+                {/* Overlay degradado inferior negro */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+                {/* Status chip esquina superior derecha */}
+                <div className="absolute top-3 right-3">
+                    <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                        style={{
+                            backgroundColor: sColor + "22",
+                            color: sColor,
+                            border: `1px solid ${sColor}44`,
+                            backdropFilter: "blur(8px)",
+                        }}
+                    >
+                        {live && (
+                            <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ backgroundColor: sColor, animation: "pulse 1.6s ease-in-out infinite" }}
+                            />
                         )}
+                        {sLabel}
+                    </span>
+                </div>
 
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <p className="line-clamp-2" style={{ fontWeight: 700, fontSize: 14, color: "#F2F2F2", lineHeight: "18px", margin: 0 }}>
-                                {tournament.name}
-                            </p>
-                            <p className="truncate" style={{ fontSize: 11, color: "#888891", marginTop: 2, margin: 0 }}>
-                                {organizerName}
-                            </p>
+                {/* Logo del organizador esquina superior izquierda */}
+                {tournament.tenant_logo_url && (
+                    <div className="absolute top-3 left-3">
+                        <div
+                            className="w-8 h-8 rounded-lg overflow-hidden"
+                            style={{ border: "1px solid rgba(255,255,255,0.15)" }}
+                        >
+                            <Image
+                                src={tournament.tenant_logo_url}
+                                alt={organizerName}
+                                width={32}
+                                height={32}
+                                className="w-full h-full object-cover"
+                            />
                         </div>
-
-                        {/* Status chip */}
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", borderRadius: 999, backgroundColor: sColor + "18", flexShrink: 0 }}>
-                            {live && (
-                                <span style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: sColor, animation: "pulse 1.6s ease-in-out infinite" }} />
-                            )}
-                            <span style={{ fontSize: 10, fontWeight: 700, color: sColor }}>{sLabel}</span>
-                        </span>
                     </div>
+                )}
 
-                    {/* Live round banner */}
-                    {live && roundLabel && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 10, backgroundColor: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
-                            <span style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#22C55E", animation: "pulse 1.6s ease-in-out infinite" }} />
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#22C55E" }}>{roundLabel}</span>
-                        </div>
-                    )}
+                {/* Contenido sobre el overlay inferior */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                    {/* Nombre */}
+                    <h3
+                        className="text-white font-bold text-base line-clamp-1 mb-1"
+                        style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}
+                    >
+                        {tournament.name}
+                    </h3>
 
-                    {/* Tags */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {tournament.game && (
-                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
+                    {/* Info: juego + fecha + ciudad */}
+                    <div className="flex items-center gap-3 mb-2.5 flex-wrap">
+                        {(tournament.game_name || tournament.game) && (
+                            <span className="text-[11px] font-medium text-white/70">
                                 {tournament.game_name || tournament.game}
                             </span>
                         )}
-                        {tournament.format && (
-                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
-                                {tournament.format_name || tournament.format}
-                            </span>
-                        )}
-                        {tournament.is_ranked && (
-                            <span style={{ fontSize: 11, fontWeight: 600, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 8 }}>
-                                Ranked
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Info: date + location */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         {date && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                <Clock style={{ width: 13, height: 13, color: "#888891" }} />
-                                <span style={{ fontSize: 11, color: "#888891", textTransform: "capitalize" }}>{date}</span>
+                            <span className="flex items-center gap-1 text-[11px] text-white/60">
+                                <Clock style={{ width: 11, height: 11 }} />
+                                <span className="capitalize">{date}</span>
                             </span>
                         )}
                         {tournament.city && (
-                            <span className="truncate" style={{ display: "flex", alignItems: "center", gap: 5, flex: 1 }}>
-                                <MapPin style={{ width: 13, height: 13, color: "#888891", flexShrink: 0 }} />
-                                <span className="truncate" style={{ fontSize: 11, color: "#888891" }}>{tournament.city}</span>
+                            <span className="flex items-center gap-1 text-[11px] text-white/60 truncate">
+                                <MapPin style={{ width: 11, height: 11 }} />
+                                <span className="truncate">{tournament.city}</span>
                             </span>
                         )}
                     </div>
 
-                    {/* Capacity bar */}
-                    {progress !== null && (
-                        <div>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-                                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                    <Persons style={{ width: 13, height: 13, color: "#888891" }} />
-                                    <span style={{ fontSize: 11, fontWeight: 600, color: "#F2F2F2" }}>{registered}</span>
-                                    <span style={{ fontSize: 11, color: "#888891" }}>/{maxPlayers}</span>
+                    {/* Fila: participantes + premio + CTA */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1 text-[11px] text-white/60">
+                                <Persons style={{ width: 12, height: 12 }} />
+                                <span className="font-semibold text-white/80">{registered}</span>
+                                {maxPlayers > 0 && <span>/{maxPlayers}</span>}
+                            </span>
+                            {tournament.prize_pool && Number(tournament.prize_pool) > 0 && (
+                                <span className="flex items-center gap-1 text-[11px] text-white/60">
+                                    <Cup style={{ width: 12, height: 12 }} />
+                                    <span className="font-semibold text-white/80">
+                                        {fmtPrice(Number(tournament.prize_pool))}
+                                    </span>
                                 </span>
-                                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    {tournament.prize_pool && Number(tournament.prize_pool) > 0 && (
-                                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                                            <Cup style={{ width: 12, height: 12, color: "#888891" }} />
-                                            <span style={{ fontSize: 11, fontWeight: 600, color: "#F2F2F2" }}>{fmtPrice(Number(tournament.prize_pool))}</span>
-                                        </span>
-                                    )}
-                                    {tournament.entry_fee && Number(tournament.entry_fee) > 0 ? (
-                                        <span style={{ fontSize: 11, color: "#888891" }}>· {fmtPrice(Number(tournament.entry_fee))}</span>
-                                    ) : open ? (
-                                        <span style={{ fontSize: 11, fontWeight: 600, color: "#888891" }}>Gratis</span>
-                                    ) : null}
-                                </span>
-                            </div>
-                            <div style={{ height: 4, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                                <div style={{ height: "100%", borderRadius: 999, width: `${progress}%`, backgroundColor: progress > 85 ? "#EF4444" : "#888891" }} />
-                            </div>
+                            )}
                         </div>
-                    )}
 
-                    {/* CTA buttons */}
-                    <div style={{ display: "flex", gap: 8, paddingTop: 2 }}>
+                        {/* CTA */}
                         {live ? (
-                            <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#22C55E", borderRadius: 10, padding: "10px 0", fontSize: 13, fontWeight: 700, color: "#FFFFFF" }}>
+                            <span
+                                className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
+                                style={{ backgroundColor: "#22C55E" }}
+                            >
                                 Ver en vivo
                             </span>
                         ) : open ? (
-                            <>
-                                <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#3B82F6", borderRadius: 10, padding: "10px 0", fontSize: 13, fontWeight: 700, color: "#FFFFFF" }}>
-                                    Inscribirse
-                                </span>
-                                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 600, color: "#888891" }}>
-                                    Detalles
-                                </span>
-                            </>
+                            <span
+                                className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
+                                style={{ backgroundColor: "#3B82F6" }}
+                            >
+                                Inscribirse
+                            </span>
                         ) : (
-                            <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 10, padding: "10px 0", fontSize: 13, fontWeight: 600, color: "#888891" }}>
+                            <span
+                                className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-semibold"
+                                style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
+                            >
                                 Ver detalles
                             </span>
                         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, Chip, Button, Avatar, Tabs, toast } from "@heroui/react";
+import { Card, Chip, Button, Tabs, toast } from "@heroui/react";
 import Image from "next/image";
 import Link from "next/link";
 import { Clock, MapPin, Persons, Cup, Person, ShieldCheck, ArrowRight } from "@gravity-ui/icons";
@@ -175,71 +175,109 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     // Default tab based on tournament status
     const defaultTab = isLive ? "rounds" : isFinished ? "standings" : "info";
 
+    const bannerBg = tournament.game_logo_url || tournament.tenant_logo_url || null;
+
     return (
         <div className="flex flex-col w-full">
-            {/* ── Banner ── */}
-            <div className="relative w-full h-40 sm:h-48 md:h-56 overflow-hidden bg-[var(--surface-secondary)]">
-                <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-[var(--brand)]/8" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-                    <span className="text-6xl sm:text-7xl lg:text-8xl font-black uppercase tracking-[0.1em] text-[var(--foreground)] opacity-[0.03] whitespace-nowrap truncate max-w-full px-8">
-                        {tournament.name}
-                    </span>
-                </div>
-                {/* Status bar top */}
+            {/* ── Banner Hero con imagen de fondo y overlay degradado ── */}
+            <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden" style={{ backgroundColor: "#0e0e14" }}>
+                {/* Imagen de fondo */}
+                {bannerBg ? (
+                    <Image
+                        src={bannerBg}
+                        alt={tournament.name}
+                        fill
+                        sizes="100vw"
+                        className="object-cover opacity-50"
+                        priority
+                    />
+                ) : (
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: isLive
+                                ? "linear-gradient(135deg, #0d2b1a 0%, #1a3a28 60%, #061008 100%)"
+                                : isOpen || isCheckIn
+                                    ? "linear-gradient(135deg, #0d1b2b 0%, #1a2a3a 60%, #060c14 100%)"
+                                    : "linear-gradient(135deg, #131318 0%, #1e1e24 60%, #0a0a0e 100%)",
+                        }}
+                    />
+                )}
+
+                {/* Overlay degradado inferior hacia negro */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                {/* Barra de estado superior */}
                 <div
-                    className={`absolute top-0 inset-x-0 h-1 ${isLive ? "animate-pulse" : ""}`}
-                    style={{ background: isLive ? "var(--success)" : isOpen || isCheckIn ? "var(--warning)" : "var(--border)" }}
+                    className={`absolute top-0 inset-x-0 h-[3px] ${isLive ? "animate-pulse" : ""}`}
+                    style={{
+                        background: isLive
+                            ? "var(--success)"
+                            : isOpen || isCheckIn
+                                ? "var(--warning)"
+                                : "rgba(255,255,255,0.08)",
+                    }}
                 />
-                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--background)] to-transparent" />
+
+                {/* Contenido en la parte inferior del banner */}
+                <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 max-w-5xl mx-auto w-full">
+                    <div className="flex items-end gap-3">
+                        {/* Logo organizador */}
+                        {tournament.tenant_logo_url ? (
+                            <div
+                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0"
+                                style={{ border: "2px solid rgba(255,255,255,0.15)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
+                            >
+                                <Image src={tournament.tenant_logo_url} alt="" width={80} height={80} className="w-full h-full object-cover" />
+                            </div>
+                        ) : tournament.tenant_name ? (
+                            <div
+                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex-shrink-0 flex items-center justify-center"
+                                style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "2px solid rgba(255,255,255,0.12)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
+                            >
+                                <span className="text-2xl font-black text-white/60">
+                                    {tournament.tenant_name[0]?.toUpperCase()}
+                                </span>
+                            </div>
+                        ) : null}
+
+                        <div className="flex-1 min-w-0 pb-0.5">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
+                                    {tournament.name}
+                                </h1>
+                                <Chip color={st.color} variant="soft" size="sm" className="shrink-0 font-semibold">
+                                    {isLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-current mr-1 animate-pulse" />}
+                                    {st.label}
+                                </Chip>
+                            </div>
+                            {(tournament.tenant_name || detail.organizer_name) && (
+                                <p className="text-sm text-white/60" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                                    Organizado por <span className="font-medium text-white/80">{tournament.tenant_name || detail.organizer_name}</span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* ── Header ── */}
-            <div className="max-w-5xl mx-auto w-full px-4 relative -mt-14 sm:-mt-16 mb-6">
-                <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
-                    {/* Logo */}
-                    {tournament.tenant_logo_url ? (
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[var(--surface)] border-4 border-[var(--background)] overflow-hidden flex-shrink-0 shadow-lg flex items-center justify-center">
-                            <Image src={tournament.tenant_logo_url} alt="" width={96} height={96} className="w-full h-full object-cover" />
-                        </div>
-                    ) : tournament.tenant_name ? (
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[var(--surface)] border-4 border-[var(--background)] overflow-hidden flex-shrink-0 shadow-lg flex items-center justify-center">
-                            <Avatar size="lg"><Avatar.Fallback>{tournament.tenant_name[0]?.toUpperCase()}</Avatar.Fallback></Avatar>
-                        </div>
-                    ) : null}
-
-                    <div className="flex-1 min-w-0 pb-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[var(--foreground)] tracking-tight truncate">
-                                {tournament.name}
-                            </h1>
-                            <Chip color={st.color} variant="soft" size="sm" className="shrink-0 font-semibold">
-                                {isLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-current mr-1 animate-pulse" />}
-                                {st.label}
-                            </Chip>
-                        </div>
-                        {(tournament.tenant_name || detail.organizer_name) && (
-                            <p className="text-sm text-[var(--muted)]">
-                                Organizado por <span className="font-medium text-[var(--foreground)]">{tournament.tenant_name || detail.organizer_name}</span>
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex gap-2 shrink-0 pb-1">
-                        <FollowTournamentButton tournamentId={tournament.id} />
-                        <ActionButtons
-                            tournament={tournament}
-                            role={role}
-                            isAuthenticated={isAuthenticated}
-                            loading={actionLoading}
-                            onAction={handleAction}
-                        />
-                    </div>
+            {/* ── Header acciones y meta ── */}
+            <div className="max-w-5xl mx-auto w-full px-4 mt-4 mb-6">
+                {/* Botones de acción */}
+                <div className="flex gap-2 mb-4">
+                    <FollowTournamentButton tournamentId={tournament.id} />
+                    <ActionButtons
+                        tournament={tournament}
+                        role={role}
+                        isAuthenticated={isAuthenticated}
+                        loading={actionLoading}
+                        onAction={handleAction}
+                    />
                 </div>
 
                 {/* Live round indicator */}
                 {isLive && (tournament.current_round || detail.current_round) && (
-                    <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-[var(--success)]/10 border border-[var(--success)]/20 w-fit">
+                    <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-[var(--success)]/10 border border-[var(--success)]/20 w-fit">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75" />
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]" />
@@ -252,7 +290,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                 )}
 
                 {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mt-3">
+                <div className="flex flex-wrap gap-1.5 mb-4">
                     {(detail.game_name || tournament.game) && <Chip variant="secondary" size="sm">{detail.game_name || tournament.game}</Chip>}
                     {(detail.format_name || tournament.format) && <Chip variant="secondary" size="sm">{detail.format_name || tournament.format}</Chip>}
                     {(detail.format_type || tournament.structure) && <Chip variant="secondary" size="sm">{detail.format_type || tournament.structure}</Chip>}
@@ -262,7 +300,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                 </div>
 
                 {/* Meta + Stats row */}
-                <div className="flex gap-1 mt-4 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex gap-1 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 mb-3">
                     {[
                         ...(tournament.starts_at ? [{ label: "Fecha", value: new Date(tournament.starts_at).toLocaleDateString("es-CL", { day: "numeric", month: "short" }), icon: <Clock className="size-3.5" /> }] : []),
                         ...(tournament.city ? [{ label: "Lugar", value: detail.venue_name || tournament.city, icon: <MapPin className="size-3.5" /> }] : []),
@@ -281,7 +319,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
 
                 {/* Capacity bar */}
                 {progress !== null && (
-                    <div className="mt-3 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
+                    <div className="mb-3 p-3 bg-[var(--surface-secondary)] rounded-xl border border-[var(--border)]">
                         <div className="flex items-center justify-between mb-1.5">
                             <span className="text-[10px] text-[var(--muted)] uppercase tracking-wider font-semibold">Capacidad</span>
                             <span className="text-xs font-bold text-[var(--foreground)]">{Math.round(progress)}%</span>
@@ -294,7 +332,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
 
                 {/* Role badge */}
                 {isAuthenticated && role !== "spectator" && (
-                    <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] w-fit">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] w-fit">
                         {role === "organizer" && <ShieldCheck className="size-4 text-[var(--accent)]" />}
                         {role === "judge" && <ShieldCheck className="size-4 text-[var(--warning)]" />}
                         {role === "player" && <Person className="size-4 text-[var(--success)]" />}
