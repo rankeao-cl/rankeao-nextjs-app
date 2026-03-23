@@ -78,8 +78,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
       <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
         <div
           style={{
-            backgroundColor: "#1A1A1E",
-            border: "1px solid rgba(255,255,255,0.06)",
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
             borderRadius: 16,
             padding: 18,
             display: "flex",
@@ -103,7 +103,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                 paddingBottom: 4,
                 borderRadius: 999,
                 marginBottom: 8,
-                color: "#888891",
+                color: "var(--muted)",
                 fontSize: 11,
                 fontWeight: 600,
               }}
@@ -112,7 +112,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </span>
             <h1
               style={{
-                color: "#F2F2F2",
+                color: "var(--foreground)",
                 fontSize: 22,
                 fontWeight: 800,
                 margin: 0,
@@ -123,7 +123,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </h1>
             <p
               style={{
-                color: "#888891",
+                color: "var(--muted)",
                 fontSize: 13,
                 lineHeight: "18px",
                 margin: 0,
@@ -185,8 +185,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           <div
             className="sticky top-20 p-4 rounded-2xl"
             style={{
-              backgroundColor: "#1A1A1E",
-              border: "1px solid rgba(255,255,255,0.06)",
+              backgroundColor: "var(--surface-solid)",
+              border: "1px solid var(--border)",
             }}
           >
             <MarketplaceFilters
@@ -235,34 +235,34 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                   <div
                     className="flex items-center gap-4 py-3 px-5 rounded-full"
                     style={{
-                      backgroundColor: "#1A1A1E",
-                      border: "1px solid rgba(255,255,255,0.06)",
+                      backgroundColor: "var(--surface-solid)",
+                      border: "1px solid var(--border)",
                     }}
                   >
                     {page > 1 ? (
                       <a
                         href={`?${buildQuery(params, { page: String(page - 1) })}`}
-                        style={{ color: "#F2F2F2", fontSize: "13px", fontWeight: 600 }}
+                        style={{ color: "var(--foreground)", fontSize: "13px", fontWeight: 600 }}
                       >
                         ← Anterior
                       </a>
                     ) : (
-                      <span style={{ color: "#888891", fontSize: "13px", fontWeight: 600, opacity: 0.4 }}>
+                      <span style={{ color: "var(--muted)", fontSize: "13px", fontWeight: 600, opacity: 0.4 }}>
                         ← Anterior
                       </span>
                     )}
-                    <span style={{ color: "#888891", fontSize: "12px", fontWeight: 600 }}>
+                    <span style={{ color: "var(--muted)", fontSize: "12px", fontWeight: 600 }}>
                       {page} / {totalPages}
                     </span>
                     {page < totalPages ? (
                       <a
                         href={`?${buildQuery(params, { page: String(page + 1) })}`}
-                        style={{ color: "#F2F2F2", fontSize: "13px", fontWeight: 600 }}
+                        style={{ color: "var(--foreground)", fontSize: "13px", fontWeight: 600 }}
                       >
                         Siguiente →
                       </a>
                     ) : (
-                      <span style={{ color: "#888891", fontSize: "13px", fontWeight: 600, opacity: 0.4 }}>
+                      <span style={{ color: "var(--muted)", fontSize: "13px", fontWeight: 600, opacity: 0.4 }}>
                         Siguiente →
                       </span>
                     )}
@@ -275,14 +275,14 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             <div className="flex flex-col items-center py-12">
               <div
                 className="w-[72px] h-[72px] rounded-full flex items-center justify-center mb-4"
-                style={{ backgroundColor: "#1A1A1E" }}
+                style={{ backgroundColor: "var(--surface-solid)" }}
               >
                 <span className="text-3xl opacity-40">🏪</span>
               </div>
-              <p style={{ color: "#F2F2F2", fontSize: "15px", fontWeight: 600, marginBottom: "4px" }}>
+              <p style={{ color: "var(--foreground)", fontSize: "15px", fontWeight: 600, marginBottom: "4px" }}>
                 No se encontraron publicaciones
               </p>
-              <p style={{ color: "#888891", fontSize: "13px" }}>
+              <p style={{ color: "var(--muted)", fontSize: "13px" }}>
                 Intenta con otros filtros o busca otra carta
               </p>
             </div>

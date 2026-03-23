@@ -53,7 +53,7 @@ function getCategoryColors(cat: string): string {
         case "tournament":
         case "competitive": return "bg-purple-500/15 text-purple-400";
         case "chat": return "bg-cyan-500/15 text-cyan-400";
-        default: return "bg-white/8 text-[#888891]";
+        default: return "bg-surface text-muted";
     }
 }
 
@@ -183,18 +183,18 @@ export default function NotificationSidebar({
             <div
                 className={`fixed top-0 left-0 h-full z-[60] w-[360px] max-w-[calc(100vw-48px)] flex flex-col transition-transform duration-250 ease-[cubic-bezier(0.32,0.72,0,1)]`}
                 style={{
-                    background: "#0a0a0a",
-                    borderRight: "1px solid rgba(255,255,255,0.07)",
+                    background: "var(--background)",
+                    borderRight: "1px solid var(--border)",
                     transform: isOpen ? "translateX(0)" : "translateX(-100%)",
                 }}
             >
                 {/* Header */}
                 <div
                     className="flex items-center justify-between px-5 py-4 shrink-0"
-                    style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+                    style={{ borderBottom: "1px solid var(--border)" }}
                 >
                     <div className="flex items-center gap-3">
-                        <h2 className="text-[17px] font-bold text-[#F2F2F2]">Notificaciones</h2>
+                        <h2 className="text-[17px] font-bold text-foreground">Notificaciones</h2>
                         {unreadCount > 0 && (
                             <span className="text-[11px] font-bold bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full">
                                 {unreadCount}
@@ -213,10 +213,10 @@ export default function NotificationSidebar({
                         )}
                         <button
                             onClick={onClose}
-                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/8 transition-colors cursor-pointer"
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface transition-colors cursor-pointer"
                             aria-label="Cerrar"
                         >
-                            <Xmark className="size-4 text-[#888891]" />
+                            <Xmark className="size-4 text-muted" />
                         </button>
                     </div>
                 </div>
@@ -224,7 +224,7 @@ export default function NotificationSidebar({
                 {/* Category tabs */}
                 <div
                     className="flex gap-1.5 px-4 py-3 overflow-x-auto scrollbar-none shrink-0"
-                    style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+                    style={{ borderBottom: "1px solid var(--border)" }}
                 >
                     {TABS.map((tab) => {
                         const tabCount =
@@ -239,8 +239,8 @@ export default function NotificationSidebar({
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
                                     activeTab === tab.id
-                                        ? "bg-[#F2F2F2] text-[#0a0a0a]"
-                                        : "bg-white/8 text-[#888891] hover:text-[#F2F2F2] hover:bg-white/12"
+                                        ? "bg-foreground text-background"
+                                        : "bg-surface text-muted hover:text-foreground hover:bg-surface-solid"
                                 }`}
                             >
                                 {tab.label}
@@ -248,7 +248,7 @@ export default function NotificationSidebar({
                                     <span
                                         className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                                             activeTab === tab.id
-                                                ? "bg-black/20 text-[#0a0a0a]"
+                                                ? "bg-black/20 text-background"
                                                 : "bg-blue-500/20 text-blue-400"
                                         }`}
                                     >
@@ -266,28 +266,28 @@ export default function NotificationSidebar({
                         <div className="flex flex-col gap-3 px-4 py-5">
                             {[...Array(5)].map((_, i) => (
                                 <div key={i} className="flex gap-3 animate-pulse">
-                                    <div className="w-10 h-10 rounded-full bg-white/8 shrink-0" />
+                                    <div className="w-10 h-10 rounded-full bg-surface shrink-0" />
                                     <div className="flex-1 space-y-2 py-1">
-                                        <div className="h-3 bg-white/8 rounded w-3/4" />
-                                        <div className="h-2.5 bg-white/5 rounded w-1/2" />
+                                        <div className="h-3 bg-surface rounded w-3/4" />
+                                        <div className="h-2.5 bg-surface rounded w-1/2" />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : groups.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                                <Bell className="size-7 text-[#888891] opacity-50" />
+                            <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center mb-4">
+                                <Bell className="size-7 text-muted opacity-50" />
                             </div>
-                            <p className="text-sm font-semibold text-[#F2F2F2] mb-1">Todo al día</p>
-                            <p className="text-xs text-[#888891]">No hay notificaciones en esta categoría</p>
+                            <p className="text-sm font-semibold text-foreground mb-1">Todo al día</p>
+                            <p className="text-xs text-muted">No hay notificaciones en esta categoría</p>
                         </div>
                     ) : (
                         <div className="pb-4">
                             {groups.map((group) => (
                                 <div key={group.label}>
                                     {/* Section header */}
-                                    <p className="px-5 pt-5 pb-2 text-[12px] font-bold text-[#888891] uppercase tracking-wide">
+                                    <p className="px-5 pt-5 pb-2 text-[12px] font-bold text-muted uppercase tracking-wide">
                                         {group.label}
                                     </p>
 
@@ -316,13 +316,13 @@ export default function NotificationSidebar({
                                                     <p
                                                         className={`text-[13px] leading-snug ${
                                                             !notif.is_read
-                                                                ? "font-semibold text-[#F2F2F2]"
-                                                                : "font-normal text-[#C8C8CC]"
+                                                                ? "font-semibold text-foreground"
+                                                                : "font-normal text-foreground/70"
                                                         }`}
                                                     >
                                                         {stripHtml(notif.body || notif.title || "Nueva notificación")}
                                                     </p>
-                                                    <p className="text-[11px] text-[#888891] mt-0.5">
+                                                    <p className="text-[11px] text-muted mt-0.5">
                                                         {timeAgo(notif.created_at, { verbose: true })}
                                                     </p>
                                                 </div>
@@ -346,7 +346,7 @@ export default function NotificationSidebar({
                 {/* Footer */}
                 <div
                     className="px-4 py-3 shrink-0"
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
+                    style={{ borderTop: "1px solid var(--border)" }}
                 >
                     <Link
                         href="/notificaciones"
