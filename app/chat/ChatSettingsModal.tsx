@@ -18,15 +18,15 @@ interface Props {
 }
 
 const C = {
-    bg: "#000000",
-    surface: "#1A1A1E",
-    surfaceLight: "#222226",
-    border: "rgba(255,255,255,0.06)",
-    text: "#F2F2F2",
-    muted: "#888891",
+    bg: "var(--background)",
+    surface: "var(--surface-solid)",
+    surfaceLight: "var(--surface-solid)",
+    border: "var(--border)",
+    text: "var(--foreground)",
+    muted: "var(--muted)",
     accent: "#3B82F6",
     danger: "#EF4444",
-    handle: "rgba(255,255,255,0.15)",
+    handle: "rgba(128,128,128,0.3)",
 } as const;
 
 // ── Chat settings types ──
@@ -76,7 +76,7 @@ function Toggle({ value, onChange, disabled }: { value: boolean; onChange: (v: b
             <span style={{
                 position: "absolute", cursor: disabled ? "not-allowed" : "pointer",
                 inset: 0, borderRadius: 999,
-                background: value ? C.text : "#3a3a3c",
+                background: value ? C.text : "var(--muted)",
                 transition: "background 0.2s",
             }} />
             <span style={{
@@ -225,7 +225,7 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
                     maxHeight: "85vh", overflowY: "auto",
                     borderTop: `0.5px solid ${C.border}`,
                 }}
-                className="rounded-t-3xl md:rounded-2xl md:border md:border-[rgba(255,255,255,0.06)]"
+                className="rounded-t-3xl md:rounded-2xl md:border md:border-border"
             >
                 {/* Handle */}
                 <div style={{ display: "flex", justifyContent: "center", paddingTop: 10, paddingBottom: 6 }}>
