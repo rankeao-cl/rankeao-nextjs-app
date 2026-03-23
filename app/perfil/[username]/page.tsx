@@ -273,7 +273,7 @@ export default function PublicProfilePage({
                 alignItems: "center",
                 minHeight: "50vh",
                 gap: 16,
-                backgroundColor: "#000000",
+                backgroundColor: "var(--background)",
             }}>
                 <div style={{
                     width: 32,
@@ -285,7 +285,7 @@ export default function PublicProfilePage({
                     borderLeft: "2px solid transparent",
                     animation: "spin 0.8s linear infinite",
                 }} />
-                <p style={{ color: "#888891", fontSize: 13 }}>Cargando perfil de {usernameParam}...</p>
+                <p style={{ color: "var(--muted)", fontSize: 13 }}>Cargando perfil de {usernameParam}...</p>
             </div>
         );
     }
@@ -299,19 +299,19 @@ export default function PublicProfilePage({
                 alignItems: "center",
                 minHeight: "50vh",
                 gap: 16,
-                backgroundColor: "#000000",
+                backgroundColor: "var(--background)",
                 paddingLeft: 24,
                 paddingRight: 24,
             }}>
-                <Person width={48} height={48} color="#888891" />
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#F2F2F2" }}>Usuario no encontrado</h2>
-                <p style={{ color: "#888891", fontSize: 14 }}>El perfil al que intentas acceder no existe o es privado.</p>
+                <Person width={48} height={48} color="var(--muted)" />
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>Usuario no encontrado</h2>
+                <p style={{ color: "var(--muted)", fontSize: 14 }}>El perfil al que intentas acceder no existe o es privado.</p>
                 <button
                     onClick={() => router.push("/")}
                     style={{
-                        backgroundColor: "#1A1A1E",
-                        color: "#F2F2F2",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface-solid)",
+                        color: "var(--foreground)",
+                        border: "1px solid var(--border)",
                         borderRadius: 99,
                         padding: "10px 24px",
                         fontSize: 14,
@@ -405,7 +405,7 @@ export default function PublicProfilePage({
             }}>{rank.name}</span>
             {level > 0 && (
                 <span style={{
-                    backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
+                    backgroundColor: "var(--surface)", color: "var(--foreground)",
                     paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 11, fontWeight: 700,
                 }}>Nv. {level}</span>
@@ -452,16 +452,16 @@ export default function PublicProfilePage({
 
     const socialRow = (
         <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <span style={{ color: "#888891", fontSize: 13 }}>
-                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>{followersCount}</span> seguidores
+            <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{followersCount}</span> seguidores
             </span>
-            <span style={{ color: "#3C3C43", fontSize: 13 }}>&middot;</span>
-            <span style={{ color: "#888891", fontSize: 13 }}>
-                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>{followingCount}</span> siguiendo
+            <span style={{ color: "var(--muted)", fontSize: 13 }}>&middot;</span>
+            <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{followingCount}</span> siguiendo
             </span>
-            <span style={{ color: "#3C3C43", fontSize: 13 }}>&middot;</span>
-            <span style={{ color: "#888891", fontSize: 13 }}>
-                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>{friendsCount}</span> amigos
+            <span style={{ color: "var(--muted)", fontSize: 13 }}>&middot;</span>
+            <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{friendsCount}</span> amigos
             </span>
         </div>
     );
@@ -475,10 +475,10 @@ export default function PublicProfilePage({
             {userClan.logo_url ? (
                 <img src={userClan.logo_url} alt={userClan.name} style={{ width: 18, height: 18, borderRadius: 4, objectFit: "cover" }} />
             ) : (
-                <Shield width={12} height={12} color="#888891" />
+                <Shield width={12} height={12} color="var(--muted)" />
             )}
-            <span style={{ color: "#888891", fontSize: 12 }}>
-                <span style={{ color: "#F2F2F2", fontWeight: 700 }}>[{userClan.tag}]</span>{" "}
+            <span style={{ color: "var(--muted)", fontSize: 12 }}>
+                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>[{userClan.tag}]</span>{" "}
                 {userClan.name}
             </span>
         </a>
@@ -487,11 +487,11 @@ export default function PublicProfilePage({
     // Bloque de historial reciente de duelos
     const recentDuelsBlock = recentDuels.length > 0 ? (
         <div style={{
-            backgroundColor: "#1A1A1E", borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+            backgroundColor: "var(--surface-solid)", borderRadius: 16,
+            border: "1px solid var(--border)", overflow: "hidden",
         }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
+                <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
                     Duelos recientes
                 </p>
             </div>
@@ -509,7 +509,7 @@ export default function PublicProfilePage({
                     return (
                         <div key={duel.id} style={{
                             display: "flex", alignItems: "center", gap: 10,
-                            padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)",
+                            padding: "10px 16px", borderBottom: "1px solid var(--border)",
                         }}>
                             <div style={{
                                 width: 56, textAlign: "center", flexShrink: 0,
@@ -518,20 +518,20 @@ export default function PublicProfilePage({
                                 <span style={{ color: resultColor, fontSize: 9, fontWeight: 800, letterSpacing: 0.5 }}>{resultLabel}</span>
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 600 }}>
+                                <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 600 }}>
                                     vs{" "}
-                                    <a href={`/perfil/${opponent.username}`} style={{ color: "#F2F2F2", textDecoration: "none" }}>
+                                    <a href={`/perfil/${opponent.username}`} style={{ color: "var(--foreground)", textDecoration: "none" }}>
                                         {opponent.username}
                                     </a>
                                 </span>
                                 {duel.game_name && (
-                                    <p style={{ color: "#888891", fontSize: 11, margin: 0, marginTop: 1 }}>{duel.game_name}</p>
+                                    <p style={{ color: "var(--muted)", fontSize: 11, margin: 0, marginTop: 1 }}>{duel.game_name}</p>
                                 )}
                             </div>
                             <div style={{ textAlign: "right", flexShrink: 0 }}>
-                                <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700 }}>{myWins}-{opponentWins}</span>
+                                <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700 }}>{myWins}-{opponentWins}</span>
                                 {date && (
-                                    <p style={{ color: "#888891", fontSize: 10, margin: 0, marginTop: 1 }}>
+                                    <p style={{ color: "var(--muted)", fontSize: 10, margin: 0, marginTop: 1 }}>
                                         {new Date(date).toLocaleDateString("es-CL", { day: "numeric", month: "short" })}
                                     </p>
                                 )}
@@ -559,10 +559,10 @@ export default function PublicProfilePage({
                 ) : (
                     <div style={{
                         width: size, height: size, borderRadius: size / 2,
-                        backgroundColor: "#1A1A1E", border: `4px solid ${effectiveBorder}`,
+                        backgroundColor: "var(--surface-solid)", border: `4px solid ${effectiveBorder}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                        <Person width={size * 0.4} height={size * 0.4} color="#888891" />
+                        <Person width={size * 0.4} height={size * 0.4} color="var(--muted)" />
                     </div>
                 )}
                 {isOwnProfile && (
@@ -589,11 +589,11 @@ export default function PublicProfilePage({
                 }} />
             ) : (
                 <div style={{
-                    position: "absolute", inset: 0, backgroundColor: "#1A1A1E",
+                    position: "absolute", inset: 0, backgroundColor: "var(--surface-solid)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                     <span style={{
-                        fontSize: 60, color: "#F2F2F2", opacity: 0.04,
+                        fontSize: 60, color: "var(--foreground)", opacity: 0.04,
                         fontWeight: 900, userSelect: "none",
                     }}>RANKEAO</span>
                 </div>
@@ -604,33 +604,33 @@ export default function PublicProfilePage({
 
     const statsCard = (
         <div style={{
-            backgroundColor: "#1A1A1E", borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+            backgroundColor: "var(--surface-solid)", borderRadius: 16,
+            border: "1px solid var(--border)", overflow: "hidden",
         }}>
             <div style={{ paddingTop: 4, paddingBottom: 4 }}>
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                     <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
-                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
+                        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
+                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
                     </div>
-                    <div style={{ width: 0.5, height: 36, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                    <div style={{ width: 0.5, height: 36, backgroundColor: "var(--border)" }} />
                     <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: winRate > 0 ? winRateColor : "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
-                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
+                        <p style={{ color: winRate > 0 ? winRateColor : "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
+                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
                     </div>
                 </div>
-                <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.08)", marginLeft: 16, marginRight: 16 }} />
+                <div style={{ height: 0.5, backgroundColor: "var(--border)", marginLeft: 16, marginRight: 16 }} />
                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                     <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
-                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
+                        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
+                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
                     </div>
-                    <div style={{ width: 0.5, height: 36, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                    <div style={{ width: 0.5, height: 36, backgroundColor: "var(--border)" }} />
                     <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>
+                        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>
                             {currentStreak > 0 ? `${currentStreak}W` : bestStreak > 0 ? `${bestStreak}` : "-"}
                         </p>
-                        <p style={{ color: "#888891", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
+                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
                     </div>
                 </div>
             </div>
@@ -640,8 +640,8 @@ export default function PublicProfilePage({
     const xpBarColor = levelBorderColor || "#F2F2F2";
     const xpProgressBlock = (totalXp > 0 || level > 0) ? (
         <div style={{
-            padding: 14, backgroundColor: "#1A1A1E", borderRadius: 16,
-            border: `1px solid ${levelBorderColor ? levelBorderColor + "30" : "rgba(255,255,255,0.06)"}`,
+            padding: 14, backgroundColor: "var(--surface-solid)", borderRadius: 16,
+            border: `1px solid ${levelBorderColor ? levelBorderColor + "30" : "var(--border)"}`,
         }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -653,21 +653,21 @@ export default function PublicProfilePage({
                     }}>
                         <span style={{ fontSize: 10, fontWeight: 800, color: xpBarColor }}>{level}</span>
                     </div>
-                    <span style={{ fontSize: 10, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
                         NIVEL {level} &rarr; {level + 1}
                     </span>
                     {xpRank > 0 && (
-                        <span style={{ fontSize: 10, color: "#888891", fontWeight: 600 }}>#{xpRank} XP</span>
+                        <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>#{xpRank} XP</span>
                     )}
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 700, color: xpBarColor }}>{currentLevelXp} / {xpToNextLevel} XP</span>
             </div>
-            <div style={{ height: 6, borderRadius: 3, backgroundColor: "#000000", overflow: "hidden" }}>
+            <div style={{ height: 6, borderRadius: 3, backgroundColor: "var(--background)", overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 3, backgroundColor: xpBarColor, width: `${xpProgress}%`, transition: "width 0.5s ease" }} />
             </div>
             {xpToNextLevel > 0 && (
                 <div style={{ marginTop: 4, textAlign: "right" }}>
-                    <span style={{ fontSize: 10, color: "#888891" }}>
+                    <span style={{ fontSize: 10, color: "var(--muted)" }}>
                         Faltan <span style={{ color: xpBarColor, fontWeight: 700 }}>{Math.max(0, xpToNextLevel - currentLevelXp).toLocaleString()}</span> XP
                     </span>
                 </div>
@@ -682,8 +682,8 @@ export default function PublicProfilePage({
                     <button
                         onClick={() => setShowEditModal(true)}
                         style={{
-                            flex: 1, backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
-                            border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99, padding: "12px 0",
+                            flex: 1, backgroundColor: "var(--surface)", color: "var(--foreground)",
+                            border: "1px solid var(--border)", borderRadius: 99, padding: "12px 0",
                             fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center",
                         }}
                     >Editar perfil</button>
@@ -691,21 +691,21 @@ export default function PublicProfilePage({
                         onClick={() => router.push("/config")}
                         className="md:hidden"
                         style={{
-                            flex: 1, backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
-                            border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99, padding: "12px 0",
+                            flex: 1, backgroundColor: "var(--surface)", color: "var(--foreground)",
+                            border: "1px solid var(--border)", borderRadius: 99, padding: "12px 0",
                             fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center",
                         }}
                     >Ajustes</button>
                     <button
                         onClick={() => { navigator.clipboard.writeText(window.location.href); }}
                         style={{
-                            width: 44, height: 44, backgroundColor: "rgba(255,255,255,0.08)",
-                            border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99,
+                            width: 44, height: 44, backgroundColor: "var(--surface)",
+                            border: "1px solid var(--border)", borderRadius: 99,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             cursor: "pointer", flexShrink: 0,
                         }}
                     >
-                        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#F2F2F2" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
                             <polyline points="16,6 12,2 8,6" />
                             <line x1={12} y1={2} x2={12} y2={15} />
@@ -719,9 +719,9 @@ export default function PublicProfilePage({
                         disabled={followLoading}
                         style={{
                             flex: 1,
-                            backgroundColor: isFollowing ? "#1A1A1E" : "#3B82F6",
-                            color: isFollowing ? "#F2F2F2" : "#FFFFFF",
-                            border: isFollowing ? "1px solid rgba(255,255,255,0.06)" : "none",
+                            backgroundColor: isFollowing ? "var(--surface-solid)" : "#3B82F6",
+                            color: isFollowing ? "var(--foreground)" : "#FFFFFF",
+                            border: isFollowing ? "1px solid var(--border)" : "none",
                             borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
                             cursor: followLoading ? "not-allowed" : "pointer",
                             opacity: followLoading ? 0.6 : 1, textAlign: "center",
@@ -730,8 +730,8 @@ export default function PublicProfilePage({
                     <button
                         onClick={() => router.push(`/chat?user=${profile?.username}`)}
                         style={{
-                            flex: 1, backgroundColor: "#1A1A1E", color: "#F2F2F2",
-                            border: "1px solid rgba(255,255,255,0.06)",
+                            flex: 1, backgroundColor: "var(--surface-solid)", color: "var(--foreground)",
+                            border: "1px solid var(--border)",
                             borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
                             cursor: "pointer", textAlign: "center",
                         }}
@@ -740,28 +740,28 @@ export default function PublicProfilePage({
                         <button
                             onClick={() => setShowMoreOptions(!showMoreOptions)}
                             style={{
-                                width: 44, height: 44, backgroundColor: "#1A1A1E",
-                                border: "1px solid rgba(255,255,255,0.06)", borderRadius: 99,
+                                width: 44, height: 44, backgroundColor: "var(--surface-solid)",
+                                border: "1px solid var(--border)", borderRadius: 99,
                                 display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
                             }}
                         >
-                            <EllipsisVertical width={14} height={14} color="#F2F2F2" />
+                            <EllipsisVertical width={14} height={14} color="var(--foreground)" />
                         </button>
                         {showMoreOptions && (
                             <>
                                 <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setShowMoreOptions(false)} />
                                 <div style={{
                                     position: "absolute", right: 0, top: "100%", marginTop: 4, zIndex: 50,
-                                    width: 176, borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)",
-                                    backgroundColor: "#000000", overflow: "hidden",
+                                    width: 176, borderRadius: 16, border: "1px solid var(--border)",
+                                    backgroundColor: "var(--background)", overflow: "hidden",
                                     boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                                 }}>
                                     <button
-                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "#F2F2F2", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "var(--foreground)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
                                         onClick={() => { navigator.clipboard.writeText(window.location.href); setShowMoreOptions(false); }}
                                     >Copiar enlace al perfil</button>
                                     <button
-                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "#F2F2F2", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "var(--foreground)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
                                         onClick={() => setShowMoreOptions(false)}
                                     >Enviar solicitud de amistad</button>
                                     <button
@@ -779,18 +779,18 @@ export default function PublicProfilePage({
 
     const bioLocationGames = (
         <>
-            {bio && <p style={{ color: "#D4D4D8", fontSize: 14, lineHeight: 1.5, margin: 0 }}>{bio}</p>}
+            {bio && <p style={{ color: "var(--foreground)", fontSize: 14, lineHeight: 1.5, margin: 0 }}>{bio}</p>}
             {location && (
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6 }}>
-                    <MapPin width={12} height={12} color="#888891" />
-                    <span style={{ color: "#888891", fontSize: 12 }}>{location}</span>
+                    <MapPin width={12} height={12} color="var(--muted)" />
+                    <span style={{ color: "var(--muted)", fontSize: 12 }}>{location}</span>
                 </div>
             )}
             {gamesList.length > 0 && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
                     {gamesList.map((game: string) => (
                         <span key={game} style={{
-                            backgroundColor: "rgba(255,255,255,0.06)", color: "#F2F2F2",
+                            backgroundColor: "var(--surface)", color: "var(--foreground)",
                             paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
                             borderRadius: 8, fontSize: 11,
                         }}>{game}</span>
@@ -799,7 +799,7 @@ export default function PublicProfilePage({
             )}
             {profile?.created_at && (
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 8 }}>
-                    <span style={{ color: "#888891", fontSize: 12 }}>
+                    <span style={{ color: "var(--muted)", fontSize: 12 }}>
                         Miembro desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
                     </span>
                 </div>
@@ -819,10 +819,10 @@ export default function PublicProfilePage({
                             style={{
                                 paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
                                 borderRadius: 99,
-                                backgroundColor: active ? "#F2F2F2" : "#1A1A1E",
-                                color: active ? "#000000" : "#888891",
+                                backgroundColor: active ? "var(--foreground)" : "var(--surface-solid)",
+                                color: active ? "var(--background)" : "var(--muted)",
                                 fontSize: 13, fontWeight: 600,
-                                border: active ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
+                                border: active ? "1px solid transparent" : "1px solid var(--border)",
                                 cursor: "pointer", whiteSpace: "nowrap",
                             }}
                         >{tab.label}</button>
@@ -892,7 +892,7 @@ export default function PublicProfilePage({
     );
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", width: "100%", backgroundColor: "#000000", minHeight: "100vh" }}>
+        <div style={{ display: "flex", flexDirection: "column", width: "100%", backgroundColor: "var(--background)", minHeight: "100vh" }}>
 
             {/* ══════════════════════════════════════════════
                 MOBILE LAYOUT (default, hidden on md+)
@@ -904,10 +904,10 @@ export default function PublicProfilePage({
                 <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "0 16px", marginTop: -40 }}>
                     {/* Avatar + Name */}
                     <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12 }}>
-                        {avatarBlock(80, "#000000")}
+                        {avatarBlock(80, "var(--background)")}
                         <div style={{ flex: 1, marginTop: 40 }}>
-                            <h1 style={{ color: "#FFFFFF", fontSize: 20, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
-                            <p style={{ color: "#888891", fontSize: 14, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
+                            <h1 style={{ color: "var(--foreground)", fontSize: 20, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
+                            <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
                             {clanBlock && <div style={{ marginTop: 4 }}>{clanBlock}</div>}
                         </div>
                     </div>
@@ -920,18 +920,18 @@ export default function PublicProfilePage({
                     {/* Sobre mi card */}
                     {(bio || profile?.created_at) && (
                         <div style={{ marginTop: 20 }}>
-                            <p style={{ color: "#888891", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>SOBRE MI</p>
+                            <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>SOBRE MI</p>
                             <div style={{
-                                backgroundColor: "#1A1A1E", borderRadius: 16,
-                                border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+                                backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                                border: "1px solid var(--border)", overflow: "hidden",
                             }}>
-                                {bio && <p style={{ color: "#D4D4D8", fontSize: 14, lineHeight: "20px", padding: "14px 16px", margin: 0 }}>{bio}</p>}
+                                {bio && <p style={{ color: "var(--foreground)", fontSize: 14, lineHeight: "20px", padding: "14px 16px", margin: 0 }}>{bio}</p>}
                                 {profile?.created_at && (
                                     <div style={{
                                         display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
-                                        ...(bio ? { borderTop: "1px solid rgba(255,255,255,0.06)" } : {}),
+                                        ...(bio ? { borderTop: "1px solid var(--border)" } : {}),
                                     }}>
-                                        <span style={{ color: "#888891", fontSize: 13 }}>
+                                        <span style={{ color: "var(--muted)", fontSize: 13 }}>
                                             Miembro desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
                                         </span>
                                     </div>
@@ -942,7 +942,7 @@ export default function PublicProfilePage({
 
                     {/* Stats */}
                     <div style={{ marginTop: 20 }}>
-                        <p style={{ color: "#888891", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>ESTADISTICAS</p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>ESTADISTICAS</p>
                         {statsCard}
                     </div>
 
@@ -973,8 +973,8 @@ export default function PublicProfilePage({
                     {/* ── Left Panel: Profile Card (Discord-style) ── */}
                     <div className="w-[340px] shrink-0 sticky top-4 self-start">
                         <div style={{
-                            backgroundColor: "#1A1A1E", borderRadius: 16,
-                            border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+                            backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                            border: "1px solid var(--border)", overflow: "hidden",
                             width: "100%",
                         }}>
                             {/* Banner inside card */}
@@ -982,47 +982,47 @@ export default function PublicProfilePage({
 
                             {/* Avatar overlapping banner */}
                             <div style={{ marginTop: -36, paddingLeft: 16 }}>
-                                {avatarBlock(72, "#1A1A1E")}
+                                {avatarBlock(72, "var(--surface-solid)")}
                             </div>
 
                             {/* Card content */}
                             <div style={{ padding: "8px 16px 20px 16px" }}>
-                                <h1 style={{ color: "#FFFFFF", fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
-                                <p style={{ color: "#888891", fontSize: 13, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
+                                <h1 style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
+                                <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
                                 {clanBlock && <div style={{ marginTop: 4 }}>{clanBlock}</div>}
 
                                 <div style={{ marginTop: 10 }}>{badgesRow}</div>
 
                                 {/* Divider */}
-                                <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
+                                <div style={{ height: 1, backgroundColor: "var(--border)", margin: "12px 0" }} />
 
                                 {bioLocationGames}
 
                                 {/* Divider */}
-                                <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
+                                <div style={{ height: 1, backgroundColor: "var(--border)", margin: "12px 0" }} />
 
                                 {/* Stats — flat, no card wrapper in desktop */}
                                 <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                                     <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
-                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
+                                        <p style={{ color: "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
+                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
                                     </div>
-                                    <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                                    <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)" }} />
                                     <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: winRate > 0 ? winRateColor : "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
-                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
+                                        <p style={{ color: winRate > 0 ? winRateColor : "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
+                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
                                     </div>
-                                    <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                                    <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)" }} />
                                     <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
-                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
+                                        <p style={{ color: "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
+                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
                                     </div>
-                                    <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                                    <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)" }} />
                                     <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: "#F2F2F2", fontSize: 16, fontWeight: 800, margin: 0 }}>
+                                        <p style={{ color: "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>
                                             {currentStreak > 0 ? `${currentStreak}W` : bestStreak > 0 ? `${bestStreak}` : "-"}
                                         </p>
-                                        <p style={{ color: "#888891", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
+                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
                                     </div>
                                 </div>
 
@@ -1039,20 +1039,20 @@ export default function PublicProfilePage({
                                                 }}>
                                                     <span style={{ fontSize: 8, fontWeight: 800, color: xpBarColor }}>{level}</span>
                                                 </div>
-                                                <span style={{ fontSize: 9, color: "#888891", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                                <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
                                                     NV. {level} &rarr; {level + 1}
                                                 </span>
                                             </div>
                                             <span style={{ fontSize: 10, fontWeight: 700, color: xpBarColor }}>{currentLevelXp}/{xpToNextLevel}</span>
                                         </div>
-                                        <div style={{ height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                                        <div style={{ height: 4, borderRadius: 2, backgroundColor: "var(--border)", overflow: "hidden" }}>
                                             <div style={{ height: "100%", borderRadius: 2, backgroundColor: xpBarColor, width: `${xpProgress}%` }} />
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Divider */}
-                                <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", margin: "12px 0" }} />
+                                <div style={{ height: 1, backgroundColor: "var(--border)", margin: "12px 0" }} />
 
                                 {/* Action buttons */}
                                 {actionButtons}
@@ -1076,23 +1076,23 @@ export default function PublicProfilePage({
                             {/* Juegos que juega */}
                             {gamesList.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "#1A1A1E", borderRadius: 16,
-                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                                    border: "1px solid var(--border)", padding: 16,
                                 }}>
-                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12, margin: 0 }}>
+                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12, margin: 0 }}>
                                         Juegos que juega
                                     </p>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                                         {gamesList.map((game: string) => (
                                             <div key={game} style={{
                                                 display: "flex", alignItems: "center", gap: 10,
-                                                backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 12,
+                                                backgroundColor: "var(--surface)", borderRadius: 12,
                                                 padding: "10px 14px",
-                                                border: "1px solid rgba(255,255,255,0.06)",
+                                                border: "1px solid var(--border)",
                                             }}>
                                                 <span style={{ fontSize: 20 }}>🎮</span>
                                                 <div>
-                                                    <p style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 600, margin: 0 }}>{game}</p>
+                                                    <p style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 600, margin: 0 }}>{game}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -1103,10 +1103,10 @@ export default function PublicProfilePage({
                             {/* ELO por juego */}
                             {Array.isArray(gamiStats?.game_stats) && gamiStats.game_stats.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "#1A1A1E", borderRadius: 16,
-                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                                    border: "1px solid var(--border)", padding: 16,
                                 }}>
-                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
                                         ELO por juego
                                     </p>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
@@ -1118,19 +1118,19 @@ export default function PublicProfilePage({
                                                 <div key={gameName + i} style={{
                                                     display: "flex", alignItems: "center", gap: 10,
                                                     padding: "8px 12px", borderRadius: 10,
-                                                    backgroundColor: "rgba(255,255,255,0.04)",
-                                                    border: "1px solid rgba(255,255,255,0.06)",
+                                                    backgroundColor: "var(--surface)",
+                                                    border: "1px solid var(--border)",
                                                 }}>
                                                     <span style={{ fontSize: 16 }}>🎮</span>
                                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <p style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 600, margin: 0, lineHeight: 1 }}>{gameName}</p>
-                                                        <p style={{ color: "#888891", fontSize: 10, margin: 0, marginTop: 2 }}>{gameRank.name}</p>
+                                                        <p style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 600, margin: 0, lineHeight: 1 }}>{gameName}</p>
+                                                        <p style={{ color: "var(--muted)", fontSize: 10, margin: 0, marginTop: 2 }}>{gameRank.name}</p>
                                                     </div>
                                                     <div style={{ textAlign: "right", flexShrink: 0 }}>
                                                         <p style={{ color: gameRank.cssColor, fontSize: 14, fontWeight: 800, margin: 0 }}>
                                                             {gameRating > 0 ? gameRating : "-"}
                                                         </p>
-                                                        <p style={{ color: "#888891", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5, margin: 0 }}>ELO</p>
+                                                        <p style={{ color: "var(--muted)", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5, margin: 0 }}>ELO</p>
                                                     </div>
                                                 </div>
                                             );
@@ -1145,10 +1145,10 @@ export default function PublicProfilePage({
                             {/* Insignias destacadas */}
                             {badges.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "#1A1A1E", borderRadius: 16,
-                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                                    border: "1px solid var(--border)", padding: 16,
                                 }}>
-                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
                                         Insignias destacadas
                                     </p>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
@@ -1156,8 +1156,8 @@ export default function PublicProfilePage({
                                             <div key={badge.id || badge.slug || i} style={{
                                                 display: "flex", flexDirection: "column", alignItems: "center",
                                                 gap: 6, padding: 12, borderRadius: 12,
-                                                backgroundColor: "rgba(255,255,255,0.04)",
-                                                border: "1px solid rgba(255,255,255,0.06)",
+                                                backgroundColor: "var(--surface)",
+                                                border: "1px solid var(--border)",
                                                 width: 80,
                                             }}>
                                                 {badge.icon_url ? (
@@ -1165,7 +1165,7 @@ export default function PublicProfilePage({
                                                 ) : (
                                                     <span style={{ fontSize: 24 }}>🏅</span>
                                                 )}
-                                                <span style={{ color: "#F2F2F2", fontSize: 9, fontWeight: 600, textAlign: "center", lineHeight: "12px" }}>
+                                                <span style={{ color: "var(--foreground)", fontSize: 9, fontWeight: 600, textAlign: "center", lineHeight: "12px" }}>
                                                     {badge.name || "Logro"}
                                                 </span>
                                             </div>
@@ -1177,10 +1177,10 @@ export default function PublicProfilePage({
                             {/* Amigos */}
                             {friends.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "#1A1A1E", borderRadius: 16,
-                                    border: "1px solid rgba(255,255,255,0.06)", padding: 16,
+                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                                    border: "1px solid var(--border)", padding: 16,
                                 }}>
-                                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
                                         Amigos ({friends.length})
                                     </p>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 12 }}>
@@ -1196,19 +1196,19 @@ export default function PublicProfilePage({
                                             >
                                                 <div style={{
                                                     width: 32, height: 32, borderRadius: 16,
-                                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                                    backgroundColor: "var(--surface)",
                                                     display: "flex", alignItems: "center", justifyContent: "center",
                                                     overflow: "hidden", flexShrink: 0,
                                                 }}>
                                                     {friend.avatar_url ? (
                                                         <img src={friend.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }} />
                                                     ) : (
-                                                        <span style={{ color: "#F2F2F2", fontSize: 12, fontWeight: 700 }}>
+                                                        <span style={{ color: "var(--foreground)", fontSize: 12, fontWeight: 700 }}>
                                                             {friend.username?.[0]?.toUpperCase() || "?"}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 500 }}>{friend.username}</span>
+                                                <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 500 }}>{friend.username}</span>
                                                 {friend.is_online && (
                                                     <div style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#22C55E", marginLeft: "auto" }} />
                                                 )}
@@ -1298,7 +1298,7 @@ function EditProfileModal({
 
     const inputStyle: React.CSSProperties = {
         width: "100%",
-        color: "#F2F2F2",
+        color: "var(--foreground)",
         fontSize: 15,
         padding: "14px 16px",
         backgroundColor: "transparent",
@@ -1320,7 +1320,7 @@ function EditProfileModal({
                     position: "relative",
                     width: "100%",
                     maxWidth: 480,
-                    backgroundColor: "#000000",
+                    backgroundColor: "var(--background)",
                     borderRadius: 24,
                     maxHeight: "90vh",
                     overflowY: "auto",
@@ -1335,7 +1335,7 @@ function EditProfileModal({
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "16px",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    borderBottom: "1px solid var(--border)",
                 }}>
                     <button
                         onClick={onClose}
@@ -1343,7 +1343,7 @@ function EditProfileModal({
                             width: 36,
                             height: 36,
                             borderRadius: 18,
-                            backgroundColor: "#1A1A1E",
+                            backgroundColor: "var(--surface-solid)",
                             border: "none",
                             display: "flex",
                             alignItems: "center",
@@ -1351,9 +1351,9 @@ function EditProfileModal({
                             cursor: "pointer",
                         }}
                     >
-                        <Xmark width={20} height={20} color="#F2F2F2" />
+                        <Xmark width={20} height={20} color="var(--foreground)" />
                     </button>
-                    <span style={{ color: "#F2F2F2", fontSize: 17, fontWeight: 700 }}>Perfil</span>
+                    <span style={{ color: "var(--foreground)", fontSize: 17, fontWeight: 700 }}>Perfil</span>
                     <button
                         onClick={handleSave}
                         disabled={saving}
@@ -1389,9 +1389,9 @@ function EditProfileModal({
                 <div style={{ marginTop: -40, paddingLeft: 16, marginBottom: 12 }}>
                     <div style={{ position: "relative", width: 80, height: 80 }}>
                         {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} alt="" style={{ width: 80, height: 80, borderRadius: 40, border: "4px solid #000000", objectFit: "cover" }} />
+                            <img src={profile.avatar_url} alt="" style={{ width: 80, height: 80, borderRadius: 40, border: "4px solid var(--background)", objectFit: "cover" }} />
                         ) : (
-                            <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#1A1A1E", border: "4px solid #000000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "var(--surface-solid)", border: "4px solid var(--background)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <span style={{ color: "#FFFFFF", fontSize: 28, fontWeight: 800 }}>{initial}</span>
                             </div>
                         )}
@@ -1401,8 +1401,8 @@ function EditProfileModal({
                 {/* Form fields */}
                 <div style={{ padding: "0 16px", paddingBottom: 24 }}>
                     {/* Display Name */}
-                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>NOMBRE PARA MOSTRAR</p>
-                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>NOMBRE PARA MOSTRAR</p>
+                    <div style={{ backgroundColor: "var(--surface-solid)", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
                         <input
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
@@ -1412,8 +1412,8 @@ function EditProfileModal({
                     </div>
 
                     {/* Bio */}
-                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>BIO</p>
-                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>BIO</p>
+                    <div style={{ backgroundColor: "var(--surface-solid)", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
@@ -1426,19 +1426,19 @@ function EditProfileModal({
                                 resize: "none",
                             }}
                         />
-                        <p style={{ color: "#5C5C66", fontSize: 11, textAlign: "right", padding: "0 16px 10px" }}>{bio.length}/300</p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, textAlign: "right", padding: "0 16px 10px" }}>{bio.length}/300</p>
                     </div>
 
                     {/* Location */}
-                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>INFORMACION</p>
-                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>INFORMACION</p>
+                    <div style={{ backgroundColor: "var(--surface-solid)", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
                         <input
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
                             placeholder="Ciudad"
                             style={{ ...inputStyle }}
                         />
-                        <div style={{ height: 0.5, backgroundColor: "rgba(255,255,255,0.08)", marginLeft: 16 }} />
+                        <div style={{ height: 0.5, backgroundColor: "var(--border)", marginLeft: 16 }} />
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "12px 16px" }}>
                             {countries.map((c) => (
                                 <button
@@ -1450,8 +1450,8 @@ function EditProfileModal({
                                         paddingTop: 6,
                                         paddingBottom: 6,
                                         borderRadius: 16,
-                                        backgroundColor: country === c.code ? "#3B82F6" : "rgba(255,255,255,0.06)",
-                                        color: country === c.code ? "#FFFFFF" : "#888891",
+                                        backgroundColor: country === c.code ? "#3B82F6" : "var(--surface)",
+                                        color: country === c.code ? "#FFFFFF" : "var(--muted)",
                                         fontSize: 13,
                                         fontWeight: country === c.code ? 600 : 400,
                                         border: "none",
@@ -1465,8 +1465,8 @@ function EditProfileModal({
                     </div>
 
                     {/* Avatar URL */}
-                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>URL AVATAR</p>
-                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>URL AVATAR</p>
+                    <div style={{ backgroundColor: "var(--surface-solid)", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
                         <input
                             value={avatarUrl}
                             onChange={(e) => setAvatarUrl(e.target.value)}
@@ -1476,8 +1476,8 @@ function EditProfileModal({
                     </div>
 
                     {/* Banner URL */}
-                    <p style={{ color: "#888891", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>URL BANNER</p>
-                    <div style={{ backgroundColor: "#1A1A1E", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, letterSpacing: 0.8, marginBottom: 8, marginLeft: 4 }}>URL BANNER</p>
+                    <div style={{ backgroundColor: "var(--surface-solid)", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
                         <input
                             value={bannerUrl}
                             onChange={(e) => setBannerUrl(e.target.value)}
@@ -1494,16 +1494,16 @@ function EditProfileModal({
 function EmptyState({ emoji, title, description }: { emoji: string; title: string; description: string }) {
     return (
         <div style={{
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--border)",
             paddingTop: 48,
             paddingBottom: 48,
             textAlign: "center",
         }}>
             <p style={{ fontSize: 28, opacity: 0.5, marginBottom: 8 }}>{emoji}</p>
-            <p style={{ color: "#F2F2F2", fontSize: 14, fontWeight: 500 }}>{title}</p>
-            <p style={{ color: "#888891", fontSize: 12, marginTop: 4 }}>{description}</p>
+            <p style={{ color: "var(--foreground)", fontSize: 14, fontWeight: 500 }}>{title}</p>
+            <p style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>{description}</p>
         </div>
     );
 }
