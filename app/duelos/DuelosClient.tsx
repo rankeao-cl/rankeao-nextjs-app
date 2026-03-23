@@ -91,8 +91,8 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
             <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
                 <div
                     style={{
-                        backgroundColor: "#1A1A1E",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface-solid)",
+                        border: "1px solid var(--border)",
                         borderRadius: 16,
                         padding: 18,
                         display: "flex",
@@ -115,7 +115,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                                 paddingBottom: 4,
                                 borderRadius: 999,
                                 marginBottom: 8,
-                                color: "#888891",
+                                color: "var(--muted)",
                                 fontSize: 11,
                                 fontWeight: 600,
                             }}
@@ -124,7 +124,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         </span>
                         <h1
                             style={{
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 fontSize: 22,
                                 fontWeight: 800,
                                 margin: 0,
@@ -135,7 +135,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         </h1>
                         <p
                             style={{
-                                color: "#888891",
+                                color: "var(--muted)",
                                 fontSize: 13,
                                 lineHeight: "18px",
                                 margin: 0,
@@ -176,7 +176,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
 
             {/* Search bar */}
             <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
-                <form action="/duelos" method="GET" className="flex-1 flex items-center gap-2 bg-[#1A1A1E] border border-[rgba(255,255,255,0.06)] rounded-full px-[14px] py-[10px]">
+                <form action="/duelos" method="GET" className="flex-1 flex items-center gap-2 bg-surface-solid border border-[rgba(255,255,255,0.06)] rounded-full px-[14px] py-[10px]">
                     {currentTab && <input type="hidden" name="tab" value={currentTab} />}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -186,7 +186,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         name="q"
                         placeholder="Buscar duelos..."
                         defaultValue={currentQuery}
-                        className="flex-1 bg-transparent text-sm text-[#F2F2F2] placeholder-[#888891] outline-none"
+                        className="flex-1 bg-transparent text-sm text-foreground placeholder-[#888891] outline-none"
                     />
                     {currentQuery && (
                         <a href={`/duelos?tab=${tab}`} className="shrink-0">
@@ -221,9 +221,9 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                                     borderRadius: 999,
                                     fontSize: 13,
                                     fontWeight: 600,
-                                    backgroundColor: active ? "#F2F2F2" : "#1A1A1E",
-                                    color: active ? "#000000" : "#888891",
-                                    border: active ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)",
+                                    backgroundColor: active ? "var(--foreground)" : "var(--surface-solid)",
+                                    color: active ? "var(--background)" : "var(--muted)",
+                                    border: active ? "1px solid transparent" : "1px solid var(--border)",
                                 }}
                             >
                                 {t.label}
@@ -260,12 +260,12 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#1A1A1E]">
+                    <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-surface-solid">
                         <div className="py-16 text-center">
                             <p className="text-4xl mb-4">
                                 {tab === "invitations" ? "📩" : tab === "sent" ? "📤" : tab === "history" ? "📋" : "⚔️"}
                             </p>
-                            <p className="text-lg font-medium text-[#F2F2F2]">
+                            <p className="text-lg font-medium text-foreground">
                                 {tab === "invitations"
                                     ? "Sin invitaciones"
                                     : tab === "sent"
@@ -274,7 +274,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                                     ? "Sin historial"
                                     : "Sin duelos activos"}
                             </p>
-                            <p className="text-sm mt-1 text-[#888891]">
+                            <p className="text-sm mt-1 text-muted">
                                 {tab === "active" && "Desafia a alguien para empezar"}
                             </p>
                             {tab === "active" && (

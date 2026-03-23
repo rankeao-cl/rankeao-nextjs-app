@@ -29,7 +29,7 @@ interface SearchResult {
 }
 
 const TAB_CONFIG: Record<ResultType | "all", { icon: typeof Person; label: string; color: string; bg: string }> = {
-    all:        { icon: Magnifier,    label: "Todo",         color: "#F2F2F2",  bg: "rgba(255,255,255,0.06)" },
+    all:        { icon: Magnifier,    label: "Todo",         color: "var(--foreground)",  bg: "rgba(255,255,255,0.06)" },
     user:       { icon: Person,       label: "Jugadores",    color: "#3B82F6",  bg: "rgba(59,130,246,0.12)" },
     tournament: { icon: Cup,          label: "Torneos",      color: "#A855F7",  bg: "rgba(168,85,247,0.12)" },
     clan:       { icon: Shield,       label: "Clanes",       color: "#3B82F6",  bg: "rgba(59,130,246,0.12)" },
@@ -183,11 +183,11 @@ function SearchContent() {
     if (!query) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-                <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-                    <Magnifier style={{ width: 32, height: 32, color: "#888891" }} />
+                <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                    <Magnifier style={{ width: 32, height: 32, color: "var(--muted)" }} />
                 </div>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#F2F2F2", margin: "0 0 8px" }}>Buscar en Rankeao</h1>
-                <p style={{ fontSize: 14, color: "#888891", maxWidth: 320 }}>Jugadores, torneos, clanes, cartas, comunidades y publicaciones.</p>
+                <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", margin: "0 0 8px" }}>Buscar en Rankeao</h1>
+                <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 320 }}>Jugadores, torneos, clanes, cartas, comunidades y publicaciones.</p>
             </div>
         );
     }
@@ -196,10 +196,10 @@ function SearchContent() {
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 16px" }}>
             {/* Header */}
             <div style={{ marginBottom: 24 }}>
-                <h1 style={{ fontSize: 24, fontWeight: 800, color: "#F2F2F2", margin: "0 0 4px" }}>
+                <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--foreground)", margin: "0 0 4px" }}>
                     Resultados para <span style={{ color: "#3B82F6" }}>&quot;{query}&quot;</span>
                 </h1>
-                <p style={{ fontSize: 13, color: "#888891", margin: 0 }}>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
                     {results.length} resultado{results.length !== 1 ? "s" : ""} en toda la plataforma
                 </p>
             </div>
@@ -219,8 +219,8 @@ function SearchContent() {
                                 display: "flex", alignItems: "center", gap: 6,
                                 padding: "8px 14px", borderRadius: 10,
                                 backgroundColor: isActive2 ? config.bg : "transparent",
-                                border: isActive2 ? `1px solid ${config.color}30` : "1px solid rgba(255,255,255,0.06)",
-                                color: isActive2 ? config.color : "#888891",
+                                border: isActive2 ? `1px solid ${config.color}30` : "1px solid var(--border)",
+                                color: isActive2 ? config.color : "var(--muted)",
                                 fontSize: 13, fontWeight: 600, cursor: "pointer",
                                 whiteSpace: "nowrap", flexShrink: 0,
                                 transition: "all 0.15s",
@@ -230,7 +230,7 @@ function SearchContent() {
                             <span style={{
                                 fontSize: 10, fontWeight: 700,
                                 backgroundColor: isActive2 ? config.color + "20" : "rgba(255,255,255,0.06)",
-                                color: isActive2 ? config.color : "#888891",
+                                color: isActive2 ? config.color : "var(--muted)",
                                 padding: "2px 6px", borderRadius: 999,
                             }}>
                                 {count}
@@ -256,8 +256,8 @@ function SearchContent() {
                     padding: "80px 16px", textAlign: "center",
                     border: "2px dashed rgba(255,255,255,0.06)", borderRadius: 16,
                 }}>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: "#F2F2F2", margin: "0 0 8px" }}>Sin resultados</p>
-                    <p style={{ fontSize: 13, color: "#888891", margin: 0 }}>Prueba con otras palabras o revisa la escritura.</p>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Sin resultados</p>
+                    <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>Prueba con otras palabras o revisa la escritura.</p>
                 </div>
             )}
         </div>
@@ -276,12 +276,12 @@ function ResultCard({ item }: { item: SearchResult }) {
             <div style={{
                 display: "flex", alignItems: "center", gap: 12,
                 padding: 14, borderRadius: 14,
-                backgroundColor: "#1A1A1E",
-                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface-solid)",
+                border: "1px solid var(--border)",
                 transition: "border-color 0.15s",
             }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = config.color + "40")}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
             >
                 {/* Image / Icon */}
                 {item.image ? (
@@ -290,7 +290,7 @@ function ResultCard({ item }: { item: SearchResult }) {
                         height: item.type === "card" ? 58 : 44,
                         borderRadius: item.type === "card" ? 6 : item.type === "user" ? 22 : 10,
                         overflow: "hidden", flexShrink: 0,
-                        backgroundColor: "#222226",
+                        backgroundColor: "var(--surface-solid)",
                     }}>
                         <Image src={item.image} alt={item.title} width={44} height={item.type === "card" ? 58 : 44}
                             style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -333,16 +333,16 @@ function ResultCard({ item }: { item: SearchResult }) {
                             </span>
                         )}
                         {item.type === "listing" && meta.condition && (
-                            <span style={{ fontSize: 9, fontWeight: 600, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 4 }}>
+                            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 4 }}>
                                 {String(meta.condition)}
                             </span>
                         )}
                     </div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: "#F2F2F2", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {item.title}
                     </p>
                     {item.subtitle && (
-                        <p style={{ fontSize: 12, color: "#888891", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 12, color: "var(--muted)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {item.subtitle}
                         </p>
                     )}
@@ -352,20 +352,20 @@ function ResultCard({ item }: { item: SearchResult }) {
                             <span style={{ fontSize: 10, fontWeight: 600, color: "#F59E0B" }}>{String(meta.rank_badge)}</span>
                         )}
                         {item.type === "tournament" && meta.registered_count != null && (
-                            <span style={{ fontSize: 10, color: "#888891", display: "flex", alignItems: "center", gap: 2 }}>
+                            <span style={{ fontSize: 10, color: "var(--muted)", display: "flex", alignItems: "center", gap: 2 }}>
                                 <Persons style={{ width: 10, height: 10 }} /> {String(meta.registered_count)}
                             </span>
                         )}
                         {item.type === "clan" && meta.member_count != null && (
-                            <span style={{ fontSize: 10, color: "#888891", display: "flex", alignItems: "center", gap: 2 }}>
+                            <span style={{ fontSize: 10, color: "var(--muted)", display: "flex", alignItems: "center", gap: 2 }}>
                                 <Persons style={{ width: 10, height: 10 }} /> {String(meta.member_count)} miembros
                             </span>
                         )}
                         {item.type === "card" && meta.rarity && (
-                            <span style={{ fontSize: 10, color: "#888891" }}>{String(meta.rarity)}</span>
+                            <span style={{ fontSize: 10, color: "var(--muted)" }}>{String(meta.rarity)}</span>
                         )}
                         {item.type === "listing" && meta.seller && (
-                            <span style={{ fontSize: 10, color: "#888891" }}>@{String(meta.seller)}</span>
+                            <span style={{ fontSize: 10, color: "var(--muted)" }}>@{String(meta.seller)}</span>
                         )}
                         {item.type === "community" && meta.rating != null && Number(meta.rating) > 0 && (
                             <span style={{ fontSize: 10, color: "#F59E0B" }}>★ {Number(meta.rating).toFixed(1)}</span>

@@ -16,12 +16,12 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
     if (entries.length === 0) return null;
 
     return (
-        <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
+        <div style={{ borderRadius: 16, border: "1px solid var(--border)", overflow: "hidden" }}>
             {/* Header */}
             <div style={{
                 display: "flex", alignItems: "center", padding: "10px 16px", gap: 12,
-                backgroundColor: "#222226", borderBottom: "1px solid rgba(255,255,255,0.06)",
-                fontSize: 10, fontWeight: 700, color: "#888891", textTransform: "uppercase", letterSpacing: 0.5,
+                backgroundColor: "var(--surface-solid)", borderBottom: "1px solid var(--border)",
+                fontSize: 10, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 0.5,
             }}>
                 <span style={{ width: 36, textAlign: "center" }}>#</span>
                 <span style={{ flex: 1 }}>Jugador</span>
@@ -52,7 +52,7 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
 
                 const streak = entry.current_streak;
                 let streakText = "—";
-                let streakColor = "#888891";
+                let streakColor = "var(--muted)";
                 if (streak != null && streak !== 0) {
                     if (streak > 0) { streakText = `${streak}W`; streakColor = "#22C55E"; }
                     else { streakText = `${Math.abs(streak)}L`; streakColor = "#EF4444"; }
@@ -66,18 +66,18 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                     >
                         <div style={{
                             display: "flex", alignItems: "center", padding: "10px 16px", gap: 12,
-                            backgroundColor: isTop3 ? "rgba(59,130,246,0.04)" : "#1A1A1E",
-                            borderBottom: i < entries.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                            backgroundColor: isTop3 ? "rgba(59,130,246,0.04)" : "var(--surface-solid)",
+                            borderBottom: i < entries.length - 1 ? "1px solid var(--border)" : "none",
                             transition: "background-color 0.15s",
                         }}
-                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#222226"}
-                            onMouseLeave={e => e.currentTarget.style.backgroundColor = isTop3 ? "rgba(59,130,246,0.04)" : "#1A1A1E"}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--surface-hover)"}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = isTop3 ? "rgba(59,130,246,0.04)" : "var(--surface-solid)"}
                         >
                             {/* Rank */}
                             <span style={{
                                 width: 36, textAlign: "center",
                                 fontSize: isTop3 ? 16 : 13, fontWeight: 700,
-                                color: isTop3 ? undefined : "#888891",
+                                color: isTop3 ? undefined : "var(--muted)",
                             }}>
                                 {isTop3 ? MEDALS[rank] : rank}
                             </span>
@@ -91,22 +91,22 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                                     }} />
                                 ) : (
                                     <div style={{
-                                        width: 32, height: 32, borderRadius: 16, backgroundColor: "#222226",
+                                        width: 32, height: 32, borderRadius: 16, backgroundColor: "var(--surface-solid)",
                                         display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 12, fontWeight: 700, color: "#888891", flexShrink: 0,
+                                        fontSize: 12, fontWeight: 700, color: "var(--muted)", flexShrink: 0,
                                     }}>
                                         {entry.username?.charAt(0).toUpperCase()}
                                     </div>
                                 )}
                                 <div style={{ minWidth: 0 }}>
                                     <p style={{
-                                        fontSize: 13, fontWeight: isTop3 ? 700 : 600, color: "#F2F2F2", margin: 0,
+                                        fontSize: 13, fontWeight: isTop3 ? 700 : 600, color: "var(--foreground)", margin: 0,
                                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                     }}>
                                         {entry.username}
                                     </p>
                                     {entry.title && (
-                                        <p style={{ fontSize: 10, color: "#888891", margin: 0 }}>{entry.title}</p>
+                                        <p style={{ fontSize: 10, color: "var(--muted)", margin: 0 }}>{entry.title}</p>
                                     )}
                                 </div>
                             </div>
@@ -114,7 +114,7 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                             {/* Stats */}
                             {isXp ? (
                                 <>
-                                    <span style={{ width: 50, textAlign: "center", fontSize: 12, fontWeight: 600, color: "#F2F2F2" }}>
+                                    <span style={{ width: 50, textAlign: "center", fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
                                         Lv.{entry.level ?? "—"}
                                     </span>
                                     <span style={{ width: 80, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#3B82F6" }}>
@@ -126,10 +126,10 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                                     <span style={{ width: 60, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#F59E0B" }}>
                                         {entry.rating ?? "—"}
                                     </span>
-                                    <span style={{ width: 50, textAlign: "right", fontSize: 12, color: "#888891" }}>
+                                    <span style={{ width: 50, textAlign: "right", fontSize: 12, color: "var(--muted)" }}>
                                         {winRate}
                                     </span>
-                                    <span className="hidden sm:block" style={{ width: 60, textAlign: "right", fontSize: 12, color: "#888891" }}>
+                                    <span className="hidden sm:block" style={{ width: 60, textAlign: "right", fontSize: 12, color: "var(--muted)" }}>
                                         {entry.tournaments_played ?? entry.games_played ?? "—"}
                                     </span>
                                     <span className="hidden sm:block" style={{ width: 60, textAlign: "right", fontSize: 12, fontWeight: 600, color: streakColor }}>
