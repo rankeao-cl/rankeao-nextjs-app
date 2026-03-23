@@ -101,8 +101,8 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
       <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
         <div
           style={{
-            backgroundColor: "#1A1A1E",
-            border: "1px solid rgba(255,255,255,0.06)",
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
             borderRadius: 16,
             padding: 18,
             display: "flex",
@@ -117,18 +117,18 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
             <span
               style={{
                 display: "inline-block",
-                backgroundColor: "rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface)",
                 paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
                 borderRadius: 999, marginBottom: 8,
-                color: "#888891", fontSize: 11, fontWeight: 600,
+                color: "var(--muted)", fontSize: 11, fontWeight: 600,
               }}
             >
               Directorio de tiendas
             </span>
-            <h1 style={{ color: "#F2F2F2", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
+            <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
               Comunidades TCG
             </h1>
-            <p style={{ color: "#888891", fontSize: 13, lineHeight: "18px", margin: 0 }}>
+            <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: "18px", margin: 0 }}>
               Encuentra tiendas y espacios de juego en Chile.
             </p>
           </div>

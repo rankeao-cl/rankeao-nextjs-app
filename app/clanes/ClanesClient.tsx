@@ -78,15 +78,15 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
         <div>
             {/* Search + view toggle */}
             <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
-                <div style={{ flex: 1, display: "flex", alignItems: "center", backgroundColor: "#1A1A1E", borderRadius: 999, padding: "10px 14px", border: "1px solid rgba(255,255,255,0.06)", gap: 8 }}>
-                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", backgroundColor: "var(--surface-solid)", borderRadius: 999, padding: "10px 14px", border: "1px solid var(--border)", gap: 8 }}>
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar clanes..."
-                        style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: 14, color: "#F2F2F2", padding: 0 }} />
+                        style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: 14, color: "var(--foreground)", padding: 0 }} />
                     {search && (
                         <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
                             </svg>
                         </button>
@@ -107,21 +107,21 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
             <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
                 <button onClick={() => { setFilterGame(""); setFilterRecruiting(false); }}
                     style={{ padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                        backgroundColor: !hasFilters ? "#F2F2F2" : "#1A1A1E", color: !hasFilters ? "#000000" : "#888891",
-                        border: !hasFilters ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                        backgroundColor: !hasFilters ? "var(--foreground)" : "var(--surface-solid)", color: !hasFilters ? "var(--background)" : "var(--muted)",
+                        border: !hasFilters ? "1px solid transparent" : "1px solid var(--border)", flexShrink: 0 }}>
                     Todos
                 </button>
                 <button onClick={() => setFilterRecruiting(!filterRecruiting)}
                     style={{ padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                        backgroundColor: filterRecruiting ? "#F2F2F2" : "#1A1A1E", color: filterRecruiting ? "#000000" : "#888891",
-                        border: filterRecruiting ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                        backgroundColor: filterRecruiting ? "var(--foreground)" : "var(--surface-solid)", color: filterRecruiting ? "var(--background)" : "var(--muted)",
+                        border: filterRecruiting ? "1px solid transparent" : "1px solid var(--border)", flexShrink: 0 }}>
                     Reclutando
                 </button>
                 {games.map((g) => (
                     <button key={g.slug} onClick={() => setFilterGame(filterGame === g.slug ? "" : g.slug)}
                         style={{ padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                            backgroundColor: filterGame === g.slug ? "#F2F2F2" : "#1A1A1E", color: filterGame === g.slug ? "#000000" : "#888891",
-                            border: filterGame === g.slug ? "1px solid transparent" : "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                            backgroundColor: filterGame === g.slug ? "var(--foreground)" : "var(--surface-solid)", color: filterGame === g.slug ? "var(--background)" : "var(--muted)",
+                            border: filterGame === g.slug ? "1px solid transparent" : "1px solid var(--border)", flexShrink: 0 }}>
                         {g.name}
                     </button>
                 ))}
@@ -134,7 +134,7 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
             <div className="mx-4 lg:mx-6 mb-12">
                 {searching && (
                     <div style={{ display: "flex", justifyContent: "center", padding: "24px 0" }}>
-                        <div style={{ width: 24, height: 24, border: "3px solid rgba(255,255,255,0.06)", borderTopColor: "#3B82F6", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                        <div style={{ width: 24, height: 24, border: "3px solid var(--border)", borderTopColor: "#3B82F6", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                     </div>
                 )}
@@ -153,11 +153,11 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
 
                 {!searching && clans.length === 0 && (
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 0" }}>
-                        <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "#1A1A1E", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                        <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "var(--surface-solid)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
                             <span style={{ fontSize: 32, opacity: 0.4 }}>🛡️</span>
                         </div>
-                        <p style={{ color: "#F2F2F2", fontSize: 15, fontWeight: 600, margin: 0, marginBottom: 4 }}>No se encontraron clanes</p>
-                        <p style={{ color: "#888891", fontSize: 13, margin: 0 }}>{search ? "Intenta con otros terminos." : "Se el primero en crear un clan."}</p>
+                        <p style={{ color: "var(--foreground)", fontSize: 15, fontWeight: 600, margin: 0, marginBottom: 4 }}>No se encontraron clanes</p>
+                        <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>{search ? "Intenta con otros terminos." : "Se el primero en crear un clan."}</p>
                     </div>
                 )}
             </div>
