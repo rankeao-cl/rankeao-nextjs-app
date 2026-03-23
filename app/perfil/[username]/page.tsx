@@ -273,7 +273,7 @@ export default function PublicProfilePage({
                 alignItems: "center",
                 minHeight: "50vh",
                 gap: 16,
-                backgroundColor: "#000000",
+                backgroundColor: "var(--background)",
             }}>
                 <div style={{
                     width: 32,
@@ -285,7 +285,7 @@ export default function PublicProfilePage({
                     borderLeft: "2px solid transparent",
                     animation: "spin 0.8s linear infinite",
                 }} />
-                <p style={{ color: "#888891", fontSize: 13 }}>Cargando perfil de {usernameParam}...</p>
+                <p style={{ color: "var(--muted)", fontSize: 13 }}>Cargando perfil de {usernameParam}...</p>
             </div>
         );
     }
@@ -299,19 +299,19 @@ export default function PublicProfilePage({
                 alignItems: "center",
                 minHeight: "50vh",
                 gap: 16,
-                backgroundColor: "#000000",
+                backgroundColor: "var(--background)",
                 paddingLeft: 24,
                 paddingRight: 24,
             }}>
-                <Person width={48} height={48} color="#888891" />
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#F2F2F2" }}>Usuario no encontrado</h2>
-                <p style={{ color: "#888891", fontSize: 14 }}>El perfil al que intentas acceder no existe o es privado.</p>
+                <Person width={48} height={48} color="var(--muted)" />
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>Usuario no encontrado</h2>
+                <p style={{ color: "var(--muted)", fontSize: 14 }}>El perfil al que intentas acceder no existe o es privado.</p>
                 <button
                     onClick={() => router.push("/")}
                     style={{
-                        backgroundColor: "#1A1A1E",
-                        color: "#F2F2F2",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface-solid)",
+                        color: "var(--foreground)",
+                        border: "1px solid var(--border)",
                         borderRadius: 99,
                         padding: "10px 24px",
                         fontSize: 14,
@@ -405,7 +405,7 @@ export default function PublicProfilePage({
             }}>{rank.name}</span>
             {level > 0 && (
                 <span style={{
-                    backgroundColor: "rgba(255,255,255,0.08)", color: "#F2F2F2",
+                    backgroundColor: "var(--surface)", color: "var(--foreground)",
                     paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 11, fontWeight: 700,
                 }}>Nv. {level}</span>

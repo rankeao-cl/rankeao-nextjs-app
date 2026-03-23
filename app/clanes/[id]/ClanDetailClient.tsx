@@ -99,9 +99,9 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
                 alignItems: "center",
                 padding: "8px 16px",
                 borderRadius: 999,
-                backgroundColor: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#F2F2F2",
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
                 fontSize: 13,
                 fontWeight: 600,
                 textDecoration: "none",
@@ -155,8 +155,8 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
           style={{
             padding: "8px 16px",
             borderRadius: 999,
-            backgroundColor: "rgba(255,255,255,0.06)",
-            color: "#888891",
+            backgroundColor: "var(--surface)",
+            color: "var(--muted)",
             fontSize: 13,
             fontWeight: 600,
           }}

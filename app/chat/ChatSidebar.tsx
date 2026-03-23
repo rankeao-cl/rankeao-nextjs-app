@@ -34,18 +34,6 @@ const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
     { key: "torneos", label: "Torneos" },
 ];
 
-// Hardcoded color palette
-const C = {
-    bg: "#000000",
-    surface: "#1A1A1E",
-    surfaceLight: "#222226",
-    border: "rgba(255,255,255,0.06)",
-    text: "#F2F2F2",
-    muted: "#888891",
-    accent: "#3B82F6",
-    online: "#23A559",
-    offline: "#888891",
-} as const;
 
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft, initialFilter }: ChatSidebarProps) {
     const { session } = useAuth();
@@ -148,13 +136,13 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                     width: 44,
                                     height: 44,
                                     borderRadius: 22,
-                                    backgroundColor: C.surface,
+                                    backgroundColor: "var(--surface-solid)",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
                                 }}
                             >
-                                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={C.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                                     <circle cx="9" cy="7" r="4" />
                                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
