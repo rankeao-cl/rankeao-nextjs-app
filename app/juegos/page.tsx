@@ -50,8 +50,8 @@ export default async function JuegosPage() {
       <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
         <div
           style={{
-            backgroundColor: "#1A1A1E",
-            border: "1px solid rgba(255,255,255,0.06)",
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
             borderRadius: 16,
             padding: 18,
             display: "flex",
@@ -75,7 +75,7 @@ export default async function JuegosPage() {
                 paddingBottom: 4,
                 borderRadius: 999,
                 marginBottom: 8,
-                color: "#888891",
+                color: "var(--muted)",
                 fontSize: 11,
                 fontWeight: 600,
               }}
@@ -84,7 +84,7 @@ export default async function JuegosPage() {
             </span>
             <h1
               style={{
-                color: "#F2F2F2",
+                color: "var(--foreground)",
                 fontSize: 22,
                 fontWeight: 800,
                 margin: 0,
@@ -95,7 +95,7 @@ export default async function JuegosPage() {
             </h1>
             <p
               style={{
-                color: "#888891",
+                color: "var(--muted)",
                 fontSize: 13,
                 lineHeight: "18px",
                 margin: 0,

@@ -49,25 +49,25 @@ function TournamentsSkeleton() {
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <div
           key={i}
-          className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#1A1A1E] p-4"
+          className="rounded-2xl border border-border bg-surface-solid p-4"
         >
           <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between gap-4">
               <div className="w-full flex flex-col gap-2">
-                <div className="h-5 w-3/4 rounded-lg bg-[rgba(255,255,255,0.06)] animate-pulse" />
-                <div className="h-3 w-1/2 rounded-lg bg-[rgba(255,255,255,0.06)] animate-pulse" />
+                <div className="h-5 w-3/4 rounded-lg bg-border animate-pulse" />
+                <div className="h-3 w-1/2 rounded-lg bg-border animate-pulse" />
               </div>
-              <div className="h-6 w-16 rounded-full bg-[rgba(255,255,255,0.06)] animate-pulse" />
+              <div className="h-6 w-16 rounded-full bg-border animate-pulse" />
             </div>
             <div className="flex gap-2">
-              <div className="h-6 w-16 rounded-md bg-[rgba(255,255,255,0.06)] animate-pulse" />
-              <div className="h-6 w-20 rounded-md bg-[rgba(255,255,255,0.06)] animate-pulse" />
+              <div className="h-6 w-16 rounded-md bg-border animate-pulse" />
+              <div className="h-6 w-20 rounded-md bg-border animate-pulse" />
             </div>
             <div className="flex justify-between items-center mt-2">
-              <div className="h-4 w-24 rounded-md bg-[rgba(255,255,255,0.06)] animate-pulse" />
-              <div className="h-4 w-12 rounded-md bg-[rgba(255,255,255,0.06)] animate-pulse" />
+              <div className="h-4 w-24 rounded-md bg-border animate-pulse" />
+              <div className="h-4 w-12 rounded-md bg-border animate-pulse" />
             </div>
-            <div className="h-8 w-full rounded-lg bg-[rgba(255,255,255,0.06)] animate-pulse mt-2" />
+            <div className="h-8 w-full rounded-lg bg-border animate-pulse mt-2" />
           </div>
         </div>
       ))}
@@ -118,13 +118,13 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#1A1A1E]">
+        <div className="rounded-2xl border border-border bg-surface-solid">
           <div className="py-16 text-center">
             <p className="text-4xl mb-4">🔍</p>
-            <p className="text-lg font-medium text-[#F2F2F2]">
+            <p className="text-lg font-medium text-foreground">
               No se encontraron torneos
             </p>
-            <p className="text-sm mt-1 text-[#888891]">
+            <p className="text-sm mt-1 text-muted">
               Intenta ajustar los filtros de búsqueda
             </p>
           </div>
@@ -184,8 +184,8 @@ export default async function TorneosPage({ searchParams }: Props) {
       <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
         <div
           style={{
-            backgroundColor: "#1A1A1E",
-            border: "1px solid rgba(255,255,255,0.06)",
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
             borderRadius: 16,
             padding: 18,
             display: "flex",
@@ -201,7 +201,7 @@ export default async function TorneosPage({ searchParams }: Props) {
             <span
               style={{
                 display: "inline-block",
-                backgroundColor: "rgba(255,255,255,0.06)",
+                backgroundColor: "var(--border)",
                 alignSelf: "flex-start",
                 paddingLeft: 10,
                 paddingRight: 10,
@@ -209,7 +209,7 @@ export default async function TorneosPage({ searchParams }: Props) {
                 paddingBottom: 4,
                 borderRadius: 999,
                 marginBottom: 8,
-                color: "#888891",
+                color: "var(--muted)",
                 fontSize: 11,
                 fontWeight: 600,
               }}
@@ -218,7 +218,7 @@ export default async function TorneosPage({ searchParams }: Props) {
             </span>
             <h1
               style={{
-                color: "#F2F2F2",
+                color: "var(--foreground)",
                 fontSize: 22,
                 fontWeight: 800,
                 margin: 0,
