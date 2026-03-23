@@ -30,7 +30,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
         ? new Date(tournament.starts_at).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })
         : null;
 
-    const gameBrandColor = "#6B7280";
+    const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
 
     return (
         <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
@@ -40,77 +40,87 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                 border: "1px solid rgba(255,255,255,0.06)",
                 overflow: "hidden",
             }}>
-                {/* Muted top bar */}
-                <div style={{ height: 4, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                {/* Banner con overlay degradado */}
+                <div className="relative overflow-hidden" style={{ height: 88 }}>
+                    {bgImage ? (
+                        <Image
+                            src={bgImage}
+                            alt={tournament.name}
+                            fill
+                            sizes="(max-width: 640px) 100vw, 50vw"
+                            className="object-cover opacity-40"
+                        />
+                    ) : (
+                        <div
+                            className="absolute inset-0"
+                            style={{ background: "linear-gradient(135deg, #131318 0%, #1e1e24 100%)" }}
+                        />
+                    )}
+                    {/* Overlay degradado inferior hacia fondo de la card */}
+                    <div
+                        className="absolute inset-0"
+                        style={{ background: "linear-gradient(to bottom, rgba(26,26,30,0.2) 0%, rgba(26,26,30,0.75) 60%, #1A1A1E 100%)" }}
+                    />
 
-                <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-                    {/* Header */}
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                        {tournament.tenant_logo_url ? (
-                            <div style={{
-                                width: 44, height: 44, borderRadius: 12, overflow: "hidden",
-                                border: "1px solid rgba(255,255,255,0.06)", flexShrink: 0,
-                            }}>
+                    {/* Chip Finalizado */}
+                    <div className="absolute top-2.5 right-2.5">
+                        <span
+                            className="px-2 py-1 rounded-full text-[10px] font-semibold"
+                            style={{ backgroundColor: "rgba(255,255,255,0.08)", color: "#888891" }}
+                        >
+                            Finalizado
+                        </span>
+                    </div>
+
+                    {/* Logo organizador */}
+                    {tournament.tenant_logo_url && (
+                        <div className="absolute top-2.5 left-2.5">
+                            <div
+                                className="w-7 h-7 rounded-lg overflow-hidden"
+                                style={{ border: "1px solid rgba(255,255,255,0.12)" }}
+                            >
                                 <Image
                                     src={tournament.tenant_logo_url}
                                     alt={tournament.tenant_name || ""}
-                                    width={44}
-                                    height={44}
-                                    style={{ width: 44, height: 44, objectFit: "cover" }}
+                                    width={28}
+                                    height={28}
+                                    className="w-full h-full object-cover"
                                 />
                             </div>
-                        ) : (
-                            <div style={{
-                                width: 44, height: 44, borderRadius: 12, overflow: "hidden",
-                                border: `1px solid ${gameBrandColor}30`,
-                                backgroundColor: `${gameBrandColor}15`,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                flexShrink: 0,
-                            }}>
-                                <span style={{ fontSize: 12, fontWeight: 900, color: gameBrandColor }}>
-                                    {tournament.game?.slice(0, 3).toUpperCase() || "TCG"}
-                                </span>
-                            </div>
-                        )}
-
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{
-                                fontWeight: 700, fontSize: 14, color: "#F2F2F2",
-                                lineHeight: "18px", overflow: "hidden", textOverflow: "ellipsis",
-                                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-                            }}>
-                                {tournament.name}
-                            </div>
-                            <div style={{ fontSize: 11, color: "#888891", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {tournament.tenant_name || "Torneo finalizado"}
-                            </div>
                         </div>
+                    )}
 
-                        <div style={{
-                            backgroundColor: "rgba(255,255,255,0.06)",
-                            paddingLeft: 8, paddingRight: 8, paddingTop: 4, paddingBottom: 4,
-                            borderRadius: 999, flexShrink: 0,
-                        }}>
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "#888891" }}>Finalizado</span>
-                        </div>
+                    {/* Nombre en la parte inferior del banner */}
+                    <div className="absolute bottom-0 left-0 right-0 px-3 pb-2">
+                        <p
+                            className="font-bold text-[13px] text-white line-clamp-1"
+                            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}
+                        >
+                            {tournament.name}
+                        </p>
+                        <p className="text-[11px] text-white/50 truncate">
+                            {tournament.tenant_name || "Torneo finalizado"}
+                        </p>
                     </div>
+                </div>
 
+                <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 10 }}>
                     {/* Tags */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                         {tournament.game && (
-                            <div style={{ backgroundColor: "rgba(255,255,255,0.06)", paddingLeft: 8, paddingRight: 8, paddingTop: 4, paddingBottom: 4, borderRadius: 8 }}>
-                                <span style={{ fontSize: 11, color: "#888891" }}>{tournament.game_name || tournament.game}</span>
-                            </div>
+                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
+                                {tournament.game_name || tournament.game}
+                            </span>
                         )}
                         {tournament.format && (
-                            <div style={{ backgroundColor: "rgba(255,255,255,0.06)", paddingLeft: 8, paddingRight: 8, paddingTop: 4, paddingBottom: 4, borderRadius: 8 }}>
-                                <span style={{ fontSize: 11, color: "#888891" }}>{tournament.format_name || tournament.format}</span>
-                            </div>
+                            <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
+                                {tournament.format_name || tournament.format}
+                            </span>
                         )}
                         {tournament.is_ranked && (
-                            <div style={{ backgroundColor: "rgba(255,255,255,0.06)", paddingLeft: 8, paddingRight: 8, paddingTop: 4, paddingBottom: 4, borderRadius: 8 }}>
-                                <span style={{ fontSize: 11, fontWeight: 600, color: "#888891" }}>Ranked</span>
-                            </div>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "3px 8px", borderRadius: 8 }}>
+                                Ranked
+                            </span>
                         )}
                     </div>
 
