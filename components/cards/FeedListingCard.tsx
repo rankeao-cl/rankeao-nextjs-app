@@ -1,14 +1,19 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { timeAgo } from "@/lib/utils/format";
+import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark, MapPin, ShoppingCart } from "@gravity-ui/icons";
 import type { Listing } from "@/lib/types/marketplace";
-import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark, MapPin } from "@gravity-ui/icons";
-
 
 export default function FeedListingCard({ listing }: { listing: Listing }) {
     const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
     const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
     const isStore = !!listing.tenant_name || listing.is_verified_store || listing.is_verified_seller;
+
+    const [liked, setLiked] = useState(false);
+    const [bookmarked, setBookmarked] = useState(false);
 
     return (
         <article
@@ -19,282 +24,294 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                 overflow: "hidden",
             }}
         >
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px" }}>
-                {/* Avatar 36px */}
-                <div
-                    style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        background: "var(--surface-solid)",
-                        overflow: "hidden",
-                        flexShrink: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "var(--foreground)",
-                    }}
-                >
-                    {listing.seller_avatar_url ? (
-                        <Image
-                            src={listing.seller_avatar_url}
-                            alt={sellerName}
-                            width={36}
-                            height={36}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                    ) : (
-                        sellerName[0]?.toUpperCase()
-                    )}
-                </div>
+            {/* Main row: image + content */}
+            <div style={{ display: "flex", gap: 0 }}>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span
-                            style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: "var(--foreground)",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                            }}
-                        >
-                            {sellerName}
-                        </span>
-                        {isStore && (
-                            <span style={{ color: "#22c55e", fontSize: 12, fontWeight: 700 }}>✓</span>
-                        )}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, color: "var(--muted)" }}>
-                        {listing.city && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                <MapPin style={{ width: 10, height: 10 }} />
-                                {listing.city}
-                            </span>
-                        )}
-                        <span>{timeAgo(listing.created_at)}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Card image */}
-            {imageUrl && (
-                <Link href={`/marketplace/${listing.id}`}>
-                    <div
+                {/* Left: Card image — native TCG ratio, fixed width */}
+                {imageUrl && (
+                    <Link
+                        href={`/marketplace/${listing.id}`}
                         style={{
+                            flexShrink: 0,
+                            width: 130,
                             position: "relative",
-                            width: "100%",
-                            height: 320,
                             background: "var(--background)",
+                            display: "block",
                         }}
                     >
-                        <Image
-                            src={imageUrl}
-                            alt={listing.title}
-                            fill
-                            style={{ objectFit: "contain" }}
-                            sizes="(max-width: 640px) 100vw, 700px"
-                        />
-                    </div>
-                </Link>
-            )}
+                        <div
+                            style={{
+                                position: "relative",
+                                width: 130,
+                                aspectRatio: "63 / 88",
+                            }}
+                        >
+                            <Image
+                                src={imageUrl}
+                                alt={listing.title}
+                                fill
+                                style={{ objectFit: "contain" }}
+                                sizes="130px"
+                            />
+                        </div>
+                    </Link>
+                )}
 
-            {/* Info section */}
-            <div style={{ padding: "10px 14px" }}>
-                {/* Title row: card name + price badge */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-                    <Link href={`/marketplace/${listing.id}`} style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
+                {/* Right: Content */}
+                <div
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        padding: "12px 14px",
+                        gap: 8,
+                        borderLeft: imageUrl ? "1px solid var(--border)" : "none",
+                    }}
+                >
+                    {/* Seller row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                            style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: "50%",
+                                background: "var(--surface)",
+                                overflow: "hidden",
+                                flexShrink: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "var(--foreground)",
+                            }}
+                        >
+                            {listing.seller_avatar_url ? (
+                                <Image
+                                    src={listing.seller_avatar_url}
+                                    alt={sellerName}
+                                    width={28}
+                                    height={28}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                />
+                            ) : (
+                                sellerName[0]?.toUpperCase()
+                            )}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span
+                                    style={{
+                                        fontSize: 12,
+                                        fontWeight: 600,
+                                        color: "var(--foreground)",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {sellerName}
+                                </span>
+                                {isStore && (
+                                    <span style={{ color: "#22c55e", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>
+                                )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--muted)" }}>
+                                {listing.city && (
+                                    <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                        <MapPin style={{ width: 9, height: 9 }} />
+                                        {listing.city}
+                                    </span>
+                                )}
+                                <span>{timeAgo(listing.created_at)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card title */}
+                    <Link href={`/marketplace/${listing.id}`} style={{ textDecoration: "none" }}>
                         <span
                             style={{
                                 fontSize: 14,
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 color: "var(--foreground)",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
                                 overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                display: "block",
+                                lineHeight: 1.3,
                             }}
                         >
                             {listing.title}
                         </span>
                     </Link>
+
+                    {/* Price */}
                     {listing.price != null && (
                         <span
                             style={{
-                                fontSize: 14,
-                                fontWeight: 700,
-                                color: "#FFFFFF",
-                                background: "rgba(0,0,0,0.6)",
-                                padding: "4px 10px",
-                                borderRadius: 8,
-                                whiteSpace: "nowrap",
-                                flexShrink: 0,
+                                fontSize: 18,
+                                fontWeight: 800,
+                                color: "#3B82F6",
+                                letterSpacing: "-0.5px",
                             }}
                         >
                             ${listing.price.toLocaleString("es-CL")}
                         </span>
                     )}
-                </div>
 
-                {/* Tags row */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {listing.game_name && (
-                        <span
-                            style={{
-                                fontSize: 10,
-                                fontWeight: 600,
-                                color: "#3B82F6",
-                                background: "rgba(59,130,246,0.15)",
-                                padding: "3px 8px",
-                                borderRadius: 6,
-                            }}
-                        >
-                            {listing.game_name}
-                        </span>
-                    )}
-                    {listing.card_condition && (
-                        <span
-                            style={{
-                                fontSize: 10,
-                                fontWeight: 600,
-                                color: "var(--foreground)",
-                                background: "rgba(255,255,255,0.08)",
-                                padding: "3px 8px",
-                                borderRadius: 6,
-                            }}
-                        >
-                            {listing.card_condition}
-                        </span>
-                    )}
-                    {listing.rarity && (
-                        <span
-                            style={{
-                                fontSize: 10,
-                                fontWeight: 600,
-                                color: "var(--foreground)",
-                                background: "rgba(255,255,255,0.08)",
-                                padding: "3px 8px",
-                                borderRadius: 6,
-                            }}
-                        >
-                            {listing.rarity}
-                        </span>
-                    )}
-                    {listing.is_foil && (
-                        <span
-                            style={{
-                                fontSize: 10,
-                                fontWeight: 600,
-                                color: "#eab308",
-                                background: "rgba(234,179,8,0.15)",
-                                padding: "3px 8px",
-                                borderRadius: 6,
-                            }}
-                        >
-                            Foil
-                        </span>
-                    )}
-                </div>
-            </div>
+                    {/* Tags */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                        {listing.card_condition && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "var(--muted)",
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border)",
+                                    padding: "2px 7px",
+                                    borderRadius: 6,
+                                }}
+                            >
+                                {listing.card_condition}
+                            </span>
+                        )}
+                        {listing.rarity && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "var(--muted)",
+                                    background: "var(--surface)",
+                                    border: "1px solid var(--border)",
+                                    padding: "2px 7px",
+                                    borderRadius: 6,
+                                }}
+                            >
+                                {listing.rarity}
+                            </span>
+                        )}
+                        {listing.is_foil && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "#eab308",
+                                    background: "rgba(234,179,8,0.12)",
+                                    border: "1px solid rgba(234,179,8,0.3)",
+                                    padding: "2px 7px",
+                                    borderRadius: 6,
+                                }}
+                            >
+                                ✦ Foil
+                            </span>
+                        )}
+                        {listing.game_name && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "#3B82F6",
+                                    background: "rgba(59,130,246,0.1)",
+                                    border: "1px solid rgba(59,130,246,0.2)",
+                                    padding: "2px 7px",
+                                    borderRadius: 6,
+                                }}
+                            >
+                                {listing.game_name}
+                            </span>
+                        )}
+                    </div>
 
-            {/* Footer */}
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "8px 14px 10px",
-                    borderTop: "1px solid var(--border)",
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: "var(--muted)" }}>
-                    <button
-                        type="button"
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                            background: "none",
-                            border: "none",
-                            color: "inherit",
-                            cursor: "pointer",
-                            padding: 0,
-                            fontSize: "inherit",
-                        }}
-                    >
-                        <Heart style={{ width: 18, height: 18 }} />
-                    </button>
-                    <button
-                        type="button"
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                            background: "none",
-                            border: "none",
-                            color: "inherit",
-                            cursor: "pointer",
-                            padding: 0,
-                            fontSize: "inherit",
-                        }}
-                    >
-                        <Comment style={{ width: 18, height: 18 }} />
-                    </button>
-                    <button
-                        type="button"
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                            background: "none",
-                            border: "none",
-                            color: "inherit",
-                            cursor: "pointer",
-                            padding: 0,
-                            fontSize: "inherit",
-                        }}
-                    >
-                        <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
-                    </button>
-                </div>
+                    {/* Spacer */}
+                    <div style={{ flex: 1 }} />
 
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <button
-                        type="button"
+                    {/* Footer: actions + CTA */}
+                    <div
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            background: "none",
-                            border: "none",
-                            color: "var(--muted)",
-                            cursor: "pointer",
-                            padding: 0,
+                            justifyContent: "space-between",
+                            paddingTop: 8,
+                            borderTop: "1px solid var(--border)",
+                            marginTop: 2,
                         }}
                     >
-                        <Bookmark style={{ width: 18, height: 18 }} />
-                    </button>
-                    <Link
-                        href={`/marketplace/${listing.id}`}
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#FFFFFF",
-                            background: "#3B82F6",
-                            padding: "6px 14px",
-                            borderRadius: 8,
-                            textDecoration: "none",
-                            whiteSpace: "nowrap",
-                        }}
-                    >
-                        Ver carta
-                    </Link>
+                        {/* Left actions */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--muted)" }}>
+                            <button
+                                type="button"
+                                onClick={() => setLiked((v) => !v)}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 3,
+                                    background: "none",
+                                    border: "none",
+                                    color: liked ? "#ef4444" : "var(--muted)",
+                                    cursor: "pointer",
+                                    padding: 0,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <Heart style={{ width: 15, height: 15 }} />
+                            </button>
+                            <button
+                                type="button"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 3,
+                                    background: "none",
+                                    border: "none",
+                                    color: "var(--muted)",
+                                    cursor: "pointer",
+                                    padding: 0,
+                                    fontSize: 12,
+                                }}
+                            >
+                                <Comment style={{ width: 15, height: 15 }} />
+                            </button>
+                            <button
+                                type="button"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    background: "none",
+                                    border: "none",
+                                    color: bookmarked ? "#3B82F6" : "var(--muted)",
+                                    cursor: "pointer",
+                                    padding: 0,
+                                }}
+                                onClick={() => setBookmarked((v) => !v)}
+                            >
+                                <Bookmark style={{ width: 15, height: 15 }} />
+                            </button>
+                        </div>
+
+                        {/* CTA */}
+                        <Link
+                            href={`/marketplace/${listing.id}`}
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: "#FFFFFF",
+                                background: "#3B82F6",
+                                padding: "5px 12px",
+                                borderRadius: 8,
+                                textDecoration: "none",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            <ShoppingCart style={{ width: 13, height: 13 }} />
+                            Ver oferta
+                        </Link>
+                    </div>
                 </div>
             </div>
         </article>
