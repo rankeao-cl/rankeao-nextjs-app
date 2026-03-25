@@ -9,8 +9,10 @@ import {
   getMySellerProfile,
   setupSellerProfile,
   updateSellerProfile,
+  addBankAccount,
+  deleteBankAccount,
 } from "@/lib/api/marketplace";
-import type { SellerProfile } from "@/lib/types/marketplace";
+import type { SellerProfile, BankAccount } from "@/lib/types/marketplace";
 import { ArrowLeft } from "@gravity-ui/icons";
 
 const REGIONS = [
@@ -62,6 +64,12 @@ export default function SellerSetupPage() {
   const [acceptsShipping, setAcceptsShipping] = useState(true);
   const [acceptsInPerson, setAcceptsInPerson] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+
+  // Bank accounts
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [showBankForm, setShowBankForm] = useState(false);
+  const [bankForm, setBankForm] = useState({ bank_name: "", account_type: "CORRIENTE", account_number: "", holder_name: "", holder_rut: "" });
+  const [bankSaving, setBankSaving] = useState(false);
 
   // Loading state
   const [profileLoading, setProfileLoading] = useState(true);
@@ -277,6 +285,130 @@ export default function SellerSetupPage() {
             </div>
           </div>
         </SectionCard>
+
+        {/* Bank Accounts (only in edit mode) */}
+        {isEditing && (
+          <SectionCard title="Cuentas bancarias">
+            <div className="space-y-3">
+              {bankAccounts.length > 0 ? (
+                bankAccounts.map((acc) => (
+                  <div key={acc.id} className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface-secondary)]">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--foreground)]">{acc.bank_name}</p>
+                      <p className="text-xs text-[var(--muted)]">
+                        {acc.account_type === "CORRIENTE" ? "Cuenta Corriente" : acc.account_type === "VISTA" ? "Cuenta Vista" : "Cuenta RUT"}
+                        {acc.account_number_last4 ? ` ****${acc.account_number_last4}` : ""}
+                      </p>
+                      <p className="text-xs text-[var(--muted)]">{acc.holder_name}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="tertiary"
+                      color="danger"
+                      onPress={async () => {
+                        if (!confirm("Eliminar esta cuenta bancaria?")) return;
+                        try {
+                          await deleteBankAccount(acc.id);
+                          setBankAccounts((prev) => prev.filter((a) => a.id !== acc.id));
+                          toast.success("Cuenta eliminada");
+                        } catch { toast.danger("Error al eliminar"); }
+                      }}
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-[var(--muted)]">No tienes cuentas bancarias registradas.</p>
+              )}
+
+              {!showBankForm ? (
+                <Button size="sm" variant="secondary" onPress={() => setShowBankForm(true)}>
+                  + Agregar cuenta
+                </Button>
+              ) : (
+                <div className="space-y-3 p-4 rounded-xl border border-[var(--border)]">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-[var(--muted)]">Banco</label>
+                    <input
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
+                      placeholder="Ej: Banco de Chile"
+                      value={bankForm.bank_name}
+                      onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-[var(--muted)] mb-1 block">Tipo de cuenta</label>
+                    <div className="flex gap-2">
+                      {[{ k: "CORRIENTE", l: "Corriente" }, { k: "VISTA", l: "Vista" }, { k: "RUT", l: "RUT" }].map((t) => (
+                        <button
+                          key={t.k}
+                          onClick={() => setBankForm({ ...bankForm, account_type: t.k })}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${bankForm.account_type === t.k ? "bg-[var(--accent)] border-[var(--accent)] text-white" : "border-[var(--border)] text-[var(--muted)]"}`}
+                        >
+                          {t.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-[var(--muted)]">Numero de cuenta</label>
+                    <input
+                      className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
+                      value={bankForm.account_number}
+                      onChange={(e) => setBankForm({ ...bankForm, account_number: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-[var(--muted)]">Titular</label>
+                      <input
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
+                        value={bankForm.holder_name}
+                        onChange={(e) => setBankForm({ ...bankForm, holder_name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-[var(--muted)]">RUT</label>
+                      <input
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
+                        placeholder="12.345.678-9"
+                        value={bankForm.holder_rut}
+                        onChange={(e) => setBankForm({ ...bankForm, holder_rut: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="tertiary" onPress={() => setShowBankForm(false)}>Cancelar</Button>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      isPending={bankSaving}
+                      onPress={async () => {
+                        if (!bankForm.bank_name || !bankForm.account_number || !bankForm.holder_name) {
+                          toast.danger("Completa todos los campos");
+                          return;
+                        }
+                        setBankSaving(true);
+                        try {
+                          const res = await addBankAccount(bankForm);
+                          const newAcc = (res as any)?.data ?? (res as any)?.bank_account ?? res;
+                          setBankAccounts((prev) => [...prev, newAcc]);
+                          setBankForm({ bank_name: "", account_type: "CORRIENTE", account_number: "", holder_name: "", holder_rut: "" });
+                          setShowBankForm(false);
+                          toast.success("Cuenta agregada");
+                        } catch { toast.danger("Error al agregar cuenta"); }
+                        finally { setBankSaving(false); }
+                      }}
+                    >
+                      Guardar cuenta
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </SectionCard>
+        )}
 
         {/* Terms (only for new setup) */}
         {!isEditing && (

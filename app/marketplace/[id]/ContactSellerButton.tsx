@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, toast } from "@heroui/react";
 import { useAuth } from "@/context/AuthContext";
 import { createChannel } from "@/lib/api/chat";
+import { autocompleteUsers } from "@/lib/api/social";
 
 interface Props {
     sellerUsername: string;
@@ -30,16 +31,25 @@ export default function ContactSellerButton({ sellerUsername, listingTitle, list
 
         setLoading(true);
         try {
+            // Resolve the seller's user_id from their username
+            const usersRes = await autocompleteUsers(sellerUsername, session.accessToken) as any;
+            const users = usersRes?.data?.users || usersRes?.users || (Array.isArray(usersRes) ? usersRes : []);
+            const seller = users.find((u: any) => u.username === sellerUsername);
+
+            if (!seller?.id) {
+                toast.danger("No se encontro al vendedor.");
+                return;
+            }
+
             const res = await createChannel(
                 {
                     type: "DM",
-                    name: sellerUsername,
-                    user_ids: [sellerUsername],
+                    user_ids: [seller.id],
                 },
                 session.accessToken
             );
 
-            const channelId = res?.data?.id ?? res?.id;
+            const channelId = res?.data?.id ?? res?.channel?.id ?? res?.id;
 
             if (channelId) {
                 router.push(`/chat?channel=${channelId}&ref=listing&listing=${listingId}`);

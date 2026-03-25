@@ -132,6 +132,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
               Compra y vende cartas con jugadores de tu comunidad.
             </p>
           </div>
+          <div className="flex flex-col gap-2 shrink-0 ml-3">
           <Link
             href="/marketplace/new"
             className="shrink-0"
@@ -157,6 +158,18 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </svg>
             <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Vender</span>
           </Link>
+          <div className="flex gap-1.5">
+            <Link href="/marketplace/my-listings" style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textDecoration: "none", padding: "3px 8px", borderRadius: 8, backgroundColor: "var(--surface-secondary)" }}>
+              Mis publicaciones
+            </Link>
+            <Link href="/marketplace/offers" style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textDecoration: "none", padding: "3px 8px", borderRadius: 8, backgroundColor: "var(--surface-secondary)" }}>
+              Ofertas
+            </Link>
+            <Link href="/marketplace/favorites" style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textDecoration: "none", padding: "3px 8px", borderRadius: 8, backgroundColor: "var(--surface-secondary)" }}>
+              Favoritos
+            </Link>
+          </div>
+          </div>
         </div>
       </div>
 

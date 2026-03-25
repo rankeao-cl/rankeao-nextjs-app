@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "@heroui/react";
-import { Person, Persons, Magnifier, Xmark } from "@gravity-ui/icons";
+import { Person, Magnifier, Xmark } from "@gravity-ui/icons";
 import { autocompleteUsers } from "@/lib/api/social";
 import { createChannel } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
@@ -41,21 +41,35 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
     const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+    const [selectedUser, setSelectedUser] = useState<UserSuggestion | null>(null);
     const [groupName, setGroupName] = useState("");
     const [selectedMembers, setSelectedMembers] = useState<UserSuggestion[]>([]);
     const overlayRef = useRef<HTMLDivElement>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (!isOpen) {
             setSearch("");
             setSuggestions([]);
-            setSelectedUserId(null);
+            setSelectedUser(null);
             setGroupName("");
             setSelectedMembers([]);
             setMode("dm");
+        } else {
+            // Auto-focus search input when modal opens
+            setTimeout(() => searchRef.current?.focus(), 100);
         }
     }, [isOpen]);
+
+    // Close on Escape key
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onOpenChange(false);
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, onOpenChange]);
 
     useEffect(() => {
         if (!search || search.length < 2) {
@@ -81,7 +95,14 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
 
     const handleAddMember = (user: UserSuggestion) => {
         if (mode === "dm") {
-            setSelectedUserId(user.id);
+            // Toggle: click again to deselect
+            if (selectedUser?.id === user.id) {
+                setSelectedUser(null);
+            } else {
+                setSelectedUser(user);
+                setSearch("");
+                setSuggestions([]);
+            }
         } else {
             if (selectedMembers.some(m => m.id === user.id)) {
                 setSelectedMembers(prev => prev.filter(m => m.id !== user.id));
@@ -98,18 +119,19 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
 
     const handleCreateChat = async () => {
         if (!session?.accessToken) return;
-        if (mode === "dm" && !selectedUserId) return;
+        if (mode === "dm" && !selectedUser) return;
         if (mode === "group" && (selectedMembers.length < 1 || !groupName.trim())) return;
 
         setIsCreating(true);
         try {
             const payload = mode === "dm"
-                ? { type: "DM" as const, user_ids: [selectedUserId!] }
+                ? { type: "DM" as const, user_ids: [selectedUser!.id] }
                 : { type: "GROUP" as const, name: groupName.trim(), user_ids: selectedMembers.map(m => m.id) };
 
             const res = await createChannel(payload, session.accessToken);
             toast.success(mode === "dm" ? "Chat creado exitosamente" : "Grupo creado exitosamente");
-            onChannelCreated(res.channel || res);
+            const channel = res?.data?.channel ?? res?.data ?? res?.channel ?? res;
+            onChannelCreated(channel);
             onOpenChange(false);
         } catch (error: any) {
             console.error("Error al crear chat:", error);
@@ -122,7 +144,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
     };
 
     const isCreateDisabled = mode === "dm"
-        ? !selectedUserId
+        ? !selectedUser
         : selectedMembers.length < 1 || !groupName.trim();
 
     if (!isOpen) return null;
@@ -204,7 +226,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                             Chat directo
                         </button>
                         <button
-                            onClick={() => { setMode("group"); setSelectedUserId(null); }}
+                            onClick={() => { setMode("group"); setSelectedUser(null); }}
                             style={{
                                 flex: 1, padding: "8px 16px", borderRadius: 999, border: "none",
                                 cursor: "pointer", fontSize: 13, fontWeight: 600,
@@ -266,6 +288,40 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                     </div>
                 )}
 
+                {/* Selected user chip (DM mode) */}
+                {mode === "dm" && selectedUser && (
+                    <div style={{ padding: "8px 20px 0", display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{
+                            display: "inline-flex", alignItems: "center", gap: 6,
+                            paddingLeft: 4, paddingRight: 8, paddingTop: 4, paddingBottom: 4,
+                            borderRadius: 999, background: "rgba(59,130,246,0.12)",
+                            fontSize: 13, fontWeight: 600, color: C.accent,
+                        }}>
+                            <span style={{
+                                width: 24, height: 24, borderRadius: 12, overflow: "hidden",
+                                background: C.surface, display: "flex", alignItems: "center", justifyContent: "center",
+                            }}>
+                                {selectedUser.avatar_url ? (
+                                    <img src={selectedUser.avatar_url} alt="" style={{ width: 24, height: 24, objectFit: "cover" }} />
+                                ) : (
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: C.muted }}>{selectedUser.username?.slice(0, 2).toUpperCase()}</span>
+                                )}
+                            </span>
+                            {selectedUser.username}
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                style={{
+                                    width: 18, height: 18, borderRadius: 999, border: "none",
+                                    background: "rgba(59,130,246,0.25)", cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+                                }}
+                            >
+                                <Xmark style={{ width: 10, height: 10, color: C.accent }} />
+                            </button>
+                        </span>
+                    </div>
+                )}
+
                 {/* Search */}
                 <div style={{ padding: "12px 20px" }}>
                     <div style={{
@@ -275,6 +331,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                     }}>
                         <Magnifier style={{ width: 18, height: 18, color: C.muted, flexShrink: 0 }} />
                         <input
+                            ref={searchRef}
                             placeholder={mode === "dm" ? "Buscar usuario..." : "Buscar miembros..."}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -296,7 +353,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                 <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 12px" }}>
                     {suggestions.length > 0 ? (
                         suggestions.map((user) => {
-                            const isSelectedDM = mode === "dm" && selectedUserId === user.id;
+                            const isSelectedDM = mode === "dm" && selectedUser?.id === user.id;
                             const isSelectedGroup = mode === "group" && selectedMembers.some(m => m.id === user.id);
                             const isUserSelected = isSelectedDM || isSelectedGroup;
 
@@ -375,7 +432,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                 </div>
 
                 {/* Create button */}
-                {(mode === "dm" ? selectedUserId : true) && (
+                {(mode === "dm" ? selectedUser : true) && (
                     <div style={{ padding: "12px 20px 20px" }}>
                         <button
                             onClick={handleCreateChat}
