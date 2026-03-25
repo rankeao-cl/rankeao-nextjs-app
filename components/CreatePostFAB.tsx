@@ -22,9 +22,9 @@ export default function CreatePostFAB() {
                 width: 52,
                 height: 52,
                 borderRadius: 26,
-                backgroundColor: "#3B82F6",
+                backgroundColor: "var(--accent)",
                 border: "none",
-                boxShadow: "0 4px 16px rgba(59,130,246,0.4)",
+                boxShadow: "0 4px 16px color-mix(in srgb, var(--accent) 40%, transparent)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -34,11 +34,11 @@ export default function CreatePostFAB() {
             aria-label="Crear post"
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.08)";
-                e.currentTarget.style.boxShadow = "0 6px 20px rgba(59,130,246,0.5)";
+                e.currentTarget.style.boxShadow = "0 6px 20px color-mix(in srgb, var(--accent) 50%, transparent)";
             }}
             onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0 4px 16px rgba(59,130,246,0.4)";
+                e.currentTarget.style.boxShadow = "0 4px 16px color-mix(in srgb, var(--accent) 40%, transparent)";
             }}
         >
             <Pencil style={{ width: 22, height: 22, color: "#FFFFFF" }} />

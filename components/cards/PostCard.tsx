@@ -102,7 +102,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                                 style={{
                                     fontSize: 10,
                                     fontWeight: 600,
-                                    color: "#eab308",
+                                    color: "var(--yellow)",
                                     background: "rgba(234,179,8,0.15)",
                                     padding: "2px 6px",
                                     borderRadius: 6,
@@ -129,7 +129,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             style={{
                                 fontSize: 10,
                                 fontWeight: 600,
-                                color: "#3B82F6",
+                                color: "var(--accent)",
                                 background: "rgba(59,130,246,0.2)",
                                 padding: "3px 8px",
                                 borderRadius: 8,
@@ -144,7 +144,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             style={{
                                 fontSize: 10,
                                 fontWeight: 600,
-                                color: "#a855f7",
+                                color: "var(--purple)",
                                 background: "rgba(168,85,247,0.15)",
                                 padding: "3px 8px",
                                 borderRadius: 8,
@@ -216,7 +216,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                             gap: 4,
                             background: "none",
                             border: "none",
-                            color: liked ? "#ef4444" : "var(--muted)",
+                            color: liked ? "var(--danger)" : "var(--muted)",
                             cursor: "pointer",
                             padding: 0,
                             fontSize: "inherit",
@@ -268,7 +268,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         alignItems: "center",
                         background: "none",
                         border: "none",
-                        color: bookmarked ? "#3B82F6" : "var(--muted)",
+                        color: bookmarked ? "var(--accent)" : "var(--muted)",
                         cursor: "pointer",
                         padding: 0,
                     }}

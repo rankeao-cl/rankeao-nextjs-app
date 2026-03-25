@@ -205,8 +205,8 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                     maxWidth: 480,
                     maxHeight: "90vh",
                     overflowY: "auto",
-                    backgroundColor: "#1A1A1E",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)",
+                    border: "1px solid var(--border)",
                     borderRadius: 16,
                     padding: 24,
                     margin: 16,
@@ -214,13 +214,13 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
             >
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                    <h2 style={{ color: "#F2F2F2", fontSize: 18, fontWeight: 800, margin: 0 }}>Nuevo Duelo</h2>
+                    <h2 style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>Nuevo Duelo</h2>
                     <button
                         onClick={onClose}
                         style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
                         aria-label="Cerrar"
                     >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
@@ -229,11 +229,11 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 {/* Mode toggle — matches Expo */}
                 <div style={{
                     display: "flex",
-                    backgroundColor: "rgba(255,255,255,0.03)",
+                    backgroundColor: "var(--surface-tertiary)",
                     borderRadius: 10,
                     padding: 3,
                     marginBottom: 16,
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    border: "1px solid var(--border)",
                 }}>
                     <button
                         onClick={() => { setMode("challenge"); setSelectedOpponent(null); setOpponentQuery(""); }}
@@ -247,8 +247,8 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                             borderRadius: 10,
                             border: "none",
                             cursor: "pointer",
-                            backgroundColor: mode === "challenge" ? "#F2F2F2" : "transparent",
-                            color: mode === "challenge" ? "#000000" : "#888891",
+                            backgroundColor: mode === "challenge" ? "var(--foreground)" : "transparent",
+                            color: mode === "challenge" ? "var(--background)" : "var(--muted)",
                             fontSize: 13,
                             fontWeight: 600,
                         }}
@@ -270,8 +270,8 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                             borderRadius: 10,
                             border: "none",
                             cursor: "pointer",
-                            backgroundColor: mode === "search" ? "#F2F2F2" : "transparent",
-                            color: mode === "search" ? "#000000" : "#888891",
+                            backgroundColor: mode === "search" ? "var(--foreground)" : "transparent",
+                            color: mode === "search" ? "var(--background)" : "var(--muted)",
                             fontSize: 13,
                             fontWeight: 600,
                         }}
@@ -294,12 +294,12 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                         borderRadius: 14,
                         border: "1px solid rgba(59,130,246,0.12)",
                     }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                             <circle cx="12" cy="12" r="2" /><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
                         </svg>
                         <div style={{ flex: 1 }}>
-                            <p style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700, margin: 0, marginBottom: 2 }}>Buscar oponente cercano</p>
-                            <p style={{ color: "#888891", fontSize: 11, lineHeight: "16px", margin: 0 }}>
+                            <p style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700, margin: 0, marginBottom: 2 }}>Buscar oponente cercano</p>
+                            <p style={{ color: "var(--muted)", fontSize: 11, lineHeight: "16px", margin: 0 }}>
                                 Se notificara a tus amigos, seguidores y jugadores cercanos. El primero en aceptar sera tu oponente.
                             </p>
                         </div>
@@ -309,7 +309,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 {/* 1. Opponent search with autocomplete (challenge mode only) */}
                 {mode === "challenge" && (
                     <div style={{ marginBottom: 20, position: "relative" }} ref={wrapperRef}>
-                        <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#888891", letterSpacing: 0.8, marginBottom: 8 }}>OPONENTE</label>
+                        <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--muted)", letterSpacing: 0.8, marginBottom: 8 }}>OPONENTE</label>
 
                         {selectedOpponent ? (
                             <div style={{
@@ -324,27 +324,27 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                 {selectedOpponent.avatar_url ? (
                                     <Image src={selectedOpponent.avatar_url} alt={selectedOpponent.username} width={28} height={28} style={{ borderRadius: 999, objectFit: "cover" }} />
                                 ) : (
-                                    <div style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#888891" }}>
+                                    <div style={{ width: 28, height: 28, borderRadius: 999, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)" }}>
                                             {selectedOpponent.username.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
                                 )}
-                                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#F2F2F2" }}>@{selectedOpponent.username}</span>
+                                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>@{selectedOpponent.username}</span>
                                 <button
                                     onClick={handleClearOpponent}
                                     style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
                                     aria-label="Quitar oponente"
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                                     </svg>
                                 </button>
                             </div>
                         ) : (
                             <>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#1A1A1E", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "10px 14px" }}>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px" }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                                     </svg>
                                     <input
@@ -353,11 +353,11 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                         value={opponentQuery}
                                         onChange={(e) => { setOpponentQuery(e.target.value); setShowSuggestions(true); }}
                                         onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                                        style={{ flex: 1, background: "none", border: "none", outline: "none", color: "#F2F2F2", fontSize: 13 }}
+                                        style={{ flex: 1, background: "none", border: "none", outline: "none", color: "var(--foreground)", fontSize: 13 }}
                                         autoComplete="off"
                                     />
                                     {loadingSuggestions && (
-                                        <div className="animate-spin" style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "#888891", borderRadius: 999 }} />
+                                        <div className="animate-spin" style={{ width: 16, height: 16, border: "2px solid var(--overlay)", borderTopColor: "var(--muted)", borderRadius: 999 }} />
                                     )}
                                 </div>
 
@@ -369,8 +369,8 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                         left: 0,
                                         right: 0,
                                         marginTop: 4,
-                                        backgroundColor: "#1A1A1E",
-                                        border: "1px solid rgba(255,255,255,0.1)",
+                                        backgroundColor: "var(--surface-solid)",
+                                        border: "1px solid var(--overlay)",
                                         borderRadius: 12,
                                         overflow: "hidden",
                                         zIndex: 10,
@@ -388,23 +388,23 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                                     padding: "10px 14px",
                                                     background: "none",
                                                     border: "none",
-                                                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                                                    borderBottom: "1px solid var(--surface-tertiary)",
                                                     cursor: "pointer",
                                                     transition: "background 0.1s",
                                                 }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)"; }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--surface)"; }}
                                                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                                             >
                                                 {user.avatar_url ? (
                                                     <Image src={user.avatar_url} alt={user.username} width={32} height={32} style={{ borderRadius: 999, objectFit: "cover" }} />
                                                 ) : (
-                                                    <div style={{ width: 32, height: 32, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "#888891" }}>
+                                                    <div style={{ width: 32, height: 32, borderRadius: 999, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)" }}>
                                                             {user.username.charAt(0).toUpperCase()}
                                                         </span>
                                                     </div>
                                                 )}
-                                                <span style={{ fontSize: 13, fontWeight: 600, color: "#F2F2F2" }}>@{user.username}</span>
+                                                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>@{user.username}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -418,14 +418,14 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                         left: 0,
                                         right: 0,
                                         marginTop: 4,
-                                        backgroundColor: "#1A1A1E",
-                                        border: "1px solid rgba(255,255,255,0.1)",
+                                        backgroundColor: "var(--surface-solid)",
+                                        border: "1px solid var(--overlay)",
                                         borderRadius: 12,
                                         padding: "14px 16px",
                                         zIndex: 10,
                                         boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
                                     }}>
-                                        <p style={{ fontSize: 12, color: "#888891", margin: 0, textAlign: "center" }}>
+                                        <p style={{ fontSize: 12, color: "var(--muted)", margin: 0, textAlign: "center" }}>
                                             No se encontraron jugadores
                                         </p>
                                     </div>
@@ -434,7 +434,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                 {/* Friends quick-select — matches Expo */}
                                 {!opponentQuery && friends.length > 0 && (
                                     <div style={{ marginTop: 12 }}>
-                                        <p style={{ color: "#888891", fontSize: 11, fontWeight: 600, margin: 0, marginBottom: 8 }}>Amigos</p>
+                                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600, margin: 0, marginBottom: 8 }}>Amigos</p>
                                         <div style={{ display: "flex", gap: 10, overflowX: "auto" }}>
                                             {friends.map((f) => (
                                                 <button
@@ -455,11 +455,11 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                                     {f.avatar_url ? (
                                                         <Image src={f.avatar_url} alt={f.username} width={44} height={44} style={{ borderRadius: 999, objectFit: "cover" }} />
                                                     ) : (
-                                                        <div style={{ width: 44, height: 44, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                            <span style={{ fontSize: 14, fontWeight: 700, color: "#888891" }}>{f.username[0]?.toUpperCase()}</span>
+                                                        <div style={{ width: 44, height: 44, borderRadius: 999, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--muted)" }}>{f.username[0]?.toUpperCase()}</span>
                                                         </div>
                                                     )}
-                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "#F2F2F2", textAlign: "center", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)", textAlign: "center", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                                         {f.username}
                                                     </span>
                                                 </button>
@@ -474,7 +474,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
 
                 {/* 2. Game selection */}
                 <div style={{ marginBottom: 20 }}>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#888891", letterSpacing: 0.8, marginBottom: 8 }}>JUEGO</label>
+                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--muted)", letterSpacing: 0.8, marginBottom: 8 }}>JUEGO</label>
                     <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
                         {games.map((g) => {
                             const active = selectedGame?.id === g.id;
@@ -488,8 +488,8 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                         gap: 8,
                                         padding: "10px 12px",
                                         borderRadius: 10,
-                                        border: active ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.06)",
-                                        backgroundColor: active ? "rgba(59,130,246,0.08)" : "#1A1A1E",
+                                        border: active ? "1px solid var(--accent)" : "1px solid var(--border)",
+                                        backgroundColor: active ? "rgba(59,130,246,0.08)" : "var(--surface-solid)",
                                         cursor: "pointer",
                                         transition: "all 0.15s",
                                         flexShrink: 0,
@@ -498,11 +498,11 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                     {g.logo_url ? (
                                         <Image src={g.logo_url} alt={g.name} width={24} height={24} style={{ borderRadius: 6, objectFit: "cover" }} />
                                     ) : (
-                                        <div style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                            <span style={{ fontSize: 8, fontWeight: 800, color: "#888891" }}>{g.short_name || g.name.slice(0, 3)}</span>
+                                        <div style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <span style={{ fontSize: 8, fontWeight: 800, color: "var(--muted)" }}>{g.short_name || g.name.slice(0, 3)}</span>
                                         </div>
                                     )}
-                                    <span style={{ fontSize: 11, fontWeight: 600, color: active ? "#F2F2F2" : "#888891" }}>{g.short_name || g.name}</span>
+                                    <span style={{ fontSize: 11, fontWeight: 600, color: active ? "var(--foreground)" : "var(--muted)" }}>{g.short_name || g.name}</span>
                                 </button>
                             );
                         })}
@@ -512,7 +512,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 {/* 3. Format selection */}
                 {formats.length > 0 && (
                     <div style={{ marginBottom: 20 }}>
-                        <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#888891", letterSpacing: 0.8, marginBottom: 8 }}>FORMATO</label>
+                        <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--muted)", letterSpacing: 0.8, marginBottom: 8 }}>FORMATO</label>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                             {formats.map((f) => (
                                 <button
@@ -521,12 +521,12 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                     style={{
                                         padding: "8px 14px",
                                         borderRadius: 999,
-                                        border: selectedFormat?.id === f.id ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.06)",
-                                        backgroundColor: selectedFormat?.id === f.id ? "rgba(59,130,246,0.08)" : "#1A1A1E",
+                                        border: selectedFormat?.id === f.id ? "1px solid var(--accent)" : "1px solid var(--border)",
+                                        backgroundColor: selectedFormat?.id === f.id ? "rgba(59,130,246,0.08)" : "var(--surface-solid)",
                                         cursor: "pointer",
                                         fontSize: 12,
                                         fontWeight: 600,
-                                        color: selectedFormat?.id === f.id ? "#F2F2F2" : "#888891",
+                                        color: selectedFormat?.id === f.id ? "var(--foreground)" : "var(--muted)",
                                         transition: "all 0.15s",
                                     }}
                                 >
@@ -539,7 +539,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
 
                 {/* 4. Best of toggle */}
                 <div style={{ marginBottom: 20 }}>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#888891", letterSpacing: 0.8, marginBottom: 8 }}>BEST OF</label>
+                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--muted)", letterSpacing: 0.8, marginBottom: 8 }}>BEST OF</label>
                     <div style={{ display: "flex", gap: 8 }}>
                         {BEST_OF_OPTIONS.map((n) => (
                             <button
@@ -549,12 +549,12 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                     flex: 1,
                                     padding: "12px 0",
                                     borderRadius: 10,
-                                    border: bestOf === n ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.06)",
-                                    backgroundColor: bestOf === n ? "rgba(59,130,246,0.08)" : "#1A1A1E",
+                                    border: bestOf === n ? "1px solid var(--accent)" : "1px solid var(--border)",
+                                    backgroundColor: bestOf === n ? "rgba(59,130,246,0.08)" : "var(--surface-solid)",
                                     cursor: "pointer",
                                     fontSize: 13,
                                     fontWeight: 700,
-                                    color: bestOf === n ? "#F2F2F2" : "#888891",
+                                    color: bestOf === n ? "var(--foreground)" : "var(--muted)",
                                     transition: "all 0.15s",
                                     textAlign: "center",
                                 }}
@@ -567,7 +567,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
 
                 {/* 5. Message (optional) — matches Expo */}
                 <div style={{ marginBottom: 20 }}>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#888891", letterSpacing: 0.8, marginBottom: 8 }}>MENSAJE (OPCIONAL)</label>
+                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--muted)", letterSpacing: 0.8, marginBottom: 8 }}>MENSAJE (OPCIONAL)</label>
                     <textarea
                         placeholder="Un mensaje para tu oponente..."
                         value={message}
@@ -576,11 +576,11 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                         rows={2}
                         style={{
                             width: "100%",
-                            backgroundColor: "#1A1A1E",
-                            border: "1px solid rgba(255,255,255,0.06)",
+                            backgroundColor: "var(--surface-solid)",
+                            border: "1px solid var(--border)",
                             borderRadius: 10,
                             padding: "12px 14px",
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             fontSize: 13,
                             resize: "none",
                             outline: "none",
@@ -599,10 +599,10 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                     borderRadius: 10,
                     marginBottom: 20,
                 }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                         <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
                     </svg>
-                    <span style={{ flex: 1, color: "#888891", fontSize: 11, lineHeight: "16px" }}>
+                    <span style={{ flex: 1, color: "var(--muted)", fontSize: 11, lineHeight: "16px" }}>
                         Los duelos son casuales: solo ganas XP, no afectan tu ELO.
                     </span>
                 </div>
@@ -620,7 +620,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                         padding: "14px 0",
                         borderRadius: 10,
                         border: "none",
-                        backgroundColor: canSubmit ? "#3B82F6" : "rgba(59,130,246,0.3)",
+                        backgroundColor: canSubmit ? "var(--accent)" : "rgba(59,130,246,0.3)",
                         cursor: canSubmit && !sending ? "pointer" : "not-allowed",
                         fontSize: 14,
                         fontWeight: 700,

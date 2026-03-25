@@ -24,14 +24,14 @@ interface UserSuggestion {
 type ChatMode = "dm" | "group";
 
 const C = {
-    bg: "#000000",
-    surface: "#1A1A1E",
-    surfaceLight: "#222226",
-    border: "rgba(255,255,255,0.06)",
-    text: "#F2F2F2",
-    muted: "#888891",
-    accent: "#3B82F6",
-    iconBg: "rgba(255,255,255,0.08)",
+    bg: "var(--background)",
+    surface: "var(--surface-solid)",
+    surfaceLight: "var(--surface-solid-secondary)",
+    border: "var(--surface)",
+    text: "var(--foreground)",
+    muted: "var(--muted)",
+    accent: "var(--accent)",
+    iconBg: "var(--overlay)",
 } as const;
 
 export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }: NewChatModalProps) {

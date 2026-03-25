@@ -73,12 +73,12 @@ export default async function ClanDetailPage({ params }: Props) {
         {/* Floating badges */}
         <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 4, zIndex: 2 }}>
           {clan.is_recruiting && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 999 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 999 }}>
               Reclutando
             </span>
           )}
           {clan.game_name && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#F2F2F2", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 999 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "4px 10px", borderRadius: 999 }}>
               {clan.game_name}
             </span>
           )}
@@ -129,7 +129,7 @@ export default async function ClanDetailPage({ params }: Props) {
             </span>
           )}
           {hasRating && (
-            <span><span style={{ color: "#F59E0B" }}>★</span> {clan.rating!.toFixed(1)}</span>
+            <span><span style={{ color: "var(--warning)" }}>★</span> {clan.rating!.toFixed(1)}</span>
           )}
         </div>
 
@@ -145,8 +145,8 @@ export default async function ClanDetailPage({ params }: Props) {
           <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10, marginLeft: 4 }}>Estadisticas</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
             {[
-              { label: "Victorias", value: clan.stats.total_wins ?? 0, color: "#22C55E" },
-              { label: "Derrotas", value: clan.stats.total_losses ?? 0, color: "#EF4444" },
+              { label: "Victorias", value: clan.stats.total_wins ?? 0, color: "var(--success)" },
+              { label: "Derrotas", value: clan.stats.total_losses ?? 0, color: "var(--danger)" },
               { label: "Desafios ganados", value: clan.stats.challenges_won ?? 0, color: "var(--accent)" },
               { label: "Desafios perdidos", value: clan.stats.challenges_lost ?? 0, color: "var(--muted)" },
             ].map((stat) => (
@@ -169,13 +169,13 @@ export default async function ClanDetailPage({ params }: Props) {
         </p>
         <div style={{ backgroundColor: "var(--surface-solid)", borderRadius: 16, border: "1px solid var(--border)", overflow: "hidden" }}>
           {/* Leader */}
-          {leader && <MemberRow member={leader} roleLabel="Lider" roleColor="#F59E0B" />}
+          {leader && <MemberRow member={leader} roleLabel="Lider" roleColor="var(--warning)" />}
           {leader && (officers.length > 0 || regularMembers.length > 0) && <div style={{ height: 0.5, backgroundColor: "var(--border)", marginLeft: 64 }} />}
 
           {/* Officers */}
           {officers.map((m, i) => (
             <div key={m.user_id}>
-              <MemberRow member={m} roleLabel="Oficial" roleColor="#A855F7" />
+              <MemberRow member={m} roleLabel="Oficial" roleColor="var(--purple)" />
               {(i < officers.length - 1 || regularMembers.length > 0) && <div style={{ height: 0.5, backgroundColor: "var(--border)", marginLeft: 64 }} />}
             </div>
           ))}

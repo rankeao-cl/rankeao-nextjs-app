@@ -116,13 +116,13 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                 <div
                     className="flex items-center"
                     style={{
-                        backgroundColor: "#1A1A1E",
+                        backgroundColor: "var(--surface-solid)",
                         borderRadius: "999px",
                         padding: "10px 14px",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        border: "1px solid var(--surface)",
                     }}
                 >
-                    <Magnifier className="size-[18px] shrink-0" style={{ color: "#888891" }} />
+                    <Magnifier className="size-[18px] shrink-0" style={{ color: "var(--muted)" }} />
                     <input
                         type="text"
                         value={query}
@@ -133,7 +133,7 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                         placeholder="Buscar cartas, productos..."
                         className="flex-1 bg-transparent outline-none border-none"
                         style={{
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             fontSize: "14px",
                             marginLeft: "8px",
                         }}
@@ -141,7 +141,7 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                     {loading && (
                         <div
                             className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin mr-1.5"
-                            style={{ borderColor: "#888891", borderTopColor: "transparent" }}
+                            style={{ borderColor: "var(--muted)", borderTopColor: "transparent" }}
                         />
                     )}
                     {query.length > 0 && (
@@ -149,7 +149,7 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                             type="button"
                             onClick={handleClear}
                             className="cursor-pointer"
-                            style={{ color: "#888891" }}
+                            style={{ color: "var(--muted)" }}
                         >
                             <Xmark className="size-[18px]" />
                         </button>
@@ -162,8 +162,8 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                 <div
                     className="absolute top-full left-0 right-0 mt-1 overflow-hidden overflow-y-auto"
                     style={{
-                        backgroundColor: "#1A1A1E",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface-solid)",
+                        border: "1px solid var(--surface)",
                         borderRadius: "16px",
                         maxHeight: "280px",
                         zIndex: 20,
@@ -171,7 +171,7 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                     }}
                 >
                     {loading && suggestions.length === 0 && (
-                        <div style={{ padding: "12px 14px", color: "#888891", fontSize: "13px" }}>
+                        <div style={{ padding: "12px 14px", color: "var(--muted)", fontSize: "13px" }}>
                             Buscando...
                         </div>
                     )}
@@ -185,10 +185,10 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                                 className="w-full flex items-center text-left cursor-pointer"
                                 style={{
                                     padding: "10px 14px",
-                                    borderBottom: i < suggestions.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                                    borderBottom: i < suggestions.length - 1 ? "1px solid var(--surface)" : "none",
                                     transition: "background 0.1s",
                                 }}
-                                onMouseOver={(e) => (e.currentTarget.style.background = "#222226")}
+                                onMouseOver={(e) => (e.currentTarget.style.background = "var(--surface-solid-secondary)")}
                                 onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
                             >
                                 {imgUrl ? (
@@ -209,19 +209,19 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                                             height: "38px",
                                             borderRadius: "4px",
                                             marginRight: "10px",
-                                            backgroundColor: "rgba(255,255,255,0.06)",
+                                            backgroundColor: "var(--surface)",
                                         }}
                                     >
-                                        <Magnifier className="size-3" style={{ color: "#888891" }} />
+                                        <Magnifier className="size-3" style={{ color: "var(--muted)" }} />
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <p className="truncate" style={{ color: "#F2F2F2", fontSize: "13px" }}>{s.name}</p>
+                                    <p className="truncate" style={{ color: "var(--foreground)", fontSize: "13px" }}>{s.name}</p>
                                     {setLabel && (
-                                        <p className="truncate" style={{ color: "#888891", fontSize: "10px" }}>{setLabel}</p>
+                                        <p className="truncate" style={{ color: "var(--muted)", fontSize: "10px" }}>{setLabel}</p>
                                     )}
                                 </div>
-                                <svg className="size-3.5 shrink-0" style={{ color: "#888891" }} viewBox="0 0 16 16" fill="none">
+                                <svg className="size-3.5 shrink-0" style={{ color: "var(--muted)" }} viewBox="0 0 16 16" fill="none">
                                     <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>

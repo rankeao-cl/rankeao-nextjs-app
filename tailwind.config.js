@@ -14,6 +14,7 @@ module.exports = {
         foreground: "var(--foreground)",
         surface: "var(--surface)",
         "surface-solid": "var(--surface-solid)",
+        "surface-solid-secondary": "var(--surface-solid-secondary)",
         muted: "var(--muted)",
         border: "var(--border)",
         accent: "var(--accent)",
@@ -21,6 +22,12 @@ module.exports = {
         danger: "var(--danger)",
         success: "var(--success)",
         warning: "var(--warning)",
+        purple: "var(--purple)",
+        orange: "var(--orange)",
+        pink: "var(--pink)",
+        yellow: "var(--yellow)",
+        "code-bg": "var(--code-bg)",
+        "code-fg": "var(--code-fg)",
         // Alias legacy para retrocompatibilidad
         rankeao: {
           bg: "var(--background)",

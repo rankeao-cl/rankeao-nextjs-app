@@ -54,8 +54,8 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                 let streakText = "—";
                 let streakColor = "var(--muted)";
                 if (streak != null && streak !== 0) {
-                    if (streak > 0) { streakText = `${streak}W`; streakColor = "#22C55E"; }
-                    else { streakText = `${Math.abs(streak)}L`; streakColor = "#EF4444"; }
+                    if (streak > 0) { streakText = `${streak}W`; streakColor = "var(--success)"; }
+                    else { streakText = `${Math.abs(streak)}L`; streakColor = "var(--danger)"; }
                 }
 
                 return (
@@ -66,12 +66,12 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                     >
                         <div style={{
                             display: "flex", alignItems: "center", padding: "10px 16px", gap: 12,
-                            backgroundColor: isTop3 ? "rgba(59,130,246,0.04)" : "var(--surface-solid)",
+                            backgroundColor: isTop3 ? "color-mix(in srgb, var(--accent) 4%, transparent)" : "var(--surface-solid)",
                             borderBottom: i < entries.length - 1 ? "1px solid var(--border)" : "none",
                             transition: "background-color 0.15s",
                         }}
                             onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--surface-hover)"}
-                            onMouseLeave={e => e.currentTarget.style.backgroundColor = isTop3 ? "rgba(59,130,246,0.04)" : "var(--surface-solid)"}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = isTop3 ? "color-mix(in srgb, var(--accent) 4%, transparent)" : "var(--surface-solid)"}
                         >
                             {/* Rank */}
                             <span style={{
@@ -87,7 +87,7 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                                 {entry.avatar_url ? (
                                     <img src={entry.avatar_url} alt={entry.username} style={{
                                         width: 32, height: 32, borderRadius: 16, objectFit: "cover", flexShrink: 0,
-                                        border: isTop3 ? "2px solid rgba(59,130,246,0.3)" : "none",
+                                        border: isTop3 ? "2px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "none",
                                     }} />
                                 ) : (
                                     <div style={{
@@ -117,13 +117,13 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                                     <span style={{ width: 50, textAlign: "center", fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
                                         Lv.{entry.level ?? "—"}
                                     </span>
-                                    <span style={{ width: 80, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#3B82F6" }}>
+                                    <span style={{ width: 80, textAlign: "right", fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
                                         {(entry.total_xp ?? 0).toLocaleString()}
                                     </span>
                                 </>
                             ) : (
                                 <>
-                                    <span style={{ width: 60, textAlign: "right", fontSize: 13, fontWeight: 700, color: "#F59E0B" }}>
+                                    <span style={{ width: 60, textAlign: "right", fontSize: 13, fontWeight: 700, color: "var(--warning)" }}>
                                         {entry.rating ?? "—"}
                                     </span>
                                     <span style={{ width: 50, textAlign: "right", fontSize: 12, color: "var(--muted)" }}>

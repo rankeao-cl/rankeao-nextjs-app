@@ -63,7 +63,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                     </div>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
                         {sellerName}
-                        {isStore && <span style={{ color: "#22c55e", marginLeft: 3 }}>✓</span>}
+                        {isStore && <span style={{ color: "var(--success)", marginLeft: 3 }}>✓</span>}
                     </span>
                     {listing.city && (
                         <span style={{ fontSize: 10, color: "var(--muted)", display: "flex", alignItems: "center", gap: 2, marginLeft: "auto" }}>
@@ -109,7 +109,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             </span>
                         </Link>
                         {listing.price != null && (
-                            <span style={{ fontSize: 16, fontWeight: 800, color: "#3B82F6", whiteSpace: "nowrap", flexShrink: 0 }}>
+                            <span style={{ fontSize: 16, fontWeight: 800, color: "var(--accent)", whiteSpace: "nowrap", flexShrink: 0 }}>
                                 ${listing.price.toLocaleString("es-CL")}
                             </span>
                         )}
@@ -124,7 +124,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 </span>
                             )}
                             {listing.is_foil && (
-                                <span style={{ fontSize: 10, fontWeight: 600, color: "#eab308", background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", padding: "2px 6px", borderRadius: 5 }}>
+                                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--yellow)", background: "color-mix(in srgb, var(--yellow) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--yellow) 30%, transparent)", padding: "2px 6px", borderRadius: 5 }}>
                                     ✦ Foil
                                 </span>
                             )}
@@ -138,7 +138,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 fontSize: 11,
                                 fontWeight: 700,
                                 color: "#FFFFFF",
-                                background: "#3B82F6",
+                                background: "var(--accent)",
                                 padding: "4px 10px",
                                 borderRadius: 7,
                                 textDecoration: "none",
@@ -225,7 +225,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {sellerName}
                                 </span>
-                                {isStore && <span style={{ color: "#22c55e", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>}
+                                {isStore && <span style={{ color: "var(--success)", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>}
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--muted)" }}>
                                 {listing.city && (
@@ -259,7 +259,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
 
                     {/* Price */}
                     {listing.price != null && (
-                        <span style={{ fontSize: 22, fontWeight: 800, color: "#3B82F6", letterSpacing: "-0.5px" }}>
+                        <span style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)", letterSpacing: "-0.5px" }}>
                             ${listing.price.toLocaleString("es-CL")}
                         </span>
                     )}
@@ -277,12 +277,12 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             </span>
                         )}
                         {listing.is_foil && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "#eab308", background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", padding: "2px 7px", borderRadius: 6 }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--yellow)", background: "color-mix(in srgb, var(--yellow) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--yellow) 30%, transparent)", padding: "2px 7px", borderRadius: 6 }}>
                                 ✦ Foil
                             </span>
                         )}
                         {listing.game_name && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "#3B82F6", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", padding: "2px 7px", borderRadius: 6 }}>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 20%, transparent)", padding: "2px 7px", borderRadius: 6 }}>
                                 {listing.game_name}
                             </span>
                         )}
@@ -293,19 +293,19 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                     {/* Footer */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--muted)" }}>
-                            <button type="button" onClick={() => setLiked(v => !v)} style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", color: liked ? "#ef4444" : "var(--muted)", cursor: "pointer", padding: 0, fontSize: 12 }}>
+                            <button type="button" onClick={() => setLiked(v => !v)} style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", color: liked ? "var(--danger)" : "var(--muted)", cursor: "pointer", padding: 0, fontSize: 12 }}>
                                 <Heart style={{ width: 15, height: 15 }} />
                             </button>
                             <button type="button" style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0, fontSize: 12 }}>
                                 <Comment style={{ width: 15, height: 15 }} />
                             </button>
-                            <button type="button" onClick={() => setBookmarked(v => !v)} style={{ display: "flex", alignItems: "center", background: "none", border: "none", color: bookmarked ? "#3B82F6" : "var(--muted)", cursor: "pointer", padding: 0 }}>
+                            <button type="button" onClick={() => setBookmarked(v => !v)} style={{ display: "flex", alignItems: "center", background: "none", border: "none", color: bookmarked ? "var(--accent)" : "var(--muted)", cursor: "pointer", padding: 0 }}>
                                 <Bookmark style={{ width: 15, height: 15 }} />
                             </button>
                         </div>
                         <Link
                             href={`/marketplace/${listing.id}`}
-                            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: "#FFFFFF", background: "#3B82F6", padding: "6px 14px", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap" }}
+                            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: "#FFFFFF", background: "var(--accent)", padding: "6px 14px", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap" }}
                         >
                             <ShoppingCart style={{ width: 13, height: 13 }} />
                             Ver oferta

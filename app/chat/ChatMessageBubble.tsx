@@ -30,7 +30,7 @@ function StatusIndicator({ status, isMine }: { status?: MessageStatus; isMine: b
         return <span style={{ color: "var(--muted)", fontSize: 10 }}>&#10003;&#10003;</span>;
     }
     // read
-    return <span style={{ color: "#3B82F6", fontSize: 10 }}>&#10003;&#10003;</span>;
+    return <span style={{ color: "var(--accent)", fontSize: 10 }}>&#10003;&#10003;</span>;
 }
 
 function ImageThumbnail({ url }: { url: string }) {
@@ -138,7 +138,7 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
                         {metadata.product_name || "Producto"}
                     </p>
                     {metadata.price && (
-                        <p style={{ fontSize: 15, fontWeight: 800, color: "#3B82F6", margin: 0, marginTop: 2 }}>
+                        <p style={{ fontSize: 15, fontWeight: 800, color: "var(--accent)", margin: 0, marginTop: 2 }}>
                             {metadata.price}
                         </p>
                     )}
@@ -158,7 +158,7 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
                         borderTop: "1px solid var(--border)",
                         fontSize: 12,
                         fontWeight: 700,
-                        color: "#3B82F6",
+                        color: "var(--accent)",
                         textDecoration: "none",
                     }}
                 >
@@ -213,7 +213,7 @@ function PostEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
                         gap: 4,
                         fontSize: 12,
                         fontWeight: 700,
-                        color: "#3B82F6",
+                        color: "var(--accent)",
                         marginTop: 8,
                         textDecoration: "none",
                     }}
@@ -290,7 +290,7 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             >
                                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                                     <span style={{ fontSize: 16 }}>{isMarketplace ? "🛒" : isComunidad ? "⚔️" : "🔗"}</span>
-                                    <span style={{ fontWeight: 700, color: "#3B82F6", fontSize: 13 }}>
+                                    <span style={{ fontWeight: 700, color: "var(--accent)", fontSize: 13 }}>
                                         {isMarketplace ? "Producto de Tienda" : isComunidad ? "Comunidad / Torneo" : "Enlace Externo"}
                                     </span>
                                 </div>

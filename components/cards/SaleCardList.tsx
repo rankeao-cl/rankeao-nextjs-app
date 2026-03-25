@@ -24,8 +24,8 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
             <div
                 className="flex overflow-hidden rounded-2xl"
                 style={{
-                    backgroundColor: "#1A1A1E",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)",
+                    border: "1px solid var(--border)",
                 }}
             >
                 {/* Thumbnail */}
@@ -34,7 +34,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                     style={{
                         width: "90px",
                         aspectRatio: "63 / 88",
-                        backgroundColor: "#111113",
+                        backgroundColor: "var(--code-bg)",
                     }}
                 >
                     {imageUrl ? (
@@ -58,7 +58,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                     <p
                         className="line-clamp-2"
                         style={{
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             fontSize: "14px",
                             fontWeight: 600,
                             lineHeight: "18px",
@@ -72,7 +72,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                         <p
                             className="truncate"
                             style={{
-                                color: "#888891",
+                                color: "var(--muted)",
                                 fontSize: "11px",
                                 marginTop: "2px",
                             }}
@@ -85,7 +85,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                     <div className="flex items-center gap-2" style={{ marginTop: "8px" }}>
                         <span
                             style={{
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 fontSize: "16px",
                                 fontWeight: 700,
                             }}
@@ -96,10 +96,10 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                             <span
                                 className="uppercase"
                                 style={{
-                                    color: "#888891",
+                                    color: "var(--muted)",
                                     fontSize: "9px",
                                     fontWeight: 600,
-                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                    backgroundColor: "var(--surface)",
                                     padding: "2px 6px",
                                     borderRadius: "8px",
                                 }}
@@ -129,10 +129,10 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                                         width: "16px",
                                         height: "16px",
                                         borderRadius: "8px",
-                                        backgroundColor: "rgba(255,255,255,0.06)",
+                                        backgroundColor: "var(--surface)",
                                     }}
                                 >
-                                    <span style={{ fontSize: "8px", color: "#888891" }}>
+                                    <span style={{ fontSize: "8px", color: "var(--muted)" }}>
                                         {sellerName[0]?.toUpperCase()}
                                     </span>
                                 </div>
@@ -140,7 +140,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                             <span
                                 className="truncate"
                                 style={{
-                                    color: "#888891",
+                                    color: "var(--muted)",
                                     fontSize: "11px",
                                     marginLeft: "6px",
                                 }}
@@ -148,12 +148,12 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                                 {sellerName}
                             </span>
                             {isVerified && (
-                                <span style={{ color: "#22C55E", fontSize: "11px", marginLeft: "3px" }}>
+                                <span style={{ color: "var(--success)", fontSize: "11px", marginLeft: "3px" }}>
                                     ✓
                                 </span>
                             )}
                             {city && (
-                                <span style={{ color: "#888891", fontSize: "10px", marginLeft: "8px" }}>
+                                <span style={{ color: "var(--muted)", fontSize: "10px", marginLeft: "8px" }}>
                                     · {city}
                                 </span>
                             )}
@@ -164,7 +164,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                 {/* Chevron */}
                 <div className="flex items-center shrink-0" style={{ paddingRight: "12px" }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M6 3l5 5-5 5" stroke="#888891" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 3l5 5-5 5" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </div>
             </div>

@@ -21,8 +21,8 @@ export default function SaleCard({ listing }: { listing: Listing }) {
             <div
                 className="rounded-2xl overflow-hidden h-full flex flex-col"
                 style={{
-                    backgroundColor: "#1A1A1E",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)",
+                    border: "1px solid var(--border)",
                 }}
             >
                 {/* Image — fixed aspect ratio, cover to fill uniformly */}
@@ -30,7 +30,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                     className="relative w-full shrink-0"
                     style={{
                         aspectRatio: "63 / 88",
-                        backgroundColor: "#111113",
+                        backgroundColor: "var(--code-bg)",
                     }}
                 >
                     {imageUrl ? (
@@ -54,7 +54,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                     <p
                         className="line-clamp-2"
                         style={{
-                            color: "#F2F2F2",
+                            color: "var(--foreground)",
                             fontSize: "12px",
                             fontWeight: 600,
                             lineHeight: "16px",
@@ -68,7 +68,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                     <p
                         className="truncate"
                         style={{
-                            color: "#888891",
+                            color: "var(--muted)",
                             fontSize: "10px",
                             marginTop: "2px",
                             minHeight: "14px",
@@ -84,7 +84,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                     >
                         <span
                             style={{
-                                color: "#F2F2F2",
+                                color: "var(--foreground)",
                                 fontSize: "14px",
                                 fontWeight: 700,
                             }}
@@ -95,10 +95,10 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                             <span
                                 className="uppercase"
                                 style={{
-                                    color: "#888891",
+                                    color: "var(--muted)",
                                     fontSize: "9px",
                                     fontWeight: 600,
-                                    backgroundColor: "rgba(255,255,255,0.06)",
+                                    backgroundColor: "var(--surface)",
                                     padding: "2px 6px",
                                     borderRadius: "8px",
                                 }}

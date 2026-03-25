@@ -6,20 +6,20 @@ import type { Tournament } from "@/lib/types/tournament";
 import { Heart, Comment, ArrowShapeTurnUpRight, Clock, Persons, MapPin, Cup, Bookmark } from "@gravity-ui/icons";
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
-    active: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN VIVO" },
-    ROUND_IN_PROGRESS: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN VIVO" },
-    STARTED: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN CURSO" },
-    in_progress: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "EN CURSO" },
-    upcoming: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Proximo" },
-    registration: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Abierto" },
-    OPEN: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Abierto" },
-    check_in: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Check-in" },
-    CHECK_IN: { color: "var(--foreground)", bg: "rgba(255,255,255,0.08)", label: "Check-in" },
-    completed: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
-    finished: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
-    FINISHED: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Finalizado" },
-    cancelled: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Cancelado" },
-    CLOSED: { color: "var(--muted)", bg: "rgba(255,255,255,0.06)", label: "Cerrado" },
+    active: { color: "var(--foreground)", bg: "var(--overlay)", label: "EN VIVO" },
+    ROUND_IN_PROGRESS: { color: "var(--foreground)", bg: "var(--overlay)", label: "EN VIVO" },
+    STARTED: { color: "var(--foreground)", bg: "var(--overlay)", label: "EN CURSO" },
+    in_progress: { color: "var(--foreground)", bg: "var(--overlay)", label: "EN CURSO" },
+    upcoming: { color: "var(--foreground)", bg: "var(--overlay)", label: "Proximo" },
+    registration: { color: "var(--foreground)", bg: "var(--overlay)", label: "Abierto" },
+    OPEN: { color: "var(--foreground)", bg: "var(--overlay)", label: "Abierto" },
+    check_in: { color: "var(--foreground)", bg: "var(--overlay)", label: "Check-in" },
+    CHECK_IN: { color: "var(--foreground)", bg: "var(--overlay)", label: "Check-in" },
+    completed: { color: "var(--muted)", bg: "var(--surface)", label: "Finalizado" },
+    finished: { color: "var(--muted)", bg: "var(--surface)", label: "Finalizado" },
+    FINISHED: { color: "var(--muted)", bg: "var(--surface)", label: "Finalizado" },
+    cancelled: { color: "var(--muted)", bg: "var(--surface)", label: "Cancelado" },
+    CLOSED: { color: "var(--muted)", bg: "var(--surface)", label: "Cerrado" },
 };
 
 const isLiveStatus = (s: string) =>
@@ -99,7 +99,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 width: 40,
                                 height: 40,
                                 borderRadius: 10,
-                                backgroundColor: "rgba(255,255,255,0.08)",
+                                backgroundColor: "var(--overlay)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -154,7 +154,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                     width: 7,
                                     height: 7,
                                     borderRadius: 4,
-                                    backgroundColor: "#ED4245",
+                                    backgroundColor: "var(--danger)",
                                     animation: "pulse 1.6s ease-in-out infinite",
                                 }}
                             />
@@ -175,7 +175,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 borderRadius: 10,
                                 overflow: "hidden",
                                 border: "1px solid var(--border)",
-                                backgroundColor: "rgba(255,255,255,0.06)",
+                                backgroundColor: "var(--surface)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -203,7 +203,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 style={{
                                     fontWeight: 700,
                                     fontSize: 15,
-                                    color: "#FFFFFF",
+                                    color: "var(--foreground)",
                                     lineHeight: "20px",
                                     margin: 0,
                                 }}
@@ -234,7 +234,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                     {/* Info box */}
                     <div
                         style={{
-                            backgroundColor: "rgba(255,255,255,0.03)",
+                            backgroundColor: "var(--surface-tertiary)",
                             borderRadius: 12,
                             padding: 12,
                             display: "flex",
@@ -290,7 +290,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                             fontSize: 11,
                                             fontWeight: 700,
                                             color: "var(--foreground)",
-                                            backgroundColor: "rgba(255,255,255,0.08)",
+                                            backgroundColor: "var(--overlay)",
                                             padding: "2px 8px",
                                             borderRadius: 6,
                                         }}
@@ -336,8 +336,8 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                                 borderRadius: 12,
                                 fontSize: 13,
                                 fontWeight: 700,
-                                color: isLive ? "#FFFFFF" : "#FFFFFF",
-                                backgroundColor: "#3B82F6",
+                                color: isLive ? "#fff" : "#fff",
+                                backgroundColor: "var(--accent)",
                             }}
                         >
                             {isLive ? "Ver en vivo" : "Inscribirse"}

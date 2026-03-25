@@ -50,9 +50,9 @@ export default function ConditionFilterChips({ currentCondition = "" }: Props) {
                             fontSize: "13px",
                             fontWeight: 600,
                             border: "1px solid",
-                            backgroundColor: isActive ? "#F2F2F2" : "#1A1A1E",
-                            borderColor: isActive ? "#F2F2F2" : "rgba(255,255,255,0.06)",
-                            color: isActive ? "#000000" : "#888891",
+                            backgroundColor: isActive ? "var(--foreground)" : "var(--surface-solid)",
+                            borderColor: isActive ? "var(--foreground)" : "var(--surface)",
+                            color: isActive ? "var(--background)" : "var(--muted)",
                             transition: "all 0.15s ease",
                         }}
                     >

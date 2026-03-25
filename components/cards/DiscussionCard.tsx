@@ -23,10 +23,10 @@ export interface FeedDiscussion {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-    Meta: "#3b82f6",
-    Estrategia: "#22c55e",
-    Reglas: "#f59e0b",
-    "Off-topic": "#a855f7",
+    Meta: "var(--accent)",
+    Estrategia: "var(--success)",
+    Reglas: "var(--warning)",
+    "Off-topic": "var(--purple)",
 };
 
 export default function DiscussionCard({

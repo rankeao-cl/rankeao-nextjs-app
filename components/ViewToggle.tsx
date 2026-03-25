@@ -40,8 +40,8 @@ export default function ViewToggle({ currentView, options, paramName = "view", d
             onClick={toggle}
             className="shrink-0 flex items-center justify-center cursor-pointer"
             style={{
-                backgroundColor: "#1A1A1E",
-                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface-solid)",
+                border: "1px solid var(--surface)",
                 borderRadius: 12,
                 padding: 8,
             }}
@@ -56,23 +56,23 @@ export default function ViewToggle({ currentView, options, paramName = "view", d
 
 export const GRID_ICON = (
     <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="6" height="6" rx="1" fill="#F2F2F2" />
-        <rect x="9" y="1" width="6" height="6" rx="1" fill="#F2F2F2" />
-        <rect x="1" y="9" width="6" height="6" rx="1" fill="#F2F2F2" />
-        <rect x="9" y="9" width="6" height="6" rx="1" fill="#F2F2F2" />
+        <rect x="1" y="1" width="6" height="6" rx="1" fill="var(--foreground)" />
+        <rect x="9" y="1" width="6" height="6" rx="1" fill="var(--foreground)" />
+        <rect x="1" y="9" width="6" height="6" rx="1" fill="var(--foreground)" />
+        <rect x="9" y="9" width="6" height="6" rx="1" fill="var(--foreground)" />
     </svg>
 );
 
 export const LIST_ICON = (
     <svg width={18} height={18} viewBox="0 0 16 16" fill="none">
-        <rect x="1" y="1" width="14" height="3.5" rx="1" fill="#F2F2F2" />
-        <rect x="1" y="6.25" width="14" height="3.5" rx="1" fill="#F2F2F2" />
-        <rect x="1" y="11.5" width="14" height="3.5" rx="1" fill="#F2F2F2" />
+        <rect x="1" y="1" width="14" height="3.5" rx="1" fill="var(--foreground)" />
+        <rect x="1" y="6.25" width="14" height="3.5" rx="1" fill="var(--foreground)" />
+        <rect x="1" y="11.5" width="14" height="3.5" rx="1" fill="var(--foreground)" />
     </svg>
 );
 
 export const CALENDAR_ICON = (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#F2F2F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
         <line x1="16" y1="2" x2="16" y2="6" />
         <line x1="8" y1="2" x2="8" y2="6" />

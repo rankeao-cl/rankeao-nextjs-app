@@ -19,8 +19,8 @@ const C = {
   text: "var(--foreground)",
   muted: "var(--muted)",
   gray: "var(--muted)",
-  accent: "#3B82F6",
-  danger: "#ED4245",
+  accent: "var(--accent)",
+  danger: "var(--danger)",
   dangerBg: "rgba(237,66,69,0.1)",
   iconBg: "var(--surface-solid)",
   switchOff: "var(--muted)",
@@ -647,7 +647,7 @@ export default function ConfigPage() {
           )}
           {passwordSuccess && (
             <div style={{ backgroundColor: "rgba(52,199,89,0.1)", padding: "10px 16px", borderRadius: 12, marginBottom: 16 }}>
-              <span style={{ color: "#34C759", fontSize: 13 }}>{passwordSuccess}</span>
+              <span style={{ color: "var(--success)", fontSize: 13 }}>{passwordSuccess}</span>
             </div>
           )}
 

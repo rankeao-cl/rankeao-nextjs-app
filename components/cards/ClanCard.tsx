@@ -41,7 +41,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                     ) : logoUrl ? (
                         <img src={logoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.25 }} />
                     ) : (
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, var(--surface-solid), var(--surface-solid-secondary))" }} />
                     )}
                     {/* Dark overlay */}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
@@ -60,7 +60,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                         {/* Right: tags */}
                         <div style={{ display: "flex", gap: 4 }}>
                             {clan.is_recruiting && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
                                     Reclutando
                                 </span>
                             )}
@@ -84,7 +84,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                             {logoUrl ? (
                                 <img src={logoUrl} alt={clan.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             ) : (
-                                <span style={{ fontSize: 20, fontWeight: 900, color: "#3B82F6" }}>
+                                <span style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>
                                     {clan.name?.charAt(0)?.toUpperCase()}
                                 </span>
                             )}
@@ -94,7 +94,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                                 <h3 style={{ fontSize: 16, fontWeight: 800, color: "#FFFFFF", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
                                     {clan.name}
                                 </h3>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#3B82F6", backgroundColor: "rgba(59,130,246,0.2)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", backgroundColor: "color-mix(in srgb, var(--accent) 20%, transparent)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
                                     {clan.tag}
                                 </span>
                             </div>
@@ -126,7 +126,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                         </div>
                         <div style={{ width: 0.5, height: 24, backgroundColor: "var(--border)" }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "#F59E0B" : "var(--foreground)", margin: 0 }}>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--foreground)", margin: 0 }}>
                                 {hasRating ? clan.rating!.toFixed(1) : "—"}
                             </p>
                             <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>

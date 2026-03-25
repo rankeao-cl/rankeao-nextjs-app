@@ -48,19 +48,19 @@ export default function FeedEmptyState() {
             width: 64,
             height: 64,
             borderRadius: 32,
-            backgroundColor: "#1A1A1E",
-            border: "1px solid rgba(255,255,255,0.06)",
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--surface)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             marginBottom: 16,
           }}
         >
-          <Comments width={28} height={28} color="#888891" />
+          <Comments width={28} height={28} color="var(--muted)" />
         </div>
         <p
           style={{
-            color: "#F2F2F2",
+            color: "var(--foreground)",
             fontWeight: 700,
             fontSize: 17,
             marginBottom: 4,
@@ -71,7 +71,7 @@ export default function FeedEmptyState() {
         </p>
         <p
           style={{
-            color: "#888891",
+            color: "var(--muted)",
             fontSize: 13,
             margin: 0,
           }}
@@ -89,9 +89,9 @@ export default function FeedEmptyState() {
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: "#1A1A1E",
+            backgroundColor: "var(--surface-solid)",
             borderRadius: 16,
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--surface)",
             padding: 16,
             gap: 12,
             textDecoration: "none",
@@ -103,21 +103,21 @@ export default function FeedEmptyState() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              backgroundColor: "#222226",
+              backgroundColor: "var(--surface-solid-secondary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
             }}
           >
-            <item.Icon width={20} height={20} color="#F2F2F2" />
+            <item.Icon width={20} height={20} color="var(--foreground)" />
           </div>
 
           {/* Text */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p
               style={{
-                color: "#F2F2F2",
+                color: "var(--foreground)",
                 fontSize: 15,
                 fontWeight: 600,
                 margin: 0,
@@ -127,7 +127,7 @@ export default function FeedEmptyState() {
             </p>
             <p
               style={{
-                color: "#888891",
+                color: "var(--muted)",
                 fontSize: 13,
                 margin: 0,
               }}
@@ -137,7 +137,7 @@ export default function FeedEmptyState() {
           </div>
 
           {/* Chevron */}
-          <ChevronRight width={18} height={18} color="#888891" style={{ flexShrink: 0 }} />
+          <ChevronRight width={18} height={18} color="var(--muted)" style={{ flexShrink: 0 }} />
         </Link>
       ))}
     </div>

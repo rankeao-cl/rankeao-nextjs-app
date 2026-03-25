@@ -6,11 +6,11 @@ import type { Tournament } from "@/lib/types/tournament";
 import { Clock, Persons, MapPin, Cup } from "@gravity-ui/icons";
 
 const STATUS_COLORS: Record<string, string> = {
-    ROUND_IN_PROGRESS: "#22C55E", STARTED: "#22C55E", ROUND_COMPLETE: "#22C55E",
-    CHECK_IN: "#F59E0B", OPEN: "#3B82F6",
-    FINISHED: "#6B7280", CLOSED: "#6B7280",
-    in_progress: "#22C55E", check_in: "#F59E0B", registration: "#3B82F6",
-    upcoming: "#3B82F6", completed: "#6B7280", cancelled: "#EF4444",
+    ROUND_IN_PROGRESS: "var(--success)", STARTED: "var(--success)", ROUND_COMPLETE: "var(--success)",
+    CHECK_IN: "var(--warning)", OPEN: "var(--accent)",
+    FINISHED: "var(--muted)", CLOSED: "var(--muted)",
+    in_progress: "var(--success)", check_in: "var(--warning)", registration: "var(--accent)",
+    upcoming: "var(--accent)", completed: "var(--muted)", cancelled: "var(--danger)",
 };
 const STATUS_LABELS: Record<string, string> = {
     ROUND_IN_PROGRESS: "EN VIVO", STARTED: "EN CURSO", ROUND_COMPLETE: "EN CURSO",
@@ -31,7 +31,7 @@ function fmtPrice(n: number) {
 }
 
 export default function TournamentCard({ tournament }: { tournament: Tournament }) {
-    const sColor = STATUS_COLORS[tournament.status] ?? "#888891";
+    const sColor = STATUS_COLORS[tournament.status] ?? "var(--muted)";
     const sLabel = STATUS_LABELS[tournament.status] ?? tournament.status;
     const live = isLiveStatus(tournament.status);
     const open = isOpenStatus(tournament.status);
@@ -104,7 +104,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                     <div className="absolute top-3 left-3">
                         <div
                             className="w-8 h-8 rounded-lg overflow-hidden"
-                            style={{ border: "1px solid rgba(255,255,255,0.15)" }}
+                            style={{ border: "1px solid var(--border)" }}
                         >
                             <Image
                                 src={tournament.tenant_logo_url}
@@ -170,21 +170,21 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                         {live ? (
                             <span
                                 className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
-                                style={{ backgroundColor: "#22C55E" }}
+                                style={{ backgroundColor: "var(--success)" }}
                             >
                                 Ver en vivo
                             </span>
                         ) : open ? (
                             <span
                                 className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
-                                style={{ backgroundColor: "#3B82F6" }}
+                                style={{ backgroundColor: "var(--accent)" }}
                             >
                                 Inscribirse
                             </span>
                         ) : (
                             <span
                                 className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-semibold"
-                                style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}
+                                style={{ backgroundColor: "var(--border)", color: "var(--muted)" }}
                             >
                                 Ver detalles
                             </span>

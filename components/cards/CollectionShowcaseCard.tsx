@@ -20,10 +20,10 @@ export interface FeedCollectionShowcase {
 }
 
 const CONDITION_COLORS: Record<string, string> = {
-    mint: "#22c55e",
-    NM: "#3b82f6",
-    played: "#f59e0b",
-    damaged: "#ef4444",
+    mint: "var(--success)",
+    NM: "var(--accent)",
+    played: "var(--warning)",
+    damaged: "var(--danger)",
 };
 
 export default function CollectionShowcaseCard({

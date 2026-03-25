@@ -264,7 +264,7 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             {/* Left: location */}
             <div>
               {tenant.city && (
-                <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.85)", backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", padding: "3px 8px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)", backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", padding: "3px 8px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 3 }}>
                   <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                   </svg>
@@ -275,12 +275,12 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             {/* Right: status badges */}
             <div style={{ display: "flex", gap: 4 }}>
               {tenant.is_public && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
                   Activa
                 </span>
               )}
               {tenant.is_open && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#3B82F6", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
                   Abierta
                 </span>
               )}
@@ -416,12 +416,12 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
                 {tenant.name}
               </span>
               {tenant.is_public && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success)", backgroundColor: "rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 15%, transparent)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
                   Activa
                 </span>
               )}
               {tenant.is_open && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--accent)", backgroundColor: "color-mix(in srgb, var(--accent) 15%, transparent)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
                   Abierta
                 </span>
               )}

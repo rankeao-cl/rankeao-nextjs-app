@@ -106,7 +106,7 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
             }}>
                 {/* Banner area with brand gradient */}
                 <div style={{ height: 100, position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, var(--surface-solid))` }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "var(--surface-solid-secondary)"}, var(--surface-solid))` }} />
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--surface-solid) 0%, color-mix(in srgb, var(--surface-solid) 40%, transparent) 60%, rgba(0,0,0,0.1) 100%)" }} />
 
                     {/* Floating badges */}
@@ -133,7 +133,7 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
                                 {game.name}
                             </h3>
                             {game.publisher && (
-                                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>{game.publisher}</p>
+                                <p style={{ fontSize: 11, color: "var(--muted)", margin: 0 }}>{game.publisher}</p>
                             )}
                         </div>
                     </div>
@@ -170,20 +170,20 @@ function GameCard({ game }: { game: CatalogGame & { tournaments_count?: number; 
 
                     {/* Stats row */}
                     <div style={{
-                        display: "flex", alignItems: "center", backgroundColor: "rgba(255,255,255,0.03)",
+                        display: "flex", alignItems: "center", backgroundColor: "var(--surface-tertiary)",
                         borderRadius: 10, padding: "8px 10px", gap: 4,
                     }}>
                         <div style={{ flex: 1, textAlign: "center" }}>
                             <p style={{ fontSize: 14, fontWeight: 800, color: brand.color, margin: 0 }}>{formats.length}</p>
                             <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
                         </div>
-                        <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                        <div style={{ width: 0.5, height: 24, backgroundColor: "var(--overlay)" }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
                             <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{game.tournaments_count ?? 0}</p>
                             <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
                         </div>
                         {(game.sets_count ?? 0) > 0 && (<>
-                            <div style={{ width: 0.5, height: 24, backgroundColor: "rgba(255,255,255,0.08)" }} />
+                            <div style={{ width: 0.5, height: 24, backgroundColor: "var(--overlay)" }} />
                             <div style={{ flex: 1, textAlign: "center" }}>
                                 <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{game.sets_count}</p>
                                 <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Sets</p>
@@ -210,7 +210,7 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
             }}>
                 {/* Brand gradient background */}
                 <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg, ${brand.bg || "#0f172a"}40, transparent 40%)` }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(90deg, ${brand.bg || "var(--surface-solid-secondary)"}40, transparent 40%)` }} />
                 </div>
 
                 {/* Content */}
@@ -247,7 +247,7 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
                             <p style={{ fontSize: 14, fontWeight: 800, color: brand.color, margin: 0 }}>{formats.length}</p>
                             <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Formatos</p>
                         </div>
-                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)", alignSelf: "center" }} />
+                        <div style={{ width: 0.5, height: 28, backgroundColor: "var(--overlay)", alignSelf: "center" }} />
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
                             <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{game.tournaments_count ?? 0}</p>
                             <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Torneos</p>
@@ -256,7 +256,7 @@ function GameListRow({ game }: { game: CatalogGame & { tournaments_count?: numbe
 
                     {/* Chevron */}
                     <svg width={16} height={16} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-                        <path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 3l5 5-5 5" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </div>
             </div>

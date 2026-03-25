@@ -39,39 +39,39 @@ const ICON_SIZE = { width: 16, height: 16 };
 
 const ACTIVITY_CONFIG: Record<string, ActivityConfig> = {
     // Competitivo (win)
-    TOURNAMENT_WIN:  { icon: <Cup {...ICON_SIZE} />,         color: "#F59E0B", bgColor: "rgba(245,158,11,0.12)" },
-    TOURNAMENT_TOP:  { icon: <Cup {...ICON_SIZE} />,         color: "#F59E0B", bgColor: "rgba(245,158,11,0.12)" },
-    MATCH_WIN:       { icon: <Cup {...ICON_SIZE} />,         color: "#F59E0B", bgColor: "rgba(245,158,11,0.12)" },
+    TOURNAMENT_WIN:  { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", bgColor: "color-mix(in srgb, var(--warning) 12%, transparent)" },
+    TOURNAMENT_TOP:  { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", bgColor: "color-mix(in srgb, var(--warning) 12%, transparent)" },
+    MATCH_WIN:       { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", bgColor: "color-mix(in srgb, var(--warning) 12%, transparent)" },
     // Competitivo (loss)
-    MATCH_LOSS:      { icon: <Cup {...ICON_SIZE} />,         color: "#EF4444", bgColor: "rgba(239,68,68,0.12)" },
+    MATCH_LOSS:      { icon: <Cup {...ICON_SIZE} />,         color: "var(--danger)", bgColor: "color-mix(in srgb, var(--danger) 12%, transparent)" },
     // Registro
-    TOURNAMENT_JOIN: { icon: <Cup {...ICON_SIZE} />,         color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
+    TOURNAMENT_JOIN: { icon: <Cup {...ICON_SIZE} />,         color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
     // Rating
-    RATING_UP:       { icon: <ChartColumn {...ICON_SIZE} />, color: "#22C55E", bgColor: "rgba(34,197,94,0.12)" },
-    PEAK_RATING:     { icon: <ChartColumn {...ICON_SIZE} />, color: "#22C55E", bgColor: "rgba(34,197,94,0.12)" },
-    RATING_DOWN:     { icon: <ChartColumn {...ICON_SIZE} />, color: "#EF4444", bgColor: "rgba(239,68,68,0.12)" },
+    RATING_UP:       { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--success)", bgColor: "color-mix(in srgb, var(--success) 12%, transparent)" },
+    PEAK_RATING:     { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--success)", bgColor: "color-mix(in srgb, var(--success) 12%, transparent)" },
+    RATING_DOWN:     { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--danger)", bgColor: "color-mix(in srgb, var(--danger) 12%, transparent)" },
     // Logros
-    BADGE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "#A855F7", bgColor: "rgba(168,85,247,0.12)" },
-    TITLE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "#A855F7", bgColor: "rgba(168,85,247,0.12)" },
-    ACHIEVEMENT:     { icon: <StarFill {...ICON_SIZE} />,    color: "#A855F7", bgColor: "rgba(168,85,247,0.12)" },
-    SEASON_RANK:     { icon: <StarFill {...ICON_SIZE} />,    color: "#A855F7", bgColor: "rgba(168,85,247,0.12)" },
+    BADGE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
+    TITLE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
+    ACHIEVEMENT:     { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
+    SEASON_RANK:     { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
     // Nivel
-    LEVEL_UP:        { icon: <ArrowUp {...ICON_SIZE} />,     color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
+    LEVEL_UP:        { icon: <ArrowUp {...ICON_SIZE} />,     color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
     // Social
-    FOLLOW:          { icon: <Person {...ICON_SIZE} />,      color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
-    FRIENDSHIP:      { icon: <Person {...ICON_SIZE} />,      color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
+    FOLLOW:          { icon: <Person {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
+    FRIENDSHIP:      { icon: <Person {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
     // Clan
-    CLAN_JOIN:       { icon: <Shield {...ICON_SIZE} />,      color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
-    CLAN_CREATE:     { icon: <Shield {...ICON_SIZE} />,      color: "#3B82F6", bgColor: "rgba(59,130,246,0.12)" },
-    CLAN_LEAVE:      { icon: <Shield {...ICON_SIZE} />,      color: "var(--muted)", bgColor: "rgba(255,255,255,0.06)" },
+    CLAN_JOIN:       { icon: <Shield {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
+    CLAN_CREATE:     { icon: <Shield {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
+    CLAN_LEAVE:      { icon: <Shield {...ICON_SIZE} />,      color: "var(--muted)", bgColor: "var(--surface)" },
     // Deck
-    DECK_PUBLISH:    { icon: <SquareDashed {...ICON_SIZE} />, color: "#8B5CF6", bgColor: "rgba(139,92,246,0.12)" },
+    DECK_PUBLISH:    { icon: <SquareDashed {...ICON_SIZE} />, color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
 };
 
 const FALLBACK_CONFIG: ActivityConfig = {
     icon: <CircleInfo {...ICON_SIZE} />,
     color: "var(--muted)",
-    bgColor: "rgba(255,255,255,0.06)",
+    bgColor: "var(--surface)",
 };
 
 // ── Entity link resolver ──
@@ -133,7 +133,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                 ) : (
                     <div style={{
                         width: 32, height: 32, borderRadius: 16,
-                        backgroundColor: "rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         color: "var(--muted)", fontSize: 13, fontWeight: 700,
                     }}>
@@ -161,7 +161,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                     {/* Icon */}
                     <div style={{
                         width: 36, height: 36, borderRadius: 10,
-                        backgroundColor: config.color + "20",
+                        backgroundColor: `color-mix(in srgb, ${config.color} 12%, transparent)`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         color: config.color, flexShrink: 0,
                     }}>

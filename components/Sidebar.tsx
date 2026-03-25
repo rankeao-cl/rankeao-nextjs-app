@@ -123,7 +123,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                     <button
                         onClick={openCreatePost}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all mb-2 ${collapsed ? "justify-center px-0" : ""}`}
-                        style={{ backgroundColor: "#3B82F6", color: "#FFFFFF", border: "none", cursor: "pointer" }}
+                        style={{ backgroundColor: "var(--accent)", color: "#fff", border: "none", cursor: "pointer" }}
                     >
                         <Pencil className="size-[18px] shrink-0" />
                         {!collapsed && <span className="truncate">Crear Post</span>}

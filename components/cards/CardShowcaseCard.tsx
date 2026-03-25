@@ -24,10 +24,10 @@ export interface FeedCardShowcase {
 }
 
 const CONDITION_LABELS: Record<string, { label: string; color: string }> = {
-    mint: { label: "Mint", color: "#22c55e" },
-    NM: { label: "Near Mint", color: "#3b82f6" },
-    played: { label: "Played", color: "#f59e0b" },
-    damaged: { label: "Damaged", color: "#ef4444" },
+    mint: { label: "Mint", color: "var(--success)" },
+    NM: { label: "Near Mint", color: "var(--accent)" },
+    played: { label: "Played", color: "var(--warning)" },
+    damaged: { label: "Damaged", color: "var(--danger)" },
 };
 
 export default function CardShowcaseCard({

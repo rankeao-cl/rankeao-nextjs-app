@@ -24,14 +24,14 @@ import type { Duel, DuelStatus } from "@/lib/types/duel";
 
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-    PENDING: { label: "Pendiente", color: "#F59E0B" },
-    ACCEPTED: { label: "Aceptado", color: "#3B82F6" },
-    IN_PROGRESS: { label: "En curso", color: "#22C55E" },
-    AWAITING_CONFIRMATION: { label: "Esperando confirmacion", color: "#A855F7" },
-    COMPLETED: { label: "Finalizado", color: "#6B7280" },
-    DECLINED: { label: "Rechazado", color: "#EF4444" },
-    CANCELLED: { label: "Cancelado", color: "#6B7280" },
-    DISPUTED: { label: "Disputado", color: "#EF4444" },
+    PENDING: { label: "Pendiente", color: "var(--warning)" },
+    ACCEPTED: { label: "Aceptado", color: "var(--accent)" },
+    IN_PROGRESS: { label: "En curso", color: "var(--success)" },
+    AWAITING_CONFIRMATION: { label: "Esperando confirmacion", color: "var(--purple)" },
+    COMPLETED: { label: "Finalizado", color: "var(--muted)" },
+    DECLINED: { label: "Rechazado", color: "var(--danger)" },
+    CANCELLED: { label: "Cancelado", color: "var(--muted)" },
+    DISPUTED: { label: "Disputado", color: "var(--danger)" },
 };
 
 // ── PlayerCard ──
@@ -51,34 +51,34 @@ function PlayerCard({ player, wins, isWinner, isMe }: {
             gap: 4,
             padding: 14,
             borderRadius: 14,
-            backgroundColor: isWinner ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.03)",
+            backgroundColor: isWinner ? "rgba(34,197,94,0.06)" : "var(--surface-tertiary)",
             border: isWinner ? "1px solid rgba(34,197,94,0.15)" : isMe ? "1px solid rgba(59,130,246,0.15)" : "none",
         }}>
             {player.avatar_url ? (
                 <Image src={player.avatar_url} alt={player.username} width={52} height={52} style={{ borderRadius: 999, objectFit: "cover" }} />
             ) : (
-                <div style={{ width: 52, height: 52, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "#888891" }}>
+                <div style={{ width: 52, height: 52, borderRadius: 999, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: "var(--muted)" }}>
                         {player.username.charAt(0).toUpperCase()}
                     </span>
                 </div>
             )}
-            <span style={{ fontSize: 13, fontWeight: 700, color: isWinner ? "#22C55E" : "#F2F2F2", textAlign: "center" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: isWinner ? "var(--success)" : "var(--foreground)", textAlign: "center" }}>
                 {player.display_name || player.username}
             </span>
-            <span style={{ fontSize: 10, color: "#888891" }}>@{player.username}</span>
+            <span style={{ fontSize: 10, color: "var(--muted)" }}>@{player.username}</span>
             {wins != null && (
-                <span style={{ fontSize: 28, fontWeight: 800, color: isWinner ? "#22C55E" : "#F2F2F2", marginTop: 4 }}>
+                <span style={{ fontSize: 28, fontWeight: 800, color: isWinner ? "var(--success)" : "var(--foreground)", marginTop: 4 }}>
                     {wins}
                 </span>
             )}
             {isWinner && (
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#22C55E", backgroundColor: "rgba(34,197,94,0.1)", padding: "2px 8px", borderRadius: 999, marginTop: 2 }}>
+                <span style={{ fontSize: 9, fontWeight: 800, color: "var(--success)", backgroundColor: "rgba(34,197,94,0.1)", padding: "2px 8px", borderRadius: 999, marginTop: 2 }}>
                     GANADOR
                 </span>
             )}
             {isMe && !isWinner && (
-                <span style={{ fontSize: 9, fontWeight: 800, color: "#3B82F6", backgroundColor: "rgba(59,130,246,0.1)", padding: "2px 8px", borderRadius: 999, marginTop: 2 }}>
+                <span style={{ fontSize: 9, fontWeight: 800, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.1)", padding: "2px 8px", borderRadius: 999, marginTop: 2 }}>
                     TU
                 </span>
             )}
@@ -170,7 +170,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     if (initialLoading) {
         return (
             <div className="max-w-3xl mx-auto flex flex-col items-center justify-center py-24">
-                <div className="animate-spin" style={{ width: 24, height: 24, border: "3px solid rgba(255,255,255,0.1)", borderTopColor: "#3B82F6", borderRadius: 999 }} />
+                <div className="animate-spin" style={{ width: 24, height: 24, border: "3px solid var(--overlay)", borderTopColor: "var(--accent)", borderRadius: 999 }} />
             </div>
         );
     }
@@ -179,8 +179,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         return (
             <div className="max-w-3xl mx-auto flex flex-col items-center justify-center py-24">
                 <p className="text-4xl mb-4">🔍</p>
-                <p className="text-lg font-medium text-[#F2F2F2]">Duelo no encontrado</p>
-                <Link href="/duelos" style={{ marginTop: 16, color: "#3B82F6", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
+                <p className="text-lg font-medium text-foreground">Duelo no encontrado</p>
+                <Link href="/duelos" style={{ marginTop: 16, color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
                     Volver a duelos
                 </Link>
             </div>
@@ -339,32 +339,32 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         )}
                         <span style={{ fontSize: 10, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
                     </span>
-                    <span style={{ fontSize: 11, color: "#888891" }}>{timeAgo(duel.created_at, { verbose: true, fallbackDays: 7 })}</span>
+                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgo(duel.created_at, { verbose: true, fallbackDays: 7 })}</span>
                 </div>
 
                 {/* Title */}
-                <h1 style={{ color: "#F2F2F2", fontSize: 20, fontWeight: 800, lineHeight: "26px", margin: 0, marginBottom: 10 }}>
+                <h1 style={{ color: "var(--foreground)", fontSize: 20, fontWeight: 800, lineHeight: "26px", margin: 0, marginBottom: 10 }}>
                     {duel.challenger.display_name || duel.challenger.username} vs {duel.opponent.display_name || duel.opponent.username}
                 </h1>
 
                 {/* Tags */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
                     {duel.game_name && (
-                        <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 6 }}>
+                        <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 8px", borderRadius: 6 }}>
                             {duel.game_name}
                         </span>
                     )}
                     {duel.format_name && (
-                        <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 6 }}>
+                        <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 8px", borderRadius: 6 }}>
                             {duel.format_name}
                         </span>
                     )}
                     {duel.best_of != null && duel.best_of > 0 && (
-                        <span style={{ fontSize: 11, color: "#888891", backgroundColor: "rgba(255,255,255,0.06)", padding: "4px 8px", borderRadius: 6 }}>
+                        <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 8px", borderRadius: 6 }}>
                             Bo{duel.best_of}
                         </span>
                     )}
-                    <span style={{ fontSize: 11, color: "#F59E0B", fontWeight: 600, backgroundColor: "rgba(245,158,11,0.1)", padding: "4px 8px", borderRadius: 6 }}>
+                    <span style={{ fontSize: 11, color: "var(--warning)", fontWeight: 600, backgroundColor: "rgba(245,158,11,0.1)", padding: "4px 8px", borderRadius: 6 }}>
                         Casual
                     </span>
                 </div>
@@ -374,14 +374,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             <div style={{
                 display: "flex", gap: 8, alignItems: "stretch",
                 marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
-                backgroundColor: "#1A1A1E", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
             }}>
                 <PlayerCard player={duel.challenger} wins={duel.challenger_wins} isWinner={challengerWon} isMe={isChallenger} />
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {(duel.challenger_wins != null && duel.opponent_wins != null && (duel.challenger_wins > 0 || duel.opponent_wins > 0)) ? (
-                        <span style={{ fontSize: 20, fontWeight: 800, color: "#F2F2F2" }}>{duel.challenger_wins} - {duel.opponent_wins}</span>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)" }}>{duel.challenger_wins} - {duel.opponent_wins}</span>
                     ) : (
-                        <span style={{ fontSize: 12, fontWeight: 800, color: "#888891" }}>VS</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>VS</span>
                     )}
                 </div>
                 <PlayerCard player={duel.opponent} wins={duel.opponent_wins} isWinner={opponentWon} isMe={isOpponent} />
@@ -392,12 +392,12 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                 <div style={{
                     display: "flex", alignItems: "flex-start", gap: 8,
                     marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
-                    backgroundColor: "#1A1A1E", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
                 }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                     </svg>
-                    <span style={{ flex: 1, color: "#A8A8B0", fontSize: 13, fontStyle: "italic", lineHeight: "19px" }}>
+                    <span style={{ flex: 1, color: "var(--muted)", fontSize: 13, fontStyle: "italic", lineHeight: "19px" }}>
                         &ldquo;{duel.message}&rdquo;
                     </span>
                 </div>
@@ -410,12 +410,12 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
                     backgroundColor: "rgba(245,158,11,0.06)", borderRadius: 14, border: "1px solid rgba(245,158,11,0.15)",
                 }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#F59E0B" stroke="none">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--warning)" stroke="none">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                     </svg>
                     <div>
-                        <span style={{ color: "#F59E0B", fontSize: 14, fontWeight: 700 }}>+{duel.xp_gained} XP ganado</span>
-                        <p style={{ color: "#888891", fontSize: 11, margin: 0, marginTop: 1 }}>Duelo casual — no afecta tu ELO</p>
+                        <span style={{ color: "var(--warning)", fontSize: 14, fontWeight: 700 }}>+{duel.xp_gained} XP ganado</span>
+                        <p style={{ color: "var(--muted)", fontSize: 11, margin: 0, marginTop: 1 }}>Duelo casual — no afecta tu ELO</p>
                     </div>
                 </div>
             )}
@@ -428,14 +428,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     borderRadius: 14,
                     backgroundColor: iWon ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)",
                 }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={iWon ? "#22C55E" : "#EF4444"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={iWon ? "var(--success)" : "var(--danger)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         {iWon ? (
                             <><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 7" /><path d="M4 22h16" /><path d="M10 22V11" /><path d="M14 22V11" /><path d="M8 7h8l-1 5H9L8 7Z" /></>
                         ) : (
                             <><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></>
                         )}
                     </svg>
-                    <span style={{ fontSize: 18, fontWeight: 800, color: iWon ? "#22C55E" : "#EF4444" }}>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: iWon ? "var(--success)" : "var(--danger)" }}>
                         {iWon ? "Victoria" : "Derrota"}
                     </span>
                 </div>
@@ -445,10 +445,10 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             {(isPending || isActive || isAwaiting || isDisputed) && isMyDuel && (
                 <div style={{
                     marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
-                    backgroundColor: "#1A1A1E", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
                     display: "flex", flexDirection: "column", gap: 10,
                 }}>
-                    <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700 }}>Acciones</span>
+                    <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700 }}>Acciones</span>
 
                     {/* Pending: Accept/Decline (opponent only) */}
                     {isPending && isOpponent && (
@@ -456,14 +456,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                             <button
                                 onClick={() => exec("Aceptar", () => acceptDuel(duelId, token))}
                                 disabled={!!loading}
-                                style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#22C55E", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--success)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
                             >
                                 {loading === "Aceptar" ? "..." : "Aceptar"}
                             </button>
                             <button
                                 onClick={() => { if (confirm("Seguro que quieres rechazar?")) exec("Rechazar", () => declineDuel(duelId, token)); }}
                                 disabled={!!loading}
-                                style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.06)", color: "#EF4444", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--danger)", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
                             >
                                 {loading === "Rechazar" ? "..." : "Rechazar"}
                             </button>
@@ -475,7 +475,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         <button
                             onClick={() => { if (confirm("Seguro que quieres cancelar?")) exec("Cancelar", () => cancelDuel(duelId, token)); }}
                             disabled={!!loading}
-                            style={{ padding: "12px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.06)", color: "#888891", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                            style={{ padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
                         >
                             {loading === "Cancelar" ? "..." : "Cancelar desafio"}
                         </button>
@@ -486,7 +486,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         <button
                             onClick={() => setShowReport(true)}
                             disabled={!!loading}
-                            style={{ padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#3B82F6", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                            style={{ padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--accent)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                         >
                             Reportar resultado
                         </button>
@@ -495,22 +495,22 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     {/* Report form */}
                     {isActive && showReport && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700 }}>Resultado</span>
+                            <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700 }}>Resultado</span>
                             <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center" }}>
                                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                                    <span style={{ fontSize: 11, color: "#888891", fontWeight: 600 }}>Tu</span>
+                                    <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Tu</span>
                                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                         <button onClick={() => setMyWins(Math.max(0, myWins - 1))} style={counterBtnStyle}>-</button>
-                                        <span style={{ fontSize: 22, fontWeight: 800, color: "#F2F2F2", minWidth: 24, textAlign: "center" }}>{myWins}</span>
+                                        <span style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", minWidth: 24, textAlign: "center" }}>{myWins}</span>
                                         <button onClick={() => { const next = Math.min(maxWins, myWins + 1); setMyWins(next); if (next === maxWins && oppWins >= maxWins) setOppWins(maxWins - 1); }} style={counterBtnStyle}>+</button>
                                     </div>
                                 </div>
-                                <span style={{ fontSize: 16, fontWeight: 800, color: "#888891", marginTop: 20 }}>-</span>
+                                <span style={{ fontSize: 16, fontWeight: 800, color: "var(--muted)", marginTop: 20 }}>-</span>
                                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                                    <span style={{ fontSize: 11, color: "#888891", fontWeight: 600 }}>Oponente</span>
+                                    <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Oponente</span>
                                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                         <button onClick={() => setOppWins(Math.max(0, oppWins - 1))} style={counterBtnStyle}>-</button>
-                                        <span style={{ fontSize: 22, fontWeight: 800, color: "#F2F2F2", minWidth: 24, textAlign: "center" }}>{oppWins}</span>
+                                        <span style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", minWidth: 24, textAlign: "center" }}>{oppWins}</span>
                                         <button onClick={() => { const next = Math.min(maxWins, oppWins + 1); setOppWins(next); if (next === maxWins && myWins >= maxWins) setMyWins(maxWins - 1); }} style={counterBtnStyle}>+</button>
                                     </div>
                                 </div>
@@ -518,14 +518,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                             <div style={{ display: "flex", gap: 8 }}>
                                 <button
                                     onClick={() => setShowReport(false)}
-                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.06)", color: "#888891", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleReport}
                                     disabled={!!loading}
-                                    style={{ flex: 2, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#3B82F6", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading === "report" ? 0.6 : 1 }}
+                                    style={{ flex: 2, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--accent)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading === "report" ? 0.6 : 1 }}
                                 >
                                     {loading === "report" ? "Enviando..." : "Enviar"}
                                 </button>
@@ -537,15 +537,15 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     {isAwaiting && isMyDuel && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 10, backgroundColor: "rgba(168,85,247,0.06)", borderRadius: 6 }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                                 </svg>
-                                <span style={{ flex: 1, color: "#A855F7", fontSize: 11, fontWeight: 600 }}>
+                                <span style={{ flex: 1, color: "var(--purple)", fontSize: 11, fontWeight: 600 }}>
                                     Resultado reportado: {duel.challenger_wins}-{duel.opponent_wins}
                                 </span>
                             </div>
                             {isReporter ? (
-                                <p style={{ color: "#888891", fontSize: 12, textAlign: "center", margin: 0 }}>
+                                <p style={{ color: "var(--muted)", fontSize: 12, textAlign: "center", margin: 0 }}>
                                     Esperando que tu oponente confirme el resultado
                                 </p>
                             ) : (
@@ -553,14 +553,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                                     <button
                                         onClick={() => exec("Confirmar", () => confirmDuelResult(duelId, token))}
                                         disabled={!!loading}
-                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#22C55E", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--success)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
                                     >
                                         {loading === "Confirmar" ? "..." : "Confirmar"}
                                     </button>
                                     <button
                                         onClick={() => { if (confirm("El resultado sera revisado por un moderador. Continuar?")) exec("Disputar", () => disputeDuel(duelId, token)); }}
                                         disabled={!!loading}
-                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.1)", color: "#EF4444", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.1)", color: "var(--danger)", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
                                     >
                                         {loading === "Disputar" ? "..." : "Disputar"}
                                     </button>
@@ -572,10 +572,10 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     {/* Disputed notice */}
                     {isDisputed && (
                         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 10, backgroundColor: "rgba(239,68,68,0.06)", borderRadius: 6 }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                             </svg>
-                            <span style={{ flex: 1, color: "#EF4444", fontSize: 11, fontWeight: 600 }}>Resultado disputado — esperando moderador</span>
+                            <span style={{ flex: 1, color: "var(--danger)", fontSize: 11, fontWeight: 600 }}>Resultado disputado — esperando moderador</span>
                         </div>
                     )}
 
@@ -585,7 +585,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                             onClick={() => { if (confirm("Seguro que quieres cancelar el duelo?")) exec("Cancelar", () => cancelDuel(duelId, token)); }}
                             style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 0", alignSelf: "center" }}
                         >
-                            <span style={{ color: "#888891", fontSize: 11, textDecoration: "underline" }}>Cancelar duelo</span>
+                            <span style={{ color: "var(--muted)", fontSize: 11, textDecoration: "underline" }}>Cancelar duelo</span>
                         </button>
                     )}
                 </div>
@@ -595,27 +595,27 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             {(isCompleted || isActive || isAwaiting) && (
                 <div style={{
                     marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
-                    backgroundColor: "#1A1A1E", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)",
+                    backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
                 }}>
-                    <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700, display: "block", marginBottom: 10 }}>Comentarios</span>
+                    <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700, display: "block", marginBottom: 10 }}>Comentarios</span>
 
                     {comments.length > 0 ? (
                         comments.map((c) => (
                             <div key={c.id} style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                                <div style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                    <span style={{ color: "#888891", fontSize: 10, fontWeight: 700 }}>{c.username?.[0]?.toUpperCase() || "?"}</span>
+                                <div style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                    <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700 }}>{c.username?.[0]?.toUpperCase() || "?"}</span>
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                                        <span style={{ color: "#F2F2F2", fontSize: 11, fontWeight: 700 }}>{c.username || "Usuario"}</span>
-                                        {c.created_at && <span style={{ color: "#888891", fontSize: 9 }}>{timeAgo(c.created_at, { verbose: true })}</span>}
+                                        <span style={{ color: "var(--foreground)", fontSize: 11, fontWeight: 700 }}>{c.username || "Usuario"}</span>
+                                        {c.created_at && <span style={{ color: "var(--muted)", fontSize: 9 }}>{timeAgo(c.created_at, { verbose: true })}</span>}
                                     </div>
-                                    <span style={{ color: "#E5E5E5", fontSize: 13, lineHeight: "18px" }}>{c.content || c.text}</span>
+                                    <span style={{ color: "var(--foreground)", fontSize: 13, lineHeight: "18px" }}>{c.content || c.text}</span>
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <p style={{ color: "#888891", fontSize: 11, textAlign: "center", padding: "12px 0", margin: 0 }}>Sin comentarios aun</p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, textAlign: "center", padding: "12px 0", margin: 0 }}>Sin comentarios aun</p>
                     )}
 
                     {/* Comment input */}
@@ -629,16 +629,16 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                                 onKeyDown={(e) => { if (e.key === "Enter") handleSendComment(); }}
                                 maxLength={300}
                                 style={{
-                                    flex: 1, backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 6,
-                                    border: "1px solid rgba(255,255,255,0.06)", padding: "8px 12px",
-                                    color: "#F2F2F2", fontSize: 13, outline: "none",
+                                    flex: 1, backgroundColor: "var(--surface-tertiary)", borderRadius: 6,
+                                    border: "1px solid var(--border)", padding: "8px 12px",
+                                    color: "var(--foreground)", fontSize: 13, outline: "none",
                                 }}
                             />
                             <button
                                 onClick={handleSendComment}
                                 disabled={!commentText.trim() || sendingComment}
                                 style={{
-                                    width: 36, height: 36, borderRadius: 18, backgroundColor: "#3B82F6",
+                                    width: 36, height: 36, borderRadius: 18, backgroundColor: "var(--accent)",
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     border: "none", cursor: !commentText.trim() || sendingComment ? "not-allowed" : "pointer",
                                     opacity: !commentText.trim() || sendingComment ? 0.4 : 1,
@@ -665,17 +665,17 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                             onClick={() => setShowReportUser(true)}
                             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", padding: "10px 0", background: "none", border: "none", cursor: "pointer" }}
                         >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" />
                             </svg>
-                            <span style={{ color: "#888891", fontSize: 11 }}>Reportar oponente</span>
+                            <span style={{ color: "var(--muted)", fontSize: 11 }}>Reportar oponente</span>
                         </button>
                     ) : (
                         <div style={{
-                            padding: 14, backgroundColor: "#1A1A1E", borderRadius: 14,
-                            border: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 10,
+                            padding: 14, backgroundColor: "var(--surface-solid)", borderRadius: 14,
+                            border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 10,
                         }}>
-                            <span style={{ color: "#F2F2F2", fontSize: 13, fontWeight: 700 }}>
+                            <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700 }}>
                                 Reportar a @{isChallenger ? duel.opponent.username : duel.challenger.username}
                             </span>
                             <textarea
@@ -685,22 +685,22 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                                 maxLength={300}
                                 rows={3}
                                 style={{
-                                    width: "100%", backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 6,
-                                    border: "1px solid rgba(255,255,255,0.06)", padding: "10px 12px",
-                                    color: "#F2F2F2", fontSize: 13, resize: "none", outline: "none", fontFamily: "inherit",
+                                    width: "100%", backgroundColor: "var(--surface-tertiary)", borderRadius: 6,
+                                    border: "1px solid var(--border)", padding: "10px 12px",
+                                    color: "var(--foreground)", fontSize: 13, resize: "none", outline: "none", fontFamily: "inherit",
                                 }}
                             />
                             <div style={{ display: "flex", gap: 8 }}>
                                 <button
                                     onClick={() => { setShowReportUser(false); setReportReason(""); }}
-                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.06)", color: "#888891", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleReportUser}
                                     disabled={!reportReason.trim() || loading === "reportUser"}
-                                    style={{ flex: 2, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "#EF4444", color: "#fff", fontSize: 13, fontWeight: 700, cursor: !reportReason.trim() ? "not-allowed" : "pointer", opacity: reportReason.trim() ? 1 : 0.4 }}
+                                    style={{ flex: 2, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--danger)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: !reportReason.trim() ? "not-allowed" : "pointer", opacity: reportReason.trim() ? 1 : 0.4 }}
                                 >
                                     {loading === "reportUser" ? "Enviando..." : "Enviar reporte"}
                                 </button>
@@ -717,7 +717,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
 
 const counterBtnStyle: React.CSSProperties = {
     width: 36, height: 36, borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.06)", backgroundColor: "rgba(255,255,255,0.06)",
-    color: "#F2F2F2", cursor: "pointer", fontSize: 18, fontWeight: 700,
+    border: "1px solid var(--border)", backgroundColor: "var(--surface)",
+    color: "var(--foreground)", cursor: "pointer", fontSize: 18, fontWeight: 700,
     display: "flex", alignItems: "center", justifyContent: "center",
 };

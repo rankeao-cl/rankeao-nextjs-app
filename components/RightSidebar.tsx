@@ -30,7 +30,7 @@ function SidebarSection({ title, icon, children, viewAllHref }: {
                     <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">{title}</h3>
                 </div>
                 {viewAllHref && (
-                    <Link href={viewAllHref} className="text-[10px] font-semibold text-[#3B82F6] hover:underline flex items-center gap-0.5">
+                    <Link href={viewAllHref} className="text-[10px] font-semibold text-accent hover:underline flex items-center gap-0.5">
                         Ver todo <ArrowRight className="size-3" />
                     </Link>
                 )}
@@ -128,7 +128,7 @@ export default function RightSidebar() {
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-foreground truncate group-hover:text-[#3B82F6] transition-colors">
+                                    <p className="text-xs font-semibold text-foreground truncate group-hover:text-accent transition-colors">
                                         {game.name}
                                     </p>
                                     {game.formats_count != null && (
@@ -147,7 +147,7 @@ export default function RightSidebar() {
             {/* Tournaments */}
             <SidebarSection
                 title="Torneos"
-                icon={<Cup className="size-3.5 text-[#3B82F6]" />}
+                icon={<Cup className="size-3.5 text-accent" />}
                 viewAllHref="/torneos"
             >
                 <div className="space-y-1.5">
@@ -157,7 +157,7 @@ export default function RightSidebar() {
                             <Link
                                 key={t.id}
                                 href={`/torneos/${t.id}`}
-                                className="block p-2.5 rounded-xl border border-border hover:border-[#3B82F6]/30 bg-surface-solid hover:bg-surface-solid transition-colors"
+                                className="block p-2.5 rounded-xl border border-border hover:border-accent/30 bg-surface-solid hover:bg-surface-solid transition-colors"
                             >
                                 <div className="flex items-center justify-between mb-1.5">
                                     <span className="text-xs font-bold text-foreground truncate flex-1 mr-2">{t.name}</span>
@@ -174,7 +174,7 @@ export default function RightSidebar() {
                                     {t.current_round && (
                                         <>
                                             <span>·</span>
-                                            <span className="text-[#22C55E] font-semibold">R{t.current_round}</span>
+                                            <span className="text-success font-semibold">R{t.current_round}</span>
                                         </>
                                     )}
                                 </div>
@@ -206,11 +206,11 @@ export default function RightSidebar() {
                                 {tenant.logo_url ? (
                                     <Image src={tenant.logo_url} alt={tenant.name} width={32} height={32} className="w-full h-full object-cover" />
                                 ) : (
-                                    <span className="font-bold text-[#3B82F6]">{tenant.name?.charAt(0)?.toUpperCase()}</span>
+                                    <span className="font-bold text-accent">{tenant.name?.charAt(0)?.toUpperCase()}</span>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold text-foreground truncate group-hover:text-[#3B82F6] transition-colors">
+                                <p className="text-xs font-semibold text-foreground truncate group-hover:text-accent transition-colors">
                                     {tenant.name}
                                 </p>
                                 <p className="text-[10px] text-muted truncate">
@@ -226,7 +226,7 @@ export default function RightSidebar() {
             {topPlayers.length > 0 && (
                 <SidebarSection
                     title="Top Jugadores"
-                    icon={<ChartColumn className="size-3.5 text-[#F59E0B]" />}
+                    icon={<ChartColumn className="size-3.5 text-warning" />}
                     viewAllHref="/ranking"
                 >
                     <div className="space-y-0.5">
@@ -247,11 +247,11 @@ export default function RightSidebar() {
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-foreground truncate group-hover:text-[#3B82F6] transition-colors">
+                                    <p className="text-xs font-semibold text-foreground truncate group-hover:text-accent transition-colors">
                                         {player.username}
                                     </p>
                                 </div>
-                                <span className="text-[10px] font-bold text-[#F59E0B] shrink-0">
+                                <span className="text-[10px] font-bold text-warning shrink-0">
                                     {player.elo}
                                 </span>
                             </Link>
@@ -264,7 +264,7 @@ export default function RightSidebar() {
             {listings.length > 0 && (
                 <SidebarSection
                     title="Publicaciones"
-                    icon={<ShoppingCart className="size-3.5 text-[#22C55E]" />}
+                    icon={<ShoppingCart className="size-3.5 text-success" />}
                     viewAllHref="/marketplace"
                 >
                     <div className="space-y-1.5">
@@ -285,11 +285,11 @@ export default function RightSidebar() {
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-semibold text-foreground truncate group-hover:text-[#3B82F6] transition-colors">
+                                        <p className="text-xs font-semibold text-foreground truncate group-hover:text-accent transition-colors">
                                             {listing.card_name || listing.title || "Carta"}
                                         </p>
                                         {price && (
-                                            <p className="text-[11px] font-bold text-[#22C55E]">{price}</p>
+                                            <p className="text-[11px] font-bold text-success">{price}</p>
                                         )}
                                     </div>
                                 </Link>

@@ -117,8 +117,8 @@ export default function MarkdownToolbar({ textareaRef, content, onChange }: Mark
             display: "flex",
             gap: 2,
             padding: "6px 8px",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            backgroundColor: "rgba(255,255,255,0.02)",
+            borderBottom: "1px solid var(--surface)",
+            backgroundColor: "var(--surface-tertiary)",
             borderRadius: "12px 12px 0 0",
             flexWrap: "wrap",
         }}>
@@ -134,7 +134,7 @@ export default function MarkdownToolbar({ textareaRef, content, onChange }: Mark
                         borderRadius: 8,
                         border: "none",
                         backgroundColor: "transparent",
-                        color: "#888891",
+                        color: "var(--muted)",
                         fontSize: 13,
                         fontWeight: 700,
                         cursor: "pointer",
@@ -144,12 +144,12 @@ export default function MarkdownToolbar({ textareaRef, content, onChange }: Mark
                         transition: "all 0.15s",
                     }}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
-                        e.currentTarget.style.color = "#F2F2F2";
+                        e.currentTarget.style.backgroundColor = "var(--overlay)";
+                        e.currentTarget.style.color = "var(--foreground)";
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = "#888891";
+                        e.currentTarget.style.color = "var(--muted)";
                     }}
                 >
                     {a.label}

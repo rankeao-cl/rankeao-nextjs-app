@@ -147,7 +147,7 @@ export default function BottomNav() {
                             >
                                 <div
                                     className="w-2 h-2 rounded-full"
-                                    style={{ background: "#22C55E" }}
+                                    style={{ background: "var(--success)" }}
                                 />
                             </div>
                         )}

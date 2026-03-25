@@ -57,7 +57,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                 <div className="rounded-[20px] border border-border overflow-hidden relative">
                     {/* Banner gradient */}
                     <div style={{ height: 140, position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "#0f172a"}, var(--surface-solid))` }} />
+                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${brand.bg || "var(--surface-solid-secondary)"}, var(--surface-solid))` }} />
                         {/* Brand glow */}
                         <div style={{ position: "absolute", top: -20, right: -20, width: 200, height: 200, borderRadius: "50%", background: brand.color, opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--surface-solid) 0%, color-mix(in srgb, var(--surface-solid) 40%, transparent) 60%, rgba(0,0,0,0.1) 100%)" }} />
@@ -70,7 +70,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                                 </span>
                             )}
                             {rankedCount > 0 && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "#EAB308", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--yellow)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
                                     {rankedCount} ranked
                                 </span>
                             )}
@@ -106,7 +106,7 @@ export default async function GameDetailPage({ params, searchParams }: PageProps
                         </div>
                         <div className="border-l border-border" style={{ width: 0.5, height: 28 }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 16, fontWeight: 800, color: "#EAB308", margin: 0 }}>{rankedCount}</p>
+                            <p style={{ fontSize: 16, fontWeight: 800, color: "var(--yellow)", margin: 0 }}>{rankedCount}</p>
                             <p className="text-muted" style={{ fontSize: 9, fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Ranked</p>
                         </div>
                         <div className="border-l border-border" style={{ width: 0.5, height: 28 }} />

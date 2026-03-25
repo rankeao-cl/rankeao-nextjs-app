@@ -166,7 +166,7 @@ export default function Navbar() {
                   <button
                     onClick={openCreatePost}
                     className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "#3B82F6", border: "none", cursor: "pointer" }}
+                    style={{ background: "var(--accent)", border: "none", cursor: "pointer" }}
                     aria-label="Crear"
                   >
                     <Plus className="size-4 text-white" />

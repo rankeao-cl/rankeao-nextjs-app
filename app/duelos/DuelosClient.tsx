@@ -107,7 +107,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         <span
                             style={{
                                 display: "inline-block",
-                                backgroundColor: "rgba(255,255,255,0.06)",
+                                backgroundColor: "var(--surface)",
                                 alignSelf: "flex-start",
                                 paddingLeft: 10,
                                 paddingRight: 10,
@@ -152,7 +152,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                             flexDirection: "row",
                             alignItems: "center",
                             gap: 4,
-                            backgroundColor: "#3B82F6",
+                            backgroundColor: "var(--accent)",
                             borderRadius: 12,
                             paddingLeft: 14,
                             paddingRight: 14,
@@ -176,9 +176,9 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
 
             {/* Search bar */}
             <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
-                <form action="/duelos" method="GET" className="flex-1 flex items-center gap-2 bg-surface-solid border border-[rgba(255,255,255,0.06)] rounded-full px-[14px] py-[10px]">
+                <form action="/duelos" method="GET" className="flex-1 flex items-center gap-2 bg-surface-solid border border-border rounded-full px-[14px] py-[10px]">
                     {currentTab && <input type="hidden" name="tab" value={currentTab} />}
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <input
@@ -186,11 +186,11 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         name="q"
                         placeholder="Buscar duelos..."
                         defaultValue={currentQuery}
-                        className="flex-1 bg-transparent text-sm text-foreground placeholder-[#888891] outline-none"
+                        className="flex-1 bg-transparent text-sm text-foreground placeholder-muted outline-none"
                     />
                     {currentQuery && (
                         <a href={`/duelos?tab=${tab}`} className="shrink-0">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
                             </svg>
@@ -229,7 +229,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                                 {t.label}
                                 {showBadge && (
                                     <span style={{
-                                        backgroundColor: "#EF4444",
+                                        backgroundColor: "var(--danger)",
                                         minWidth: 18,
                                         height: 18,
                                         borderRadius: 9,
@@ -260,7 +260,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-surface-solid">
+                    <div className="rounded-2xl border border-border bg-surface-solid">
                         <div className="py-16 text-center">
                             <p className="text-4xl mb-4">
                                 {tab === "invitations" ? "📩" : tab === "sent" ? "📤" : tab === "history" ? "📋" : "⚔️"}
@@ -285,7 +285,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
                                         display: "inline-flex",
                                         alignItems: "center",
                                         gap: 6,
-                                        backgroundColor: "#3B82F6",
+                                        backgroundColor: "var(--accent)",
                                         borderRadius: 10,
                                         padding: "10px 20px",
                                         border: "none",

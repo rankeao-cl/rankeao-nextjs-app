@@ -188,7 +188,7 @@ export default function TorneosCalendar({ tournaments }: TorneosCalendarProps) {
                                                 className="w-1 h-1 rounded-full"
                                                 style={{
                                                     background: isSelected
-                                                        ? "rgba(255,255,255,0.5)"
+                                                        ? "var(--muted)"
                                                         : "var(--muted)",
                                                 }}
                                             />

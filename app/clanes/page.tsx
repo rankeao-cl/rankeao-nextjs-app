@@ -68,7 +68,7 @@ export default async function ClanesPage({ searchParams }: Props) {
             href="/clanes/new"
             style={{
               display: "flex", flexDirection: "row", alignItems: "center", gap: 4,
-              backgroundColor: "#3B82F6", borderRadius: 12,
+              backgroundColor: "var(--accent)", borderRadius: 12,
               paddingLeft: 14, paddingRight: 14, paddingTop: 8, paddingBottom: 8,
               marginLeft: 12, alignSelf: "center", textDecoration: "none", flexShrink: 0,
             }}

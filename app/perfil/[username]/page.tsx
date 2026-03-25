@@ -279,8 +279,8 @@ export default function PublicProfilePage({
                     width: 32,
                     height: 32,
                     borderRadius: "50%",
-                    borderTop: "2px solid #3B82F6",
-                    borderRight: "2px solid #3B82F6",
+                    borderTop: "2px solid var(--accent)",
+                    borderRight: "2px solid var(--accent)",
                     borderBottom: "2px solid transparent",
                     borderLeft: "2px solid transparent",
                     animation: "spin 0.8s linear infinite",
@@ -360,7 +360,7 @@ export default function PublicProfilePage({
     const xpProgress = xpToNextLevel > 0 ? Math.min(100, Math.round((currentLevelXp / xpToNextLevel) * 100)) : 0;
 
     // Borde de avatar según nivel
-    const levelBorderColor = level >= 50 ? "#A855F7" : level >= 25 ? "#FBBF24" : level >= 10 ? "#3B82F6" : "";
+    const levelBorderColor = level >= 50 ? "var(--purple)" : level >= 25 ? "var(--warning)" : level >= 10 ? "var(--accent)" : "";
 
     // User type badges
     const isVerified = profile?.is_verified || profile?.verified;
@@ -383,9 +383,9 @@ export default function PublicProfilePage({
     // Win rate color
     const winRateColor = (() => {
         const wr = typeof winRate === "number" && winRate < 1 ? winRate * 100 : winRate;
-        if (wr >= 60) return "#22C55E";
-        if (wr >= 40) return "#F59E0B";
-        return "#EF4444";
+        if (wr >= 60) return "var(--success)";
+        if (wr >= 40) return "var(--warning)";
+        return "var(--danger)";
     })();
 
     const handleProfileUpdated = (updatedProfile: any) => {
@@ -412,7 +412,7 @@ export default function PublicProfilePage({
             )}
             {equippedTitle && (
                 <span style={{
-                    backgroundColor: "rgba(168,85,247,0.15)", color: "#A855F7",
+                    backgroundColor: "color-mix(in srgb, var(--purple) 15%, transparent)", color: "var(--purple)",
                     paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 11, fontWeight: 600,
                 }}>{equippedTitle}</span>
@@ -420,7 +420,7 @@ export default function PublicProfilePage({
             {isVerified && (
                 <span style={{
                     display: "inline-flex", alignItems: "center", gap: 3,
-                    backgroundColor: "#3B82F6", color: "white",
+                    backgroundColor: "var(--accent)", color: "white",
                     paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 10, fontWeight: 700,
                 }}><CircleCheck width={10} height={10} /> Verificado</span>
@@ -428,21 +428,21 @@ export default function PublicProfilePage({
             {isPremium && (
                 <span style={{
                     display: "inline-flex", alignItems: "center", gap: 3,
-                    backgroundColor: "#F59E0B", color: "#1A1A1E",
+                    backgroundColor: "var(--warning)", color: "var(--surface-solid)",
                     paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 10, fontWeight: 700,
                 }}><Star width={10} height={10} /> Premium</span>
             )}
             {isAdmin && (
                 <span style={{
-                    backgroundColor: "#EF4444", color: "white",
+                    backgroundColor: "var(--danger)", color: "white",
                     paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 10, fontWeight: 700,
                 }}>Admin</span>
             )}
             {isModerator && (
                 <span style={{
-                    backgroundColor: "#06B6D4", color: "white",
+                    backgroundColor: "var(--accent)", color: "white",
                     paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
                     borderRadius: 99, fontSize: 10, fontWeight: 700,
                 }}>Mod</span>
@@ -504,7 +504,7 @@ export default function PublicProfilePage({
                     const isWin = duel.winner_id === (profile?.id || profile?.user_id);
                     const isDraw = duel.status === "COMPLETED" && !duel.winner_id;
                     const resultLabel = isDraw ? "EMPATE" : isWin ? "VICTORIA" : "DERROTA";
-                    const resultColor = isDraw ? "#888891" : isWin ? "#22C55E" : "#EF4444";
+                    const resultColor = isDraw ? "var(--muted)" : isWin ? "var(--success)" : "var(--danger)";
                     const date = duel.played_at || duel.created_at;
                     return (
                         <div key={duel.id} style={{
@@ -572,7 +572,7 @@ export default function PublicProfilePage({
                         backgroundColor: bgColor,
                         display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
-                        <div style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "#22C55E" }} />
+                        <div style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "var(--success)" }} />
                     </div>
                 )}
             </div>
@@ -637,7 +637,7 @@ export default function PublicProfilePage({
         </div>
     );
 
-    const xpBarColor = levelBorderColor || "#F2F2F2";
+    const xpBarColor = levelBorderColor || "var(--foreground)";
     const xpProgressBlock = (totalXp > 0 || level > 0) ? (
         <div style={{
             padding: 14, backgroundColor: "var(--surface-solid)", borderRadius: 16,
@@ -719,7 +719,7 @@ export default function PublicProfilePage({
                         disabled={followLoading}
                         style={{
                             flex: 1,
-                            backgroundColor: isFollowing ? "var(--surface-solid)" : "#3B82F6",
+                            backgroundColor: isFollowing ? "var(--surface-solid)" : "var(--accent)",
                             color: isFollowing ? "var(--foreground)" : "#FFFFFF",
                             border: isFollowing ? "1px solid var(--border)" : "none",
                             borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
@@ -765,7 +765,7 @@ export default function PublicProfilePage({
                                         onClick={() => setShowMoreOptions(false)}
                                     >Enviar solicitud de amistad</button>
                                     <button
-                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "#ED4245", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "var(--danger)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
                                         onClick={() => setShowMoreOptions(false)}
                                     >Reportar usuario</button>
                                 </div>
@@ -1210,7 +1210,7 @@ export default function PublicProfilePage({
                                                 </div>
                                                 <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 500 }}>{friend.username}</span>
                                                 {friend.is_online && (
-                                                    <div style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#22C55E", marginLeft: "auto" }} />
+                                                    <div style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "var(--success)", marginLeft: "auto" }} />
                                                 )}
                                             </a>
                                         ))}
@@ -1358,7 +1358,7 @@ function EditProfileModal({
                         onClick={handleSave}
                         disabled={saving}
                         style={{
-                            backgroundColor: "#3B82F6",
+                            backgroundColor: "var(--accent)",
                             color: "#FFFFFF",
                             border: "none",
                             borderRadius: 20,
@@ -1379,8 +1379,8 @@ function EditProfileModal({
                         <img src={profile.banner_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                         <div style={{ width: "100%", height: "100%", position: "relative" }}>
-                            <div style={{ position: "absolute", inset: 0, top: 0, height: "50%", backgroundColor: "#1E3A5F" }} />
-                            <div style={{ position: "absolute", inset: 0, top: "50%", height: "50%", backgroundColor: "#0F2340" }} />
+                            <div style={{ position: "absolute", inset: 0, top: 0, height: "50%", backgroundColor: "var(--surface-solid)" }} />
+                            <div style={{ position: "absolute", inset: 0, top: "50%", height: "50%", backgroundColor: "var(--surface-solid-secondary)" }} />
                         </div>
                     )}
                 </div>
@@ -1450,7 +1450,7 @@ function EditProfileModal({
                                         paddingTop: 6,
                                         paddingBottom: 6,
                                         borderRadius: 16,
-                                        backgroundColor: country === c.code ? "#3B82F6" : "var(--surface)",
+                                        backgroundColor: country === c.code ? "var(--accent)" : "var(--surface)",
                                         color: country === c.code ? "#FFFFFF" : "var(--muted)",
                                         fontSize: 13,
                                         fontWeight: country === c.code ? 600 : 400,

@@ -62,13 +62,13 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                                         <p style={{ fontWeight: 600, fontSize: 13, color: "var(--foreground)", margin: 0 }}>{format.name}</p>
                                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                                             {format.is_ranked && (
-                                                <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 999, backgroundColor: "rgba(234,179,8,0.1)", color: "#EAB308" }}>
+                                                <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 999, backgroundColor: "color-mix(in srgb, var(--yellow) 10%, transparent)", color: "var(--yellow)" }}>
                                                     Ranked
                                                 </span>
                                             )}
                                             {format.rules_url && (
                                                 <a href={format.rules_url} target="_blank" rel="noopener noreferrer"
-                                                    style={{ fontSize: 10, fontWeight: 600, color: "#3B82F6", textDecoration: "none" }}
+                                                    style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}
                                                     className="hover:underline">
                                                     Reglas
                                                 </a>
@@ -107,7 +107,7 @@ export default function GameDetailTabs({ slug, game, formats, brand }: Props) {
                             display: "inline-flex", alignItems: "center", gap: 4,
                             backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", borderRadius: 10,
                             padding: "8px 14px", fontSize: 12, fontWeight: 600, color: "var(--foreground)", textDecoration: "none",
-                        }} className="hover:border-[rgba(255,255,255,0.15)]">
+                        }} className="hover:border-border">
                             {link.label} &rarr;
                         </Link>
                     ))}

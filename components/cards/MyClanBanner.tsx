@@ -35,7 +35,7 @@ export default function MyClanBanner({ clan }: { clan: Clan }) {
                         ) : logoUrl ? (
                             <img src={logoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.3 }} />
                         ) : (
-                            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(59,130,246,0.15), #1A1A1E)" }} />
+                            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(59,130,246,0.15), var(--surface-solid))" }} />
                         )}
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3))" }} />
 
@@ -44,15 +44,15 @@ export default function MyClanBanner({ clan }: { clan: Clan }) {
                             {/* Logo */}
                             <div style={{
                                 width: 52, height: 52, borderRadius: 14,
-                                border: "2px solid rgba(255,255,255,0.15)",
-                                backgroundColor: "#222226", overflow: "hidden",
+                                border: "2px solid var(--border)",
+                                backgroundColor: "var(--surface-solid-secondary)", overflow: "hidden",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
                             }}>
                                 {logoUrl ? (
                                     <img src={logoUrl} alt={clan.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                 ) : (
-                                    <span style={{ fontSize: 22, fontWeight: 900, color: "#3B82F6" }}>
+                                    <span style={{ fontSize: 22, fontWeight: 900, color: "var(--accent)" }}>
                                         {clan.name?.charAt(0)?.toUpperCase()}
                                     </span>
                                 )}
@@ -60,16 +60,16 @@ export default function MyClanBanner({ clan }: { clan: Clan }) {
 
                             {/* Text */}
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: "#3B82F6", textTransform: "uppercase", letterSpacing: 1, margin: 0 }}>Mi Clan</p>
+                                <p style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 1, margin: 0 }}>Mi Clan</p>
                                 <p style={{ fontSize: 16, fontWeight: 700, color: "#FFFFFF", margin: 0, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{clan.name}</p>
-                                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", margin: 0, marginTop: 1 }}>
+                                <p style={{ fontSize: 11, color: "var(--muted)", margin: 0, marginTop: 1 }}>
                                     [{clan.tag}] · {clan.member_count ?? 0} miembros
                                 </p>
                             </div>
 
                             {/* Chevron */}
                             <svg width={18} height={18} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-                                <path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M6 3l5 5-5 5" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
                     </div>

@@ -17,10 +17,10 @@ import { Palette, TextAlignLeft, ArrowLeft } from "@gravity-ui/icons";
 // ── Rarity helpers ──
 
 const RARITY_COLORS: Record<string, string> = {
-  legendary: "#EAB308",
-  epic: "#A855F7",
-  rare: "#3B82F6",
-  uncommon: "#10B981",
+  legendary: "var(--yellow)",
+  epic: "var(--purple)",
+  rare: "var(--accent)",
+  uncommon: "var(--success)",
   common: "var(--muted)",
 };
 

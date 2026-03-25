@@ -27,8 +27,8 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
     return (
         <Link href={`/clanes/${clan.id}`} style={{ textDecoration: "none", display: "block" }}>
             <div style={{
-                backgroundColor: "#1A1A1E", borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.06)",
+                backgroundColor: "var(--surface-solid)", borderRadius: 16,
+                border: "1px solid var(--surface)",
                 overflow: "hidden", display: "flex", position: "relative",
             }}>
                 {/* Banner background — stretches full width behind content */}
@@ -42,7 +42,7 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                                 ...(bannerUrl ? {} : { transform: "scale(3)", filter: "blur(24px)", opacity: 0.15 }),
                             }}
                         />
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(26,26,30,0.92), rgba(26,26,30,0.75))" }} />
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, color-mix(in srgb, var(--surface-solid) 92%, transparent), color-mix(in srgb, var(--surface-solid) 75%, transparent))" }} />
                     </div>
                 )}
 
@@ -51,15 +51,15 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                     {/* Logo */}
                     <div style={{
                         width: 52, height: 52, borderRadius: 14,
-                        backgroundColor: "#222226", overflow: "hidden",
+                        backgroundColor: "var(--surface-solid-secondary)", overflow: "hidden",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0, border: "2px solid rgba(255,255,255,0.1)",
+                        flexShrink: 0, border: "2px solid var(--overlay)",
                         boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
                     }}>
                         {logoUrl ? (
                             <img src={logoUrl} alt={clan.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         ) : (
-                            <span style={{ fontSize: 20, fontWeight: 900, color: "#3B82F6" }}>{clan.name?.charAt(0)?.toUpperCase()}</span>
+                            <span style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>{clan.name?.charAt(0)?.toUpperCase()}</span>
                         )}
                     </div>
 
@@ -67,27 +67,27 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
                             <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>{clan.name}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: "#3B82F6", backgroundColor: "rgba(59,130,246,0.2)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{clan.tag}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", backgroundColor: "color-mix(in srgb, var(--accent) 20%, transparent)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{clan.tag}</span>
                             {clan.is_recruiting && (
-                                <span style={{ fontSize: 9, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(34,197,94,0.15)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
+                                <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 15%, transparent)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>
                                     Reclutando
                                 </span>
                             )}
                         </div>
                         {clan.description && (
-                            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <p style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {clan.description}
                             </p>
                         )}
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "#888891" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--muted)" }}>
                             <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
                                 <Persons style={{ width: 12, height: 12 }} /> {memberCount}
                             </span>
                             {clan.game_name && (
-                                <span style={{ backgroundColor: "rgba(255,255,255,0.06)", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{clan.game_name}</span>
+                                <span style={{ backgroundColor: "var(--surface)", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{clan.game_name}</span>
                             )}
                             {hasRating && (
-                                <span><span style={{ color: "#F59E0B" }}>★</span> {clan.rating!.toFixed(1)}</span>
+                                <span><span style={{ color: "var(--warning)" }}>★</span> {clan.rating!.toFixed(1)}</span>
                             )}
                             {clan.city && (
                                 <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -101,24 +101,24 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                     {/* Stats mini */}
                     <div className="hidden sm:flex" style={{ gap: 2, flexShrink: 0 }}>
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{memberCount}</p>
-                            <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Miembros</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{memberCount}</p>
+                            <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Miembros</p>
                         </div>
-                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)", alignSelf: "center" }} />
+                        <div style={{ width: 0.5, height: 28, backgroundColor: "var(--overlay)", alignSelf: "center" }} />
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "#F59E0B" : "#888891", margin: 0 }}>{hasRating ? clan.rating!.toFixed(1) : "—"}</p>
-                            <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--muted)", margin: 0 }}>{hasRating ? clan.rating!.toFixed(1) : "—"}</p>
+                            <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
                         </div>
-                        <div style={{ width: 0.5, height: 28, backgroundColor: "rgba(255,255,255,0.08)", alignSelf: "center" }} />
+                        <div style={{ width: 0.5, height: 28, backgroundColor: "var(--overlay)", alignSelf: "center" }} />
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "#F2F2F2", margin: 0 }}>{clan.recruit_min_elo ?? "—"}</p>
-                            <p style={{ fontSize: 8, fontWeight: 600, color: "#888891", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>ELO Min</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{clan.recruit_min_elo ?? "—"}</p>
+                            <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>ELO Min</p>
                         </div>
                     </div>
 
                     {/* Chevron */}
                     <svg width={16} height={16} viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-                        <path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 3l5 5-5 5" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </div>
             </div>

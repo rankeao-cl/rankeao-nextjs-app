@@ -72,9 +72,9 @@ export default function CreatePostModal() {
                     width: "100%",
                     maxWidth: 560,
                     maxHeight: "90vh",
-                    backgroundColor: "#1A1A1E",
+                    backgroundColor: "var(--surface-solid)",
                     borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    border: "1px solid var(--overlay)",
                     display: "flex",
                     flexDirection: "column",
                     overflow: "hidden",
@@ -86,9 +86,9 @@ export default function CreatePostModal() {
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "14px 16px",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    borderBottom: "1px solid var(--surface)",
                 }}>
-                    <h2 style={{ fontSize: 16, fontWeight: 700, color: "#F2F2F2", margin: 0 }}>Crear Post</h2>
+                    <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Crear Post</h2>
                     <button
                         onClick={closeCreatePost}
                         style={{
@@ -96,7 +96,7 @@ export default function CreatePostModal() {
                             display: "flex", alignItems: "center", justifyContent: "center",
                         }}
                     >
-                        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#888891" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
                     </button>
@@ -107,7 +107,7 @@ export default function CreatePostModal() {
                     display: "flex",
                     gap: 4,
                     padding: "8px 16px",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    borderBottom: "1px solid var(--surface)",
                 }}>
                     {(["write", "preview"] as Tab[]).map((t) => (
                         <button
@@ -120,8 +120,8 @@ export default function CreatePostModal() {
                                 fontSize: 13,
                                 fontWeight: 600,
                                 cursor: "pointer",
-                                backgroundColor: tab === t ? "rgba(59,130,246,0.15)" : "transparent",
-                                color: tab === t ? "#3B82F6" : "#888891",
+                                backgroundColor: tab === t ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "transparent",
+                                color: tab === t ? "var(--accent)" : "var(--muted)",
                                 transition: "all 0.15s",
                             }}
                         >
@@ -151,7 +151,7 @@ export default function CreatePostModal() {
                                     padding: "12px 16px",
                                     fontSize: 14,
                                     lineHeight: 1.6,
-                                    color: "#F2F2F2",
+                                    color: "var(--foreground)",
                                     fontFamily: "inherit",
                                 }}
                             />
@@ -161,7 +161,7 @@ export default function CreatePostModal() {
                             {content.trim() ? (
                                 <MarkdownRenderer content={content} />
                             ) : (
-                                <p style={{ color: "#888891", fontSize: 14 }}>Nada que mostrar...</p>
+                                <p style={{ color: "var(--muted)", fontSize: 14 }}>Nada que mostrar...</p>
                             )}
                         </div>
                     )}
@@ -170,12 +170,12 @@ export default function CreatePostModal() {
                 {/* Footer */}
                 <div style={{
                     padding: "10px 16px",
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                    borderTop: "1px solid var(--surface)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                 }}>
-                    <span style={{ fontSize: 12, color: content.length > MAX_LENGTH * 0.9 ? "#EF4444" : "#888891" }}>
+                    <span style={{ fontSize: 12, color: content.length > MAX_LENGTH * 0.9 ? "var(--danger)" : "var(--muted)" }}>
                         {content.length}/{MAX_LENGTH}
                     </span>
                     <button
@@ -185,8 +185,8 @@ export default function CreatePostModal() {
                             padding: "10px 24px",
                             borderRadius: 10,
                             border: "none",
-                            backgroundColor: !content.trim() || posting ? "rgba(59,130,246,0.3)" : "#3B82F6",
-                            color: "#FFFFFF",
+                            backgroundColor: !content.trim() || posting ? "color-mix(in srgb, var(--accent) 30%, transparent)" : "var(--accent)",
+                            color: "#fff",
                             fontSize: 14,
                             fontWeight: 700,
                             cursor: !content.trim() || posting ? "not-allowed" : "pointer",

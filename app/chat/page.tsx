@@ -53,7 +53,7 @@ export default function ChatPage() {
                 width: 32,
                 height: 32,
                 border: "3px solid var(--border)",
-                borderTopColor: "#3B82F6",
+                borderTopColor: "var(--accent)",
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
               }}

@@ -215,7 +215,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                             ? "var(--success)"
                             : isOpen || isCheckIn
                                 ? "var(--warning)"
-                                : "rgba(255,255,255,0.08)",
+                                : "var(--overlay)",
                     }}
                 />
 
@@ -226,14 +226,14 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                         {tournament.tenant_logo_url ? (
                             <div
                                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0"
-                                style={{ border: "2px solid rgba(255,255,255,0.15)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
+                                style={{ border: "2px solid var(--border)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
                             >
                                 <Image src={tournament.tenant_logo_url} alt="" width={80} height={80} className="w-full h-full object-cover" />
                             </div>
                         ) : tournament.tenant_name ? (
                             <div
                                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex-shrink-0 flex items-center justify-center"
-                                style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "2px solid rgba(255,255,255,0.12)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
+                                style={{ backgroundColor: "var(--overlay)", border: "2px solid var(--border)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
                             >
                                 <span className="text-2xl font-black text-white/60">
                                     {tournament.tenant_name[0]?.toUpperCase()}

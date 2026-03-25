@@ -140,7 +140,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
               flexDirection: "row",
               alignItems: "center",
               gap: 4,
-              backgroundColor: "#3B82F6",
+              backgroundColor: "var(--accent)",
               borderRadius: 12,
               paddingLeft: 14,
               paddingRight: 14,

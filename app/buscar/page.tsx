@@ -29,13 +29,13 @@ interface SearchResult {
 }
 
 const TAB_CONFIG: Record<ResultType | "all", { icon: typeof Person; label: string; color: string; bg: string }> = {
-    all:        { icon: Magnifier,    label: "Todo",         color: "var(--foreground)",  bg: "rgba(255,255,255,0.06)" },
-    user:       { icon: Person,       label: "Jugadores",    color: "#3B82F6",  bg: "rgba(59,130,246,0.12)" },
-    tournament: { icon: Cup,          label: "Torneos",      color: "#A855F7",  bg: "rgba(168,85,247,0.12)" },
-    clan:       { icon: Shield,       label: "Clanes",       color: "#3B82F6",  bg: "rgba(59,130,246,0.12)" },
-    card:       { icon: SquareDashed, label: "Cartas",       color: "#F59E0B",  bg: "rgba(245,158,11,0.12)" },
-    community:  { icon: Persons,      label: "Comunidades",  color: "#22C55E",  bg: "rgba(34,197,94,0.12)" },
-    listing:    { icon: ShoppingCart,  label: "Marketplace",  color: "#F97316",  bg: "rgba(249,115,22,0.12)" },
+    all:        { icon: Magnifier,    label: "Todo",         color: "var(--foreground)",  bg: "var(--surface)" },
+    user:       { icon: Person,       label: "Jugadores",    color: "var(--accent)",  bg: "color-mix(in srgb, var(--accent) 12%, transparent)" },
+    tournament: { icon: Cup,          label: "Torneos",      color: "var(--purple)",  bg: "color-mix(in srgb, var(--purple) 12%, transparent)" },
+    clan:       { icon: Shield,       label: "Clanes",       color: "var(--accent)",  bg: "color-mix(in srgb, var(--accent) 12%, transparent)" },
+    card:       { icon: SquareDashed, label: "Cartas",       color: "var(--warning)",  bg: "color-mix(in srgb, var(--warning) 12%, transparent)" },
+    community:  { icon: Persons,      label: "Comunidades",  color: "var(--success)",  bg: "color-mix(in srgb, var(--success) 12%, transparent)" },
+    listing:    { icon: ShoppingCart,  label: "Marketplace",  color: "var(--orange)",  bg: "color-mix(in srgb, var(--orange) 12%, transparent)" },
 };
 
 const TAB_ORDER: (ResultType | "all")[] = ["all", "user", "tournament", "clan", "card", "community", "listing"];
@@ -197,7 +197,7 @@ function SearchContent() {
             {/* Header */}
             <div style={{ marginBottom: 24 }}>
                 <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--foreground)", margin: "0 0 4px" }}>
-                    Resultados para <span style={{ color: "#3B82F6" }}>&quot;{query}&quot;</span>
+                    Resultados para <span style={{ color: "var(--accent)" }}>&quot;{query}&quot;</span>
                 </h1>
                 <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
                     {results.length} resultado{results.length !== 1 ? "s" : ""} en toda la plataforma
@@ -219,7 +219,7 @@ function SearchContent() {
                                 display: "flex", alignItems: "center", gap: 6,
                                 padding: "8px 14px", borderRadius: 10,
                                 backgroundColor: isActive2 ? config.bg : "transparent",
-                                border: isActive2 ? `1px solid ${config.color}30` : "1px solid var(--border)",
+                                border: isActive2 ? `1px solid color-mix(in srgb, ${config.color} 19%, transparent)` : "1px solid var(--border)",
                                 color: isActive2 ? config.color : "var(--muted)",
                                 fontSize: 13, fontWeight: 600, cursor: "pointer",
                                 whiteSpace: "nowrap", flexShrink: 0,
@@ -229,7 +229,7 @@ function SearchContent() {
                             {config.label}
                             <span style={{
                                 fontSize: 10, fontWeight: 700,
-                                backgroundColor: isActive2 ? config.color + "20" : "rgba(255,255,255,0.06)",
+                                backgroundColor: isActive2 ? `color-mix(in srgb, ${config.color} 12%, transparent)` : "var(--surface)",
                                 color: isActive2 ? config.color : "var(--muted)",
                                 padding: "2px 6px", borderRadius: 999,
                             }}>
@@ -254,7 +254,7 @@ function SearchContent() {
             ) : (
                 <div style={{
                     padding: "80px 16px", textAlign: "center",
-                    border: "2px dashed rgba(255,255,255,0.06)", borderRadius: 16,
+                    border: "2px dashed var(--surface)", borderRadius: 16,
                 }}>
                     <p style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Sin resultados</p>
                     <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>Prueba con otras palabras o revisa la escritura.</p>
@@ -280,7 +280,7 @@ function ResultCard({ item }: { item: SearchResult }) {
                 border: "1px solid var(--border)",
                 transition: "border-color 0.15s",
             }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = config.color + "40")}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = `color-mix(in srgb, ${config.color} 25%, transparent)`)}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
             >
                 {/* Image / Icon */}
@@ -320,20 +320,20 @@ function ResultCard({ item }: { item: SearchResult }) {
                         {item.type === "tournament" && meta.status && (
                             <span style={{
                                 fontSize: 9, fontWeight: 700,
-                                color: meta.status === "ROUND_IN_PROGRESS" ? "#22C55E" : "#F59E0B",
-                                backgroundColor: meta.status === "ROUND_IN_PROGRESS" ? "rgba(34,197,94,0.12)" : "rgba(245,158,11,0.12)",
+                                color: meta.status === "ROUND_IN_PROGRESS" ? "var(--success)" : "var(--warning)",
+                                backgroundColor: meta.status === "ROUND_IN_PROGRESS" ? "color-mix(in srgb, var(--success) 12%, transparent)" : "color-mix(in srgb, var(--warning) 12%, transparent)",
                                 padding: "2px 6px", borderRadius: 4,
                             }}>
                                 {meta.status === "ROUND_IN_PROGRESS" ? "En vivo" : String(meta.status)}
                             </span>
                         )}
                         {item.type === "clan" && meta.is_recruiting && (
-                            <span style={{ fontSize: 9, fontWeight: 700, color: "#22C55E", backgroundColor: "rgba(34,197,94,0.12)", padding: "2px 6px", borderRadius: 4 }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 12%, transparent)", padding: "2px 6px", borderRadius: 4 }}>
                                 Reclutando
                             </span>
                         )}
                         {item.type === "listing" && meta.condition && (
-                            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", backgroundColor: "rgba(255,255,255,0.06)", padding: "2px 6px", borderRadius: 4 }}>
+                            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "2px 6px", borderRadius: 4 }}>
                                 {String(meta.condition)}
                             </span>
                         )}
@@ -349,7 +349,7 @@ function ResultCard({ item }: { item: SearchResult }) {
                     {/* Enriched meta line */}
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                         {item.type === "user" && meta.rank_badge && (
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "#F59E0B" }}>{String(meta.rank_badge)}</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--warning)" }}>{String(meta.rank_badge)}</span>
                         )}
                         {item.type === "tournament" && meta.registered_count != null && (
                             <span style={{ fontSize: 10, color: "var(--muted)", display: "flex", alignItems: "center", gap: 2 }}>
@@ -368,7 +368,7 @@ function ResultCard({ item }: { item: SearchResult }) {
                             <span style={{ fontSize: 10, color: "var(--muted)" }}>@{String(meta.seller)}</span>
                         )}
                         {item.type === "community" && meta.rating != null && Number(meta.rating) > 0 && (
-                            <span style={{ fontSize: 10, color: "#F59E0B" }}>★ {Number(meta.rating).toFixed(1)}</span>
+                            <span style={{ fontSize: 10, color: "var(--warning)" }}>★ {Number(meta.rating).toFixed(1)}</span>
                         )}
                     </div>
                 </div>

@@ -24,8 +24,8 @@ const C = {
     border: "var(--border)",
     text: "var(--foreground)",
     muted: "var(--muted)",
-    accent: "#3B82F6",
-    danger: "#EF4444",
+    accent: "var(--accent)",
+    danger: "var(--danger)",
     handle: "rgba(128,128,128,0.3)",
 } as const;
 
@@ -380,7 +380,7 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
                                                         )}
                                                     </div>
                                                     {member.is_online && (
-                                                        <span style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: 5, background: "#22C55E", border: `2px solid ${C.surface}` }} />
+                                                        <span style={{ position: "absolute", bottom: 0, right: 0, width: 10, height: 10, borderRadius: 5, background: "var(--success)", border: `2px solid ${C.surface}` }} />
                                                     )}
                                                 </div>
                                                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -392,7 +392,7 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
                                                         <div style={{ fontSize: 10, color: C.accent, fontWeight: 600, textTransform: "uppercase" }}>{member.role}</div>
                                                     )}
                                                 </div>
-                                                <span style={{ fontSize: 10, fontWeight: 500, color: member.is_online ? "#22C55E" : C.muted }}>
+                                                <span style={{ fontSize: 10, fontWeight: 500, color: member.is_online ? "var(--success)" : C.muted }}>
                                                     {member.is_online ? "online" : "offline"}
                                                 </span>
                                             </div>
