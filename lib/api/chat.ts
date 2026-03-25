@@ -1,6 +1,6 @@
 import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
 import type { Params } from "@/lib/types/api";
-import type { SendMessagePayload, CreateChannelPayload, ReportMessagePayload } from "@/lib/types/chat";
+import type { SendMessagePayload, CreateChannelPayload, ReportMessagePayload, RoomListFilters } from "@/lib/types/chat";
 
 // ── Channels ──
 
@@ -54,4 +54,24 @@ export async function muteChannel(channelId: string, token?: string) {
 
 export async function unmuteChannel(channelId: string, token?: string) {
     return apiDelete<any>(`/social/chat/channels/${encodeURIComponent(channelId)}/mute`, { token });
+}
+
+// ── Rooms ──
+
+export async function getChatRooms(filters?: RoomListFilters, token?: string) {
+    return apiFetch<any>("/social/chat/rooms", filters as any, { cache: "no-store", token });
+}
+
+export async function joinRoom(roomId: string, token?: string) {
+    return apiPost<any>(`/social/chat/rooms/${encodeURIComponent(roomId)}/join`, {}, { token });
+}
+
+// ── WebSocket ──
+
+const WS_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1")
+    .replace(/^https:/, "wss:")
+    .replace(/^http:/, "ws:");
+
+export function getChatRoomWSUrl(roomId: string, token: string): string {
+    return `${WS_BASE_URL}/social/chat/rooms/${encodeURIComponent(roomId)}/ws?token=${encodeURIComponent(token)}`;
 }

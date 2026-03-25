@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { timeAgo } from "@/lib/utils/format";
-import type { Channel, ChannelMember } from "@/lib/types/chat";
+import type { Channel, ChannelMember, Room } from "@/lib/types/chat";
+import { getChatRooms } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
 import NewChatModal from "./NewChatModal";
 import ChatSettingsModal from "./ChatSettingsModal";
@@ -24,7 +25,7 @@ function formatLastSeen(member?: ChannelMember): string | null {
 }
 
 
-type ChatFilter = "todo" | "dm" | "grupos" | "clanes" | "torneos";
+type ChatFilter = "todo" | "dm" | "grupos" | "clanes" | "torneos" | "salas";
 
 const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
     { key: "todo", label: "Todo" },
@@ -32,6 +33,7 @@ const CHAT_FILTERS: { key: ChatFilter; label: string }[] = [
     { key: "grupos", label: "Grupos" },
     { key: "clanes", label: "Clanes" },
     { key: "torneos", label: "Torneos" },
+    { key: "salas", label: "Salas" },
 ];
 
 export default function ChatSidebar({ channels, loading, selectedChannel, onSelectChannel, onChannelCreated, onChannelLeft, initialFilter }: ChatSidebarProps) {
@@ -41,8 +43,34 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     const [chatFilter, setChatFilter] = useState<ChatFilter>(initialFilter || "todo");
     const [isNewChatOpen, setIsNewChatOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [rooms, setRooms] = useState<Room[]>([]);
+
+    // Fetch public rooms
+    useEffect(() => {
+        getChatRooms(undefined, session?.accessToken)
+            .then((val: any) => {
+                const r = val?.data?.rooms || val?.rooms || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
+                setRooms(r);
+            })
+            .catch(() => {});
+    }, [session?.accessToken]);
+
+    // Convert rooms to Channel-compatible items
+    const roomsAsChannels: Channel[] = useMemo(
+        () => rooms.map((r) => ({ id: r.id, type: r.type, name: r.name, created_at: r.created_at })),
+        [rooms],
+    );
 
     const filteredChannels = useMemo(() => {
+        if (chatFilter === "salas") {
+            let result = roomsAsChannels;
+            if (search.trim()) {
+                const q = search.toLowerCase();
+                result = result.filter(c => c.name?.toLowerCase().includes(q));
+            }
+            return result;
+        }
+
         let result = channels;
 
         if (chatFilter === "dm") result = result.filter(c => c.type === "DM");
@@ -63,7 +91,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
         }
 
         return result;
-    }, [channels, search, chatFilter, myUsername]);
+    }, [channels, roomsAsChannels, search, chatFilter, myUsername]);
 
     const channelsByType = useMemo(() => {
         return {
@@ -71,8 +99,9 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
             GROUPS: filteredChannels.filter(c => c.type === "GROUP"),
             CLANS: filteredChannels.filter(c => c.type === "CLAN"),
             TOURNAMENTS: filteredChannels.filter(c => c.type === "TOURNAMENT"),
+            ROOMS: chatFilter === "todo" ? roomsAsChannels : [],
         };
-    }, [filteredChannels]);
+    }, [filteredChannels, roomsAsChannels, chatFilter]);
 
     const renderChannel = (channel: Channel, index: number, arr: Channel[]) => {
         const isSelected = selectedChannel?.id === channel.id;
@@ -185,7 +214,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                             height: 12,
                                             borderRadius: "50%",
                                             border: "2px solid var(--background)",
-                                            backgroundColor: isOnline ? "#23A559" : "var(--muted)",
+                                            backgroundColor: isOnline ? "var(--success)" : "var(--muted)",
                                         }}
                                     />
                                 )}
@@ -226,8 +255,8 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                             minWidth: 10,
                                             height: 10,
                                             borderRadius: 5,
-                                            backgroundColor: "#3B82F6",
-                                        }}
+                                            backgroundColor: "var(--accent)",
+                }}
                                     />
                                 )}
                             </div>
@@ -249,8 +278,10 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 <>Grupo ({memberCount})</>
                             ) : channel.type === "CLAN" ? (
                                 <>Comunidad</>
+                            ) : channel.type === "COMMUNITY" ? (
+                                <>Sala comunitaria</>
                             ) : lastSeenText ? (
-                                <span style={isOnline ? { color: "#23A559" } : undefined}>{lastSeenText}</span>
+                                <span style={isOnline ? { color: "var(--success)" } : undefined}>{lastSeenText}</span>
                             ) : (
                                 <>Mensaje directo</>
                             )}
@@ -325,7 +356,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     onClick={() => setIsNewChatOpen(true)}
                     style={{
                         marginTop: 16,
-                        backgroundColor: "#3B82F6",
+                        backgroundColor: "var(--accent)",
                         color: "#FFFFFF",
                         border: "none",
                         borderRadius: 999,
@@ -429,7 +460,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                         flexDirection: "row",
                         alignItems: "center",
                         gap: 4,
-                        backgroundColor: "#3B82F6",
+                        backgroundColor: "var(--accent)",
                         borderRadius: 12,
                         paddingLeft: 14,
                         paddingRight: 14,
@@ -557,6 +588,12 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                             <div>
                                 {renderSectionHeader("Torneos")}
                                 {channelsByType.TOURNAMENTS.map((ch, i, arr) => renderChannel(ch, i, arr))}
+                            </div>
+                        )}
+                        {channelsByType.ROOMS.length > 0 && (
+                            <div>
+                                {renderSectionHeader("Salas")}
+                                {channelsByType.ROOMS.map((ch, i, arr) => renderChannel(ch, i, arr))}
                             </div>
                         )}
                     </>

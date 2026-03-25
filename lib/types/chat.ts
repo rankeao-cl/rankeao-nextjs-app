@@ -1,6 +1,6 @@
 // ── Chat types ──
 
-export type ChannelType = "DM" | "GROUP" | "CLAN" | "TOURNAMENT";
+export type ChannelType = "DM" | "GROUP" | "CLAN" | "TOURNAMENT" | "COMMUNITY";
 
 export interface Channel {
     id: string;
@@ -75,4 +75,43 @@ export interface CreateChannelPayload {
 export interface ReportMessagePayload {
     reason: "spam" | "harassment" | "inappropriate" | "other";
     details?: string;
+}
+
+// ── Rooms (COMMUNITY / CLAN public discovery) ──
+
+export interface Room {
+    id: string;
+    type: "COMMUNITY" | "CLAN";
+    name: string;
+    description?: string;
+    avatar_url?: string;
+    game_id?: number;
+    region?: string;
+    member_count: number;
+    is_readonly: boolean;
+    last_message_at?: string;
+    message_count: number;
+    created_at: string;
+}
+
+export interface RoomListFilters {
+    type?: "COMMUNITY" | "CLAN";
+    game_id?: number;
+    region?: string;
+    search?: string;
+    page?: number;
+    per_page?: number;
+}
+
+// ── WebSocket message types ──
+
+export interface WSIncomingMessage {
+    type: "message";
+    content: string;
+    reply_to_id?: string;
+}
+
+export interface WSOutgoingMessage {
+    type: "message" | "error" | "user_joined" | "user_left";
+    data: ChatMessage | { message: string };
 }

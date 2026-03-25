@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "@heroui/react";
 import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear, Shield } from "@gravity-ui/icons";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
+import { useChatWebSocket } from "@/lib/hooks/use-chat";
 import { useAuth } from "@/context/AuthContext";
 import type { Channel, ChatMessage } from "@/lib/types/chat";
 import ChatMessageBubble from "./ChatMessageBubble";
@@ -105,6 +106,36 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const messagesRef = useRef<ChatMessage[]>([]);
     const pollInterval = useRef<NodeJS.Timeout | null>(null);
 
+    // ── WebSocket for room channels (COMMUNITY / CLAN) ──
+    const isRoomChannel = selectedChannel?.type === "COMMUNITY" || selectedChannel?.type === "CLAN";
+    const wsRoomId = isRoomChannel ? selectedChannel?.id ?? null : null;
+    const wsToken = session?.accessToken ?? null;
+
+    const handleWsMessage = useCallback((msg: ChatMessage) => {
+        const formatted: ChatMessage = {
+            ...msg,
+            sender_id: msg.sender?.id || msg.sender_id,
+            sender_username: msg.sender?.username || msg.sender_username,
+            sender_avatar_url: msg.sender?.avatar_url || msg.sender_avatar_url,
+        };
+
+        setMessages(prev => {
+            if (prev.some(m => m.id === formatted.id)) return prev;
+            const updated = [...prev, formatted];
+            messagesRef.current = updated;
+            return updated;
+        });
+
+        const isMyMessage = (myUsername && formatted.sender_username === myUsername) || (myUserId && formatted.sender_id === myUserId);
+        if (isMyMessage || isAtBottomRef.current) {
+            setTimeout(scrollToBottom, 50);
+        } else {
+            setNewMessagesCount(prev => prev + 1);
+        }
+    }, [myUsername, myUserId]);
+
+    const { connected: wsConnected, sendMessage: wsSendMessage } = useChatWebSocket(wsRoomId, wsToken, handleWsMessage);
+
     const fetchMessages = async (channelId: string, isInitial = false) => {
         if (!session?.accessToken) return;
         try {
@@ -157,15 +188,19 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
             setTimeout(scrollToBottom, 100);
         });
 
+        // Use polling only for non-room channels (DM, GROUP, TOURNAMENT).
+        // Room channels (COMMUNITY, CLAN) use WebSocket for real-time updates.
         if (pollInterval.current) clearInterval(pollInterval.current);
-        pollInterval.current = setInterval(() => {
-            fetchMessages(selectedChannel.id);
-        }, 3000);
+        if (!isRoomChannel) {
+            pollInterval.current = setInterval(() => {
+                fetchMessages(selectedChannel.id);
+            }, 3000);
+        }
 
         return () => {
             if (pollInterval.current) clearInterval(pollInterval.current);
         };
-    }, [selectedChannel?.id]);
+    }, [selectedChannel?.id, isRoomChannel]);
 
     useEffect(() => {
         return () => {
@@ -257,7 +292,14 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 content = content ? `${content}\n${imageNote}` : imageNote;
             }
 
-            await sendChatMessage(selectedChannel.id, { content }, session.accessToken);
+            // Use WebSocket for room channels, REST for others
+            if (isRoomChannel && wsConnected) {
+                wsSendMessage(content);
+            } else {
+                await sendChatMessage(selectedChannel.id, { content }, session.accessToken);
+                await fetchMessages(selectedChannel.id);
+            }
+
             setInputValue("");
             handleRemoveImage();
 
@@ -265,7 +307,6 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 textareaRef.current.style.height = "auto";
             }
 
-            await fetchMessages(selectedChannel.id);
             setTimeout(scrollToBottom, 50);
         } catch (err: any) {
             console.error("Error al enviar", err);
@@ -323,6 +364,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
 
     const isGroup = selectedChannel.type === "GROUP";
     const isClan = selectedChannel.type === "CLAN";
+    const isCommunity = selectedChannel.type === "COMMUNITY";
     const memberCount = selectedChannel.members?.length || 0;
 
     let displayName = selectedChannel.name || (selectedChannel.type === "DM" ? "Mensaje Directo" : "Sala de Chat");
@@ -398,7 +440,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "#3B82F6",
+                            color: "var(--accent)",
                         }}>
                             <Shield style={{ width: 20, height: 20 }} />
                         </div>
@@ -454,7 +496,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                     height: 12,
                                     borderRadius: 6,
                                     border: "2px solid var(--background)",
-                                    background: isOnline ? "#23A559" : "var(--muted)",
+                                    background: isOnline ? "var(--success)" : "var(--muted)",
                                 }} />
                             )}
                         </>
@@ -480,7 +522,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             <span style={{
                                 fontSize: 9,
                                 fontWeight: 700,
-                                color: "#3B82F6",
+                                color: "var(--accent)",
                                 backgroundColor: "rgba(59,130,246,0.15)",
                                 padding: "2px 6px",
                                 borderRadius: 4,
@@ -493,17 +535,19 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     <p style={{
                         fontSize: 11,
                         fontWeight: 500,
-                        color: isClan ? "#3B82F6" : isGroup ? "var(--muted)" : (isOnline ? "#23A559" : "var(--muted)"),
+                        color: isClan ? "var(--accent)" : isGroup ? "var(--muted)" : (isOnline ? "var(--success)" : "var(--muted)"),
                         textTransform: "uppercase",
                         letterSpacing: 0.5,
                         margin: 0,
                         marginTop: 2,
                     }}>
-                        {isClan
-                            ? `Chat del Clan · ${memberCount} miembros`
-                            : isGroup
-                                ? `Chat Grupal (${memberCount} miembros)`
-                                : (isOnline ? "En línea" : (selectedChannel.type === "DM" ? "Desconectado" : selectedChannel.type))
+                        {isCommunity
+                            ? `Sala comunitaria${wsConnected ? " · En vivo" : ""}`
+                            : isClan
+                                ? `Chat del Clan · ${memberCount} miembros${wsConnected ? " · En vivo" : ""}`
+                                : isGroup
+                                    ? `Chat Grupal (${memberCount} miembros)`
+                                    : (isOnline ? "En línea" : (selectedChannel.type === "DM" ? "Desconectado" : selectedChannel.type))
                         }
                     </p>
                 </div>
@@ -526,7 +570,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             flexShrink: 0,
                         }}
                     >
-                        <Persons style={{ width: 18, height: 18, color: showMembersPanel ? "#3B82F6" : "var(--muted)" }} />
+                        <Persons style={{ width: 18, height: 18, color: showMembersPanel ? "var(--accent)" : "var(--muted)" }} />
                     </button>
                 )}
 
@@ -723,7 +767,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                                 position: "absolute", bottom: 0, right: 0,
                                 width: 10, height: 10, borderRadius: 5,
                                 border: "2px solid var(--background)",
-                                background: m.is_online ? "#23A559" : "var(--muted)",
+                                background: m.is_online ? "var(--success)" : "var(--muted)",
                             }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -732,7 +776,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                             </p>
                             {m.role && m.role !== "MEMBER" && (
                                 <span style={{
-                                    fontSize: 9, fontWeight: 700, color: m.role === "ADMIN" ? "#F59E0B" : "#3B82F6",
+                                    fontSize: 9, fontWeight: 700, color: m.role === "ADMIN" ? "var(--warning)" : "var(--accent)",
                                     backgroundColor: m.role === "ADMIN" ? "rgba(245,158,11,0.15)" : "rgba(59,130,246,0.15)",
                                     padding: "1px 5px", borderRadius: 3,
                                 }}>
@@ -758,7 +802,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         </div>
                         {online.length > 0 && (
                             <div style={{ paddingTop: 8 }}>
-                                <p style={{ fontSize: 10, fontWeight: 600, color: "#23A559", padding: "0 12px 4px", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                <p style={{ fontSize: 10, fontWeight: 600, color: "var(--success)", padding: "0 12px 4px", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>
                                     En linea — {online.length}
                                 </p>
                                 {online.map(renderMember)}
