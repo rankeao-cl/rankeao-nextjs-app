@@ -110,6 +110,19 @@ export interface WishlistItem {
     created_at?: string;
 }
 
+export interface FeedPost {
+    id: string;
+    user_id?: string;
+    username?: string;
+    avatar_url?: string;
+    content: string;
+    image_url?: string;
+    like_count?: number;
+    comment_count?: number;
+    created_at: string;
+    updated_at?: string;
+}
+
 export interface FeedItem {
     id: string;
     type: string;

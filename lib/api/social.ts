@@ -1,8 +1,8 @@
 import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
-import type { Params, PaginationMeta } from "@/lib/types/api";
+import type { Params, PaginationMeta, ApiResponse, ApiMessage } from "@/lib/types/api";
 import type {
     UserProfile, FriendRequest, Activity, Deck, CollectionItem, WishlistItem,
-    FeedResponse, FollowedTenant, UserSearchResult,
+    FeedResponse, FeedPost, FollowedTenant, UserSearchResult,
 } from "@/lib/types/social";
 
 // ── Feed ──
@@ -18,11 +18,11 @@ export async function getFeedDiscover(params?: Params) {
 // ── Posts ──
 
 export async function createPost(payload: { content: string; image_url?: string }, token?: string) {
-    return apiPost<any>("/social/feed/posts", payload, { token });
+    return apiPost<ApiResponse<{ post: FeedPost }>>("/social/feed/posts", payload, { token });
 }
 
 export async function deletePost(postId: number, token?: string) {
-    return apiDelete<any>(`/social/feed/posts/${postId}`, { token });
+    return apiDelete<ApiResponse<ApiMessage>>(`/social/feed/posts/${postId}`, { token });
 }
 
 // ── Friends ──
