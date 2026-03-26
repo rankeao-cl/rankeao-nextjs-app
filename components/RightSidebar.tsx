@@ -243,7 +243,7 @@ export default function RightSidebar() {
                                     <Image src={player.avatar_url} alt={player.username} width={28} height={28} className="rounded-full object-cover shrink-0" />
                                 ) : (
                                     <div className="w-7 h-7 rounded-full bg-surface-solid flex items-center justify-center text-[10px] font-bold text-muted shrink-0">
-                                        {player.username.charAt(0).toUpperCase()}
+                                        {(player.username || "?").charAt(0).toUpperCase()}
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0">
