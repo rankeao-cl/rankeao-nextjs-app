@@ -277,8 +277,7 @@ function AlertCard({
           </Button>
           <Button
             size="sm"
-            variant="outline"
-            color="danger"
+            variant="danger"
             className="font-semibold"
             isDisabled={isDeleting}
             onPress={() => {

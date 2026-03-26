@@ -207,7 +207,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
               )}
             </div>
             <div className="flex gap-3">
-              <ContactSellerButton sellerUsername={listing.seller_username} listingTitle={listing.title} listingId={listing.id || id} />
+              <ContactSellerButton sellerUsername={listing.seller_username ?? ""} listingTitle={listing.title} listingId={listing.id || id} />
               <Link href="/marketplace" className="flex-1">
                 <Button type="button" variant="tertiary" className="w-full font-semibold">Volver</Button>
               </Link>

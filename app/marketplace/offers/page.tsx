@@ -26,9 +26,9 @@ interface Offer {
   id: string;
   listing_id: string;
   buyer_id: string;
-  buyer_username: string;
+  buyer_username?: string;
   seller_id: string;
-  seller_username: string;
+  seller_username?: string;
   amount: number;
   currency?: string;
   status: string;
@@ -196,10 +196,10 @@ function OfferCard({
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="solid"
+                  variant="primary"
                   className="flex-1 font-semibold"
                   style={{ background: "var(--success)", color: "#fff" }}
-                  isLoading={isLoading}
+                  isPending={isLoading}
                   onPress={() => onAccept(offer.id)}
                 >
                   Aceptar
@@ -214,10 +214,10 @@ function OfferCard({
                 </Button>
                 <Button
                   size="sm"
-                  variant="solid"
+                  variant="primary"
                   className="flex-1 font-semibold"
                   style={{ background: "var(--danger)", color: "#fff" }}
-                  isLoading={isLoading}
+                  isPending={isLoading}
                   onPress={() => {
                     if (window.confirm("Rechazar esta oferta?")) {
                       onReject(offer.id);
@@ -230,19 +230,17 @@ function OfferCard({
             ) : (
               <div className="space-y-3">
                 <Input
-                  label="Monto contraoferta (CLP)"
+                  aria-label="Monto contraoferta (CLP)"
                   type="number"
-                  size="sm"
                   value={counterAmount}
                   onChange={(e) => setCounterAmount(e.target.value)}
-                  placeholder="Ej: 8000"
+                  placeholder="Monto contraoferta (CLP) Ej: 8000"
                 />
                 <Input
-                  label="Mensaje (opcional)"
-                  size="sm"
+                  aria-label="Mensaje (opcional)"
                   value={counterMessage}
                   onChange={(e) => setCounterMessage(e.target.value)}
-                  placeholder="Puedo dejarlo en..."
+                  placeholder="Mensaje (opcional) Puedo dejarlo en..."
                 />
                 <div className="flex gap-2">
                   <Button
@@ -261,7 +259,7 @@ function OfferCard({
                     size="sm"
                     variant="primary"
                     className="flex-1 font-semibold"
-                    isLoading={isLoading}
+                    isPending={isLoading}
                     onPress={handleCounterSubmit}
                   >
                     Enviar contraoferta
@@ -279,7 +277,7 @@ function OfferCard({
               size="sm"
               variant="outline"
               className="w-full font-semibold"
-              isLoading={isLoading}
+              isPending={isLoading}
               onPress={() => {
                 if (window.confirm("Retirar esta oferta?")) {
                   onWithdraw(offer.id);
@@ -296,20 +294,20 @@ function OfferCard({
           <div className="border-t border-[var(--border)] mt-3 pt-3 flex gap-2">
             <Button
               size="sm"
-              variant="solid"
+              variant="primary"
               className="flex-1 font-semibold"
               style={{ background: "var(--success)", color: "#fff" }}
-              isLoading={isLoading}
+              isPending={isLoading}
               onPress={() => onAcceptCounter(offer.id)}
             >
               Aceptar contraoferta
             </Button>
             <Button
               size="sm"
-              variant="solid"
+              variant="primary"
               className="flex-1 font-semibold"
               style={{ background: "var(--danger)", color: "#fff" }}
-              isLoading={isLoading}
+              isPending={isLoading}
               onPress={() => {
                 if (window.confirm("Rechazar esta contraoferta?")) {
                   onReject(offer.id);

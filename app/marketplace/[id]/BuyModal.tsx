@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Input, Select, SelectItem } from "@heroui/react";
+import { Button, Card, Input } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useBuyListing } from "@/lib/hooks/use-marketplace";
 import type { Listing } from "@/lib/types/marketplace";
@@ -47,7 +47,7 @@ export default function BuyModal({ listing, open, onClose }: Props) {
         };
       }
       const result = await buy.mutateAsync({ listingId: listing.id, payload });
-      const checkoutId = result?.id || result?.checkout_id;
+      const checkoutId = (result as any)?.checkout?.id || (result as any)?.id || (result as any)?.checkout_id;
       toast.success("Compra iniciada");
       onClose();
       if (checkoutId) {
@@ -118,13 +118,13 @@ export default function BuyModal({ listing, open, onClose }: Props) {
           {/* Shipping address */}
           {delivery === "SHIPPING" && (
             <div className="space-y-2">
-              <Input label="Nombre completo" size="sm" value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} />
-              <Input label="Direccion" size="sm" value={address.address_line_1} onChange={(e) => setAddress({ ...address, address_line_1: e.target.value })} />
+              <Input aria-label="Nombre completo" placeholder="Nombre completo" value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} />
+              <Input aria-label="Direccion" placeholder="Direccion" value={address.address_line_1} onChange={(e) => setAddress({ ...address, address_line_1: e.target.value })} />
               <div className="grid grid-cols-2 gap-2">
-                <Input label="Ciudad" size="sm" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
-                <Input label="Region" size="sm" value={address.region} onChange={(e) => setAddress({ ...address, region: e.target.value })} />
+                <Input aria-label="Ciudad" placeholder="Ciudad" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
+                <Input aria-label="Region" placeholder="Region" value={address.region} onChange={(e) => setAddress({ ...address, region: e.target.value })} />
               </div>
-              <Input label="Telefono" size="sm" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
+              <Input aria-label="Telefono" placeholder="Telefono" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
             </div>
           )}
 
@@ -137,7 +137,7 @@ export default function BuyModal({ listing, open, onClose }: Props) {
           {/* Actions */}
           <div className="flex gap-3">
             <Button variant="tertiary" className="flex-1" onPress={onClose}>Cancelar</Button>
-            <Button variant="primary" className="flex-1 font-semibold" isLoading={buy.isPending} onPress={handleBuy}>
+            <Button variant="primary" className="flex-1 font-semibold" isPending={buy.isPending} onPress={handleBuy}>
               Confirmar compra
             </Button>
           </div>

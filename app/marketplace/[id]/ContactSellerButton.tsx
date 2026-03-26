@@ -49,7 +49,7 @@ export default function ContactSellerButton({ sellerUsername, listingTitle, list
                 session.accessToken
             );
 
-            const channelId = res?.data?.id ?? res?.channel?.id ?? res?.id;
+            const channelId = res?.data?.channel?.id ?? res?.channel?.id;
 
             if (channelId) {
                 router.push(`/chat?channel=${channelId}&ref=listing&listing=${listingId}`);

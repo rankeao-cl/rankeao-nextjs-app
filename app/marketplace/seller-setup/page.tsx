@@ -303,8 +303,7 @@ export default function SellerSetupPage() {
                     </div>
                     <Button
                       size="sm"
-                      variant="tertiary"
-                      color="danger"
+                      variant="danger"
                       onPress={async () => {
                         if (!confirm("Eliminar esta cuenta bancaria?")) return;
                         try {

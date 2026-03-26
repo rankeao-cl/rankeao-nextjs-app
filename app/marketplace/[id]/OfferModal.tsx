@@ -62,25 +62,23 @@ export default function OfferModal({ listing, open, onClose }: Props) {
           </div>
 
           <Input
-            label="Monto de tu oferta (CLP)"
+            aria-label="Monto de tu oferta (CLP)"
             type="number"
-            size="sm"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Ej: 5000"
+            placeholder="Monto de tu oferta (CLP) Ej: 5000"
           />
 
           <Input
-            label="Mensaje (opcional)"
-            size="sm"
+            aria-label="Mensaje (opcional)"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Hola, me interesa..."
+            placeholder="Mensaje (opcional) Hola, me interesa..."
           />
 
           <div className="flex gap-3 pt-2">
             <Button variant="tertiary" className="flex-1" onPress={onClose}>Cancelar</Button>
-            <Button variant="primary" className="flex-1 font-semibold" isLoading={createOffer.isPending} onPress={handleSubmit}>
+            <Button variant="primary" className="flex-1 font-semibold" isPending={createOffer.isPending} onPress={handleSubmit}>
               Enviar oferta
             </Button>
           </div>
