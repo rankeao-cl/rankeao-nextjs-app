@@ -134,7 +134,7 @@ export default function ManageClanPage() {
       loadApplications(),
       getGames()
         .then((res) => {
-          const list = res?.data?.games ?? res?.data ?? [];
+          const list = res?.data ?? [];
           if (Array.isArray(list)) setGames(list);
         })
         .catch(() => {}),

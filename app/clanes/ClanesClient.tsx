@@ -35,7 +35,7 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
 
     useEffect(() => {
         getGames().then((res) => {
-            const list = res?.games ?? res?.data ?? [];
+            const list = res?.data ?? [];
             if (Array.isArray(list)) setGames(list);
         }).catch((err) => console.error("[Clanes] Error fetching games:", err));
     }, []);
