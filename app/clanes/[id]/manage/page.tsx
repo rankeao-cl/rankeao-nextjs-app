@@ -91,7 +91,7 @@ export default function ManageClanPage() {
   const loadClan = useCallback(async () => {
     try {
       const data = await getClan(clanId, token);
-      const c = ((data as any)?.data?.clan ?? (data as any)?.data ?? (data as any)?.clan ?? data) as ClanDetail | null;
+      const c = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null;
       if (!c) return;
       setClan(c);
       const m = c.members ?? [];
@@ -121,7 +121,7 @@ export default function ManageClanPage() {
     try {
       const data = await listClanApplications(clanId, token);
       const apps: ClanApplication[] =
-        (data as any)?.applications ?? (data as any)?.data ?? [];
+        data?.data?.applications ?? data?.applications ?? [];
       setApplications(apps.filter((a) => a.status === "PENDING" || a.status === "pending"));
     } catch {
       // silent
@@ -134,7 +134,7 @@ export default function ManageClanPage() {
       loadApplications(),
       getGames()
         .then((res) => {
-          const list = res?.data ?? [];
+          const list = res?.data?.games ?? res?.data ?? [];
           if (Array.isArray(list)) setGames(list);
         })
         .catch(() => {}),
