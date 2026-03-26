@@ -33,7 +33,7 @@ export default function SaleCardActions({ listingId, sellerUsername }: Props) {
                 { type: "DM", name: sellerUsername, user_ids: [sellerUsername] },
                 session.accessToken
             );
-            const channelId = res?.data?.id ?? res?.id;
+            const channelId = res?.data?.channel?.id ?? res?.channel?.id;
             router.push(channelId ? `/chat?channel=${channelId}&ref=listing&listing=${listingId}` : "/chat");
         } catch {
             toast.danger("Error al iniciar chat");

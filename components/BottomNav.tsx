@@ -33,7 +33,7 @@ export default function BottomNav() {
         if (!isAuth || !session?.username) return;
         getUserProfile(session.username)
             .then((res: any) => {
-                const profile = res?.data ?? res;
+                const profile = res?.data?.user ?? res?.data ?? res;
                 if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
             })
             .catch(() => {});

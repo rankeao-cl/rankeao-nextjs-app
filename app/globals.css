@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 @import "@heroui/styles";
 
 /* ── Tokens semánticos como clases Tailwind (v4 @theme) ── */

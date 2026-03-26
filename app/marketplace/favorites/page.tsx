@@ -89,8 +89,7 @@ function FavoriteCard({ favorite, onRemoved }: { favorite: Favorite; onRemoved: 
           {/* Remove button */}
           <Button
             size="sm"
-            variant="outline"
-            color="danger"
+            variant="danger"
             className="w-full text-xs mt-1"
             isDisabled={toggleFav.isPending}
             onPress={handleRemove}

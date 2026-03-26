@@ -63,6 +63,7 @@ export interface DuelInfoRaw {
     scheduled_at?: string;
     played_at?: string;
     created_at: string;
+    xp_gained?: number;
 }
 
 // Map raw backend response to frontend-friendly Duel
@@ -90,7 +91,7 @@ export function mapDuel(raw: DuelInfoRaw): Duel {
         confirmed: raw.confirmed,
         challenger_wins: raw.score_challenger,
         opponent_wins: raw.score_challenged,
-        xp_gained: (raw as any).xp_gained,
+        xp_gained: raw.xp_gained,
         scheduled_at: raw.scheduled_at,
         played_at: raw.played_at,
         created_at: raw.created_at,
@@ -110,6 +111,17 @@ export interface ReportDuelResultRequest {
     winner_id: string;
     score_challenger: number;
     score_challenged: number;
+}
+
+export interface DuelComment {
+    id: string;
+    duel_id: string;
+    user_id: string;
+    username?: string;
+    avatar_url?: string;
+    content: string;
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface DuelsResponse {

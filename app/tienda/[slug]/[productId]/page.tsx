@@ -14,7 +14,7 @@ interface ProductDetailPageProps {
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const { productId } = await params;
   const res = await getProductDetail(productId).catch(() => null);
-  const product = res?.product ?? res?.data ?? res;
+  const product = res?.data?.product ?? res?.product;
   const name = product?.name ?? product?.title;
   return {
     title: name ? `${name} - Tienda` : "Detalle de Producto",
@@ -35,8 +35,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     // silent
   }
 
-  const raw = productRes as Record<string, unknown> | null;
-  const product: Product | undefined = (raw?.product ?? raw?.data ?? raw) as Product | undefined;
+  const product: Product | undefined = productRes?.data?.product ?? productRes?.product;
   const tenant: Tenant | undefined = tenantData?.tenant;
 
   if (!product) {

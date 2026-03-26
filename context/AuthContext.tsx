@@ -218,8 +218,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (session) {
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      // Sync to cookie so middleware can read auth state
+      document.cookie = `${SESSION_STORAGE_KEY}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
     } else {
       localStorage.removeItem(SESSION_STORAGE_KEY);
+      document.cookie = `${SESSION_STORAGE_KEY}=; path=/; max-age=0`;
     }
   }, [session, status]);
 

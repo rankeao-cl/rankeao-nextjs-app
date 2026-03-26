@@ -62,7 +62,7 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
         try {
             const res = await getDuels({ per_page: 50 }, token);
             if (res?.duels) setDuels(res.duels);
-        } catch { /* silent */ }
+        } catch (err) { console.error("[Duelos] Error fetching duels:", err); }
     }, [token]);
 
     useEffect(() => {

@@ -19,6 +19,8 @@ export interface Listing {
     set_name?: string;
     rarity?: string;
     accepts_offers?: boolean;
+    accepts_shipping?: boolean;
+    accepts_in_person?: boolean;
     // Seller — API returns nested object; flatten for display
     seller?: { username?: string; avatar_url?: string; is_store?: boolean };
     seller_id?: string;

@@ -30,14 +30,14 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
                 const clan = (res as any)?.data?.clan ?? (res as any)?.data ?? (res as any)?.clan ?? res;
                 if (clan?.id) setMyClan(clan);
             })
-            .catch(() => {});
+            .catch((err) => console.error("[Clanes] Error fetching my clan:", err));
     }, [isAuth, session]);
 
     useEffect(() => {
         getGames().then((res) => {
-            const list = res?.data ?? [];
+            const list = res?.games ?? res?.data ?? [];
             if (Array.isArray(list)) setGames(list);
-        }).catch(() => {});
+        }).catch((err) => console.error("[Clanes] Error fetching games:", err));
     }, []);
 
     useEffect(() => {
@@ -64,7 +64,7 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
                 if (filterGame) result = result.filter((c: Clan) => c.game_id === filterGame || c.game_name?.toLowerCase().includes(filterGame.toLowerCase()));
 
                 setClans(result);
-            } catch {
+            } catch (err) { console.error("[Clanes] Error searching clans:", err);
                 setClans([]);
             }
             setSearching(false);

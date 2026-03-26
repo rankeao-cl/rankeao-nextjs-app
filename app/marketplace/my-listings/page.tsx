@@ -215,8 +215,7 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
-                  color="danger"
+                  variant="danger"
                   className="flex-1 text-xs"
                   isDisabled={isActioning}
                   onPress={handleDelete}
@@ -240,8 +239,7 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
-                  color="danger"
+                  variant="danger"
                   className="flex-1 text-xs"
                   isDisabled={isActioning}
                   onPress={handleDelete}

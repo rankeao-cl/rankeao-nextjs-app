@@ -66,13 +66,13 @@ export default function Navbar() {
     // Fetch user avatar once
     if (session.username) {
       getUserProfile(session.username).then((res: any) => {
-        const profile = res?.data ?? res;
+        const profile = res?.data?.user ?? res?.data ?? res;
         if (profile?.avatar_url) setUserAvatarUrl(profile.avatar_url);
       }).catch(() => {});
     }
 
     return () => clearInterval(interval);
-  }, [status, session]);
+  }, [status, session?.accessToken, session?.username]);
 
   if (authPages.some((p) => pathname.startsWith(p))) {
     return null;

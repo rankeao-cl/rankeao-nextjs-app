@@ -59,7 +59,7 @@ function PlayerCard({ player, wins, isWinner, isMe }: {
             ) : (
                 <div style={{ width: 52, height: 52, borderRadius: 999, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 18, fontWeight: 700, color: "var(--muted)" }}>
-                        {player.username.charAt(0).toUpperCase()}
+                        {(player.username || "?").charAt(0).toUpperCase()}
                     </span>
                 </div>
             )}
@@ -135,7 +135,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             const raw = await getDuelComments(duelId, token) as any;
             const list: DuelComment[] = raw?.data?.comments ?? raw?.comments ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
             setComments(list);
-        } catch { /* silent */ }
+        } catch (err) { console.error("[DuelDetail] Error fetching comments:", err); }
     }, [duelId, token]);
 
     // Refresh duel
@@ -146,7 +146,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                 setDuel(res.duel);
                 setInitialLoading(false);
             }
-        } catch { /* silent */ }
+        } catch (err) { console.error("[DuelDetail] Error refreshing duel:", err); }
         finally { setInitialLoading(false); }
     }, [duelId, token]);
 
@@ -156,7 +156,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             refreshDuel();
             fetchComments();
         }
-    }, [token, refreshDuel, fetchComments]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, duelId]);
 
     // Auto-refresh for active duels
     useEffect(() => {
@@ -165,7 +166,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         if (!isLive) return;
         const interval = setInterval(refreshDuel, 10000);
         return () => clearInterval(interval);
-    }, [duel?.status, refreshDuel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [duel?.status, duelId, token]);
 
     if (initialLoading) {
         return (
