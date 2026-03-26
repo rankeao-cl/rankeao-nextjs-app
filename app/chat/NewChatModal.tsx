@@ -130,8 +130,8 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
 
             const res = await createChannel(payload, session.accessToken);
             toast.success(mode === "dm" ? "Chat creado exitosamente" : "Grupo creado exitosamente");
-            const channel = res?.data?.channel ?? res?.data ?? res?.channel ?? res;
-            onChannelCreated(channel);
+            const channel = res?.data?.channel ?? res?.channel;
+            if (channel) onChannelCreated(channel);
             onOpenChange(false);
         } catch (error: any) {
             console.error("Error al crear chat:", error);

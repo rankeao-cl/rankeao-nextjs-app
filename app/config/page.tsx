@@ -323,7 +323,8 @@ export default function ConfigPage() {
   useEffect(() => {
     if (session?.username) {
       getUserProfile(session.username).then((res: unknown) => {
-        const profile = (res as Record<string, unknown>)?.data ?? res;
+        const raw = (res as Record<string, unknown>)?.data ?? res;
+        const profile = (raw as Record<string, unknown>)?.user ?? raw;
         const p = profile as Record<string, unknown>;
         if (p?.avatar_url) setAvatarUrl(p.avatar_url as string);
         if (p?.name) setProfileName(p.name as string);
