@@ -29,7 +29,7 @@ export default function PWAInstallBanner() {
   if (hasUpdate) {
     return (
       <div
-        className="fixed bottom-[68px] lg:bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4 lg:px-0 transition-all duration-300"
+        className="fixed bottom-[76px] lg:bottom-6 inset-x-4 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-sm z-40 transition-all duration-300"
         style={{
           opacity: show ? 1 : 0,
           transform: `translateX(-50%) translateY(${show ? "0" : "16px"})`,
@@ -88,7 +88,7 @@ export default function PWAInstallBanner() {
 
   return (
     <div
-      className="fixed bottom-[68px] lg:bottom-4 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4 lg:px-0 transition-all duration-300"
+      className="fixed bottom-[76px] lg:bottom-6 inset-x-4 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-sm z-40 transition-all duration-300"
       style={{
         opacity: show ? 1 : 0,
         transform: `translateX(-50%) translateY(${show ? "0" : "16px"})`,
