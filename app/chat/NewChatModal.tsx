@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "@heroui/react";
-import { Person, Magnifier, Xmark } from "@gravity-ui/icons";
+import { Xmark, ChevronLeft } from "@gravity-ui/icons";
 import { autocompleteUsers } from "@/lib/api/social";
 import { createChannel } from "@/lib/api/chat";
 import { useAuth } from "@/context/AuthContext";
@@ -26,12 +26,11 @@ type ChatMode = "dm" | "group";
 const C = {
     bg: "var(--background)",
     surface: "var(--surface-solid)",
-    surfaceLight: "var(--surface-solid-secondary)",
-    border: "var(--surface)",
+    border: "var(--border)",
+    borderLight: "var(--surface)",
     text: "var(--foreground)",
     muted: "var(--muted)",
     accent: "var(--accent)",
-    iconBg: "var(--overlay)",
 } as const;
 
 export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }: NewChatModalProps) {
@@ -56,12 +55,10 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             setSelectedMembers([]);
             setMode("dm");
         } else {
-            // Auto-focus search input when modal opens
             setTimeout(() => searchRef.current?.focus(), 100);
         }
     }, [isOpen]);
 
-    // Close on Escape key
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -95,7 +92,6 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
 
     const handleAddMember = (user: UserSuggestion) => {
         if (mode === "dm") {
-            // Toggle: click again to deselect
             if (selectedUser?.id === user.id) {
                 setSelectedUser(null);
             } else {
@@ -156,93 +152,106 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             style={{
                 position: "fixed",
                 inset: 0,
-                zIndex: 50,
+                zIndex: 9999,
                 display: "flex",
-                alignItems: "flex-end",
+                alignItems: "center",
                 justifyContent: "center",
                 background: "rgba(0,0,0,0.6)",
                 backdropFilter: "blur(4px)",
                 WebkitBackdropFilter: "blur(4px)",
             }}
         >
-            {/* Desktop: centered, Mobile: bottom sheet */}
             <div
                 style={{
                     width: "100%",
                     maxWidth: 440,
+                    height: "100%",
+                    maxHeight: 560,
                     background: C.bg,
-                    borderTopLeftRadius: 24,
-                    borderTopRightRadius: 24,
-                    maxHeight: "90vh",
+                    borderRadius: 16,
                     display: "flex",
                     flexDirection: "column",
                     overflow: "hidden",
+                    margin: 16,
+                    animation: "newChatModalIn 0.2s ease-out",
                 }}
             >
-                {/* Header */}
-                <div style={{ padding: "16px 20px", borderBottom: `0.5px solid ${C.border}` }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                            <div style={{
-                                width: 40, height: 40, borderRadius: 20,
-                                background: C.iconBg,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                            }}>
-                                <Person style={{ width: 20, height: 20, color: C.text }} />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Nuevo chat</div>
-                                <div style={{ fontSize: 13, fontWeight: 500, color: C.muted }}>
-                                    Busca un usuario para chatear
-                                </div>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => onOpenChange(false)}
-                            style={{
-                                background: "none", border: "none", cursor: "pointer",
-                                fontSize: 14, fontWeight: 500, color: C.muted, padding: "4px 0",
-                            }}
-                        >
-                            Cancelar
-                        </button>
-                    </div>
+                <style>{`
+                    @keyframes newChatModalIn {
+                        from { opacity: 0; transform: scale(0.95); }
+                        to { opacity: 1; transform: scale(1); }
+                    }
+                `}</style>
 
-                    {/* Tab toggle */}
-                    <div style={{
-                        display: "flex", gap: 8, marginTop: 16,
-                        background: C.surface, borderRadius: 999, padding: 4,
-                    }}>
-                        <button
-                            onClick={() => setMode("dm")}
-                            style={{
-                                flex: 1, padding: "8px 16px", borderRadius: 999, border: "none",
-                                cursor: "pointer", fontSize: 13, fontWeight: 600,
-                                background: mode === "dm" ? C.text : "transparent",
-                                color: mode === "dm" ? C.bg : C.muted,
-                                transition: "all 0.2s",
-                            }}
-                        >
-                            Chat directo
-                        </button>
-                        <button
-                            onClick={() => { setMode("group"); setSelectedUser(null); }}
-                            style={{
-                                flex: 1, padding: "8px 16px", borderRadius: 999, border: "none",
-                                cursor: "pointer", fontSize: 13, fontWeight: 600,
-                                background: mode === "group" ? C.text : "transparent",
-                                color: mode === "group" ? C.bg : C.muted,
-                                transition: "all 0.2s",
-                            }}
-                        >
-                            Grupo
-                        </button>
-                    </div>
+                {/* Header */}
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 12px",
+                    borderBottom: `1px solid ${C.borderLight}`,
+                }}>
+                    <button
+                        onClick={() => onOpenChange(false)}
+                        style={{
+                            width: 32, height: 32, borderRadius: 16,
+                            background: "none", border: "none", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                        aria-label="Volver"
+                    >
+                        <ChevronLeft style={{ width: 20, height: 20, color: C.text }} />
+                    </button>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: C.text }}>
+                        Nuevo mensaje
+                    </span>
+                    <button
+                        onClick={() => onOpenChange(false)}
+                        style={{
+                            width: 32, height: 32, borderRadius: 16,
+                            background: "none", border: "none", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                        aria-label="Cerrar"
+                    >
+                        <Xmark style={{ width: 18, height: 18, color: C.text }} />
+                    </button>
+                </div>
+
+                {/* Tab toggle */}
+                <div style={{
+                    display: "flex", gap: 6, margin: "12px 16px 0",
+                    background: C.surface, borderRadius: 999, padding: 3,
+                }}>
+                    <button
+                        onClick={() => setMode("dm")}
+                        style={{
+                            flex: 1, padding: "7px 14px", borderRadius: 999, border: "none",
+                            cursor: "pointer", fontSize: 12, fontWeight: 600,
+                            background: mode === "dm" ? C.text : "transparent",
+                            color: mode === "dm" ? C.bg : C.muted,
+                            transition: "all 0.2s",
+                        }}
+                    >
+                        Chat directo
+                    </button>
+                    <button
+                        onClick={() => { setMode("group"); setSelectedUser(null); }}
+                        style={{
+                            flex: 1, padding: "7px 14px", borderRadius: 999, border: "none",
+                            cursor: "pointer", fontSize: 12, fontWeight: 600,
+                            background: mode === "group" ? C.text : "transparent",
+                            color: mode === "group" ? C.bg : C.muted,
+                            transition: "all 0.2s",
+                        }}
+                    >
+                        Grupo
+                    </button>
                 </div>
 
                 {/* Group name input */}
                 {mode === "group" && (
-                    <div style={{ padding: "12px 20px", borderBottom: `0.5px solid ${C.border}` }}>
+                    <div style={{ padding: "10px 16px 0" }}>
                         <input
                             placeholder="Nombre del grupo"
                             value={groupName}
@@ -250,15 +259,14 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                             autoComplete="off"
                             style={{
                                 width: "100%", boxSizing: "border-box",
-                                background: C.surface, borderRadius: 12,
-                                border: `1px solid ${C.border}`,
-                                padding: "10px 12px", fontSize: 14,
+                                background: C.surface, borderRadius: 10,
+                                border: `1px solid ${C.borderLight}`,
+                                padding: "9px 12px", fontSize: 14,
                                 color: C.text, outline: "none",
                             }}
                         />
-                        {/* Selected members chips */}
                         {selectedMembers.length > 0 && (
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                                 {selectedMembers.map(member => (
                                     <span
                                         key={member.id}
@@ -275,8 +283,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                                             style={{
                                                 width: 18, height: 18, borderRadius: 999, border: "none",
                                                 background: "rgba(59,130,246,0.25)", cursor: "pointer",
-                                                display: "flex", alignItems: "center", justifyContent: "center",
-                                                padding: 0,
+                                                display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
                                             }}
                                         >
                                             <Xmark style={{ width: 10, height: 10, color: C.accent }} />
@@ -288,69 +295,73 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                     </div>
                 )}
 
-                {/* Selected user chip (DM mode) */}
-                {mode === "dm" && selectedUser && (
-                    <div style={{ padding: "8px 20px 0", display: "flex", alignItems: "center", gap: 8 }}>
+                {/* "Para:" search row */}
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "12px 16px",
+                    borderBottom: `1px solid ${C.borderLight}`,
+                }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: C.text, flexShrink: 0 }}>
+                        Para:
+                    </span>
+                    {/* Selected user chip inline */}
+                    {mode === "dm" && selectedUser && (
                         <span style={{
-                            display: "inline-flex", alignItems: "center", gap: 6,
-                            paddingLeft: 4, paddingRight: 8, paddingTop: 4, paddingBottom: 4,
-                            borderRadius: 999, background: "rgba(59,130,246,0.12)",
-                            fontSize: 13, fontWeight: 600, color: C.accent,
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            paddingLeft: 8, paddingRight: 4, paddingTop: 3, paddingBottom: 3,
+                            borderRadius: 999, background: "rgba(59,130,246,0.15)",
+                            fontSize: 13, fontWeight: 600, color: C.accent, flexShrink: 0,
                         }}>
-                            <span style={{
-                                width: 24, height: 24, borderRadius: 12, overflow: "hidden",
-                                background: C.surface, display: "flex", alignItems: "center", justifyContent: "center",
-                            }}>
-                                {selectedUser.avatar_url ? (
-                                    <img src={selectedUser.avatar_url} alt="" style={{ width: 24, height: 24, objectFit: "cover" }} />
-                                ) : (
-                                    <span style={{ fontSize: 10, fontWeight: 700, color: C.muted }}>{selectedUser.username?.slice(0, 2).toUpperCase()}</span>
-                                )}
-                            </span>
                             {selectedUser.username}
                             <button
                                 onClick={() => setSelectedUser(null)}
                                 style={{
-                                    width: 18, height: 18, borderRadius: 999, border: "none",
+                                    width: 16, height: 16, borderRadius: 999, border: "none",
                                     background: "rgba(59,130,246,0.25)", cursor: "pointer",
                                     display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
                                 }}
                             >
-                                <Xmark style={{ width: 10, height: 10, color: C.accent }} />
+                                <Xmark style={{ width: 9, height: 9, color: C.accent }} />
                             </button>
                         </span>
-                    </div>
-                )}
-
-                {/* Search */}
-                <div style={{ padding: "12px 20px" }}>
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        background: C.surface, borderRadius: 12,
-                        border: `1px solid ${C.border}`, padding: "10px 12px",
-                    }}>
-                        <Magnifier style={{ width: 18, height: 18, color: C.muted, flexShrink: 0 }} />
-                        <input
-                            ref={searchRef}
-                            placeholder={mode === "dm" ? "Buscar usuario..." : "Buscar miembros..."}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            autoComplete="off"
-                            style={{
-                                flex: 1, background: "transparent", border: "none",
-                                fontSize: 14, color: C.text, outline: "none",
-                            }}
-                        />
-                    </div>
-                    {isLoading && (
-                        <div style={{ fontSize: 12, color: C.accent, marginTop: 8, fontWeight: 500 }}>
-                            Buscando...
-                        </div>
                     )}
+                    <input
+                        ref={searchRef}
+                        placeholder="Busca..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        autoComplete="off"
+                        style={{
+                            flex: 1, background: "transparent", border: "none",
+                            fontSize: 14, color: C.text, outline: "none",
+                            minWidth: 0,
+                        }}
+                    />
+                    {isLoading && (
+                        <div style={{
+                            width: 16, height: 16, borderRadius: 8,
+                            border: `2px solid ${C.borderLight}`,
+                            borderTopColor: C.accent,
+                            animation: "spin 0.6s linear infinite", flexShrink: 0,
+                        }} />
+                    )}
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                 </div>
 
-                {/* Results */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 12px" }}>
+                {/* Section header */}
+                <div style={{
+                    padding: "12px 16px 6px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: C.text,
+                }}>
+                    Sugerencias
+                </div>
+
+                {/* User results */}
+                <div style={{ flex: 1, overflowY: "auto", minHeight: 0, padding: "0 8px" }}>
                     {suggestions.length > 0 ? (
                         suggestions.map((user) => {
                             const isSelectedDM = mode === "dm" && selectedUser?.id === user.id;
@@ -362,22 +373,24 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                                     key={user.id}
                                     onClick={() => handleAddMember(user)}
                                     style={{
-                                        display: "flex", alignItems: "center", gap: 12,
-                                        padding: 12, borderRadius: 12, width: "100%",
-                                        background: isUserSelected ? "rgba(59,130,246,0.1)" : "transparent",
-                                        border: "none", cursor: "pointer", textAlign: "left",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 12,
+                                        padding: "10px 8px",
+                                        borderRadius: 12,
+                                        width: "100%",
+                                        background: "transparent",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        textAlign: "left",
                                         transition: "background 0.15s",
                                     }}
-                                    onMouseEnter={(e) => {
-                                        if (!isUserSelected) e.currentTarget.style.background = C.surfaceLight;
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!isUserSelected) e.currentTarget.style.background = "transparent";
-                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = C.surface; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                                 >
                                     {/* Avatar */}
                                     <div style={{
-                                        width: 40, height: 40, borderRadius: 20,
+                                        width: 48, height: 48, borderRadius: 24,
                                         background: C.surface, flexShrink: 0,
                                         display: "flex", alignItems: "center", justifyContent: "center",
                                         overflow: "hidden",
@@ -386,74 +399,86 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                                             <img
                                                 src={user.avatar_url}
                                                 alt={user.username}
-                                                style={{ width: 40, height: 40, objectFit: "cover" }}
+                                                style={{ width: 48, height: 48, objectFit: "cover" }}
                                             />
                                         ) : (
-                                            <span style={{ fontSize: 14, fontWeight: 700, color: C.muted }}>
+                                            <span style={{ fontSize: 15, fontWeight: 700, color: C.muted }}>
                                                 {user.username?.slice(0, 2).toUpperCase()}
                                             </span>
                                         )}
                                     </div>
+
+                                    {/* Info */}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{
-                                            fontSize: 14, fontWeight: 700, color: C.text,
+                                            fontSize: 14, fontWeight: 600, color: C.text,
+                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                                        }}>
+                                            {user.name || user.username}
+                                        </div>
+                                        <div style={{
+                                            fontSize: 13, color: C.muted,
                                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                         }}>
                                             {user.username}
                                         </div>
-                                        {user.name && (
-                                            <div style={{
-                                                fontSize: 12, color: C.muted,
-                                                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                            }}>
-                                                {user.name}
-                                            </div>
+                                    </div>
+
+                                    {/* Radio circle */}
+                                    <div style={{
+                                        width: 24, height: 24, borderRadius: 12, flexShrink: 0,
+                                        border: isUserSelected ? "none" : `2px solid ${C.muted}`,
+                                        background: isUserSelected ? C.accent : "transparent",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        transition: "all 0.15s",
+                                    }}>
+                                        {isUserSelected && (
+                                            <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
                                         )}
                                     </div>
-                                    {isUserSelected && (
-                                        <span style={{ fontSize: 12, fontWeight: 600, color: C.accent, flexShrink: 0 }}>
-                                            ✓
-                                        </span>
-                                    )}
                                 </button>
                             );
                         })
                     ) : (
                         <div style={{
                             display: "flex", flexDirection: "column", alignItems: "center",
-                            justifyContent: "center", padding: "40px 0",
+                            justifyContent: "center", padding: "32px 0",
                         }}>
-                            <Magnifier style={{ width: 32, height: 32, color: C.muted, opacity: 0.3, marginBottom: 8 }} />
-                            <div style={{ fontSize: 14, color: C.muted }}>
-                                {search.length < 2 ? "Escribe para buscar..." : "No se encontraron usuarios"}
+                            <div style={{ fontSize: 13, color: C.muted }}>
+                                {search.length < 2 ? "Escribe para buscar usuarios..." : "No se encontraron usuarios"}
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Create button */}
-                {(mode === "dm" ? selectedUser : true) && (
-                    <div style={{ padding: "12px 20px 20px" }}>
-                        <button
-                            onClick={handleCreateChat}
-                            disabled={isCreateDisabled || isCreating}
-                            style={{
-                                width: "100%", padding: "14px 0", borderRadius: 999,
-                                border: "none", cursor: isCreateDisabled || isCreating ? "not-allowed" : "pointer",
-                                background: isCreateDisabled || isCreating ? "rgba(59,130,246,0.4)" : C.accent,
-                                color: "#FFFFFF", fontSize: 14, fontWeight: 700,
-                                transition: "background 0.2s",
-                            }}
-                        >
-                            {isCreating
-                                ? "Creando..."
-                                : mode === "dm"
-                                    ? "Iniciar Chat"
-                                    : `Crear Grupo${selectedMembers.length > 0 ? ` (${selectedMembers.length})` : ""}`
-                            }
-                        </button>
-                    </div>
-                )}
+                {/* Chat button */}
+                <div style={{ padding: "12px 16px 16px" }}>
+                    <button
+                        onClick={handleCreateChat}
+                        disabled={isCreateDisabled || isCreating}
+                        style={{
+                            width: "100%",
+                            padding: "13px 0",
+                            borderRadius: 10,
+                            border: "none",
+                            cursor: isCreateDisabled || isCreating ? "not-allowed" : "pointer",
+                            background: isCreateDisabled || isCreating ? "rgba(59,130,246,0.35)" : C.accent,
+                            color: "#FFFFFF",
+                            fontSize: 14,
+                            fontWeight: 700,
+                            transition: "background 0.2s",
+                        }}
+                    >
+                        {isCreating
+                            ? "Creando..."
+                            : mode === "dm"
+                                ? "Chat"
+                                : `Crear Grupo${selectedMembers.length > 0 ? ` (${selectedMembers.length})` : ""}`
+                        }
+                    </button>
+                </div>
             </div>
         </div>
     );
