@@ -63,6 +63,15 @@ function toArray<T>(value: unknown): T[] {
         if (Array.isArray(inner.activity)) return inner.activity;
         if (Array.isArray(inner.items)) return inner.items;
         if (Array.isArray(inner.feed)) return inner.feed;
+        if (Array.isArray(inner.decks)) return inner.decks;
+        if (Array.isArray(inner.listings)) return inner.listings;
+        if (Array.isArray(inner.badges)) return inner.badges;
+        if (Array.isArray(inner.friends)) return inner.friends;
+        if (Array.isArray(inner.followers)) return inner.followers;
+        if (Array.isArray(inner.following)) return inner.following;
+        if (Array.isArray(inner.wishlist)) return inner.wishlist;
+        if (Array.isArray(inner.history)) return inner.history;
+        if (Array.isArray(inner.tournaments)) return inner.tournaments;
     }
     if (Array.isArray(v.items)) return v.items;
     if (Array.isArray(v.users)) return v.users;
@@ -222,13 +231,13 @@ export default function PublicProfilePage({
                     setUserClan(clanData as Clan);
                 }
 
-                // Marketplace listings
-                if (userUUID) {
+                // Marketplace listings y duelos — solo para perfil propio
+                const isOwn = session?.username?.toLowerCase() === username.toLowerCase();
+                if (userUUID && isOwn) {
                     getListings({ seller_id: userUUID } as any)
                         .then(res => setListings(res.listings || []))
                         .catch(() => setListings([]));
 
-                    // Últimos 5 duelos completados
                     getDuels({ user_id: userUUID, per_page: 5, status: "COMPLETED" })
                         .then(res => setRecentDuels(res.duels.slice(0, 5)))
                         .catch(() => setRecentDuels([]));
@@ -853,8 +862,23 @@ export default function PublicProfilePage({
             {activeTab === "mazos" && (
                 <div>
                     {decks.length > 0 ? (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-                            {decks.map((deck, i) => <DeckCard key={deck.id || i} deck={deck} />)}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+                            {decks.map((deck, i) => {
+                                const normalized = {
+                                    id: deck.id,
+                                    author: {
+                                        username: deck.owner?.username || deck.username || profile?.username || "",
+                                        avatar_url: deck.owner?.avatar_url,
+                                    },
+                                    deck_name: deck.name || deck.deck_name || "",
+                                    game: deck.game_name || deck.game || "",
+                                    format: deck.format_name || deck.format || "",
+                                    card_count: deck.card_count ?? deck.cards?.length ?? 0,
+                                    preview_images: deck.cards?.slice(0, 4).map((c: any) => c.image_url).filter(Boolean),
+                                    created_at: deck.created_at || "",
+                                };
+                                return <DeckCard key={deck.id || i} deck={normalized} />;
+                            })}
                         </div>
                     ) : <EmptyState emoji="🃏" title="Sin mazos publicados" description="No ha compartido mazos todavia." />}
                 </div>

@@ -52,11 +52,41 @@ export default function ProfileLogrosTab({
         return [...earned, ...unearned];
     }, [earnedBadges, allBadges, earnedSlugs]);
 
+    const categoryLabels: Record<string, string> = {
+        social: "Social",
+        trading: "Trading",
+        tournament: "Torneos",
+        tournaments: "Torneos",
+        collection: "Colección",
+        competitive: "Competitivo",
+        community: "Comunidad",
+        achievement: "Logros",
+        achievements: "Logros",
+        general: "General",
+        gameplay: "Juego",
+        profile: "Perfil",
+        marketplace: "Mercado",
+        deck: "Mazos",
+        decks: "Mazos",
+        duels: "Duelos",
+        duel: "Duelos",
+        milestones: "Hitos",
+        milestone: "Hitos",
+        special: "Especial",
+        rare: "Raro",
+        secret: "Secreto",
+        seasonal: "Temporal",
+        event: "Evento",
+        events: "Eventos",
+    };
+    const translateCat = (cat: string) => categoryLabels[cat.toLowerCase()] || cat;
+
     // Extract categories
     const categories = useMemo(() => {
         const cats = new Set<string>();
         mergedBadges.forEach((b) => {
-            if (b.category) cats.add(b.category);
+            const cat = typeof b.category === "string" ? b.category : b.category?.name || b.category?.id;
+            if (cat) cats.add(String(cat));
         });
         return Array.from(cats);
     }, [mergedBadges]);
@@ -167,23 +197,37 @@ export default function ProfileLogrosTab({
 
             {/* Category Filters */}
             {categories.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    <Chip
-                        size="sm"
-                        className={`cursor-pointer transition-colors ${categoryFilter === "all" ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)]"}`}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    <button
                         onClick={() => setCategoryFilter("all")}
+                        style={{
+                            paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                            borderRadius: 99,
+                            backgroundColor: categoryFilter === "all" ? "var(--foreground)" : "var(--surface-solid)",
+                            color: categoryFilter === "all" ? "var(--background)" : "var(--muted)",
+                            fontSize: 13, fontWeight: 600,
+                            border: categoryFilter === "all" ? "1px solid transparent" : "1px solid var(--border)",
+                            cursor: "pointer", whiteSpace: "nowrap",
+                        }}
                     >
                         Todos
-                    </Chip>
+                    </button>
                     {categories.map((cat) => (
-                        <Chip
+                        <button
                             key={cat}
-                            size="sm"
-                            className={`cursor-pointer transition-colors ${categoryFilter === cat ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "bg-[var(--surface-secondary)] text-[var(--foreground)] border border-[var(--border)]"}`}
                             onClick={() => setCategoryFilter(cat === categoryFilter ? "all" : cat)}
+                            style={{
+                                paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                                borderRadius: 99,
+                                backgroundColor: categoryFilter === cat ? "var(--foreground)" : "var(--surface-solid)",
+                                color: categoryFilter === cat ? "var(--background)" : "var(--muted)",
+                                fontSize: 13, fontWeight: 600,
+                                border: categoryFilter === cat ? "1px solid transparent" : "1px solid var(--border)",
+                                cursor: "pointer", whiteSpace: "nowrap",
+                            }}
                         >
-                            {cat}
-                        </Chip>
+                            {translateCat(cat)}
+                        </button>
                     ))}
                 </div>
             )}

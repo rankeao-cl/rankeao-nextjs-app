@@ -29,6 +29,55 @@ function TimeSince({ dateStr }: { dateStr: string }) {
     return <span style={{ color: "var(--muted)", fontSize: 11 }}>{hrs}h {mins % 60}m buscando</span>;
 }
 
+// Track which duels already notified to avoid repeat alerts
+const notifiedDuels = new Set<string>();
+
+function notifyNewDuel(duelId: string) {
+    if (notifiedDuels.has(duelId)) return;
+    notifiedDuels.add(duelId);
+
+    // Vibrate (mobile)
+    try {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } catch {}
+
+    // TCG duel alert — retro game card draw sound
+    try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const t = ctx.currentTime;
+
+        const tone = (freq: number, start: number, dur: number, vol: number, type: OscillatorType = "square") => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t + start);
+            gain.gain.setValueAtTime(vol, t + start);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + start + dur);
+            osc.start(t + start);
+            osc.stop(t + start + dur);
+        };
+
+        // 8-bit challenge jingle — turu tutu x3 (synced with 2s pulse)
+        // Round 1
+        tone(523, 0,    0.1,  0.10, "square");
+        tone(659, 0.10, 0.1,  0.10, "square");
+        tone(784, 0.20, 0.1,  0.11, "square");
+        tone(1047, 0.30, 0.25, 0.12, "square");
+        // Round 2
+        tone(523, 2.0,  0.1,  0.10, "square");
+        tone(659, 2.10, 0.1,  0.10, "square");
+        tone(784, 2.20, 0.1,  0.11, "square");
+        tone(1047, 2.30, 0.25, 0.12, "square");
+        // Round 3
+        tone(523, 4.0,  0.1,  0.10, "square");
+        tone(659, 4.10, 0.1,  0.10, "square");
+        tone(784, 4.20, 0.1,  0.11, "square");
+        tone(1047, 4.30, 0.35, 0.14, "square");
+    } catch {}
+}
+
 export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchCardProps) {
     const router = useRouter();
     const { session } = useAuth();
@@ -36,6 +85,11 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
     const [accepted, setAccepted] = useState(false);
 
     const challenger = duel.challenger;
+
+    // Notify on mount (new duel appeared)
+    useEffect(() => {
+        notifyNewDuel(duel.id);
+    }, [duel.id]);
 
     const handleAccept = async () => {
         if (accepting || accepted) return;
@@ -80,20 +134,25 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
         <div style={{
             backgroundColor: "var(--surface-solid)",
             borderRadius: 20,
-            border: "1.5px solid color-mix(in srgb, var(--accent) 15%, transparent)",
+            border: "1.5px solid color-mix(in srgb, var(--accent) 30%, transparent)",
             overflow: "hidden",
             padding: 14,
             display: "flex",
             flexDirection: "column",
             gap: 10,
             position: "relative",
-            animation: "duelGlow 2.4s ease-in-out infinite",
+            animation: "duelPulse 2s ease-in-out infinite",
         }}>
-            {/* CSS for pulsing glow */}
             <style>{`
-                @keyframes duelGlow {
-                    0%, 100% { border-color: color-mix(in srgb, var(--accent) 15%, transparent); }
-                    50% { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+                @keyframes duelPulse {
+                    0%, 100% {
+                        border-color: rgba(59,130,246,0.3);
+                        box-shadow: 0 0 8px rgba(59,130,246,0.1), 0 0 0px rgba(59,130,246,0);
+                    }
+                    50% {
+                        border-color: rgba(59,130,246,0.8);
+                        box-shadow: 0 0 24px rgba(59,130,246,0.35), 0 0 48px rgba(59,130,246,0.15);
+                    }
                 }
             `}</style>
 

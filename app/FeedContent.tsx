@@ -42,19 +42,6 @@ export default function FeedContent({
 
     const now = Date.now();
 
-    if (feedFilter !== "ventas" && feedFilter !== "posts" && feedFilter !== "actividad") {
-      for (const t of tournaments) {
-        // Use created_at for sorting so upcoming tournaments don't jump to top
-        const ts = new Date(t.created_at || t.starts_at || 0).getTime();
-        items.push({
-          id: `tournament-${t.id}`,
-          type: "tournament",
-          data: t,
-          timestamp: Math.min(ts, now),
-        });
-      }
-    }
-
     if (feedFilter !== "torneos" && feedFilter !== "posts" && feedFilter !== "actividad") {
       for (const l of listings) {
         items.push({
@@ -78,7 +65,7 @@ export default function FeedContent({
         const user = s.user ?? {};
         const itemType = (s.type ?? s.item_type ?? "").toUpperCase();
 
-        // Duel search feed items
+        // Duel search items — show in feed (mobile only via CSS)
         if (itemType === "DUEL_SEARCH") {
           const meta = s.metadata ?? {};
           items.push({
@@ -212,21 +199,14 @@ export default function FeedContent({
       {feedItems.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {feedItems.map((item) => {
-            if (item.type === "tournament") {
-              return (
-                <FeedTournamentCard
-                  key={item.id}
-                  tournament={item.data as Tournament}
-                />
-              );
-            }
             if (item.type === "duel_search") {
               return (
-                <FeedDuelSearchCard
-                  key={item.id}
-                  duel={item.data as Duel}
-                  onAccepted={() => socialQ.refetch()}
-                />
+                <div key={item.id} className="lg:hidden">
+                  <FeedDuelSearchCard
+                    duel={item.data as Duel}
+                    onAccepted={() => socialQ.refetch()}
+                  />
+                </div>
               );
             }
             if (item.type === "sale") {

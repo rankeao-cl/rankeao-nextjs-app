@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, Chip, Avatar, Button } from "@heroui/react";
 import { Copy, BookmarkFill } from "@gravity-ui/icons";
 import Image from "next/image";
@@ -20,11 +21,11 @@ export default function DeckCard({ deck }: { deck: FeedDeck }) {
                 {/* Author */}
                 <div className="flex items-center gap-3">
                     <Avatar size="sm">
-                        <Avatar.Fallback>{deck.author.username[0]?.toUpperCase()}</Avatar.Fallback>
+                        <Avatar.Fallback>{deck.author.username?.[0]?.toUpperCase() || "?"}</Avatar.Fallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                            <span className="text-sm font-semibold truncate" style={{ color: "var(--foreground)" }}>
                                 {deck.author.username}
                             </span>
                             {deck.author.rank_badge && (
@@ -38,9 +39,9 @@ export default function DeckCard({ deck }: { deck: FeedDeck }) {
                 {/* Deck name + game/format */}
                 <div>
                     <h3 className="font-bold" style={{ color: "var(--foreground)" }}>{deck.deck_name}</h3>
-                    <div className="flex items-center gap-1.5 mt-1">
-                        <Chip variant="secondary" size="sm">{deck.game}</Chip>
-                        <Chip variant="secondary" size="sm">{deck.format}</Chip>
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        {deck.game && <Chip variant="secondary" size="sm">{deck.game}</Chip>}
+                        {deck.format && <Chip variant="secondary" size="sm">{deck.format}</Chip>}
                         <span className="text-xs ml-1" style={{ color: "var(--muted)" }}>
                             {deck.card_count} cartas
                         </span>
@@ -59,7 +60,7 @@ export default function DeckCard({ deck }: { deck: FeedDeck }) {
                                     borderColor: "var(--border)",
                                 }}
                             >
-                                <Image src={src} alt={`Carta extraída de mazo ${deck.deck_name}`} fill className="object-cover" sizes="(max-width: 768px) 64px, 64px" />
+                                <Image src={src} alt={`Carta ${i + 1}`} fill className="object-cover" sizes="64px" />
                             </div>
                         ))}
                     </div>
@@ -67,19 +68,21 @@ export default function DeckCard({ deck }: { deck: FeedDeck }) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-1" style={{ borderTop: "1px solid var(--separator)" }}>
-                    <Button variant="tertiary" size="sm" className="gap-1.5 text-[var(--muted)]">
-                        <Copy className="size-3.5" /> Copiar mazo
+                    <Button variant="tertiary" size="sm" className="gap-1 text-[var(--muted)]">
+                        <Copy className="size-3.5" /> Copiar
                     </Button>
-                    <Button variant="tertiary" size="sm" className="gap-1.5 text-[var(--muted)]">
+                    <Button variant="tertiary" size="sm" className="gap-1 text-[var(--muted)]">
                         <BookmarkFill className="size-3.5" /> Guardar
                     </Button>
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        className="ml-auto font-medium"
-                    >
-                        Ver completo
-                    </Button>
+                    <Link href={`/decks/${deck.id}`} className="ml-auto">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="font-medium"
+                        >
+                            Ver
+                        </Button>
+                    </Link>
                 </div>
             </Card.Content>
         </Card>

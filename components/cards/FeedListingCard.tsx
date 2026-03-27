@@ -17,13 +17,22 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
 
     return (
         <article
+            className="feed-listing-card"
             style={{
                 background: "var(--surface-solid)",
                 borderRadius: 16,
                 border: "1px solid var(--border)",
                 overflow: "hidden",
+                position: "relative",
+                transition: "box-shadow 0.25s, border-color 0.25s",
             }}
         >
+            <style>{`
+                .feed-listing-card:hover {
+                    border-color: rgba(59,130,246,0.4) !important;
+                    box-shadow: 0 0 20px rgba(59,130,246,0.15), 0 4px 16px rgba(0,0,0,0.1) !important;
+                }
+            `}</style>
             {/*
              * Mobile  (< md): vertical — imagen centrada arriba, mini detalle abajo
              * Desktop (≥ md): horizontal — imagen 260px izquierda, detalle completo derecha
@@ -31,21 +40,21 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
 
             {/* ── MOBILE: vertical layout ── */}
             <div className="flex flex-col md:hidden">
-                {/* Seller row */}
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px 0" }}>
+                {/* Seller row — same style as PostCard */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px 0" }}>
                     <div
                         style={{
-                            width: 26,
-                            height: 26,
+                            width: 36,
+                            height: 36,
                             borderRadius: "50%",
-                            background: "var(--surface)",
+                            background: "var(--surface-solid)",
                             overflow: "hidden",
                             flexShrink: 0,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: 10,
-                            fontWeight: 700,
+                            fontSize: 13,
+                            fontWeight: 600,
                             color: "var(--foreground)",
                         }}
                     >
@@ -53,50 +62,97 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             <Image
                                 src={listing.seller_avatar_url}
                                 alt={sellerName}
-                                width={26}
-                                height={26}
+                                width={36}
+                                height={36}
                                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                             />
                         ) : (
                             sellerName[0]?.toUpperCase()
                         )}
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
-                        {sellerName}
-                        {isStore && <span style={{ color: "var(--success)", marginLeft: 3 }}>✓</span>}
-                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>
+                                {sellerName}
+                            </span>
+                            {isStore && (
+                                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--success)", background: "rgba(34,197,94,0.15)", padding: "2px 6px", borderRadius: 6 }}>
+                                    Tienda
+                                </span>
+                            )}
+                        </div>
+                        <span style={{ fontSize: 12, color: "var(--muted)" }}>{timeAgo(listing.created_at)}</span>
+                    </div>
                     {listing.city && (
-                        <span style={{ fontSize: 10, color: "var(--muted)", display: "flex", alignItems: "center", gap: 2, marginLeft: "auto" }}>
-                            <MapPin style={{ width: 9, height: 9 }} />
+                        <span style={{
+                            fontSize: 11, fontWeight: 600, color: "#FFFFFF",
+                            backgroundColor: "rgba(59,130,246,0.35)",
+                            backdropFilter: "blur(12px)",
+                            WebkitBackdropFilter: "blur(12px)",
+                            border: "1px solid rgba(59,130,246,0.25)",
+                            padding: "4px 10px", borderRadius: 999,
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            marginLeft: "auto", flexShrink: 0,
+                        }}>
+                            <MapPin style={{ width: 11, height: 11 }} />
                             {listing.city}
                         </span>
                     )}
-                    <span style={{ fontSize: 10, color: "var(--muted)" }}>{timeAgo(listing.created_at)}</span>
                 </div>
 
-                {/* Card image — centered, restrained width */}
+                {/* Card image with floating actions */}
                 {imageUrl && (
-                    <Link href={`/marketplace/${listing.id}`} style={{ display: "flex", justifyContent: "center", padding: "10px 12px", background: "var(--background)" }}>
-                        <div style={{ position: "relative", width: 150, aspectRatio: "63 / 88" }}>
-                            <Image
-                                src={imageUrl}
-                                alt={listing.title}
-                                fill
-                                style={{ objectFit: "contain" }}
-                                sizes="150px"
-                            />
+                    <div style={{ position: "relative" }}>
+                        <Link href={`/marketplace/${listing.id}`} style={{ display: "flex", justifyContent: "center", padding: "4px", background: "var(--surface-solid)" }}>
+                            <div style={{ position: "relative", width: "98%", aspectRatio: "63 / 88" }}>
+                                <Image
+                                    src={imageUrl}
+                                    alt={listing.title}
+                                    fill
+                                    style={{ objectFit: "contain", borderRadius: 8 }}
+                                    sizes="(max-width: 768px) 75vw, 300px"
+                                />
+                            </div>
+                        </Link>
+                        {/* Floating like + bookmark */}
+                        <div style={{ position: "absolute", top: 12, right: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                            <button
+                                onClick={(e) => { e.preventDefault(); setLiked(!liked); }}
+                                style={{
+                                    width: 36, height: 36, borderRadius: 18,
+                                    backgroundColor: "rgba(0,0,0,0.45)",
+                                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                                    border: "none", cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                }}
+                            >
+                                <Heart style={{ width: 18, height: 18, color: liked ? "#EF4444" : "#FFFFFF", fill: liked ? "#EF4444" : "none" }} />
+                            </button>
+                            <button
+                                onClick={(e) => { e.preventDefault(); setBookmarked(!bookmarked); }}
+                                style={{
+                                    width: 36, height: 36, borderRadius: 18,
+                                    backgroundColor: "rgba(0,0,0,0.45)",
+                                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                                    border: "none", cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                }}
+                            >
+                                <Bookmark style={{ width: 18, height: 18, color: bookmarked ? "var(--accent)" : "#FFFFFF", fill: bookmarked ? "var(--accent)" : "none" }} />
+                            </button>
                         </div>
-                    </Link>
+                    </div>
                 )}
 
-                {/* Mini detail */}
-                <div style={{ padding: "8px 12px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                {/* Detail */}
+                <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {/* Title row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <Link href={`/marketplace/${listing.id}`} style={{ textDecoration: "none", flex: 1, minWidth: 0 }}>
                             <span
                                 style={{
-                                    fontSize: 13,
-                                    fontWeight: 700,
+                                    fontSize: 17,
+                                    fontWeight: 800,
                                     color: "var(--foreground)",
                                     display: "-webkit-box",
                                     WebkitLineClamp: 2,
@@ -108,16 +164,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 {listing.title}
                             </span>
                         </Link>
-                        {listing.price != null && (
-                            <span style={{ fontSize: 16, fontWeight: 800, color: "var(--accent)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                                ${listing.price.toLocaleString("es-CL")}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Tags + CTA */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                             {listing.card_condition && (
                                 <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", background: "var(--surface)", border: "1px solid var(--border)", padding: "2px 6px", borderRadius: 5 }}>
                                     {listing.card_condition}
@@ -129,27 +176,58 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 </span>
                             )}
                         </div>
-                        <Link
-                            href={`/marketplace/${listing.id}`}
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: "#FFFFFF",
-                                background: "var(--accent)",
-                                padding: "4px 10px",
-                                borderRadius: 7,
-                                textDecoration: "none",
-                                whiteSpace: "nowrap",
-                                flexShrink: 0,
-                            }}
-                        >
-                            <ShoppingCart style={{ width: 11, height: 11 }} />
-                            Ver oferta
-                        </Link>
                     </div>
+
+                    {/* Game + set info */}
+                    {(listing.game_name || listing.set_name) && (
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {listing.game_name && (
+                                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "rgba(59,130,246,0.1)", padding: "3px 8px", borderRadius: 999 }}>
+                                    {listing.game_name}
+                                </span>
+                            )}
+                            {listing.set_name && (
+                                <span style={{ fontSize: 11, fontWeight: 500, color: "var(--muted)", background: "var(--surface)", border: "1px solid var(--border)", padding: "3px 8px", borderRadius: 999 }}>
+                                    {listing.set_name}
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* CTA — Comprar + precio */}
+                    <Link
+                        href={`/marketplace/${listing.id}`}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            fontSize: 15,
+                            fontWeight: 600,
+                            background: "var(--foreground)",
+                            color: "var(--background)",
+                            padding: "5px 5px 5px 18px",
+                            borderRadius: 999,
+                            textDecoration: "none",
+                            width: "100%",
+                            transition: "opacity 0.15s",
+                        }}
+                        onMouseEnter={(e: any) => { e.currentTarget.style.opacity = "0.9"; }}
+                        onMouseLeave={(e: any) => { e.currentTarget.style.opacity = "1"; }}
+                    >
+                        Comprar
+                        {listing.price != null && (
+                            <span style={{
+                                fontSize: 18, fontWeight: 800,
+                                backgroundColor: "var(--accent)",
+                                color: "#FFFFFF",
+                                padding: "7px 16px", borderRadius: 999,
+                                marginLeft: "auto",
+                                letterSpacing: "-0.5px",
+                            }}>
+                                <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.85 }}>$</span>{listing.price.toLocaleString("es-CL")}
+                            </span>
+                        )}
+                    </Link>
                 </div>
             </div>
 

@@ -8,6 +8,7 @@ import {
     Medal,
     ShoppingCart,
     Comment,
+    TargetDart,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { getUserProfile } from "@/lib/api/social";
@@ -15,8 +16,8 @@ import { getUserProfile } from "@/lib/api/social";
 const tabs = [
     { href: "/", label: "Feed", icon: House },
     { href: "/torneos", label: "Torneos", icon: Medal },
+    { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true },
     { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
-    { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
 ];
 
 const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
@@ -68,6 +69,45 @@ export default function BottomNav() {
                 {filteredTabs.map((tab) => {
                     const Icon = tab.icon;
                     const active = isActive(tab.href);
+                    const isDuelos = tab.href === "/duelos";
+
+                    if (isDuelos) {
+                        return (
+                            <Link
+                                key={tab.href}
+                                href={tab.href}
+                                className="flex-1 flex flex-col items-center py-1"
+                                aria-label={tab.label}
+                                style={{ justifyContent: "flex-end" }}
+                            >
+                                <div
+                                    className="flex items-center justify-center"
+                                    style={{
+                                        width: 40, height: 40, borderRadius: 20,
+                                        backgroundColor: "var(--accent)",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    <Icon
+                                        className="size-[20px]"
+                                        style={{ color: "#FFFFFF" }}
+                                    />
+                                </div>
+                                <span
+                                    className="leading-none whitespace-nowrap transition-opacity duration-200"
+                                    style={{
+                                        fontSize: "10px",
+                                        fontWeight: 600,
+                                        letterSpacing: "0.1px",
+                                        color: "var(--foreground)",
+                                        opacity: active ? 1 : 0.5,
+                                    }}
+                                >
+                                    {tab.label}
+                                </span>
+                            </Link>
+                        );
+                    }
 
                     return (
                         <Link

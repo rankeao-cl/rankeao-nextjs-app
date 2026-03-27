@@ -23,6 +23,7 @@ import {
   Cup,
   Gear,
   Pencil,
+  Comment,
 } from "@gravity-ui/icons";
 import { useTheme } from "next-themes";
 import { getUnreadNotificationCount } from "@/lib/api/notifications";
@@ -158,6 +159,18 @@ export default function Navbar() {
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
+                  </Link>
+                )}
+
+                {/* Chat */}
+                {isAuthenticated && (
+                  <Link
+                    href="/chat"
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ background: "var(--surface-solid)" }}
+                    aria-label="Chat"
+                  >
+                    <Comment className="size-4" style={{ color: "var(--muted)" }} />
                   </Link>
                 )}
 
