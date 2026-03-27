@@ -42,44 +42,70 @@ function PlayerCard({ player, wins, isWinner, isMe }: {
     isWinner: boolean;
     isMe: boolean;
 }) {
+    const ringColor = isWinner ? "var(--success)" : isMe ? "var(--accent)" : "var(--border)";
+
     return (
         <div style={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 4,
-            padding: 14,
-            borderRadius: 14,
-            backgroundColor: isWinner ? "rgba(34,197,94,0.06)" : "var(--surface-tertiary)",
-            border: isWinner ? "1px solid rgba(34,197,94,0.15)" : isMe ? "1px solid rgba(59,130,246,0.15)" : "none",
+            gap: 6,
+            padding: "20px 14px",
+            backgroundColor: isWinner ? "rgba(34,197,94,0.04)" : "transparent",
         }}>
-            {player.avatar_url ? (
-                <Image src={player.avatar_url} alt={player.username} width={52} height={52} style={{ borderRadius: 999, objectFit: "cover" }} />
-            ) : (
-                <div style={{ width: 52, height: 52, borderRadius: 999, backgroundColor: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: "var(--muted)" }}>
-                        {(player.username || "?").charAt(0).toUpperCase()}
-                    </span>
+            {/* Avatar with ring */}
+            <div style={{
+                width: 68, height: 68, borderRadius: 34,
+                background: ringColor, padding: 3,
+                display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+                <div style={{
+                    width: 62, height: 62, borderRadius: 31,
+                    backgroundColor: "var(--background)", overflow: "hidden",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                    {player.avatar_url ? (
+                        <Image src={player.avatar_url} alt={player.username} width={62} height={62} style={{ objectFit: "cover" }} />
+                    ) : (
+                        <span style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)" }}>
+                            {(player.username || "?").charAt(0).toUpperCase()}
+                        </span>
+                    )}
                 </div>
+            </div>
+
+            {/* Name */}
+            <Link href={`/perfil/${player.username}`} style={{ textDecoration: "none", textAlign: "center" }}>
+                <span style={{ fontSize: 15, fontWeight: 800, color: isWinner ? "var(--success)" : "var(--foreground)" }}>
+                    {player.display_name || player.username}
+                </span>
+            </Link>
+            <span style={{ fontSize: 11, color: "var(--muted)" }}>@{player.username}</span>
+
+            {/* Rating badge */}
+            {player.rating != null && (
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "2px 8px", borderRadius: 999 }}>
+                    {player.rating} ELO
+                </span>
             )}
-            <span style={{ fontSize: 13, fontWeight: 700, color: isWinner ? "var(--success)" : "var(--foreground)", textAlign: "center" }}>
-                {player.display_name || player.username}
-            </span>
-            <span style={{ fontSize: 10, color: "var(--muted)" }}>@{player.username}</span>
+
+            {/* Wins */}
             {wins != null && (
-                <span style={{ fontSize: 28, fontWeight: 800, color: isWinner ? "var(--success)" : "var(--foreground)", marginTop: 4 }}>
+                <span style={{ fontSize: 32, fontWeight: 900, color: isWinner ? "var(--success)" : "var(--foreground)", marginTop: 4, letterSpacing: "-1px" }}>
                     {wins}
                 </span>
             )}
+
+            {/* Badges */}
             {isWinner && (
-                <span style={{ fontSize: 9, fontWeight: 800, color: "var(--success)", backgroundColor: "rgba(34,197,94,0.1)", padding: "2px 8px", borderRadius: 999, marginTop: 2 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--success)", backgroundColor: "rgba(34,197,94,0.1)", padding: "3px 10px", borderRadius: 999 }}>
                     GANADOR
                 </span>
             )}
             {isMe && !isWinner && (
-                <span style={{ fontSize: 9, fontWeight: 800, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.1)", padding: "2px 8px", borderRadius: 999, marginTop: 2 }}>
-                    TU
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.1)", padding: "3px 10px", borderRadius: 999 }}>
+                    TÚ
                 </span>
             )}
         </div>
@@ -113,6 +139,30 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [duel, setDuel] = useState<Duel | null>(initialDuel);
     const [initialLoading, setInitialLoading] = useState(!initialDuel);
     const [loading, setLoading] = useState<string | null>(null);
+    const introEligible = initialDuel ? ["ACCEPTED", "IN_PROGRESS"].includes(initialDuel.status) : false;
+    const [showIntro, setShowIntro] = useState(introEligible);
+    const [introFading, setIntroFading] = useState(false);
+
+    // Vibrate on impact (~1.2s after mount)
+    useEffect(() => {
+        if (!introEligible) return;
+        const timer = setTimeout(() => {
+            try { if (navigator.vibrate) navigator.vibrate([150, 40, 80, 30, 50]); } catch {}
+        }, 1200);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Auto-dismiss intro after animation
+    useEffect(() => {
+        const fadeTimer = setTimeout(() => setIntroFading(true), 2800);
+        const hideTimer = setTimeout(() => setShowIntro(false), 3500);
+        return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
+    }, []);
+
+    const skipIntro = () => {
+        setIntroFading(true);
+        setTimeout(() => setShowIntro(false), 700);
+    };
 
     // Report form
     const [showReport, setShowReport] = useState(false);
@@ -127,6 +177,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     // Report opponent
     const [showReportUser, setShowReportUser] = useState(false);
     const [reportReason, setReportReason] = useState("");
+
+
 
     // Fetch comments
     const fetchComments = useCallback(async () => {
@@ -295,22 +347,310 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         }
     };
 
-    return (
-        <div className="max-w-3xl mx-auto flex flex-col" style={{ position: "relative" }}>
-            {/* Gradient banner — matches Expo */}
-            <div>
-                <div style={{ height: 4, backgroundColor: cfg.color }} />
+    // ── Intro animation ──
+    if (showIntro && duel) {
+        const p1 = duel.challenger;
+        const p2 = duel.opponent;
+
+        const renderAvatar = (player: typeof p1, size: number) => (
+            <div style={{
+                width: size, height: size, borderRadius: size / 2,
+                background: "var(--accent)", padding: 3,
+                display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
                 <div style={{
-                    height: 100,
-                    background: `linear-gradient(135deg, ${cfg.color}15 0%, rgba(0,0,0,0) 50%, rgba(59,130,246,0.04) 100%)`,
+                    width: size - 6, height: size - 6, borderRadius: (size - 6) / 2,
+                    backgroundColor: "var(--background)", overflow: "hidden",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: size * 0.3, fontWeight: 800, color: "var(--foreground)",
+                }}>
+                    {player.avatar_url
+                        ? <img src={player.avatar_url} alt="" style={{ width: size - 6, height: size - 6, objectFit: "cover" }} />
+                        : (player.username || "?").charAt(0).toUpperCase()
+                    }
+                </div>
+            </div>
+        );
+
+        // Generate spark particles
+        const sparks = Array.from({ length: 12 }, (_, i) => {
+            const angle = (i / 12) * 360;
+            const dist = 60 + Math.random() * 80;
+            const x = Math.cos(angle * Math.PI / 180) * dist;
+            const y = Math.sin(angle * Math.PI / 180) * dist;
+            const size = 3 + Math.random() * 4;
+            const delay = 1.2 + Math.random() * 0.15;
+            return { x, y, size, delay };
+        });
+
+        return (
+            <div style={{
+                position: "fixed", inset: 0, zIndex: 9999,
+                backgroundColor: "var(--background)",
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                overflow: "hidden",
+            }}>
+                <style>{`
+                    @keyframes slideFromLeft {
+                        0% { opacity: 0; transform: translateX(-100vw); }
+                        30% { opacity: 1; transform: translateX(10px); }
+                        40% { transform: translateX(0); }
+                        100% { opacity: 1; transform: translateX(0); }
+                    }
+                    @keyframes slideFromRight {
+                        0% { opacity: 0; transform: translateX(100vw); }
+                        30% { opacity: 1; transform: translateX(-10px); }
+                        40% { transform: translateX(0); }
+                        100% { opacity: 1; transform: translateX(0); }
+                    }
+                    @keyframes vsDrop {
+                        0%, 35% { opacity: 0; transform: translateY(-200px) rotate(-360deg) scale(0.2); }
+                        65% { opacity: 1; transform: translateY(8px) rotate(10deg) scale(1.3); }
+                        75% { transform: translateY(-4px) rotate(-3deg) scale(1); }
+                        85% { transform: translateY(0) rotate(0deg) scale(1); }
+                        100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+                    }
+                    @keyframes vsGlow {
+                        0%, 60% { text-shadow: 0 0 0px transparent; }
+                        80% { text-shadow: 0 0 40px rgba(59,130,246,0.7), 0 0 80px rgba(59,130,246,0.3); }
+                        100% { text-shadow: 0 0 20px rgba(59,130,246,0.4), 0 0 40px rgba(59,130,246,0.15); }
+                    }
+                    @keyframes playerGrow {
+                        0%, 65% { transform: scale(1); }
+                        80% { transform: scale(1.25); }
+                        100% { transform: scale(1.25); }
+                    }
+                    @keyframes nameHide {
+                        0%, 65% { opacity: 1; }
+                        80% { opacity: 0; }
+                        100% { opacity: 0; }
+                    }
+                    @keyframes tagsIn {
+                        0%, 50% { opacity: 0; transform: translateY(20px); }
+                        70% { opacity: 1; transform: translateY(0); }
+                        100% { opacity: 1; transform: translateY(0); }
+                    }
+                    @keyframes skipIn {
+                        0%, 60% { opacity: 0; }
+                        100% { opacity: 1; }
+                    }
+                    @keyframes impactFlash {
+                        0%, 42% { opacity: 0; }
+                        44% { opacity: 0.7; }
+                        50% { opacity: 0; }
+                        100% { opacity: 0; }
+                    }
+                    @keyframes screenShake {
+                        0%, 42% { transform: translate(0, 0); }
+                        43% { transform: translate(-6px, 4px); }
+                        44% { transform: translate(5px, -3px); }
+                        45% { transform: translate(-4px, -5px); }
+                        46% { transform: translate(3px, 2px); }
+                        47% { transform: translate(-2px, -1px); }
+                        48% { transform: translate(0, 0); }
+                        100% { transform: translate(0, 0); }
+                    }
+                    @keyframes speedLineLeft {
+                        0% { opacity: 0; transform: translateX(50px); }
+                        15% { opacity: 0.3; transform: translateX(0); }
+                        35% { opacity: 0; transform: translateX(-30px); }
+                        100% { opacity: 0; }
+                    }
+                    @keyframes speedLineRight {
+                        0% { opacity: 0; transform: translateX(-50px); }
+                        15% { opacity: 0.3; transform: translateX(0); }
+                        35% { opacity: 0; transform: translateX(30px); }
+                        100% { opacity: 0; }
+                    }
+                    @keyframes fightIn {
+                        0%, 55% { opacity: 0; transform: scale(3) rotate(-10deg); }
+                        65% { opacity: 1; transform: scale(1) rotate(0deg); }
+                        72% { transform: scale(1.1) rotate(2deg); }
+                        80% { transform: scale(1) rotate(0deg); }
+                        100% { opacity: 1; transform: scale(1) rotate(0deg); }
+                    }
+                    @keyframes fightGlow {
+                        0%, 65% { text-shadow: none; }
+                        75% { text-shadow: 0 0 30px rgba(239,68,68,0.6), 0 0 60px rgba(239,68,68,0.3); }
+                        100% { text-shadow: 0 0 15px rgba(239,68,68,0.3), 0 0 30px rgba(239,68,68,0.15); }
+                    }
+                `}</style>
+
+                {/* White flash on impact */}
+                <div style={{
+                    position: "absolute", inset: 0, backgroundColor: "#FFFFFF", pointerEvents: "none",
+                    animation: "impactFlash 2.8s ease-out forwards", zIndex: 1,
+                }} />
+
+                {/* Speed lines — left player */}
+                {[0,1,2].map(i => (
+                    <div key={`sl-${i}`} style={{
+                        position: "absolute",
+                        left: "10%", top: `${40 + i * 8}%`,
+                        width: 80, height: 2,
+                        background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+                        animation: `speedLineLeft 1.2s ${i * 0.05}s ease-out forwards`,
+                        opacity: 0,
+                    }} />
+                ))}
+                {/* Speed lines — right player */}
+                {[0,1,2].map(i => (
+                    <div key={`sr-${i}`} style={{
+                        position: "absolute",
+                        right: "10%", top: `${40 + i * 8}%`,
+                        width: 80, height: 2,
+                        background: "linear-gradient(90deg, transparent, var(--accent), transparent)",
+                        animation: `speedLineRight 1.2s ${i * 0.05}s ease-out forwards`,
+                        opacity: 0,
+                    }} />
+                ))}
+
+                {/* Spark particles on impact */}
+                {sparks.map((s, i) => (
+                    <div key={`spark-${i}`} style={{
+                        position: "absolute",
+                        left: "50%", top: "50%",
+                        width: s.size, height: s.size,
+                        borderRadius: "50%",
+                        backgroundColor: i % 3 === 0 ? "var(--accent)" : i % 3 === 1 ? "var(--warning)" : "#FFFFFF",
+                        opacity: 0,
+                        animation: `sparkMove${i} 0.6s ${s.delay}s ease-out forwards`,
+                    }}>
+                        <style>{`
+                            @keyframes sparkMove${i} {
+                                0% { opacity: 1; transform: translate(0, 0) scale(1); }
+                                100% { opacity: 0; transform: translate(${s.x}px, ${s.y}px) scale(0); }
+                            }
+                        `}</style>
+                    </div>
+                ))}
+
+                <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
+                    opacity: introFading ? 0 : 1,
+                    transform: introFading ? "scale(1.08)" : "scale(1)",
+                    transition: "opacity 0.7s ease-out, transform 0.7s ease-out",
+                    animation: "screenShake 2.8s ease-out forwards",
+                    zIndex: 2,
+                }}>
+                    {/* Players + VS row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+                        {/* Player 1 — from left */}
+                        <div style={{
+                            animation: "slideFromLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                        }}>
+                            <div style={{ animation: "playerGrow 3s ease-in-out forwards" }}>
+                                {renderAvatar(p1, 80)}
+                            </div>
+                            <span style={{
+                                fontSize: 16, fontWeight: 800, color: "var(--foreground)",
+                                animation: "nameHide 3s ease-in-out forwards",
+                            }}>
+                                {p1.display_name || p1.username}
+                            </span>
+                        </div>
+
+                        {/* VS — drops from sky, spins 360° */}
+                        <div style={{ animation: "vsDrop 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }}>
+                            <span style={{
+                                fontSize: 52, fontWeight: 900, color: "var(--accent)",
+                                animation: "vsGlow 2.5s ease-out forwards",
+                                letterSpacing: "-2px",
+                            }}>
+                                VS
+                            </span>
+                        </div>
+
+                        {/* Player 2 — from right */}
+                        <div style={{
+                            animation: "slideFromRight 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                        }}>
+                            <div style={{ animation: "playerGrow 3s ease-in-out forwards" }}>
+                                {renderAvatar(p2, 80)}
+                            </div>
+                            <span style={{
+                                fontSize: 16, fontWeight: 800, color: "var(--foreground)",
+                                animation: "nameHide 3s ease-in-out forwards",
+                            }}>
+                                {p2.display_name || p2.username}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* FIGHT! text */}
+                    <div style={{ animation: "fightIn 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+                        <span style={{
+                            fontSize: 28, fontWeight: 900, color: "#EF4444",
+                            letterSpacing: "6px",
+                            animation: "fightGlow 2.8s ease-out forwards",
+                        }}>
+                            FIGHT!
+                        </span>
+                    </div>
+
+                    {/* Game + format tags */}
+                    <div style={{ display: "flex", gap: 8, animation: "tagsIn 2s ease-out forwards" }}>
+                        {duel.game_name && (
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)", background: "rgba(59,130,246,0.12)", padding: "4px 12px", borderRadius: 999 }}>
+                                {duel.game_name}
+                            </span>
+                        )}
+                        {duel.format_name && (
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)", background: "var(--surface-solid)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: 999 }}>
+                                {duel.format_name}
+                            </span>
+                        )}
+                        {duel.best_of != null && duel.best_of > 0 && (
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)", background: "var(--surface-solid)", border: "1px solid var(--border)", padding: "4px 12px", borderRadius: 999 }}>
+                                Bo{duel.best_of}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Skip button */}
+                    <button
+                        onClick={skipIntro}
+                        style={{
+                            animation: "skipIn 2.5s ease-out forwards",
+                            marginTop: 8, background: "none", border: "1px solid var(--border)",
+                            color: "var(--muted)", fontSize: 12, fontWeight: 600,
+                            padding: "6px 16px", borderRadius: 999, cursor: "pointer",
+                        }}
+                    >
+                        Saltar
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-4xl mx-auto flex flex-col" style={{ position: "relative", animation: introEligible ? "duelContentIn 0.8s ease-out" : undefined }}>
+            <style>{`
+                @keyframes duelContentIn {
+                    0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+                    100% { opacity: 1; transform: scale(1) translateY(0); }
+                }
+            `}</style>
+            {/* Gradient banner */}
+            <div>
+                <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${cfg.color}, transparent)` }} />
+                <div style={{
+                    height: 120,
+                    background: `linear-gradient(180deg, ${cfg.color}12 0%, transparent 60%), linear-gradient(135deg, rgba(59,130,246,0.04) 0%, transparent 50%)`,
                 }} />
             </div>
 
-            {/* Floating buttons — matches Expo */}
+            {/* Floating buttons */}
             <div style={{ position: "absolute", top: 20, left: 16, zIndex: 10 }}>
                 <Link href="/duelos" style={{
-                    width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.6)",
+                    width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.5)",
+                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                     display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none",
+                    border: "1px solid rgba(255,255,255,0.1)",
                 }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="15 18 9 12 15 6" />
@@ -319,8 +659,9 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             </div>
             <div style={{ position: "absolute", top: 20, right: 16, zIndex: 10 }}>
                 <button onClick={handleShare} style={{
-                    width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.6)",
-                    display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer",
+                    width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.5)",
+                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                    display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer",
                 }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
@@ -328,72 +669,110 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                 </button>
             </div>
 
-            {/* Header section — overlapping banner */}
-            <div style={{ marginTop: -40, paddingLeft: 16, paddingRight: 16 }}>
-                {/* Status + time row */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            {/* Header — overlapping banner */}
+            <div style={{ marginTop: -60, paddingLeft: 20, paddingRight: 20 }}>
+                {/* Status + time */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <span style={{
-                        display: "inline-flex", alignItems: "center", gap: 5,
-                        padding: "4px 10px", borderRadius: 999, backgroundColor: cfg.color + "18",
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        padding: "5px 14px", borderRadius: 999,
+                        backgroundColor: cfg.color + "18",
+                        border: `1px solid ${cfg.color}30`,
                     }}>
                         {hasActiveStatus && (
-                            <span style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: cfg.color, animation: "pulse 1.6s ease-in-out infinite" }} />
+                            <span style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: cfg.color, animation: "pulse 1.6s ease-in-out infinite" }} />
                         )}
-                        <span style={{ fontSize: 10, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
                     </span>
-                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgo(duel.created_at, { verbose: true, fallbackDays: 7 })}</span>
+                    <span style={{ fontSize: 12, color: "var(--muted)" }}>{timeAgo(duel.created_at, { verbose: true, fallbackDays: 7 })}</span>
                 </div>
 
-                {/* Title */}
-                <h1 style={{ color: "var(--foreground)", fontSize: 20, fontWeight: 800, lineHeight: "26px", margin: 0, marginBottom: 10 }}>
-                    {duel.challenger.display_name || duel.challenger.username} vs {duel.opponent.display_name || duel.opponent.username}
-                </h1>
-
                 {/* Tags */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
                     {duel.game_name && (
-                        <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 8px", borderRadius: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.1)", padding: "5px 12px", borderRadius: 999 }}>
                             {duel.game_name}
                         </span>
                     )}
                     {duel.format_name && (
-                        <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 8px", borderRadius: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", padding: "5px 12px", borderRadius: 999 }}>
                             {duel.format_name}
                         </span>
                     )}
                     {duel.best_of != null && duel.best_of > 0 && (
-                        <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 8px", borderRadius: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)", padding: "5px 12px", borderRadius: 999 }}>
                             Bo{duel.best_of}
                         </span>
                     )}
-                    <span style={{ fontSize: 11, color: "var(--warning)", fontWeight: 600, backgroundColor: "rgba(245,158,11,0.1)", padding: "4px 8px", borderRadius: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--warning)", backgroundColor: "rgba(245,158,11,0.1)", padding: "5px 12px", borderRadius: 999 }}>
                         Casual
                     </span>
                 </div>
             </div>
 
-            {/* Players card */}
+            {/* Players card — arena hero */}
             <div style={{
-                display: "flex", gap: 8, alignItems: "stretch",
-                marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
-                backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
+                marginLeft: 20, marginRight: 20, marginBottom: 16,
+                borderRadius: 20, overflow: "hidden",
+                border: `1px solid ${cfg.color}30`,
+                position: "relative",
+                background: "var(--surface-solid)",
             }}>
-                <PlayerCard player={duel.challenger} wins={duel.challenger_wins} isWinner={challengerWon} isMe={isChallenger} />
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {(duel.challenger_wins != null && duel.opponent_wins != null && (duel.challenger_wins > 0 || duel.opponent_wins > 0)) ? (
-                        <span style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)" }}>{duel.challenger_wins} - {duel.opponent_wins}</span>
-                    ) : (
-                        <span style={{ fontSize: 12, fontWeight: 800, color: "var(--muted)" }}>VS</span>
-                    )}
+                <style>{`
+                    @keyframes arenaGlow {
+                        0%, 100% { box-shadow: inset 0 0 30px rgba(59,130,246,0.03); }
+                        50% { box-shadow: inset 0 0 60px rgba(59,130,246,0.08); }
+                    }
+                `}</style>
+
+                {/* Diagonal slash divider */}
+                <div style={{
+                    position: "absolute", top: 0, bottom: 0, left: "50%",
+                    width: 2,
+                    background: `linear-gradient(180deg, transparent 0%, ${cfg.color}30 30%, ${cfg.color}15 70%, transparent 100%)`,
+                    transform: "rotate(12deg) scaleY(1.4)", transformOrigin: "center",
+                    pointerEvents: "none", zIndex: 1,
+                }} />
+                <div style={{
+                    position: "absolute", top: 0, bottom: 0, left: "calc(50% + 5px)",
+                    width: 1,
+                    background: `linear-gradient(180deg, transparent 0%, ${cfg.color}15 30%, ${cfg.color}08 70%, transparent 100%)`,
+                    transform: "rotate(12deg) scaleY(1.4)", transformOrigin: "center",
+                    pointerEvents: "none", zIndex: 1,
+                }} />
+
+                <div style={{
+                    display: "flex", alignItems: "stretch",
+                    animation: hasActiveStatus ? "arenaGlow 3s ease-in-out infinite" : undefined,
+                }}>
+                    <PlayerCard player={duel.challenger} wins={duel.challenger_wins} isWinner={challengerWon} isMe={isChallenger} />
+                    <div style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        padding: "20px 20px", gap: 4, zIndex: 2,
+                    }}>
+                        {(duel.challenger_wins != null && duel.opponent_wins != null && (duel.challenger_wins > 0 || duel.opponent_wins > 0)) ? (
+                            <span style={{
+                                fontSize: 30, fontWeight: 900, color: "var(--foreground)", letterSpacing: "-1px",
+                                textShadow: "0 0 12px rgba(59,130,246,0.15)",
+                            }}>
+                                {duel.challenger_wins} - {duel.opponent_wins}
+                            </span>
+                        ) : (
+                            <span style={{
+                                fontSize: 28, fontWeight: 900, color: "var(--accent)", letterSpacing: "2px",
+                                textShadow: "0 0 24px rgba(59,130,246,0.5), 0 0 48px rgba(59,130,246,0.2)",
+                            }}>VS</span>
+                        )}
+                    </div>
+                    <PlayerCard player={duel.opponent} wins={duel.opponent_wins} isWinner={opponentWon} isMe={isOpponent} />
                 </div>
-                <PlayerCard player={duel.opponent} wins={duel.opponent_wins} isWinner={opponentWon} isMe={isOpponent} />
             </div>
 
             {/* Message card */}
             {!!duel.message && (
                 <div style={{
                     display: "flex", alignItems: "flex-start", gap: 8,
-                    marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
+                    marginLeft: 20, marginRight: 20, marginBottom: 16, padding: 16,
                     backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
                 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
@@ -409,7 +788,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             {isCompleted && duel.xp_gained != null && duel.xp_gained > 0 && (
                 <div style={{
                     display: "flex", alignItems: "center", gap: 12,
-                    marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
+                    marginLeft: 20, marginRight: 20, marginBottom: 16, padding: 16,
                     backgroundColor: "rgba(245,158,11,0.06)", borderRadius: 14, border: "1px solid rgba(245,158,11,0.15)",
                 }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--warning)" stroke="none">
@@ -443,29 +822,38 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                 </div>
             )}
 
-            {/* Actions card */}
+            {/* Actions */}
             {(isPending || isActive || isAwaiting || isDisputed) && isMyDuel && (
                 <div style={{
-                    marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
-                    backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
+                    marginLeft: 20, marginRight: 20, marginBottom: 16,
                     display: "flex", flexDirection: "column", gap: 10,
                 }}>
-                    <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700 }}>Acciones</span>
-
                     {/* Pending: Accept/Decline (opponent only) */}
                     {isPending && isOpponent && (
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 10 }}>
                             <button
                                 onClick={() => exec("Aceptar", () => acceptDuel(duelId, token))}
                                 disabled={!!loading}
-                                style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--success)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                style={{
+                                    flex: 2, padding: "14px 0", borderRadius: 14, border: "none",
+                                    backgroundColor: "var(--success)", color: "#fff",
+                                    fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer",
+                                    opacity: loading ? 0.6 : 1,
+                                    boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
+                                }}
                             >
-                                {loading === "Aceptar" ? "..." : "Aceptar"}
+                                {loading === "Aceptar" ? "..." : "Aceptar duelo"}
                             </button>
                             <button
                                 onClick={() => { if (confirm("Seguro que quieres rechazar?")) exec("Rechazar", () => declineDuel(duelId, token)); }}
                                 disabled={!!loading}
-                                style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--danger)", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                style={{
+                                    flex: 1, padding: "14px 0", borderRadius: 14,
+                                    border: "1px solid rgba(239,68,68,0.3)",
+                                    backgroundColor: "rgba(239,68,68,0.08)", color: "var(--danger)",
+                                    fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
+                                    opacity: loading ? 0.6 : 1,
+                                }}
                             >
                                 {loading === "Rechazar" ? "..." : "Rechazar"}
                             </button>
@@ -477,61 +865,66 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         <button
                             onClick={() => { if (confirm("Seguro que quieres cancelar?")) exec("Cancelar", () => cancelDuel(duelId, token)); }}
                             disabled={!!loading}
-                            style={{ padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                            style={{
+                                padding: "14px 0", borderRadius: 14,
+                                border: "1px solid var(--border)", backgroundColor: "var(--surface-solid)",
+                                color: "var(--muted)", fontSize: 14, fontWeight: 700,
+                                cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1,
+                            }}
                         >
-                            {loading === "Cancelar" ? "..." : "Cancelar desafio"}
+                            {loading === "Cancelar" ? "..." : "Cancelar desafío"}
                         </button>
                     )}
 
-                    {/* Active: Report result */}
-                    {isActive && isMyDuel && !showReport && (
-                        <button
-                            onClick={() => setShowReport(true)}
-                            disabled={!!loading}
-                            style={{ padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--accent)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-                        >
-                            Reportar resultado
-                        </button>
-                    )}
+                    {/* Report form — always visible when active */}
+                    {isActive && isMyDuel && (
+                        <div style={{
+                            display: "flex", flexDirection: "column", gap: 14,
+                            backgroundColor: "var(--surface-solid)", borderRadius: 16, border: "1px solid var(--border)",
+                            padding: 18,
 
-                    {/* Report form */}
-                    {isActive && showReport && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700 }}>Resultado</span>
-                            <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center" }}>
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                                    <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Tu</span>
+                        }}>
+                            <span style={{ color: "var(--foreground)", fontSize: 15, fontWeight: 800, textAlign: "center" }}>
+                                Reportar resultado
+                            </span>
+                            <div style={{
+                                display: "flex", gap: 16, alignItems: "center", justifyContent: "center",
+                            }}>
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                                    <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700 }}>Tú</span>
                                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                         <button onClick={() => setMyWins(Math.max(0, myWins - 1))} style={counterBtnStyle}>-</button>
-                                        <span style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", minWidth: 24, textAlign: "center" }}>{myWins}</span>
+                                        <span style={{ fontSize: 28, fontWeight: 900, color: "var(--foreground)", minWidth: 28, textAlign: "center" }}>{myWins}</span>
                                         <button onClick={() => { const next = Math.min(maxWins, myWins + 1); setMyWins(next); if (next === maxWins && oppWins >= maxWins) setOppWins(maxWins - 1); }} style={counterBtnStyle}>+</button>
                                     </div>
                                 </div>
-                                <span style={{ fontSize: 16, fontWeight: 800, color: "var(--muted)", marginTop: 20 }}>-</span>
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                                    <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Oponente</span>
+                                <span style={{
+                                    fontSize: 18, fontWeight: 900, color: "var(--muted)", marginTop: 20,
+                                }}>—</span>
+                                <div style={{
+                                    display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                                }}>
+                                    <span style={{ fontSize: 12, color: "var(--danger)", fontWeight: 700 }}>Oponente</span>
                                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                         <button onClick={() => setOppWins(Math.max(0, oppWins - 1))} style={counterBtnStyle}>-</button>
-                                        <span style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", minWidth: 24, textAlign: "center" }}>{oppWins}</span>
+                                        <span style={{ fontSize: 28, fontWeight: 900, color: "var(--foreground)", minWidth: 28, textAlign: "center" }}>{oppWins}</span>
                                         <button onClick={() => { const next = Math.min(maxWins, oppWins + 1); setOppWins(next); if (next === maxWins && myWins >= maxWins) setMyWins(maxWins - 1); }} style={counterBtnStyle}>+</button>
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <button
-                                    onClick={() => setShowReport(false)}
-                                    style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleReport}
-                                    disabled={!!loading}
-                                    style={{ flex: 2, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--accent)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading === "report" ? 0.6 : 1 }}
-                                >
-                                    {loading === "report" ? "Enviando..." : "Enviar"}
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleReport}
+                                disabled={!!loading}
+                                style={{
+                                    width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
+                                    backgroundColor: "var(--accent)", color: "#fff",
+                                    fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer",
+                                    opacity: loading === "report" ? 0.6 : 1,
+                                    boxShadow: "0 4px 14px rgba(59,130,246,0.3)",
+                                }}
+                            >
+                                {loading === "report" ? "Enviando..." : "Enviar resultado"}
+                            </button>
                         </div>
                     )}
 
@@ -551,18 +944,30 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                                     Esperando que tu oponente confirme el resultado
                                 </p>
                             ) : (
-                                <div style={{ display: "flex", gap: 8 }}>
+                                <div style={{ display: "flex", gap: 10 }}>
                                     <button
                                         onClick={() => exec("Confirmar", () => confirmDuelResult(duelId, token))}
                                         disabled={!!loading}
-                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", backgroundColor: "var(--success)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                        style={{
+                                            flex: 2, padding: "14px 0", borderRadius: 14, border: "none",
+                                            backgroundColor: "var(--success)", color: "#fff",
+                                            fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer",
+                                            opacity: loading ? 0.6 : 1,
+                                            boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
+                                        }}
                                     >
-                                        {loading === "Confirmar" ? "..." : "Confirmar"}
+                                        {loading === "Confirmar" ? "..." : "Confirmar resultado"}
                                     </button>
                                     <button
                                         onClick={() => { if (confirm("El resultado sera revisado por un moderador. Continuar?")) exec("Disputar", () => disputeDuel(duelId, token)); }}
                                         disabled={!!loading}
-                                        style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.1)", color: "var(--danger)", fontSize: 13, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+                                        style={{
+                                            flex: 1, padding: "14px 0", borderRadius: 14,
+                                            border: "1px solid rgba(239,68,68,0.3)",
+                                            backgroundColor: "rgba(239,68,68,0.08)", color: "var(--danger)",
+                                            fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer",
+                                            opacity: loading ? 0.6 : 1,
+                                        }}
                                     >
                                         {loading === "Disputar" ? "..." : "Disputar"}
                                     </button>
@@ -596,7 +1001,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             {/* Comments section */}
             {(isCompleted || isActive || isAwaiting) && (
                 <div style={{
-                    marginLeft: 16, marginRight: 16, marginBottom: 12, padding: 14,
+                    marginLeft: 20, marginRight: 20, marginBottom: 16, padding: 16,
                     backgroundColor: "var(--surface-solid)", borderRadius: 14, border: "1px solid var(--border)",
                 }}>
                     <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700, display: "block", marginBottom: 10 }}>Comentarios</span>
