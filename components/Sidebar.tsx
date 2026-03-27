@@ -98,7 +98,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
             className={`hidden lg:flex flex-col h-full border-r transition-all duration-300 shrink-0 ${collapsed ? "w-[68px]" : "w-[220px]"}`}
             style={{ borderColor: "var(--border)", background: "var(--background)" }}
         >
-            <nav className="flex-1 flex flex-col gap-1 p-3 pt-4 overflow-y-auto">
+            <nav className="flex-1 flex flex-col p-3 pt-4 overflow-y-auto">
                 {/* Botón Crear + */}
                 {isAuth && (
                     <div className="relative mb-3" ref={createRef}>
@@ -115,7 +115,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                             aria-expanded={createOpen}
                         >
                             <Plus className="size-4 shrink-0" />
-                            {!collapsed && <span>Crear +</span>}
+                            {!collapsed && <span>Crear</span>}
                         </button>
 
                         {/* Dropdown opciones */}
@@ -172,8 +172,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                     </div>
                 )}
 
-                {/* Items de navegación */}
-                <div className="flex flex-col gap-0.5">
+                {/* Items de navegación — centrados verticalmente */}
+                <div className="flex-1 flex flex-col justify-center gap-0.5">
                     {visibleItems.map((item) => {
                         const Icon = item.icon;
                         const active = isActive(item.href);
