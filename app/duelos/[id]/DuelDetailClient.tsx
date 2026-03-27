@@ -139,25 +139,36 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [duel, setDuel] = useState<Duel | null>(initialDuel);
     const [initialLoading, setInitialLoading] = useState(!initialDuel);
     const [loading, setLoading] = useState<string | null>(null);
-    const introEligible = initialDuel ? ["ACCEPTED", "IN_PROGRESS"].includes(initialDuel.status) : false;
-    const [showIntro, setShowIntro] = useState(introEligible);
+    const [introChecked, setIntroChecked] = useState(false);
+    const [showIntro, setShowIntro] = useState(false);
     const [introFading, setIntroFading] = useState(false);
+    const introEligible = duel ? ["ACCEPTED", "IN_PROGRESS"].includes(duel.status) : false;
 
-    // Vibrate on impact (~1.2s after mount)
+    // Trigger intro once when duel loads (server or client)
     useEffect(() => {
-        if (!introEligible) return;
+        if (introChecked || !duel) return;
+        setIntroChecked(true);
+        if (["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) {
+            setShowIntro(true);
+        }
+    }, [duel, introChecked]);
+
+    // Vibrate on impact (~1.2s after intro starts)
+    useEffect(() => {
+        if (!showIntro) return;
         const timer = setTimeout(() => {
             try { if (navigator.vibrate) navigator.vibrate([150, 40, 80, 30, 50]); } catch {}
         }, 1200);
         return () => clearTimeout(timer);
-    }, []);
+    }, [showIntro]);
 
     // Auto-dismiss intro after animation
     useEffect(() => {
+        if (!showIntro) return;
         const fadeTimer = setTimeout(() => setIntroFading(true), 2800);
         const hideTimer = setTimeout(() => setShowIntro(false), 3500);
         return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); };
-    }, []);
+    }, [showIntro]);
 
     const skipIntro = () => {
         setIntroFading(true);
