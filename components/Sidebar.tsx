@@ -195,7 +195,7 @@ export default function Sidebar() {
                                         <span
                                             className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
                                             style={{
-                                                top: "-7px",
+                                                bottom: "-7px",
                                                 right: "-7px",
                                                 minWidth: "16px",
                                                 height: "16px",
