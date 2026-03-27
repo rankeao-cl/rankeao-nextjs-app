@@ -208,8 +208,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     }, [duelId, token]);
 
     const fetchActiveGame = useCallback(async () => {
-        if (!token || !duel) return;
-        if (!["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) return;
+        if (!token) return;
         try {
             const snap = await getGameState(duelId, 1, token);
             if (snap?.game?.game_number) {
@@ -217,10 +216,9 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                 setActiveGameSnapshot(snap);
             }
         } catch {
-            setActiveGameNumber(null);
-            setActiveGameSnapshot(null);
+            // 404 = no hay partida activa todavía
         }
-    }, [duelId, token, duel]);
+    }, [duelId, token]);
 
     const handleStartGame = async () => {
         if (!token || !duel) return;
