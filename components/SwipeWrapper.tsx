@@ -9,7 +9,7 @@ interface SwipeWrapperProps {
 }
 
 // Rutas principales en orden (tabs del bottom nav)
-const MAIN_ROUTES = ["/", "/torneos", "/marketplace", "/chat", "/perfil/me"];
+const MAIN_ROUTES = ["/", "/torneos", "/duelos", "/marketplace", "/perfil/me"];
 
 const SWIPE_THRESHOLD = 100;
 
