@@ -5,7 +5,7 @@ import { toast } from "@heroui/react";
 import { useGameState } from "@/lib/hooks/use-game-state";
 import { updateLife, declareEvent, endGame } from "@/lib/api/game";
 import { mapErrorMessage } from "@/lib/api/errors";
-import type { GameMode } from "@/lib/types/game";
+import type { GameMode, GameStateSnapshot } from "@/lib/types/game";
 import PlayerLifePanel from "./PlayerLifePanel";
 import PendingEventCard from "./PendingEventCard";
 
@@ -19,6 +19,7 @@ interface GameTrackerProps {
     opponentAvatarUrl?: string;
     token: string;
     gameNumber: number;
+    initialSnapshot?: GameStateSnapshot | null;
     onGameEnd?: (winnerID: number) => void;
 }
 
@@ -47,9 +48,10 @@ export default function GameTracker({
     opponentAvatarUrl,
     token,
     gameNumber,
+    initialSnapshot,
     onGameEnd,
 }: GameTrackerProps) {
-    const { gameState, isConnected, error } = useGameState(duelID, gameNumber, token);
+    const { gameState, isConnected, error } = useGameState(duelID, gameNumber, token, initialSnapshot);
     const [mode, setMode] = useState<GameMode>("simple");
     const [loading, setLoading] = useState<string | null>(null);
     const [showEndConfirm, setShowEndConfirm] = useState(false);

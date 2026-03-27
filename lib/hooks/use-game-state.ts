@@ -15,16 +15,24 @@ const BACKOFF_DELAYS = [1000, 2000, 4000, 8000, 16000];
 export function useGameState(
     duelID: string,
     gameNumber: number | null,
-    token: string | undefined
+    token: string | undefined,
+    initialState?: GameStateSnapshot | null,
 ) {
     const wsRef = useRef<WebSocket | null>(null);
-    const [gameState, setGameState] = useState<GameStateSnapshot | null>(null);
+    const [gameState, setGameState] = useState<GameStateSnapshot | null>(initialState ?? null);
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const retryCountRef = useRef(0);
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const intentionalCloseRef = useRef(false);
+
+    // Sync state when initialState is provided (e.g. after REST fetch)
+    useEffect(() => {
+        if (initialState) {
+            setGameState(initialState);
+        }
+    }, [initialState]);
 
     const clearReconnectTimer = useCallback(() => {
         if (reconnectTimerRef.current) {
