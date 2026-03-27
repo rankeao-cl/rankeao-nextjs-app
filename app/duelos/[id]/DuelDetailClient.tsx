@@ -384,8 +384,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         );
 
         // Generate spark particles
-        const sparks = Array.from({ length: 12 }, (_, i) => {
-            const angle = (i / 12) * 360;
+        const sparks = Array.from({ length: 8 }, (_, i) => {
+            const angle = (i / 8) * 360;
             const dist = 60 + Math.random() * 80;
             const x = Math.cos(angle * Math.PI / 180) * dist;
             const y = Math.sin(angle * Math.PI / 180) * dist;
@@ -428,13 +428,11 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         100% { text-shadow: 0 0 20px rgba(59,130,246,0.4), 0 0 40px rgba(59,130,246,0.15); }
                     }
                     @keyframes playerGrow {
-                        0%, 65% { transform: scale(1); }
-                        80% { transform: scale(1.25); }
-                        100% { transform: scale(1.25); }
+                        0%, 75% { transform: scale(1); }
+                        100% { transform: scale(1.1); }
                     }
                     @keyframes nameHide {
-                        0%, 65% { opacity: 1; }
-                        80% { opacity: 0; }
+                        0%, 75% { opacity: 1; }
                         100% { opacity: 0; }
                     }
                     @keyframes tagsIn {
