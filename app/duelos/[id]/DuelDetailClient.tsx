@@ -20,7 +20,9 @@ import {
     reportDuelOpponent,
     getDuel,
 } from "@/lib/api/duels";
+import { getGameState, startGame } from "@/lib/api/game";
 import type { Duel, DuelStatus } from "@/lib/types/duel";
+import GameTracker from "./components/GameTracker";
 
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -189,6 +191,10 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [showReportUser, setShowReportUser] = useState(false);
     const [reportReason, setReportReason] = useState("");
 
+    // Game tracker
+    const [activeGameNumber, setActiveGameNumber] = useState<number | null>(null);
+    const [gameLoading, setGameLoading] = useState(false);
+
 
 
     // Fetch comments
@@ -200,6 +206,37 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setComments(list);
         } catch (err) { console.error("[DuelDetail] Error fetching comments:", err); }
     }, [duelId, token]);
+
+    // Fetch active game number
+    const fetchActiveGame = useCallback(async () => {
+        if (!token || !duel) return;
+        if (!["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) return;
+        try {
+            const snap = await getGameState(duelId, 1, token);
+            if (snap?.game?.game_number) {
+                setActiveGameNumber(snap.game.game_number);
+            }
+        } catch {
+            // 404 = no game started yet, leave as null
+            setActiveGameNumber(null);
+        }
+    }, [duelId, token, duel]);
+
+    // Handle start game
+    const handleStartGame = async () => {
+        if (!token) return;
+        setGameLoading(true);
+        try {
+            const res = await startGame(duelId, { mode: "simple", game_rules_slug: duel?.game_slug ?? "" }, token) as any;
+            const gameNum = res?.data?.game?.game?.game_number ?? res?.game?.game?.game_number ?? 1;
+            setActiveGameNumber(gameNum);
+            toast.success("Partida iniciada");
+        } catch (err) {
+            toast.danger("Error", { description: mapErrorMessage(err) });
+        } finally {
+            setGameLoading(false);
+        }
+    };
 
     // Refresh duel
     const refreshDuel = useCallback(async () => {
@@ -221,6 +258,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, duelId]);
+
+    // Fetch active game when duel is loaded and active
+    useEffect(() => {
+        if (token && duel && ["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) {
+            fetchActiveGame();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, duel?.status, duelId]);
 
     // Auto-refresh for active duels
     useEffect(() => {
@@ -776,6 +821,51 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     <PlayerCard player={duel.opponent} wins={duel.opponent_wins} isWinner={opponentWon} isMe={isOpponent} />
                 </div>
             </div>
+
+            {/* Game Tracker — contador de vidas en tiempo real */}
+            {isActive && isMyDuel && token && (
+                <>
+                    {activeGameNumber !== null ? (
+                        <GameTracker
+                            duelID={duelId}
+                            myPlayerID={isChallenger ? parseInt(duel.challenger.id, 10) : parseInt(duel.opponent.id, 10)}
+                            opponentPlayerID={isChallenger ? parseInt(duel.opponent.id, 10) : parseInt(duel.challenger.id, 10)}
+                            myUsername={myUsername ?? "Yo"}
+                            opponentUsername={isChallenger ? (duel.opponent.display_name ?? duel.opponent.username) : (duel.challenger.display_name ?? duel.challenger.username)}
+                            myAvatarUrl={isChallenger ? duel.challenger.avatar_url : duel.opponent.avatar_url}
+                            opponentAvatarUrl={isChallenger ? duel.opponent.avatar_url : duel.challenger.avatar_url}
+                            token={token}
+                            gameNumber={activeGameNumber}
+                            onGameEnd={() => { refreshDuel(); }}
+                        />
+                    ) : (
+                        <div style={{ marginLeft: 20, marginRight: 20, marginBottom: 16 }}>
+                            <button
+                                onClick={handleStartGame}
+                                disabled={gameLoading}
+                                style={{
+                                    width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
+                                    backgroundColor: "var(--accent)", color: "#fff",
+                                    fontSize: 15, fontWeight: 800,
+                                    cursor: gameLoading ? "not-allowed" : "pointer",
+                                    opacity: gameLoading ? 0.7 : 1,
+                                    boxShadow: "0 4px 14px rgba(59,130,246,0.3)",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                }}
+                            >
+                                {gameLoading ? (
+                                    <>
+                                        <div className="animate-spin" style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: 999 }} />
+                                        Iniciando...
+                                    </>
+                                ) : (
+                                    "⚔️ Iniciar partida"
+                                )}
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Message card */}
             {!!duel.message && (
