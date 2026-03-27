@@ -233,6 +233,12 @@ export default function FeedContent({
       ) : (
         <FeedEmptyState />
       )}
+      <style>{`
+        .feed-card-hover:hover {
+          border-color: rgba(59,130,246,0.4) !important;
+          box-shadow: 0 0 20px rgba(59,130,246,0.15), 0 4px 16px rgba(0,0,0,0.1) !important;
+        }
+      `}</style>
     </>
   );
 }

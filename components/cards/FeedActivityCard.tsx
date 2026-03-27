@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -10,6 +13,10 @@ import {
     ArrowUp,
     ChevronRight,
     CircleInfo,
+    Heart,
+    Comment,
+    ArrowShapeTurnUpRight,
+    Bookmark,
 } from "@gravity-ui/icons";
 
 // ── Activity data shape (from backend ActivityFeedItem) ──
@@ -32,46 +39,37 @@ export interface ActivityData {
 interface ActivityConfig {
     icon: ReactNode;
     color: string;
-    bgColor: string;
+    label: string;
 }
 
-const ICON_SIZE = { width: 16, height: 16 };
+const ICON_SIZE = { width: 14, height: 14 };
 
 const ACTIVITY_CONFIG: Record<string, ActivityConfig> = {
-    // Competitivo (win)
-    TOURNAMENT_WIN:  { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", bgColor: "color-mix(in srgb, var(--warning) 12%, transparent)" },
-    TOURNAMENT_TOP:  { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", bgColor: "color-mix(in srgb, var(--warning) 12%, transparent)" },
-    MATCH_WIN:       { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", bgColor: "color-mix(in srgb, var(--warning) 12%, transparent)" },
-    // Competitivo (loss)
-    MATCH_LOSS:      { icon: <Cup {...ICON_SIZE} />,         color: "var(--danger)", bgColor: "color-mix(in srgb, var(--danger) 12%, transparent)" },
-    // Registro
-    TOURNAMENT_JOIN: { icon: <Cup {...ICON_SIZE} />,         color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
-    // Rating
-    RATING_UP:       { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--success)", bgColor: "color-mix(in srgb, var(--success) 12%, transparent)" },
-    PEAK_RATING:     { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--success)", bgColor: "color-mix(in srgb, var(--success) 12%, transparent)" },
-    RATING_DOWN:     { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--danger)", bgColor: "color-mix(in srgb, var(--danger) 12%, transparent)" },
-    // Logros
-    BADGE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
-    TITLE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
-    ACHIEVEMENT:     { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
-    SEASON_RANK:     { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
-    // Nivel
-    LEVEL_UP:        { icon: <ArrowUp {...ICON_SIZE} />,     color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
-    // Social
-    FOLLOW:          { icon: <Person {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
-    FRIENDSHIP:      { icon: <Person {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
-    // Clan
-    CLAN_JOIN:       { icon: <Shield {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
-    CLAN_CREATE:     { icon: <Shield {...ICON_SIZE} />,      color: "var(--accent)", bgColor: "color-mix(in srgb, var(--accent) 12%, transparent)" },
-    CLAN_LEAVE:      { icon: <Shield {...ICON_SIZE} />,      color: "var(--muted)", bgColor: "var(--surface)" },
-    // Deck
-    DECK_PUBLISH:    { icon: <SquareDashed {...ICON_SIZE} />, color: "var(--purple)", bgColor: "color-mix(in srgb, var(--purple) 12%, transparent)" },
+    TOURNAMENT_WIN:  { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", label: "Victoria" },
+    TOURNAMENT_TOP:  { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", label: "Top" },
+    MATCH_WIN:       { icon: <Cup {...ICON_SIZE} />,         color: "var(--warning)", label: "Victoria" },
+    MATCH_LOSS:      { icon: <Cup {...ICON_SIZE} />,         color: "var(--danger)",  label: "Derrota" },
+    TOURNAMENT_JOIN: { icon: <Cup {...ICON_SIZE} />,         color: "var(--accent)",  label: "Inscripción" },
+    RATING_UP:       { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--success)", label: "Rating" },
+    PEAK_RATING:     { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--success)", label: "Nuevo peak" },
+    RATING_DOWN:     { icon: <ChartColumn {...ICON_SIZE} />, color: "var(--danger)",  label: "Rating" },
+    BADGE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)",  label: "Logro" },
+    TITLE_EARNED:    { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)",  label: "Título" },
+    ACHIEVEMENT:     { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)",  label: "Logro" },
+    SEASON_RANK:     { icon: <StarFill {...ICON_SIZE} />,    color: "var(--purple)",  label: "Temporada" },
+    LEVEL_UP:        { icon: <ArrowUp {...ICON_SIZE} />,     color: "var(--accent)",  label: "Nivel" },
+    FOLLOW:          { icon: <Person {...ICON_SIZE} />,      color: "var(--accent)",  label: "Social" },
+    FRIENDSHIP:      { icon: <Person {...ICON_SIZE} />,      color: "var(--accent)",  label: "Amistad" },
+    CLAN_JOIN:       { icon: <Shield {...ICON_SIZE} />,      color: "var(--accent)",  label: "Clan" },
+    CLAN_CREATE:     { icon: <Shield {...ICON_SIZE} />,      color: "var(--accent)",  label: "Clan" },
+    CLAN_LEAVE:      { icon: <Shield {...ICON_SIZE} />,      color: "var(--muted)",   label: "Clan" },
+    DECK_PUBLISH:    { icon: <SquareDashed {...ICON_SIZE} />, color: "var(--purple)", label: "Mazo" },
 };
 
 const FALLBACK_CONFIG: ActivityConfig = {
     icon: <CircleInfo {...ICON_SIZE} />,
     color: "var(--muted)",
-    bgColor: "var(--surface)",
+    label: "Actividad",
 };
 
 // ── Entity link resolver ──
@@ -115,97 +113,150 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const href = getEntityHref(activity.entity_type, activity.entity_id);
     const entityLabel = activity.entity_type ? ENTITY_LABELS[activity.entity_type.toLowerCase()] ?? "Ver detalle" : "Ver detalle";
 
+    const [liked, setLiked] = useState(false);
+    const [likesCount, setLikesCount] = useState(0);
+    const [bookmarked, setBookmarked] = useState(false);
+
+    const handleLike = () => {
+        setLiked((prev) => {
+            setLikesCount((c) => c + (prev ? -1 : 1));
+            return !prev;
+        });
+    };
+
     return (
-        <article style={{
+        <article className="feed-card-hover" style={{
             backgroundColor: "var(--surface-solid)",
             borderRadius: 16,
             border: "1px solid var(--border)",
-            overflow: "hidden",
+            padding: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            transition: "box-shadow 0.25s, border-color 0.25s",
         }}>
-            {/* Header: avatar + username + time */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px 0" }}>
-                {activity.user.avatar_url ? (
-                    <img
-                        src={activity.user.avatar_url}
-                        alt={activity.user.username}
-                        style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }}
-                    />
-                ) : (
+            {/* Header: avatar + username + badge + time */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* Avatar with accent ring */}
+                <Link href={`/perfil/${activity.user.username}`} style={{ flexShrink: 0, textDecoration: "none" }}>
                     <div style={{
-                        width: 32, height: 32, borderRadius: 16,
-                        backgroundColor: "var(--surface)",
+                        width: 40, height: 40, borderRadius: 20,
+                        background: "var(--accent)", padding: 2,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "var(--muted)", fontSize: 13, fontWeight: 700,
                     }}>
-                        {activity.user.username?.charAt(0).toUpperCase()}
+                        <div style={{
+                            width: 36, height: 36, borderRadius: 18,
+                            backgroundColor: "var(--background)", overflow: "hidden",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
+                        }}>
+                            {activity.user.avatar_url ? (
+                                <img src={activity.user.avatar_url} alt={activity.user.username}
+                                    style={{ width: 36, height: 36, objectFit: "cover" }} />
+                            ) : (
+                                activity.user.username?.charAt(0).toUpperCase()
+                            )}
+                        </div>
                     </div>
-                )}
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", flex: 1 }}>
-                    @{activity.user.username}
-                </span>
-                <span style={{ fontSize: 11, color: "var(--muted)" }}>
-                    {timeAgo(activity.created_at)}
-                </span>
+                </Link>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Link href={`/perfil/${activity.user.username}`} style={{ textDecoration: "none" }}>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
+                                {activity.user.username}
+                            </span>
+                        </Link>
+                        <span style={{
+                            fontSize: 10, fontWeight: 600, color: config.color,
+                            background: `color-mix(in srgb, ${config.color} 12%, transparent)`,
+                            padding: "2px 6px", borderRadius: 6,
+                            display: "inline-flex", alignItems: "center", gap: 3,
+                        }}>
+                            {config.icon}
+                            {config.label}
+                        </span>
+                    </div>
+                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgo(activity.created_at)}</span>
+                </div>
             </div>
 
-            {/* Activity body: accent bar + icon + title + description */}
-            <div style={{ padding: "10px 14px 14px" }}>
-                <div style={{
-                    display: "flex",
-                    gap: 12,
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    backgroundColor: config.bgColor,
-                    borderLeft: `3px solid ${config.color}`,
-                }}>
-                    {/* Icon */}
-                    <div style={{
-                        width: 36, height: 36, borderRadius: 10,
-                        backgroundColor: `color-mix(in srgb, ${config.color} 12%, transparent)`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: config.color, flexShrink: 0,
-                    }}>
-                        {config.icon}
-                    </div>
-
-                    {/* Text */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{
-                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
-                            margin: 0, lineHeight: "20px",
-                        }}>
-                            {activity.title}
-                        </p>
-                        {activity.description && (
-                            <p style={{
-                                fontSize: 12, color: "var(--muted)",
-                                margin: "4px 0 0", lineHeight: "16px",
-                            }}>
-                                {activity.description}
-                            </p>
-                        )}
-                    </div>
+            {/* Activity content */}
+            <div style={{ fontSize: 14, lineHeight: "21px", color: "var(--foreground)", fontWeight: 600 }}>
+                {activity.title}
+            </div>
+            {activity.description && (
+                <div style={{ fontSize: 13, lineHeight: "19px", color: "var(--muted)" }}>
+                    {activity.description}
                 </div>
+            )}
 
-                {/* Entity link */}
-                {href && (
-                    <Link
-                        href={href}
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            marginTop: 10,
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: config.color,
-                            textDecoration: "none",
-                        }}
-                    >
-                        {entityLabel}
-                        <ChevronRight style={{ width: 12, height: 12 }} />
-                    </Link>
-                )}
+            {/* Image if present */}
+            {activity.image_url && (
+                <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid var(--border)" }}>
+                    <img src={activity.image_url} alt="" style={{ width: "100%", display: "block" }} />
+                </div>
+            )}
+
+            {/* Entity link */}
+            {href && (
+                <Link
+                    href={href}
+                    style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        fontSize: 13, fontWeight: 600, color: config.color,
+                        textDecoration: "none",
+                    }}
+                >
+                    {entityLabel}
+                    <ChevronRight style={{ width: 12, height: 12 }} />
+                </Link>
+            )}
+
+            {/* Reaction bar */}
+            <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                paddingTop: 8, borderTop: "1px solid var(--border)",
+            }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <button type="button" onClick={handleLike} style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: "none", border: "none", cursor: "pointer",
+                        color: liked ? "#EF4444" : "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                        transition: "transform 0.15s",
+                        transform: liked ? "scale(1.05)" : "scale(1)",
+                    }}>
+                        <Heart style={{ width: 18, height: 18 }} />
+                        <span>{likesCount}</span>
+                    </button>
+                    <button type="button" style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                    }}>
+                        <Comment style={{ width: 18, height: 18 }} />
+                        <span>0</span>
+                    </button>
+                    <button type="button" style={{
+                        display: "flex", alignItems: "center",
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999,
+                    }}>
+                        <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
+                    </button>
+                </div>
+                <button type="button" onClick={() => setBookmarked((b) => !b)} style={{
+                    display: "flex", alignItems: "center",
+                    background: "none", border: "none", cursor: "pointer",
+                    color: bookmarked ? "var(--accent)" : "var(--muted)",
+                    padding: "4px 8px", borderRadius: 999,
+                    transition: "color 0.15s",
+                }}>
+                    <Bookmark style={{ width: 18, height: 18 }} />
+                </button>
             </div>
         </article>
     );

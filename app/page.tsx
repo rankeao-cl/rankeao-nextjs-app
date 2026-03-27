@@ -29,7 +29,7 @@ export default async function HomePage() {
 
   return (
     <div style={{ maxWidth: 980, marginLeft: "auto", marginRight: "auto", paddingLeft: 8, paddingRight: 8 }}>
-      <div style={{ paddingTop: 8, display: "flex", gap: 56 }}>
+      <div style={{ paddingTop: 16, display: "flex", gap: 56 }}>
         {/* Main feed column */}
         <div style={{ flex: 1, minWidth: 0, maxWidth: 620 }}>
           <FeedClient />
