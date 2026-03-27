@@ -62,8 +62,10 @@ export interface Deck {
     username?: string;
     name: string;
     game_id?: string;
+    game?: string;
     game_name?: string;
     format_id?: string;
+    format?: string;
     format_name?: string;
     description?: string;
     is_public: boolean;

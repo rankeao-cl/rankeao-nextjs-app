@@ -44,7 +44,6 @@ export default function CreatePostFAB() {
     const inputRef = useRef<HTMLInputElement>(null);
     const newChatInputRef = useRef<HTMLInputElement>(null);
     const myUsername = session?.username;
-    const myUserId = session?.id;
 
     // Fetch channels on mount + when panel opens (refresh)
     const fetchChannels = useCallback(() => {
@@ -200,7 +199,7 @@ export default function CreatePostFAB() {
         const optimistic: ChatMessage = {
             id: `temp-${Date.now()}`,
             channel_id: activeChannel.id,
-            sender_id: myUserId || "",
+            sender_id: "",
             sender_username: myUsername,
             content,
             created_at: new Date().toISOString(),
@@ -534,7 +533,7 @@ export default function CreatePostFAB() {
                                     </div>
                                 ) : (
                                     messages.map((msg) => {
-                                        const isMine = msg.sender_id === myUserId || msg.sender_username === myUsername;
+                                        const isMine = msg.sender_username === myUsername || msg.sender?.username === myUsername;
                                         return (
                                             <div key={msg.id} style={{ display: "flex", justifyContent: isMine ? "flex-end" : "flex-start", marginBottom: 6 }}>
                                                 <div style={{

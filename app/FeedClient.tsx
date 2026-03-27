@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { getUserFollowing, browseDecks } from "@/lib/api/social";
 import type { UserProfile, Deck } from "@/lib/types/social";
@@ -10,12 +11,21 @@ type FeedItem =
   | { kind: "user"; date: string; data: UserProfile }
   | { kind: "deck"; date: string; data: Deck };
 
+const ITEM_WIDTH = 88;
+const ITEM_GAP = 16;
+const VISIBLE_COUNT = 6;
+const PAGE_SIZE = VISIBLE_COUNT;
+const SCROLL_AMOUNT = PAGE_SIZE * (ITEM_WIDTH + ITEM_GAP);
+
 export default function FeedClient() {
   const { status, session } = useAuth();
   const isAuth = status === "authenticated";
 
   const [following, setFollowing] = useState<UserProfile[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     if (!isAuth || !session?.username) return;
@@ -36,7 +46,6 @@ export default function FeedClient() {
       .catch(() => {});
   }, []);
 
-  // Merge and sort by date
   const items = useMemo<FeedItem[]>(() => {
     const userItems: FeedItem[] = following.map(u => ({
       kind: "user",
@@ -53,43 +62,94 @@ export default function FeedClient() {
     );
   }, [following, decks]);
 
-  const gradients = [
-    "linear-gradient(135deg, #EF4444, #F59E0B)",
-    "linear-gradient(135deg, #EC4899, #8B5CF6)",
-    "linear-gradient(135deg, var(--accent), #06B6D4)",
-    "linear-gradient(135deg, #10B981, #3B82F6)",
-    "linear-gradient(135deg, #F59E0B, #EF4444, #EC4899)",
-    "linear-gradient(135deg, var(--accent), #8B5CF6, #EC4899)",
-  ];
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }, []);
 
-  let gradientIdx = 0;
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollButtons();
+    el.addEventListener("scroll", updateScrollButtons, { passive: true });
+    return () => el.removeEventListener("scroll", updateScrollButtons);
+  }, [updateScrollButtons, items]);
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction === "right" ? SCROLL_AMOUNT : -SCROLL_AMOUNT, behavior: "smooth" });
+  };
+
+  // Total items including "Tu perfil"
+  const totalItems = (isAuth ? 1 : 0) + items.length;
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
+      {/* Left arrow */}
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll("left")}
+          style={{
+            position: "absolute", left: -6, top: "50%", transform: "translateY(-70%)",
+            zIndex: 10, width: 28, height: 28, borderRadius: 14,
+            backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          aria-label="Anterior"
+        >
+          <ChevronLeft style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+        </button>
+      )}
+
+      {/* Right arrow */}
+      {canScrollRight && totalItems > VISIBLE_COUNT && (
+        <button
+          onClick={() => scroll("right")}
+          style={{
+            position: "absolute", right: -6, top: "50%", transform: "translateY(-70%)",
+            zIndex: 10, width: 28, height: 28, borderRadius: 14,
+            backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          aria-label="Siguiente"
+        >
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+        </button>
+      )}
+
+      {/* Scrollable row */}
       <div
+        ref={scrollRef}
         className="feed-stories-scroll"
         style={{
           display: "flex",
-          gap: 12,
+          gap: ITEM_GAP,
           overflowX: "auto",
           scrollbarWidth: "none",
           padding: "4px 0",
+          maxWidth: VISIBLE_COUNT * ITEM_WIDTH + (VISIBLE_COUNT - 1) * ITEM_GAP,
+          scrollSnapType: "x mandatory",
         }}
       >
         {/* My profile (always first) */}
         {isAuth && (
           <Link
             href={`/perfil/${session?.username}`}
-            style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 72 }}
+            style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH, scrollSnapAlign: "start" }}
           >
             <div style={{ position: "relative" }}>
               <div style={{
-                width: 68, height: 68, borderRadius: 34,
+                width: 80, height: 80, borderRadius: 40,
                 background: "var(--foreground)",
-                padding: 3, display: "flex", alignItems: "center", justifyContent: "center",
+                padding: 2, display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <div style={{
-                  width: 62, height: 62, borderRadius: 31,
+                  width: 74, height: 74, borderRadius: 37,
                   backgroundColor: "var(--background)", display: "flex", alignItems: "center", justifyContent: "center",
                   overflow: "hidden",
                 }}>
@@ -116,9 +176,9 @@ export default function FeedClient() {
         )}
 
         {/* Intercalated items */}
-        {items.map((item) => {
-          const grad = gradients[gradientIdx % gradients.length];
-          gradientIdx++;
+        {items.map((item, idx) => {
+          // Every 6th item snaps
+          const snapAlign = idx % PAGE_SIZE === 0 ? "start" : undefined;
 
           if (item.kind === "user") {
             const user = item.data;
@@ -126,15 +186,15 @@ export default function FeedClient() {
               <Link
                 key={`u-${user.id}`}
                 href={`/perfil/${user.username}`}
-                style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 72 }}
+                style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH, scrollSnapAlign: snapAlign }}
               >
                 <div style={{
-                  width: 68, height: 68, borderRadius: 34,
+                  width: 80, height: 80, borderRadius: 40,
                   background: "var(--accent)",
-                  padding: 3, display: "flex", alignItems: "center", justifyContent: "center",
+                  padding: 2, display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <div style={{
-                    width: 62, height: 62, borderRadius: 31,
+                    width: 74, height: 74, borderRadius: 37,
                     backgroundColor: "var(--background)", display: "flex", alignItems: "center", justifyContent: "center",
                     overflow: "hidden",
                   }}>
@@ -162,10 +222,10 @@ export default function FeedClient() {
             <Link
               key={`d-${deck.id}`}
               href={`/decks/${deck.id}`}
-              style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 72 }}
+              style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH, scrollSnapAlign: snapAlign }}
             >
               <div style={{
-                width: 68, height: 68, borderRadius: 14,
+                width: 80, height: 80, borderRadius: 16,
                 background: "var(--accent)",
                 padding: 2.5, display: "flex", alignItems: "center", justifyContent: "center",
               }}>
@@ -197,9 +257,9 @@ export default function FeedClient() {
         })}
 
         {/* Skeletons when empty */}
-        {items.length === 0 && !isAuth && [0,1,2,3,4].map(i => (
-          <div key={i} style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 72 }}>
-            <div style={{ width: 68, height: 68, borderRadius: 34, backgroundColor: "var(--surface-solid)", border: "2px solid var(--border)", animation: "pulse 1.5s ease-in-out infinite" }} />
+        {items.length === 0 && !isAuth && [0,1,2,3,4,5].map(i => (
+          <div key={i} style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH }}>
+            <div style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "var(--surface-solid)", border: "2px solid var(--border)", animation: "pulse 1.5s ease-in-out infinite" }} />
             <div style={{ width: 40, height: 8, borderRadius: 4, backgroundColor: "var(--surface-solid)", animation: "pulse 1.5s ease-in-out infinite" }} />
           </div>
         ))}

@@ -4,7 +4,6 @@ type FeedFilter = "todo" | "torneos" | "ventas" | "posts" | "actividad";
 
 const FEED_TABS: { key: FeedFilter; label: string }[] = [
   { key: "todo", label: "Todo" },
-  { key: "torneos", label: "Torneos" },
   { key: "ventas", label: "Ventas" },
   { key: "posts", label: "Posts" },
   { key: "actividad", label: "Actividad" },

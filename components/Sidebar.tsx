@@ -103,10 +103,10 @@ export default function Sidebar() {
             <nav className="flex-1 flex flex-col p-3 pt-4 overflow-y-auto overflow-x-hidden">
                 {/* Botón Crear */}
                 {isAuth && (
-                    <div className="relative mb-3 mx-1" ref={createRef}>
+                    <div className="relative mb-3" ref={createRef}>
                         <button
                             onClick={() => setCreateOpen(v => !v)}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold overflow-hidden w-full ${expanded ? "" : "justify-center"}`}
+                            className={`flex items-center rounded-xl text-sm font-bold overflow-hidden w-full ${expanded ? "gap-3 px-3 py-2.5" : "justify-center py-2.5"}`}
                             style={{
                                 backgroundColor: "var(--accent)",
                                 color: "#fff",
@@ -116,8 +116,8 @@ export default function Sidebar() {
                             aria-label="Crear"
                             aria-expanded={createOpen}
                         >
-                            <Plus className="size-5 shrink-0" />
-                            <span className="truncate">Crear</span>
+                            <Plus className="size-[22px] shrink-0" />
+                            {expanded && <span className="truncate">Crear</span>}
                         </button>
 
                         {/* Dropdown opciones */}
