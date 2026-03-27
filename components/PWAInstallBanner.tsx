@@ -28,13 +28,14 @@ export default function PWAInstallBanner() {
   // Update available banner takes priority
   if (hasUpdate) {
     return (
-      <div
-        className="fixed bottom-[76px] lg:bottom-6 inset-x-4 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-sm z-40 transition-all duration-300"
-        style={{
-          opacity: show ? 1 : 0,
-          transform: `translateX(-50%) translateY(${show ? "0" : "16px"})`,
-        }}
-      >
+      <div className="fixed bottom-[76px] lg:bottom-6 inset-x-4 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-sm z-40">
+        <div
+          className="transition-all duration-300"
+          style={{
+            opacity: show ? 1 : 0,
+            transform: `translateY(${show ? "0" : "16px"})`,
+          }}
+        >
         <div
           className="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl"
           style={{
@@ -81,19 +82,21 @@ export default function PWAInstallBanner() {
           </button>
         </div>
       </div>
+      </div>
     );
   }
 
   if (!canInstall) return null;
 
   return (
-    <div
-      className="fixed bottom-[76px] lg:bottom-6 inset-x-4 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-sm z-40 transition-all duration-300"
-      style={{
-        opacity: show ? 1 : 0,
-        transform: `translateX(-50%) translateY(${show ? "0" : "16px"})`,
-      }}
-    >
+    <div className="fixed bottom-[76px] lg:bottom-6 inset-x-4 lg:inset-x-auto lg:left-1/2 lg:-translate-x-1/2 lg:w-full lg:max-w-sm z-40">
+      <div
+        className="transition-all duration-300"
+        style={{
+          opacity: show ? 1 : 0,
+          transform: `translateY(${show ? "0" : "16px"})`,
+        }}
+      >
       <div
         className="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl"
         style={{
@@ -159,6 +162,7 @@ export default function PWAInstallBanner() {
             Instalar
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

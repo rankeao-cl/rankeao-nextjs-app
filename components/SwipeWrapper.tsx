@@ -62,9 +62,9 @@ export default function SwipeWrapper({ children }: SwipeWrapperProps) {
     };
 
     return (
-        <div ref={constraintRef} className="w-full h-full overflow-hidden relative">
+        <div ref={constraintRef} className="w-full min-h-full overflow-x-hidden relative">
             <motion.div
-                className="w-full h-full"
+                className="w-full min-h-full"
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2}
