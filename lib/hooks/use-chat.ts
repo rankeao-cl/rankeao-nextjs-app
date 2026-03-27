@@ -67,7 +67,11 @@ export function useJoinRoom() {
     });
 }
 
-// ── WebSocket ──
+// ── WebSocket with auto-reconnect ──
+
+const MAX_RECONNECT_DELAY = 30_000;
+const INITIAL_RECONNECT_DELAY = 1_000;
+const PING_INTERVAL = 25_000;
 
 export function useChatWebSocket(
     roomId: string | null,
@@ -78,17 +82,58 @@ export function useChatWebSocket(
     const [connected, setConnected] = useState(false);
     const onMessageRef = useRef(onMessage);
     onMessageRef.current = onMessage;
+    const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
+    const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const pingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const intentionalCloseRef = useRef(false);
 
-    useEffect(() => {
+    const clearTimers = useCallback(() => {
+        if (reconnectTimerRef.current) { clearTimeout(reconnectTimerRef.current); reconnectTimerRef.current = null; }
+        if (pingTimerRef.current) { clearInterval(pingTimerRef.current); pingTimerRef.current = null; }
+    }, []);
+
+    const connect = useCallback(() => {
         if (!roomId || !token) return;
+
+        // Clean up existing connection
+        if (wsRef.current) {
+            intentionalCloseRef.current = true;
+            wsRef.current.close();
+            wsRef.current = null;
+        }
+        intentionalCloseRef.current = false;
 
         const url = chatApi.getChatRoomWSUrl(roomId, token);
         const ws = new WebSocket(url);
         wsRef.current = ws;
 
-        ws.onopen = () => setConnected(true);
-        ws.onclose = () => setConnected(false);
-        ws.onerror = () => setConnected(false);
+        ws.onopen = () => {
+            setConnected(true);
+            reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+
+            // Heartbeat ping to keep connection alive
+            pingTimerRef.current = setInterval(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    try { ws.send(JSON.stringify({ type: "ping" })); } catch {}
+                }
+            }, PING_INTERVAL);
+        };
+
+        ws.onclose = () => {
+            setConnected(false);
+            clearTimers();
+
+            // Auto-reconnect with exponential backoff
+            if (!intentionalCloseRef.current && roomId && token) {
+                const delay = reconnectDelayRef.current;
+                reconnectDelayRef.current = Math.min(delay * 2, MAX_RECONNECT_DELAY);
+                reconnectTimerRef.current = setTimeout(connect, delay);
+            }
+        };
+
+        ws.onerror = () => {
+            // onclose will fire after onerror, reconnect handled there
+        };
 
         ws.onmessage = (event) => {
             try {
@@ -98,13 +143,28 @@ export function useChatWebSocket(
                 }
             } catch { /* ignore malformed */ }
         };
+    }, [roomId, token, clearTimers]);
+
+    useEffect(() => {
+        connect();
+
+        // Reconnect when tab becomes visible again
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible" && wsRef.current?.readyState !== WebSocket.OPEN) {
+                reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+                connect();
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
 
         return () => {
-            ws.close();
-            wsRef.current = null;
+            intentionalCloseRef.current = true;
+            clearTimers();
+            if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
             setConnected(false);
+            document.removeEventListener("visibilitychange", handleVisibility);
         };
-    }, [roomId, token]);
+    }, [connect, clearTimers]);
 
     const sendMessage = useCallback((content: string, replyToId?: string) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
