@@ -88,7 +88,7 @@ export default function Navbar() {
         background: "var(--background)",
       }}
     >
-      <div className="w-full h-full px-4 flex items-center justify-between relative">
+      <div className="w-full h-full px-4 lg:px-6 flex items-center justify-between relative">
         {/* ── Mobile: Expanded Search ── */}
         {isSearchExpanded ? (
           <div className="flex-1 flex items-center gap-2 md:hidden">
@@ -188,7 +188,7 @@ export default function Navbar() {
               </div>
 
               {/* Desktop actions (md+) */}
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-3">
                 {/* Theme toggle */}
                 <Button
                   isIconOnly
@@ -271,7 +271,7 @@ export default function Navbar() {
                     </Popover>
 
                     {/* Avatar dropdown */}
-                    <div className="ml-1">
+                    <div className="ml-2">
                       <Popover>
                         <Popover.Trigger className="rounded-full cursor-pointer flex border-2 border-transparent hover:border-accent/40 transition-colors outline-none">
                           <Avatar size="sm">
