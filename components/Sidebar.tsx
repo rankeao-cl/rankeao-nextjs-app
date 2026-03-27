@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,66 +9,35 @@ import {
     TargetDart,
     ChartColumn,
     ShoppingCart,
-    Display,
     Persons,
-    Comment,
-    Person,
-    Gear,
-    Shield,
+    Bell,
     Pencil,
-    ChevronDown,
+    Gear,
+    Person,
+    Plus,
+    SquareDashed,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useCreatePostModal } from "@/context/CreatePostModalContext";
+import { getDuels } from "@/lib/api/duels";
 
 interface NavItem {
     href: string;
     label: string;
     icon: typeof House;
     authRequired?: boolean;
+    badgeKey?: "duelos";
 }
 
-interface NavSection {
-    key: string;
-    label: string;
-    items: NavItem[];
-}
-
-const sections: NavSection[] = [
-    {
-        key: "principal",
-        label: "Principal",
-        items: [
-            { href: "/", label: "Feed", icon: House },
-            { href: "/ranking", label: "Ranking", icon: ChartColumn },
-            { href: "/juegos", label: "Juegos", icon: Display },
-        ],
-    },
-    {
-        key: "competitivo",
-        label: "Competitivo",
-        items: [
-            { href: "/torneos", label: "Torneos", icon: Cup },
-            { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true },
-        ],
-    },
-    {
-        key: "social",
-        label: "Social",
-        items: [
-            { href: "/comunidades", label: "Comunidades", icon: Persons },
-            { href: "/clanes", label: "Clanes", icon: Shield },
-            { href: "/chat", label: "Chat", icon: Comment, authRequired: true },
-            { href: "/perfil/me", label: "Perfil", icon: Person, authRequired: true },
-        ],
-    },
-    {
-        key: "tienda",
-        label: "Tienda",
-        items: [
-            { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
-        ],
-    },
+// Orden según diseño: 1-Feed 2-Duelos 3-Marketplace 4-Notificaciones 5-Torneos 6-Comunidades 7-Ranking
+const navItems: NavItem[] = [
+    { href: "/", label: "Feed", icon: House },
+    { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true, badgeKey: "duelos" },
+    { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
+    { href: "/notificaciones", label: "Notificaciones", icon: Bell, authRequired: true },
+    { href: "/torneos", label: "Torneos", icon: Cup },
+    { href: "/comunidades", label: "Comunidades", icon: Persons },
+    { href: "/ranking", label: "Ranking", icon: ChartColumn },
 ];
 
 interface SidebarProps {
@@ -77,40 +46,52 @@ interface SidebarProps {
 
 export default function Sidebar({ collapsed = false }: SidebarProps) {
     const pathname = usePathname();
-    const { status } = useAuth();
+    const { session, status } = useAuth();
     const { openCreatePost } = useCreatePostModal();
     const isAuth = status === "authenticated";
+
+    const [pendingDuels, setPendingDuels] = useState(0);
+    const [createOpen, setCreateOpen] = useState(false);
+    const createRef = useRef<HTMLDivElement>(null);
 
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-    // Find which section contains the active route
-    const activeSectionKey = sections.find(s =>
-        s.items.some(item => isActive(item.href))
-    )?.key ?? "principal";
-
-    const [openSections, setOpenSections] = useState<Set<string>>(new Set([activeSectionKey]));
-
-    // Keep active section open when route changes
+    // Sondeo de duelos pendientes (invitaciones recibidas)
     useEffect(() => {
-        setOpenSections(prev => {
-            if (prev.has(activeSectionKey)) return prev;
-            return new Set([...prev, activeSectionKey]);
-        });
-    }, [activeSectionKey]);
+        if (!isAuth || !session?.accessToken || !session?.username) return;
+        const token = session.accessToken;
+        const username = session.username;
 
-    const toggleSection = (key: string) => {
-        setOpenSections(prev => {
-            const next = new Set(prev);
-            if (next.has(key)) {
-                if (key === activeSectionKey) return prev;
-                next.delete(key);
-            } else {
-                next.add(key);
+        const poll = () => {
+            getDuels({ per_page: 50 }, token)
+                .then(({ duels }) => {
+                    const count = duels.filter(
+                        d => d.status === "PENDING" && d.opponent.username === username
+                    ).length;
+                    setPendingDuels(count);
+                })
+                .catch(() => {});
+        };
+
+        poll();
+        const interval = setInterval(poll, 30_000);
+        return () => clearInterval(interval);
+    }, [isAuth, session?.accessToken, session?.username]);
+
+    // Cierra el dropdown al hacer click fuera
+    useEffect(() => {
+        if (!createOpen) return;
+        const handler = (e: MouseEvent) => {
+            if (createRef.current && !createRef.current.contains(e.target as Node)) {
+                setCreateOpen(false);
             }
-            return next;
-        });
-    };
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [createOpen]);
+
+    const visibleItems = navItems.filter(item => !item.authRequired || isAuth);
 
     return (
         <aside
@@ -118,90 +99,138 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
             style={{ borderColor: "var(--border)", background: "var(--background)" }}
         >
             <nav className="flex-1 flex flex-col gap-1 p-3 pt-4 overflow-y-auto">
-                {/* Create Post */}
+                {/* Botón Crear + */}
                 {isAuth && (
-                    <button
-                        onClick={openCreatePost}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all mb-2 ${collapsed ? "justify-center px-0" : ""}`}
-                        style={{ backgroundColor: "var(--accent)", color: "#fff", border: "none", cursor: "pointer" }}
-                    >
-                        <Pencil className="size-[18px] shrink-0" />
-                        {!collapsed && <span className="truncate">Crear Post</span>}
-                    </button>
-                )}
+                    <div className="relative mb-3" ref={createRef}>
+                        <button
+                            onClick={() => setCreateOpen(v => !v)}
+                            className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${collapsed ? "justify-center" : ""}`}
+                            style={{
+                                backgroundColor: "var(--accent)",
+                                color: "#fff",
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                            aria-label="Crear"
+                            aria-expanded={createOpen}
+                        >
+                            <Plus className="size-4 shrink-0" />
+                            {!collapsed && <span>Crear +</span>}
+                        </button>
 
-                {/* Sections */}
-                {sections.map((section) => {
-                    const visibleItems = section.items.filter(item =>
-                        !item.authRequired || isAuth
-                    );
-                    if (visibleItems.length === 0) return null;
-
-                    const isOpen = openSections.has(section.key);
-                    const hasActiveItem = visibleItems.some(item => isActive(item.href));
-
-                    return (
-                        <div key={section.key}>
-                            {/* Section header */}
-                            {!collapsed && (
-                                <button
-                                    onClick={() => toggleSection(section.key)}
-                                    className="w-full flex items-center justify-between px-3 py-1.5 mb-0.5 rounded-lg transition-colors cursor-pointer"
-                                    style={{ background: "none", border: "none" }}
-                                >
-                                    <span
-                                        className="text-[10px] font-bold uppercase tracking-wider"
-                                        style={{ color: hasActiveItem ? "var(--foreground)" : "var(--muted)" }}
-                                    >
-                                        {section.label}
-                                    </span>
-                                    <ChevronDown
-                                        className="size-3 transition-transform duration-200"
-                                        style={{
-                                            color: "var(--muted)",
-                                            transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
-                                        }}
-                                    />
-                                </button>
-                            )}
-
-                            {/* Section items */}
+                        {/* Dropdown opciones */}
+                        {createOpen && !collapsed && (
                             <div
-                                className="overflow-hidden transition-all duration-200"
+                                className="absolute left-0 top-full mt-1.5 w-full z-50 rounded-xl overflow-hidden shadow-xl"
                                 style={{
-                                    maxHeight: collapsed || isOpen ? visibleItems.length * 44 : 0,
-                                    opacity: collapsed || isOpen ? 1 : 0,
+                                    background: "var(--background)",
+                                    border: "1px solid var(--border)",
                                 }}
                             >
-                                {visibleItems.map((item) => {
-                                    const Icon = item.icon;
-                                    const active = isActive(item.href);
-                                    return (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center px-0" : ""
-                                                } ${active ? "text-foreground" : "text-muted hover:text-foreground"}`}
-                                            aria-label={item.label}
-                                        >
-                                            <Icon className="size-[18px] shrink-0" />
-                                            {!collapsed && <span className="truncate">{item.label}</span>}
-                                        </Link>
-                                    );
-                                })}
+                                <button
+                                    onClick={() => { openCreatePost(); setCreateOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors cursor-pointer text-left"
+                                    style={{ background: "none", border: "none" }}
+                                >
+                                    <Pencil className="size-[15px] text-blue-500 shrink-0" />
+                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                        Crear Post
+                                    </span>
+                                </button>
+                                <Link
+                                    href="/decks/new"
+                                    onClick={() => setCreateOpen(false)}
+                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
+                                >
+                                    <SquareDashed className="size-[15px] text-purple-500 shrink-0" />
+                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                        Publicar Mazo
+                                    </span>
+                                </Link>
+                                <Link
+                                    href="/marketplace/new"
+                                    onClick={() => setCreateOpen(false)}
+                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
+                                >
+                                    <ShoppingCart className="size-[15px] text-orange-500 shrink-0" />
+                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                        Vender Carta
+                                    </span>
+                                </Link>
+                                <Link
+                                    href="/torneos/new"
+                                    onClick={() => setCreateOpen(false)}
+                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
+                                >
+                                    <Cup className="size-[15px] text-emerald-500 shrink-0" />
+                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                        Crear Torneo
+                                    </span>
+                                </Link>
                             </div>
-                        </div>
-                    );
-                })}
+                        )}
+                    </div>
+                )}
+
+                {/* Items de navegación */}
+                <div className="flex flex-col gap-0.5">
+                    {visibleItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.href);
+                        const badgeCount = item.badgeKey === "duelos" ? pendingDuels : 0;
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center" : ""} ${active ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                                aria-label={item.label}
+                                style={active ? { backgroundColor: "var(--surface-solid)" } : {}}
+                            >
+                                <span className="relative shrink-0">
+                                    <Icon className="size-[18px]" />
+                                    {badgeCount > 0 && (
+                                        <span
+                                            className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
+                                            style={{
+                                                top: "-7px",
+                                                right: "-7px",
+                                                minWidth: "16px",
+                                                height: "16px",
+                                                fontSize: "9px",
+                                                padding: "0 3px",
+                                                background: "var(--danger, #ef4444)",
+                                                border: "2px solid var(--background)",
+                                            }}
+                                        >
+                                            {badgeCount > 9 ? "9+" : badgeCount}
+                                        </span>
+                                    )}
+                                </span>
+                                {!collapsed && <span className="truncate">{item.label}</span>}
+                            </Link>
+                        );
+                    })}
+                </div>
             </nav>
 
-            {/* Settings — fixed at bottom */}
+            {/* Perfil y ajustes al fondo */}
             {isAuth && (
-                <div className="p-3 pt-0 border-t border-border shrink-0">
+                <div
+                    className="p-3 pt-0 border-t shrink-0 flex flex-col gap-0.5"
+                    style={{ borderColor: "var(--border)" }}
+                >
+                    <Link
+                        href="/perfil/me"
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center" : ""} ${isActive("/perfil/me") ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                        aria-label="Perfil"
+                    >
+                        <Person className="size-[18px] shrink-0" />
+                        {!collapsed && <span className="truncate">Perfil</span>}
+                    </Link>
                     <Link
                         href="/config"
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center px-0" : ""
-                            } ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center" : ""} ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Ajustes"
                     >
                         <Gear className="size-[18px] shrink-0" />
