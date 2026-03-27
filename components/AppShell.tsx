@@ -35,36 +35,35 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-[calc(100vh-4rem)] overflow-hidden relative">
             <Sidebar collapsed={sidebarCollapsed} />
 
-            {/* Sidebar collapse toggle — floating between sidebar and body */}
+            {/* Sidebar collapse toggle — circular, arriba entre header y sidebar */}
             <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="hidden lg:flex"
                 style={{
                     position: "absolute",
-                    left: sidebarCollapsed ? 56 : 208,
-                    top: "50%",
-                    transform: "translateY(-50%)",
+                    left: sidebarCollapsed ? 54 : 206,
+                    top: 12,
                     zIndex: 30,
-                    width: 24,
-                    height: 48,
-                    borderRadius: "0 8px 8px 0",
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
                     backgroundColor: "var(--background)",
                     border: "1px solid var(--border)",
-                    borderLeft: "none",
                     cursor: "pointer",
                     alignItems: "center",
                     justifyContent: "center",
                     transition: "left 0.3s",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
                 }}
                 aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
             >
                 <svg
-                    width={14}
-                    height={14}
+                    width={12}
+                    height={12}
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="var(--muted)"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
