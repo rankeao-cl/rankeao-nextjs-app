@@ -242,27 +242,26 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             if (res?.duel) {
                 setDuel(res.duel);
                 setInitialLoading(false);
+                return res.duel;
             }
         } catch (err) { console.error("[DuelDetail] Error refreshing duel:", err); }
         finally { setInitialLoading(false); }
+        return null;
     }, [duelId, token]);
 
     // Fetch duel client-side with auth token (server may not have token)
+    // Chain fetchActiveGame after refreshDuel to avoid concurrent 401 race condition
     useEffect(() => {
         if (token) {
-            refreshDuel();
+            refreshDuel().then((d) => {
+                if (d && ["ACCEPTED", "IN_PROGRESS"].includes(d.status)) {
+                    fetchActiveGame();
+                }
+            });
             fetchComments();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, duelId]);
-
-    // Fetch active game when duel is loaded and active
-    useEffect(() => {
-        if (token && duel && ["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) {
-            fetchActiveGame();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, duel?.status, duelId]);
 
     // Auto-refresh for active duels
     useEffect(() => {
@@ -273,14 +272,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [duel?.status, duelId, token]);
-
-    // Fetch active game when duel is accepted or in progress
-    useEffect(() => {
-        if (token && duel && ["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) {
-            fetchActiveGame();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, duel?.status, duelId]);
 
     if (initialLoading) {
         return (
