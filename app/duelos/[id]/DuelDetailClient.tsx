@@ -22,6 +22,7 @@ import {
 } from "@/lib/api/duels";
 import { getGameState, startGame } from "@/lib/api/game";
 import type { Duel, DuelStatus } from "@/lib/types/duel";
+import type { GameStateSnapshot } from "@/lib/types/game";
 import GameTracker from "./components/GameTracker";
 
 
@@ -193,9 +194,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
 
     // Game tracker
     const [activeGameNumber, setActiveGameNumber] = useState<number | null>(null);
+    const [activeGameSnapshot, setActiveGameSnapshot] = useState<GameStateSnapshot | null>(null);
     const [gameLoading, setGameLoading] = useState(false);
-
-
 
     // Fetch comments
     const fetchComments = useCallback(async () => {
@@ -207,7 +207,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         } catch (err) { console.error("[DuelDetail] Error fetching comments:", err); }
     }, [duelId, token]);
 
-    // Fetch active game number
     const fetchActiveGame = useCallback(async () => {
         if (!token || !duel) return;
         if (!["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) return;
@@ -215,22 +214,22 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             const snap = await getGameState(duelId, 1, token);
             if (snap?.game?.game_number) {
                 setActiveGameNumber(snap.game.game_number);
+                setActiveGameSnapshot(snap);
             }
         } catch {
-            // 404 = no game started yet, leave as null
             setActiveGameNumber(null);
+            setActiveGameSnapshot(null);
         }
     }, [duelId, token, duel]);
 
-    // Handle start game
     const handleStartGame = async () => {
-        if (!token) return;
+        if (!token || !duel) return;
         setGameLoading(true);
         try {
-            const res = await startGame(duelId, { mode: "simple", game_rules_slug: duel?.game_slug ?? "" }, token) as any;
-            const gameNum = res?.data?.game?.game?.game_number ?? res?.game?.game?.game_number ?? 1;
-            setActiveGameNumber(gameNum);
+            await startGame(duelId, { mode: "simple", game_rules_slug: duel.game_slug ?? "" }, token);
+            setActiveGameNumber(1);
             toast.success("Partida iniciada");
+            setTimeout(() => fetchActiveGame(), 500);
         } catch (err) {
             toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
@@ -276,6 +275,14 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [duel?.status, duelId, token]);
+
+    // Fetch active game when duel is accepted or in progress
+    useEffect(() => {
+        if (token && duel && ["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) {
+            fetchActiveGame();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, duel?.status, duelId]);
 
     if (initialLoading) {
         return (
@@ -836,6 +843,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                             opponentAvatarUrl={isChallenger ? duel.opponent.avatar_url : duel.challenger.avatar_url}
                             token={token}
                             gameNumber={activeGameNumber}
+                            initialSnapshot={activeGameSnapshot}
                             onGameEnd={() => { refreshDuel(); }}
                         />
                     ) : (
