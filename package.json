@@ -12,6 +12,7 @@
     "@gravity-ui/icons": "^2.18.0",
     "@heroui/react": "^3.0.0-beta.8",
     "@heroui/styles": "^3.0.0-beta.8",
+    "@serwist/next": "^9.5.7",
     "@tailwindcss/postcss": "^4.2.1",
     "@tanstack/react-query": "^5.90.21",
     "framer-motion": "^12.35.0",
@@ -20,7 +21,8 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "serwist": "^9.5.7"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -4,8 +4,13 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import { CreatePostModalProvider } from "@/context/CreatePostModalContext";
+import { PWAProvider } from "@/context/PWAContext";
 import { Toast } from "@heroui/react";
 import { ThemeProvider } from "next-themes";
+import dynamic from "next/dynamic";
+
+const OfflineIndicator = dynamic(() => import("@/components/OfflineIndicator"), { ssr: false });
+const PWAInstallBanner = dynamic(() => import("@/components/PWAInstallBanner"), { ssr: false });
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -26,8 +31,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <CreatePostModalProvider>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-            {children}
-            <Toast.Provider placement="top end" />
+            <PWAProvider>
+              {children}
+              <OfflineIndicator />
+              <PWAInstallBanner />
+              <Toast.Provider placement="top end" />
+            </PWAProvider>
           </ThemeProvider>
         </CreatePostModalProvider>
       </AuthProvider>
