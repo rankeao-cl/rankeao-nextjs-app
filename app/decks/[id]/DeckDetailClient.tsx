@@ -59,11 +59,11 @@ export default function DeckDetailClient({ deck }: { deck: Deck }) {
       if (liked) {
         await unlikeDeck(deck.id, session.accessToken);
         setLiked(false);
-        setLikeCount(c => Math.max(0, c - 1));
+        setLikeCount((c: number) => Math.max(0, c - 1));
       } else {
         await likeDeck(deck.id, session.accessToken);
         setLiked(true);
-        setLikeCount(c => c + 1);
+        setLikeCount((c: number) => c + 1);
       }
     } catch {}
   };
