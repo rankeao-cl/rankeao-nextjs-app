@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
-import RightSidebar from "./RightSidebar";
+
 import CreatePostModal from "./CreatePostModal";
 import CreatePostFAB from "./CreatePostFAB";
 
@@ -46,8 +46,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     </PullToRefresh>
                 </main>
             )}
-
-            <RightSidebar />
 
             <BottomNav />
 
