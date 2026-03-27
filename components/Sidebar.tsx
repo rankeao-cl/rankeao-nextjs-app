@@ -106,7 +106,7 @@ export default function Sidebar() {
                     <div className="relative mb-3 mx-1" ref={createRef}>
                         <button
                             onClick={() => setCreateOpen(v => !v)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold overflow-hidden w-full"
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold overflow-hidden w-full ${expanded ? "" : "justify-center"}`}
                             style={{
                                 backgroundColor: "var(--accent)",
                                 color: "#fff",
@@ -190,7 +190,7 @@ export default function Sidebar() {
                                 style={active ? { backgroundColor: "var(--surface-solid)" } : {}}
                             >
                                 <span className="relative shrink-0">
-                                    <Icon className="size-7" />
+                                    <Icon className="size-[22px]" />
                                     {badgeCount > 0 && (
                                         <span
                                             className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
