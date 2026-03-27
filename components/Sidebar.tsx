@@ -104,7 +104,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                     <div className="relative mb-3" ref={createRef}>
                         <button
                             onClick={() => setCreateOpen(v => !v)}
-                            className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${collapsed ? "justify-center" : ""}`}
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold overflow-hidden"
                             style={{
                                 backgroundColor: "var(--accent)",
                                 color: "#fff",
@@ -115,7 +115,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                             aria-expanded={createOpen}
                         >
                             <Plus className="size-4 shrink-0" />
-                            {!collapsed && <span>Crear</span>}
+                            <span className="truncate">Crear</span>
                         </button>
 
                         {/* Dropdown opciones */}
@@ -183,7 +183,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center" : ""} ${active ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${active ? "text-foreground" : "text-muted hover:text-foreground"}`}
                                 aria-label={item.label}
                                 style={active ? { backgroundColor: "var(--surface-solid)" } : {}}
                             >
@@ -207,7 +207,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                                         </span>
                                     )}
                                 </span>
-                                {!collapsed && <span className="truncate">{item.label}</span>}
+                                <span className="truncate">{item.label}</span>
                             </Link>
                         );
                     })}
@@ -222,19 +222,19 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                 >
                     <Link
                         href="/perfil/me"
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center" : ""} ${isActive("/perfil/me") ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${isActive("/perfil/me") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Perfil"
                     >
                         <Person className="size-[18px] shrink-0" />
-                        {!collapsed && <span className="truncate">Perfil</span>}
+                        <span className="truncate">Perfil</span>
                     </Link>
                     <Link
                         href="/config"
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${collapsed ? "justify-center" : ""} ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Ajustes"
                     >
                         <Gear className="size-[18px] shrink-0" />
-                        {!collapsed && <span className="truncate">Ajustes</span>}
+                        <span className="truncate">Ajustes</span>
                     </Link>
                 </div>
             )}
