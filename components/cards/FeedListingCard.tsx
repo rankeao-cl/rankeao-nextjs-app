@@ -42,33 +42,30 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
             <div className="flex flex-col md:hidden">
                 {/* Seller row — same style as PostCard */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px 0" }}>
-                    <div
-                        style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: "50%",
-                            background: "var(--surface-solid)",
-                            overflow: "hidden",
-                            flexShrink: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: "var(--foreground)",
-                        }}
-                    >
-                        {listing.seller_avatar_url ? (
-                            <Image
-                                src={listing.seller_avatar_url}
-                                alt={sellerName}
-                                width={36}
-                                height={36}
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                        ) : (
-                            sellerName[0]?.toUpperCase()
-                        )}
+                    <div style={{
+                        width: 40, height: 40, borderRadius: 20,
+                        background: "var(--accent)", padding: 2,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                    }}>
+                        <div style={{
+                            width: 36, height: 36, borderRadius: 18,
+                            backgroundColor: "var(--background)", overflow: "hidden",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
+                        }}>
+                            {listing.seller_avatar_url ? (
+                                <Image
+                                    src={listing.seller_avatar_url}
+                                    alt={sellerName}
+                                    width={36}
+                                    height={36}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                />
+                            ) : (
+                                sellerName[0]?.toUpperCase()
+                            )}
+                        </div>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -194,6 +191,44 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         </div>
                     )}
 
+                    {/* Reactions */}
+                    <div style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        paddingTop: 8, borderTop: "1px solid var(--border)",
+                    }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <button type="button" onClick={() => setLiked(!liked)} style={{
+                                display: "flex", alignItems: "center", gap: 5,
+                                background: "none", border: "none", cursor: "pointer",
+                                color: liked ? "#EF4444" : "var(--muted)",
+                                padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                                transition: "transform 0.15s",
+                                transform: liked ? "scale(1.05)" : "scale(1)",
+                            }}>
+                                <Heart style={{ width: 18, height: 18 }} />
+                                <span>{(listing as any).likes_count ?? 0}</span>
+                            </button>
+                            <button type="button" style={{
+                                display: "flex", alignItems: "center", gap: 5,
+                                background: "none", border: "none", cursor: "pointer",
+                                color: "var(--muted)",
+                                padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                            }}>
+                                <Comment style={{ width: 18, height: 18 }} />
+                                <span>{(listing as any).comments_count ?? 0}</span>
+                            </button>
+                        </div>
+                        <button type="button" onClick={() => setBookmarked(!bookmarked)} style={{
+                            display: "flex", alignItems: "center",
+                            background: "none", border: "none", cursor: "pointer",
+                            color: bookmarked ? "var(--accent)" : "var(--muted)",
+                            padding: "4px 8px", borderRadius: 999,
+                            transition: "color 0.15s",
+                        }}>
+                            <Bookmark style={{ width: 18, height: 18 }} />
+                        </button>
+                    </div>
+
                     {/* CTA — Comprar + precio */}
                     <Link
                         href={`/marketplace/${listing.id}`}
@@ -270,33 +305,30 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                 >
                     {/* Seller row */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div
-                            style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: "50%",
-                                background: "var(--surface)",
-                                overflow: "hidden",
-                                flexShrink: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: "var(--foreground)",
-                            }}
-                        >
-                            {listing.seller_avatar_url ? (
-                                <Image
-                                    src={listing.seller_avatar_url}
-                                    alt={sellerName}
-                                    width={28}
-                                    height={28}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                />
-                            ) : (
-                                sellerName[0]?.toUpperCase()
-                            )}
+                        <div style={{
+                            width: 32, height: 32, borderRadius: 16,
+                            background: "var(--accent)", padding: 2,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            flexShrink: 0,
+                        }}>
+                            <div style={{
+                                width: 28, height: 28, borderRadius: 14,
+                                backgroundColor: "var(--background)", overflow: "hidden",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 11, fontWeight: 700, color: "var(--foreground)",
+                            }}>
+                                {listing.seller_avatar_url ? (
+                                    <Image
+                                        src={listing.seller_avatar_url}
+                                        alt={sellerName}
+                                        width={28}
+                                        height={28}
+                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    />
+                                ) : (
+                                    sellerName[0]?.toUpperCase()
+                                )}
+                            </div>
                         </div>
                         <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -368,17 +400,37 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
 
                     <div style={{ flex: 1 }} />
 
-                    {/* Footer */}
+                    {/* Reactions */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--muted)" }}>
-                            <button type="button" onClick={() => setLiked(v => !v)} style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", color: liked ? "var(--danger)" : "var(--muted)", cursor: "pointer", padding: 0, fontSize: 12 }}>
-                                <Heart style={{ width: 15, height: 15 }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <button type="button" onClick={() => setLiked(v => !v)} style={{
+                                display: "flex", alignItems: "center", gap: 5,
+                                background: "none", border: "none", cursor: "pointer",
+                                color: liked ? "#EF4444" : "var(--muted)",
+                                padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                                transition: "transform 0.15s",
+                                transform: liked ? "scale(1.05)" : "scale(1)",
+                            }}>
+                                <Heart style={{ width: 18, height: 18 }} />
+                                <span>{(listing as any).likes_count ?? 0}</span>
                             </button>
-                            <button type="button" style={{ display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0, fontSize: 12 }}>
-                                <Comment style={{ width: 15, height: 15 }} />
+                            <button type="button" style={{
+                                display: "flex", alignItems: "center", gap: 5,
+                                background: "none", border: "none", cursor: "pointer",
+                                color: "var(--muted)",
+                                padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                            }}>
+                                <Comment style={{ width: 18, height: 18 }} />
+                                <span>{(listing as any).comments_count ?? 0}</span>
                             </button>
-                            <button type="button" onClick={() => setBookmarked(v => !v)} style={{ display: "flex", alignItems: "center", background: "none", border: "none", color: bookmarked ? "var(--accent)" : "var(--muted)", cursor: "pointer", padding: 0 }}>
-                                <Bookmark style={{ width: 15, height: 15 }} />
+                            <button type="button" onClick={() => setBookmarked(v => !v)} style={{
+                                display: "flex", alignItems: "center",
+                                background: "none", border: "none", cursor: "pointer",
+                                color: bookmarked ? "var(--accent)" : "var(--muted)",
+                                padding: "4px 8px", borderRadius: 999,
+                                transition: "color 0.15s",
+                            }}>
+                                <Bookmark style={{ width: 18, height: 18 }} />
                             </button>
                         </div>
                         <Link

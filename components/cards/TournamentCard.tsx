@@ -52,7 +52,13 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
 
     return (
         <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+            <div className="relative rounded-xl overflow-hidden feed-card-hover" style={{ aspectRatio: "16/9", border: "1px solid var(--border)", transition: "box-shadow 0.25s, border-color 0.25s" }}>
+                <style>{`
+                    .feed-card-hover:hover {
+                        border-color: rgba(59,130,246,0.4) !important;
+                        box-shadow: 0 0 20px rgba(59,130,246,0.15), 0 4px 16px rgba(0,0,0,0.1) !important;
+                    }
+                `}</style>
                 {/* Imagen de fondo */}
                 {bgImage ? (
                     <Image
