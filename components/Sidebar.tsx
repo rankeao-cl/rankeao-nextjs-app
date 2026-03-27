@@ -29,7 +29,7 @@ interface NavItem {
     badgeKey?: "duelos";
 }
 
-// Orden según diseño: 1-Feed 2-Duelos 3-Marketplace 4-Notificaciones 5-Torneos 6-Comunidades 7-Ranking
+// Orden: 1-Feed 2-Duelos 3-Marketplace 4-Notificaciones 5-Torneos 6-Comunidades 7-Ranking
 const navItems: NavItem[] = [
     { href: "/", label: "Feed", icon: House },
     { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true, badgeKey: "duelos" },
@@ -40,11 +40,7 @@ const navItems: NavItem[] = [
     { href: "/ranking", label: "Ranking", icon: ChartColumn },
 ];
 
-interface SidebarProps {
-    collapsed?: boolean;
-}
-
-export default function Sidebar({ collapsed = false }: SidebarProps) {
+export default function Sidebar() {
     const pathname = usePathname();
     const { session, status } = useAuth();
     const { openCreatePost } = useCreatePostModal();
@@ -52,7 +48,11 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
 
     const [pendingDuels, setPendingDuels] = useState(0);
     const [createOpen, setCreateOpen] = useState(false);
+    const [hovered, setHovered] = useState(false);
     const createRef = useRef<HTMLDivElement>(null);
+
+    // El sidebar se expande si hay hover O si el dropdown está abierto
+    const expanded = hovered || createOpen;
 
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -95,16 +95,18 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-full border-r transition-all duration-300 shrink-0 ${collapsed ? "w-[68px]" : "w-[220px]"}`}
+            className={`hidden lg:flex flex-col h-full border-r shrink-0 transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
             style={{ borderColor: "var(--border)", background: "var(--background)" }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
-            <nav className="flex-1 flex flex-col p-3 pt-4 overflow-y-auto">
-                {/* Botón Crear + */}
+            <nav className="flex-1 flex flex-col p-3 pt-4 overflow-y-auto overflow-x-hidden">
+                {/* Botón Crear */}
                 {isAuth && (
-                    <div className="relative mb-3" ref={createRef}>
+                    <div className="relative mb-3 mx-1" ref={createRef}>
                         <button
                             onClick={() => setCreateOpen(v => !v)}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold overflow-hidden"
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold overflow-hidden w-full ${expanded ? "" : "justify-center"}`}
                             style={{
                                 backgroundColor: "var(--accent)",
                                 color: "#fff",
@@ -114,12 +116,12 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                             aria-label="Crear"
                             aria-expanded={createOpen}
                         >
-                            <Plus className="size-4 shrink-0" />
+                            <Plus className="size-5 shrink-0" />
                             <span className="truncate">Crear</span>
                         </button>
 
                         {/* Dropdown opciones */}
-                        {createOpen && !collapsed && (
+                        {createOpen && expanded && (
                             <div
                                 className="absolute left-0 top-full mt-1.5 w-full z-50 rounded-xl overflow-hidden shadow-xl"
                                 style={{
@@ -188,7 +190,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                                 style={active ? { backgroundColor: "var(--surface-solid)" } : {}}
                             >
                                 <span className="relative shrink-0">
-                                    <Icon className="size-[18px]" />
+                                    <Icon className="size-[22px]" />
                                     {badgeCount > 0 && (
                                         <span
                                             className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
@@ -225,7 +227,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${isActive("/perfil/me") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Perfil"
                     >
-                        <Person className="size-[18px] shrink-0" />
+                        <Person className="size-7 shrink-0" />
                         <span className="truncate">Perfil</span>
                     </Link>
                     <Link
@@ -233,7 +235,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Ajustes"
                     >
-                        <Gear className="size-[18px] shrink-0" />
+                        <Gear className="size-7 shrink-0" />
                         <span className="truncate">Ajustes</span>
                     </Link>
                 </div>
