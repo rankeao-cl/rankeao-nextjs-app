@@ -12,7 +12,7 @@ import { getTournaments } from "@/lib/api/tournaments";
 import { getTenants } from "@/lib/api/tenants";
 import { getListings } from "@/lib/api/marketplace";
 import { getClans } from "@/lib/api/clans";
-import { searchCards } from "@/lib/api/catalog";
+import { scryfallSearch } from "@/lib/api/catalog";
 
 // ── Types ──
 
@@ -62,7 +62,7 @@ function SearchContent() {
             getTenants({ q: query, per_page: 20 }),
             getListings({ q: query, per_page: 20 }),
             getClans({ q: query, per_page: 20 }),
-            searchCards({ q: query, per_page: 20 }),
+            scryfallSearch(query, 1, 20),
         ]).then(([usersRes, tournamentsRes, tenantsRes, listingsRes, clansRes, cardsRes]) => {
             if (controller.signal.aborted) return;
             const items: SearchResult[] = [];
@@ -92,7 +92,7 @@ function SearchContent() {
                         id: t.id, type: "tournament",
                         title: t.name,
                         subtitle: [t.game, t.format_type, t.status].filter(Boolean).join(" · "),
-                        href: `/torneos/${t.id}`,
+                        href: `/torneos/${t.slug ?? t.id}`,
                         meta: { status: t.status, game: t.game, registered_count: t.registered_count },
                     });
                 }
@@ -114,19 +114,23 @@ function SearchContent() {
                 }
             }
 
-            // Cards
+            // Cards (Scryfall)
             if (cardsRes.status === "fulfilled") {
                 const val = cardsRes.value as any;
-                const cards = val?.data?.cards || val?.cards || val?.data || [];
+                const cards = val?.data?.cards || [];
+                const seen = new Set<string>();
                 if (Array.isArray(cards)) {
                     for (const card of cards) {
+                        const key = (card.name || "").toLowerCase();
+                        if (seen.has(key)) continue;
+                        seen.add(key);
                         items.push({
-                            id: card.id || card.public_id, type: "card",
+                            id: card.name, type: "card",
                             title: card.name,
-                            subtitle: [card.game_name, card.set_name].filter(Boolean).join(" · "),
-                            image: card.image_url,
-                            href: `/catalogo/${card.game_slug || "pokemon-tcg"}/${card.id || card.public_id}`,
-                            meta: { rarity: card.rarity, collector_number: card.collector_number },
+                            subtitle: [card.game_name || "Magic: The Gathering", card.set_name].filter(Boolean).join(" · "),
+                            image: card.image_url_small || card.image_url,
+                            href: `/cartas/${encodeURIComponent(card.name)}`,
+                            meta: { rarity: card.rarity, price_usd: card.price_usd },
                         });
                     }
                 }

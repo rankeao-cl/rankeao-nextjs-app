@@ -53,7 +53,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
     const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
 
     return (
-        <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
+        <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
             <div className="relative rounded-xl overflow-hidden feed-card-hover" style={{ aspectRatio: "16/9", border: "1px solid var(--border)", transition: "box-shadow 0.25s, border-color 0.25s" }}>
                 <style>{`
                     .feed-card-hover:hover {

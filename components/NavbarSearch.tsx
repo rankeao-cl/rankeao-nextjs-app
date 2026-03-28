@@ -4,16 +4,17 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, Spinner } from "@heroui/react";
-import { Magnifier, Person, Cup, Persons, ShoppingCart, Xmark } from "@gravity-ui/icons";
+import { Magnifier, Person, Cup, Persons, ShoppingCart, Xmark, SquareDashed } from "@gravity-ui/icons";
 
 import { autocompleteUsers } from "@/lib/api/social";
 import { getTournaments } from "@/lib/api/tournaments";
 import { getTenants } from "@/lib/api/tenants";
 import { getListings } from "@/lib/api/marketplace";
+import { scryfallSearch } from "@/lib/api/catalog";
 
 type SearchResult = {
   id: string;
-  type: "user" | "tournament" | "community" | "listing";
+  type: "user" | "tournament" | "community" | "listing" | "card";
   title: string;
   subtitle?: string;
   image?: string;
@@ -34,6 +35,7 @@ const TYPE_CONFIG = {
   tournament: { icon: Cup, label: "Torneos", color: "text-purple-500", bg: "bg-purple-500/15" },
   community: { icon: Persons, label: "Comunidades", color: "text-emerald-500", bg: "bg-emerald-500/15" },
   listing: { icon: ShoppingCart, label: "Marketplace", color: "text-orange-500", bg: "bg-orange-500/15" },
+  card: { icon: SquareDashed, label: "Cartas", color: "text-amber-500", bg: "bg-amber-500/15" },
 } as const;
 
 export default function NavbarSearch({ expanded = false, onClose }: { expanded?: boolean; onClose?: () => void }) {
@@ -78,11 +80,12 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
     setIsOpen(true);
 
     try {
-      const [usersRes, tournamentsRes, tenantsRes, listingsRes] = await Promise.allSettled([
+      const [usersRes, tournamentsRes, tenantsRes, listingsRes, cardsRes] = await Promise.allSettled([
         autocompleteUsers(q),
         getTournaments({ q, per_page: 4 }),
         getTenants({ q, per_page: 4 }),
         getListings({ q, per_page: 4 }),
+        scryfallSearch(q, 1, 4),
       ]);
 
       const items: SearchResult[] = [];
@@ -113,7 +116,7 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
             type: "tournament",
             title: t.name,
             subtitle: t.game || t.tenant_name || undefined,
-            href: `/torneos/${t.id}`,
+            href: `/torneos/${t.slug ?? t.id}`,
           });
         });
       }
@@ -148,6 +151,27 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
             href: `/marketplace/${l.id}`,
           });
         });
+      }
+
+      // Cards (Scryfall)
+      if (cardsRes.status === "fulfilled") {
+        const val = cardsRes.value as any;
+        const cards = val?.data?.cards || [];
+        const seen = new Set<string>();
+        for (const c of cards) {
+          const key = (c.name || "").toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          items.push({
+            id: c.name,
+            type: "card",
+            title: c.name,
+            subtitle: [c.set_name, c.rarity].filter(Boolean).join(" · "),
+            image: c.image_url_small || c.image_url,
+            href: `/cartas/${encodeURIComponent(c.name)}`,
+          });
+          if (seen.size >= 4) break;
+        }
       }
 
       setResults(items);

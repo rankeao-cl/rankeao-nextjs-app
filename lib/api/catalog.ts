@@ -101,3 +101,43 @@ export async function getPriceHistory(printingId: string, params?: Params) {
         params
     );
 }
+
+// ── Scryfall Proxy ──
+
+export interface ScryfallSearchResult {
+    name: string;
+    slug?: string;
+    type_line: string;
+    oracle_text: string;
+    game_slug: string;
+    game_name: string;
+    set_code: string;
+    set_name: string;
+    rarity: string;
+    image_url: string;
+    image_url_small: string;
+    price_usd?: string;
+}
+
+export interface ScryfallSearchResponse {
+    cards: ScryfallSearchResult[];
+    total_cards: number;
+    has_more: boolean;
+    source: "db" | "scryfall";
+}
+
+export async function scryfallSearch(q: string, page?: number, perPage?: number) {
+    return apiFetch<{ data: ScryfallSearchResponse }>("/catalog/scryfall/search", {
+        q,
+        ...(page ? { page } : {}),
+        ...(perPage ? { per_page: perPage } : {}),
+    }, { cache: "no-store" });
+}
+
+export async function scryfallAutocomplete(q: string) {
+    return apiFetch<{ data: { data: string[]; total_values: number } }>("/catalog/scryfall/autocomplete", { q });
+}
+
+export async function scryfallCardByName(name: string) {
+    return apiFetch<{ data: { card: Card; source: string } }>(`/catalog/scryfall/cards/${encodeURIComponent(name)}`, undefined, { cache: "no-store" });
+}

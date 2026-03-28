@@ -4,6 +4,7 @@ import type { PaginationMeta } from "./api";
 
 export interface Tournament {
     id: string;
+    slug?: string;
     name: string;
     status: string;
     game: string;

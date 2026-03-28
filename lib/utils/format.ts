@@ -46,3 +46,8 @@ export function timeAgo(dateStr?: string | null, opts?: TimeAgoOptions): string 
 export function stripHtml(html: string): string {
     return html.replace(/<[^>]*>/g, "");
 }
+
+/** Convert a card name (or any string) to a URL slug: lowercase, non-alphanumeric → hyphen. */
+export function toCardSlug(name: string): string {
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}

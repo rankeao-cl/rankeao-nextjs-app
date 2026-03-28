@@ -230,7 +230,7 @@ export default function TorneosCalendar({ tournaments }: TorneosCalendarProps) {
                                 : null;
 
                             return (
-                                <Link key={t.id} href={`/torneos/${t.id}`}>
+                                <Link key={t.id} href={`/torneos/${t.slug ?? t.id}`}>
                                     <div
                                         className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-secondary)] transition-colors space-y-2 cursor-pointer"
                                     >

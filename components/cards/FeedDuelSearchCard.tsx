@@ -102,7 +102,7 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
             await acceptDuel(duel.id, session.accessToken);
             setAccepted(true);
             onAccepted?.();
-            setTimeout(() => router.push(`/duelos/${duel.id}`), 600);
+            setTimeout(() => router.push(`/duelos/${duel.slug ?? duel.id}`), 600);
         } catch (err: any) {
             toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {

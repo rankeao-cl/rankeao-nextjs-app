@@ -156,7 +156,7 @@ export default function RightSidebar() {
                         return (
                             <Link
                                 key={t.id}
-                                href={`/torneos/${t.id}`}
+                                href={`/torneos/${t.slug ?? t.id}`}
                                 className="block p-2.5 rounded-xl border border-border hover:border-accent/30 bg-surface-solid hover:bg-surface-solid transition-colors"
                             >
                                 <div className="flex items-center justify-between mb-1.5">

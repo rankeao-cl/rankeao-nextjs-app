@@ -51,7 +51,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
         : null;
 
     return (
-        <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
+        <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
             <article
                 style={{
                     backgroundColor: "var(--surface-solid)",

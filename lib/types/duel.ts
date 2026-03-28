@@ -18,6 +18,7 @@ export interface DuelPlayer {
 
 export interface Duel {
     id: string;
+    slug?: string;
     challenger: DuelPlayer;
     opponent: DuelPlayer;
     game_id?: string;
@@ -43,6 +44,7 @@ export interface Duel {
 // Raw shape returned by backend (DuelInfo)
 export interface DuelInfoRaw {
     id: string;
+    slug?: string;
     challenger_id: string;
     challenger_username: string;
     challenger_avatar?: string;
@@ -70,6 +72,7 @@ export interface DuelInfoRaw {
 export function mapDuel(raw: DuelInfoRaw): Duel {
     return {
         id: raw.id,
+        slug: raw.slug,
         challenger: {
             id: raw.challenger_id,
             username: raw.challenger_username,

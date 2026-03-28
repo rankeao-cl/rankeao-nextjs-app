@@ -62,7 +62,7 @@ export default function DuelCard({ duel }: { duel: Duel }) {
     const hasScore = duel.challenger_wins != null && duel.opponent_wins != null && (duel.challenger_wins > 0 || duel.opponent_wins > 0);
 
     return (
-        <Link href={`/duelos/${duel.id}`} className="duel-card-hover" style={{ textDecoration: "none", display: "block" }}>
+        <Link href={`/duelos/${duel.slug ?? duel.id}`} className="duel-card-hover" style={{ textDecoration: "none", display: "block" }}>
             <style>{`
                 .duel-card-hover { transition: transform 0.2s, box-shadow 0.2s; }
                 .duel-card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.15); }

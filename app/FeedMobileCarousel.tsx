@@ -51,7 +51,7 @@ export default function FeedMobileCarousel({ tournaments }: { tournaments: Tourn
           return (
             <Link
               key={t.id}
-              href={`/torneos/${t.id}`}
+              href={`/torneos/${t.slug ?? t.id}`}
               style={{
                 textDecoration: "none",
                 flexShrink: 0,

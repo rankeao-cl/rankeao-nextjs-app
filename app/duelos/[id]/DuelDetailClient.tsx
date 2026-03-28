@@ -98,6 +98,13 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [introFading, setIntroFading] = useState(false);
     const introEligible = duel ? ["ACCEPTED", "IN_PROGRESS"].includes(duel.status) : false;
 
+    // Canonical redirect: once slug is available, update URL silently
+    useEffect(() => {
+        if (duel?.slug && duelId !== duel.slug) {
+            router.replace(`/duelos/${duel.slug}`, { scroll: false });
+        }
+    }, [duel?.slug, duelId, router]);
+
     useEffect(() => {
         if (introChecked || !duel) return;
         setIntroChecked(true);
@@ -330,7 +337,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     };
 
     const handleShare = () => {
-        const url = `https://rankeao.cl/duelos/${duelId}`;
+        const url = `https://rankeao.cl/duelos/${duel?.slug ?? duelId}`;
         const text = `${p1.display_name || p1.username} vs ${p2.display_name || p2.username}`;
         if (navigator.share) { navigator.share({ title: text, url }).catch(() => {}); }
         else { navigator.clipboard.writeText(url).then(() => toast.success("URL copiada")).catch(() => {}); }

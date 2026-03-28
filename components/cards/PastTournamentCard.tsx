@@ -33,7 +33,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
     const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
 
     return (
-        <Link href={`/torneos/${tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
+        <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
             <div style={{
                 backgroundColor: "var(--surface-solid)",
                 borderRadius: 16,
