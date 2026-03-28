@@ -225,11 +225,15 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         setGameLoading(true);
         try {
             await startGame(duelId, { mode: "simple", game_rules_slug: duel.game_slug ?? "" }, token);
-            setActiveGameNumber(1);
             toast.success("Partida iniciada");
             setTimeout(() => fetchActiveGame(), 500);
-        } catch (err) {
-            toast.danger("Error", { description: mapErrorMessage(err) });
+        } catch (err: any) {
+            if (err?.status === 409 || err?.code === "ACTIVE_GAME_EXISTS") {
+                // Game already exists — load it
+                await fetchActiveGame();
+            } else {
+                toast.danger("Error", { description: mapErrorMessage(err) });
+            }
         } finally {
             setGameLoading(false);
         }

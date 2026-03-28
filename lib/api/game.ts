@@ -28,7 +28,8 @@ export async function getGameState(
         undefined,
         { cache: 'no-store', token }
     );
-    const data = (res as any)?.data ?? res;
+    // Backend returns { data: { state: { game, player_states, pending_events } } }
+    const data = (res as any)?.data?.state ?? (res as any)?.data ?? res;
     return data as GameStateSnapshot;
 }
 
