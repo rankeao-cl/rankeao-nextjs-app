@@ -286,7 +286,7 @@ export default async function TorneosPage({ searchParams }: Props) {
               href={`?tab=${key}${params.view ? `&view=${params.view}` : ""}${params.game ? `&game=${params.game}` : ""}`}
               className={`px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-colors ${
                 tab === key
-                  ? "bg-foreground text-[#000000] border border-transparent"
+                  ? "bg-foreground text-background border border-transparent"
                   : "bg-surface-solid border border-border text-muted hover:text-foreground"
               }`}
             >
