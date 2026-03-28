@@ -29,6 +29,7 @@ import { useTheme } from "next-themes";
 import { getUnreadNotificationCount } from "@/lib/api/notifications";
 import { getUserProfile } from "@/lib/api/social";
 import NotificationSidebar from "./NotificationSidebar";
+import { useNotificationSidebar } from "@/context/NotificationSidebarContext";
 
 const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
@@ -43,9 +44,8 @@ export default function Navbar() {
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
 
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { isOpen: notifSidebarOpen, open: openNotifSidebar, close: closeNotifSidebar, unreadCount, setUnreadCount } = useNotificationSidebar();
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
-  const [notifSidebarOpen, setNotifSidebarOpen] = useState(false);
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
@@ -136,9 +136,9 @@ export default function Navbar() {
 
                 {/* Bell */}
                 {isAuthenticated && (
-                  <Link
-                    href="/notificaciones"
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center"
+                  <button
+                    onClick={() => openNotifSidebar()}
+                    className="relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
                     style={{ background: "var(--surface-solid)" }}
                     aria-label="Notificaciones"
                   >
@@ -159,7 +159,7 @@ export default function Navbar() {
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
-                  </Link>
+                  </button>
                 )}
 
                 {/* Chat */}
@@ -170,7 +170,7 @@ export default function Navbar() {
                     style={{ background: "var(--surface-solid)" }}
                     aria-label="Chat"
                   >
-                    <Comment className="size-4" style={{ color: "var(--muted)" }} />
+                    <Comment className="size-4" style={{ color: "var(--foreground)" }} />
                   </Link>
                 )}
 
@@ -205,11 +205,11 @@ export default function Navbar() {
                   <>
                     {/* Notifications — opens sidebar */}
                     <button
-                      onClick={() => setNotifSidebarOpen(true)}
+                      onClick={() => openNotifSidebar()}
                       className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-muted cursor-pointer hover:bg-black/5 rounded-lg transition-colors"
                       aria-label="Notificaciones"
                     >
-                      <Bell className="size-[18px]" />
+                      <Bell className="size-[18px]" style={{ color: "var(--foreground)" }} />
                       {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-danger text-white text-[10px] font-bold leading-none px-1 border-2 border-background">
                           {unreadCount > 9 ? "9+" : unreadCount}
@@ -225,7 +225,7 @@ export default function Navbar() {
                       >
                         <Plus className="size-4 font-bold" />
                       </Popover.Trigger>
-                      <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
+                      <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm [box-shadow:var(--shadow-popover)] !rounded-[22px]">
                         <div className="px-3.5 py-2.5 border-b border-border bg-surface-solid">
                           <p className="text-xs font-bold uppercase tracking-wider text-muted">Crear nuevo</p>
                         </div>
@@ -284,7 +284,7 @@ export default function Navbar() {
                             </Avatar.Fallback>
                           </Avatar>
                         </Popover.Trigger>
-                        <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm shadow-xl !rounded-[22px]">
+                        <Popover.Content className="w-[260px] max-w-[calc(100vw-2rem)] p-0 overflow-hidden glass-sm [box-shadow:var(--shadow-popover)] !rounded-[22px]">
                           {/* User Info Header */}
                           <div className="relative">
                             <div className="absolute top-0 inset-x-0 h-0.5 bg-accent" />
@@ -361,15 +361,12 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Notification sidebar — desktop only (mobile uses /notificaciones page) */}
-      <div className="hidden md:block">
-        <NotificationSidebar
-          isOpen={notifSidebarOpen}
-          onClose={() => setNotifSidebarOpen(false)}
-          accessToken={session?.accessToken}
-          onUnreadCountChange={setUnreadCount}
-        />
-      </div>
+      <NotificationSidebar
+        isOpen={notifSidebarOpen}
+        onClose={() => closeNotifSidebar()}
+        accessToken={session?.accessToken}
+        onUnreadCountChange={setUnreadCount}
+      />
     </header>
   );
 }

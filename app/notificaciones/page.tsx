@@ -2,52 +2,79 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ScrollShadow, Button, Chip } from "@heroui/react";
+import { ScrollShadow } from "@heroui/react";
+import { Bell, Person, ShoppingCart, StarFill } from "@gravity-ui/icons";
 import { timeAgo, stripHtml } from "@/lib/utils/format";
 import { useAuth } from "@/context/AuthContext";
-import { Person, Bell, ShoppingCart, StarFill, Gear } from "@gravity-ui/icons";
 import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
 import type { Notification } from "@/lib/types/notification";
-import NotificationPreferences from "./NotificationPreferences";
 
-const CATEGORIES = [
-    { id: "all", label: "Todas", icon: null },
-    { id: "social", label: "Social", icon: <Person className="size-3.5" /> },
-    { id: "tournament", label: "Torneos", icon: <StarFill className="size-3.5" /> },
-    { id: "competitive", label: "Competitivo", icon: <StarFill className="size-3.5" /> },
-    { id: "chat", label: "Chat", icon: <Person className="size-3.5" /> },
-    { id: "marketplace", label: "Marketplace", icon: <ShoppingCart className="size-3.5" /> },
-    { id: "system", label: "Sistema", icon: <Bell className="size-3.5" /> },
+const TABS = [
+    { id: "all", label: "Todas" },
+    { id: "social", label: "Social" },
+    { id: "tournament", label: "Torneos" },
+    { id: "marketplace", label: "Marketplace" },
+    { id: "system", label: "Sistema" },
 ];
 
-const categoryColors: Record<string, { bg: string; text: string }> = {
-    social: { bg: "bg-[var(--accent)]/15", text: "text-[var(--accent)]" },
-    tournament: { bg: "bg-[var(--warning)]/15", text: "text-[var(--warning)]" },
-    competitive: { bg: "bg-[var(--warning)]/15", text: "text-[var(--warning)]" },
-    chat: { bg: "bg-[var(--info,var(--accent))]/15", text: "text-[var(--info,var(--accent))]" },
-    marketplace: { bg: "bg-[var(--success)]/15", text: "text-[var(--success)]" },
-    system: { bg: "bg-[var(--default)]", text: "text-[var(--muted)]" },
-};
-
-
-function getNotifCategory(notif: Notification): string {
-    return notif.category?.toLowerCase() || notif.channel?.toLowerCase() || notif.type?.toLowerCase() || "system";
+function getCategory(n: Notification): string {
+    return (n.category || n.channel || n.type || "system").toLowerCase();
 }
 
 function getCategoryIcon(cat: string) {
     switch (cat) {
-        case "social":
-            return <Person className="size-4" />;
-        case "marketplace":
-            return <ShoppingCart className="size-4" />;
+        case "social": return <Person className="size-[18px]" />;
+        case "marketplace": return <ShoppingCart className="size-[18px]" />;
         case "tournament":
-        case "competitive":
-            return <StarFill className="size-4" />;
-        case "chat":
-            return <Person className="size-4" />;
-        default:
-            return <Bell className="size-4" />;
+        case "competitive": return <StarFill className="size-[18px]" />;
+        case "chat": return <Person className="size-[18px]" />;
+        default: return <Bell className="size-[18px]" />;
     }
+}
+
+function getCategoryColors(cat: string): string {
+    switch (cat) {
+        case "social": return "bg-blue-500/15 text-blue-400";
+        case "marketplace": return "bg-orange-500/15 text-orange-400";
+        case "tournament":
+        case "competitive": return "bg-purple-500/15 text-purple-400";
+        case "chat": return "bg-cyan-500/15 text-cyan-400";
+        default: return "bg-surface text-muted";
+    }
+}
+
+type Group = { label: string; items: Notification[] };
+
+function groupByTime(notifications: Notification[]): Group[] {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
+    const weekStart = new Date(todayStart.getTime() - 6 * 86_400_000);
+    const hourAgo = new Date(now.getTime() - 3_600_000);
+
+    const groups: Group[] = [
+        { label: "Nuevo", items: [] },
+        { label: "Hoy", items: [] },
+        { label: "Ayer", items: [] },
+        { label: "Esta semana", items: [] },
+        { label: "Anterior", items: [] },
+    ];
+
+    for (const n of notifications) {
+        const d = new Date(n.created_at);
+        if (!n.is_read && d >= hourAgo) {
+            groups[0].items.push(n);
+        } else if (d >= todayStart) {
+            groups[1].items.push(n);
+        } else if (d >= yesterdayStart) {
+            groups[2].items.push(n);
+        } else if (d >= weekStart) {
+            groups[3].items.push(n);
+        } else {
+            groups[4].items.push(n);
+        }
+    }
+    return groups.filter((g) => g.items.length > 0);
 }
 
 export default function NotificacionesPage() {
@@ -55,149 +82,111 @@ export default function NotificacionesPage() {
     const isAuthenticated = status === "authenticated" && Boolean(session?.email);
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [markingAll, setMarkingAll] = useState(false);
     const [activeTab, setActiveTab] = useState("all");
-    const [showPreferences, setShowPreferences] = useState(false);
+    const [markingAll, setMarkingAll] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated || !session?.accessToken) return;
-
         const token = session.accessToken;
 
-        const fetchNotifications = () => {
-            Promise.all([
-                getNotifications({ per_page: 100 }, token).catch(() => null),
-                getUnreadNotificationCount(token).catch(() => null),
-            ]).then(([notifRes, countRes]) => {
-                const raw = notifRes?.notifications ?? [];
-                const list = Array.isArray(raw) ? raw : [];
-                const normalized = list.map((n: Notification) => ({
-                    ...n,
-                    is_read: n.is_read ?? (n.read_at != null),
-                    category: (n.category || n.channel)?.toLowerCase(),
-                }));
-                setNotifications(normalized);
+        setLoading(true);
+        Promise.all([
+            getNotifications({ per_page: 100 }, token).catch(() => null),
+            getUnreadNotificationCount(token).catch(() => null),
+        ]).then(([notifRes]) => {
+            const raw = notifRes?.notifications ?? [];
+            const normalized = (Array.isArray(raw) ? raw : []).map((n: Notification) => ({
+                ...n,
+                is_read: n.is_read ?? n.read_at != null,
+                category: (n.category || n.channel)?.toLowerCase(),
+            }));
+            setNotifications(normalized);
+            setLoading(false);
+        });
+    }, [isAuthenticated, session?.accessToken]);
 
-                const total = countRes?.total;
-                if (typeof total === "number") setUnreadCount(total);
-                setLoading(false);
-            });
-        };
+    const unreadCount = useMemo(() => notifications.filter((n) => !n.is_read).length, [notifications]);
 
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 30_000);
-        return () => clearInterval(interval);
-    }, [isAuthenticated, session]);
-
-    const handleMarkAllRead = async () => {
-        if (!isAuthenticated || !session?.accessToken) return;
-        setMarkingAll(true);
-        try {
-            await markAllNotificationsRead(session.accessToken);
-            setUnreadCount(0);
-            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-        } catch {}
-        setMarkingAll(false);
-    };
-
-    const filteredNotifications = useMemo(() => {
+    const filtered = useMemo(() => {
         if (activeTab === "all") return notifications;
         return notifications.filter((n) => {
-            const cat = getNotifCategory(n);
-            return cat === activeTab;
+            const cat = getCategory(n);
+            return cat === activeTab || (activeTab === "tournament" && cat === "competitive");
         });
     }, [notifications, activeTab]);
 
-    const unreadInTab = useMemo(() => {
-        return filteredNotifications.filter((n) => !n.is_read).length;
-    }, [filteredNotifications]);
+    const groups = useMemo(() => groupByTime(filtered), [filtered]);
 
-    if (showPreferences) {
-        return (
-            <main className="max-w-2xl mx-auto px-4 py-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <Button size="sm" variant="secondary" onPress={() => setShowPreferences(false)}>
-                        &larr; Volver
-                    </Button>
-                    <h1 className="text-xl font-bold text-[var(--foreground)]">Preferencias de Notificaciones</h1>
-                </div>
-                <NotificationPreferences />
-            </main>
-        );
-    }
+    const handleMarkAllRead = async () => {
+        if (!session?.accessToken || markingAll) return;
+        setMarkingAll(true);
+        try {
+            await markAllNotificationsRead(session.accessToken);
+            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+        } catch { /* ignore */ }
+        setMarkingAll(false);
+    };
 
     return (
-        <main className="max-w-2xl mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto w-full flex flex-col" style={{ minHeight: "calc(100vh - 4rem)" }}>
             {/* Header */}
-            <section className="mb-6">
-                <div
-                    className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
-                >
-                    <div className="relative z-10 flex-1">
-                        <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
-                            Novedades / Social / Torneos
-                        </Chip>
-                        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
-                            Notificaciones
-                        </h1>
-                        <p className="text-sm text-[var(--muted)] max-w-lg mb-4">
-                            Aquí encontrarás todas las actualizaciones relevantes, desde interacciones sociales hasta novedades de torneos y el marketplace.
-                        </p>
-                    </div>
-                    <div className="relative z-10 shrink-0 flex gap-2">
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            onPress={() => setShowPreferences(true)}
-                            className="h-9 w-9 min-w-0 p-0"
-                            aria-label="Preferencias de notificaciones"
-                        >
-                            <Gear className="size-4" />
-                        </Button>
-                        {notifications.length > 0 && unreadCount > 0 && (
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="secondary"
-                                onPress={handleMarkAllRead}
-                                isDisabled={markingAll}
-                            >
-                                {markingAll ? "Marcando..." : "Marcar todas como leídas"}
-                            </Button>
-                        )}
-                    </div>
+            <div
+                className="flex items-center justify-between px-5 py-4 shrink-0 sticky top-0 z-10"
+                style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
+            >
+                <div className="flex items-center gap-3">
+                    <h1 className="text-[17px] font-bold text-foreground">Notificaciones</h1>
+                    {unreadCount > 0 && (
+                        <span className="text-[11px] font-bold bg-blue-500/15 text-blue-400 px-2 py-0.5 rounded-full">
+                            {unreadCount}
+                        </span>
+                    )}
                 </div>
-            </section>
+                {unreadCount > 0 && (
+                    <button
+                        onClick={handleMarkAllRead}
+                        disabled={markingAll}
+                        className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                        style={{ background: "none", border: "none" }}
+                    >
+                        {markingAll ? "Marcando..." : "Marcar leídas"}
+                    </button>
+                )}
+            </div>
 
-            {/* Category Filter Tabs */}
-            <div className="flex gap-1.5 overflow-x-auto pb-3 mb-4 scrollbar-thin scrollbar-thumb-[var(--border)] scrollbar-track-transparent">
-                {CATEGORIES.map((cat) => {
-                    const isActive = activeTab === cat.id;
-                    const count = cat.id === "all"
-                        ? notifications.filter((n) => !n.is_read).length
-                        : notifications.filter((n) => getNotifCategory(n) === cat.id && !n.is_read).length;
+            {/* Tabs */}
+            <div
+                className="flex gap-1.5 px-4 py-3 overflow-x-auto scrollbar-none shrink-0"
+                style={{ borderBottom: "1px solid var(--border)" }}
+            >
+                {TABS.map((tab) => {
+                    const tabCount =
+                        tab.id === "all"
+                            ? unreadCount
+                            : notifications.filter(
+                                  (n) => !n.is_read && getCategory(n) === tab.id
+                              ).length;
                     return (
                         <button
-                            key={cat.id}
-                            onClick={() => setActiveTab(cat.id)}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border whitespace-nowrap flex-shrink-0 ${
-                                isActive
-                                    ? "bg-[var(--accent)] text-[var(--accent-foreground)] border-[var(--accent)] shadow-sm"
-                                    : "bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--border-hover)]"
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                                activeTab === tab.id
+                                    ? "bg-foreground text-background"
+                                    : "bg-surface text-muted hover:text-foreground hover:bg-surface-solid"
                             }`}
                         >
-                            {cat.icon}
-                            {cat.label}
-                            {count > 0 && (
-                                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    isActive
-                                        ? "bg-[var(--accent-foreground)]/20 text-[var(--accent-foreground)]"
-                                        : "bg-[var(--accent)]/15 text-[var(--accent)]"
-                                }`}>
-                                    {count}
+                            {tab.label}
+                            {tabCount > 0 && (
+                                <span
+                                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                        activeTab === tab.id
+                                            ? "bg-black/20 text-background"
+                                            : "bg-blue-500/20 text-blue-400"
+                                    }`}
+                                >
+                                    {tabCount}
                                 </span>
                             )}
                         </button>
@@ -205,68 +194,72 @@ export default function NotificacionesPage() {
                 })}
             </div>
 
-            {/* Notifications List */}
-            <div className="glass p-4 sm:p-5 rounded-2xl overflow-hidden">
-                <ScrollShadow className="max-h-[70vh] w-full custom-scrollbar">
-                    <div className="flex flex-col">
-                        {loading ? (
-                            <div className="py-10 px-6 text-center text-[var(--muted)]">Cargando notificaciones...</div>
-                        ) : filteredNotifications.length === 0 ? (
-                            <div className="py-10 px-6 text-center">
-                                <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mx-auto mb-3">
-                                    <Bell className="size-6 text-[var(--accent)] opacity-60" />
+            {/* List */}
+            <ScrollShadow className="flex-1 overflow-y-auto custom-scrollbar">
+                {loading ? (
+                    <div className="flex flex-col gap-3 px-4 py-5">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="flex gap-3 animate-pulse">
+                                <div className="w-10 h-10 rounded-full bg-surface shrink-0" />
+                                <div className="flex-1 space-y-2 py-1">
+                                    <div className="h-3 bg-surface rounded w-3/4" />
+                                    <div className="h-2.5 bg-surface rounded w-1/2" />
                                 </div>
-                                <p className="text-sm font-semibold text-[var(--foreground)] mb-1">
-                                    {activeTab === "all" ? "Todo al día" : `Sin notificaciones de ${CATEGORIES.find((c) => c.id === activeTab)?.label}`}
-                                </p>
-                                <p className="text-xs text-[var(--muted)]">
-                                    {activeTab === "all"
-                                        ? "No tienes notificaciones pendientes"
-                                        : "No hay notificaciones en esta categoría"}
-                                </p>
                             </div>
-                        ) : (
-                            filteredNotifications.map((notif) => {
-                                const cat = getNotifCategory(notif);
-                                const colors = categoryColors[cat] || categoryColors.system;
-                                const inner = (
-                                    <div
-                                        className={`flex gap-3 px-3 py-3 mx-1 my-0.5 rounded-lg hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer relative ${
-                                            !notif.is_read ? "bg-[var(--accent)]/5" : ""
-                                        }`}
-                                        style={!notif.is_read ? { borderLeft: "3px solid var(--accent)" } : { borderLeft: "3px solid transparent" }}
-                                    >
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
-                                            {getCategoryIcon(cat)}
-                                        </div>
-                                        <div className="flex flex-col flex-1 leading-snug min-w-0">
-                                            <p className={`text-[13px] text-[var(--foreground)] leading-relaxed ${!notif.is_read ? "font-semibold" : ""}`}>
-                                                {stripHtml(notif.title || "Nueva notificación")}
-                                            </p>
-                                            {notif.body && (
-                                                <p className="text-[11px] text-[var(--muted)] leading-snug mt-0.5 line-clamp-2">
-                                                    {stripHtml(notif.body)}
-                                                </p>
+                        ))}
+                    </div>
+                ) : groups.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                        <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center mb-4">
+                            <Bell className="size-7 text-muted opacity-50" />
+                        </div>
+                        <p className="text-sm font-semibold text-foreground mb-1">Todo al día</p>
+                        <p className="text-xs text-muted">No hay notificaciones en esta categoría</p>
+                    </div>
+                ) : (
+                    <div className="pb-8">
+                        {groups.map((group) => (
+                            <div key={group.label}>
+                                <p className="px-5 pt-5 pb-2 text-[12px] font-bold text-muted uppercase tracking-wide">
+                                    {group.label}
+                                </p>
+                                {group.items.map((notif) => {
+                                    const cat = getCategory(notif);
+                                    const content = (
+                                        <div
+                                            className={`flex gap-3 px-4 py-3 transition-colors cursor-pointer relative hover:bg-white/5 ${
+                                                !notif.is_read ? "bg-white/[0.03]" : ""
+                                            }`}
+                                        >
+                                            {!notif.is_read && (
+                                                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                                             )}
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <p className="text-[10px] text-[var(--muted)] font-medium">{timeAgo(notif.created_at, { verbose: true })}</p>
-                                                <Chip size="sm" variant="secondary" className="text-[9px] h-4 px-1.5">
-                                                    {CATEGORIES.find((c) => c.id === cat)?.label || cat}
-                                                </Chip>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${getCategoryColors(cat)}`}>
+                                                {getCategoryIcon(cat)}
+                                            </div>
+                                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                <p className={`text-[13px] leading-snug ${
+                                                    !notif.is_read ? "font-semibold text-foreground" : "font-normal text-foreground/70"
+                                                }`}>
+                                                    {stripHtml(notif.body || notif.title || "Nueva notificación")}
+                                                </p>
+                                                <p className="text-[11px] text-muted mt-0.5">
+                                                    {timeAgo(notif.created_at, { verbose: true })}
+                                                </p>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                                return notif.action_url ? (
-                                    <Link key={notif.id} href={notif.action_url}>{inner}</Link>
-                                ) : (
-                                    <div key={notif.id}>{inner}</div>
-                                );
-                            })
-                        )}
+                                    );
+                                    return notif.action_url ? (
+                                        <Link key={notif.id} href={notif.action_url}>{content}</Link>
+                                    ) : (
+                                        <div key={notif.id}>{content}</div>
+                                    );
+                                })}
+                            </div>
+                        ))}
                     </div>
-                </ScrollShadow>
-            </div>
-        </main>
+                )}
+            </ScrollShadow>
+        </div>
     );
 }

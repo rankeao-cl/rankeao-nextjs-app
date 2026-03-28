@@ -19,6 +19,7 @@ import {
 } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useCreatePostModal } from "@/context/CreatePostModalContext";
+import { useNotificationSidebar } from "@/context/NotificationSidebarContext";
 import { getDuels } from "@/lib/api/duels";
 
 interface NavItem {
@@ -34,7 +35,6 @@ const navItems: NavItem[] = [
     { href: "/", label: "Feed", icon: House },
     { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true, badgeKey: "duelos" },
     { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
-    { href: "/notificaciones", label: "Notificaciones", icon: Bell, authRequired: true },
     { href: "/torneos", label: "Torneos", icon: Cup },
     { href: "/comunidades", label: "Comunidades", icon: Persons },
     { href: "/ranking", label: "Ranking", icon: ChartColumn },
@@ -44,6 +44,7 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { session, status } = useAuth();
     const { openCreatePost } = useCreatePostModal();
+    const { open: openNotifSidebar, unreadCount: notifUnread } = useNotificationSidebar();
     const isAuth = status === "authenticated";
 
     const [pendingDuels, setPendingDuels] = useState(0);
@@ -213,6 +214,38 @@ export default function Sidebar() {
                             </Link>
                         );
                     })}
+
+                    {/* Notificaciones — abre sidebar en vez de navegar */}
+                    {isAuth && (
+                        <button
+                            onClick={openNotifSidebar}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors text-muted hover:text-foreground cursor-pointer"
+                            style={{ background: "none", border: "none" }}
+                            aria-label="Notificaciones"
+                        >
+                            <span className="relative shrink-0">
+                                <Bell className="size-[22px]" />
+                                {notifUnread > 0 && (
+                                    <span
+                                        className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
+                                        style={{
+                                            bottom: "-7px",
+                                            right: "-7px",
+                                            minWidth: "16px",
+                                            height: "16px",
+                                            fontSize: "9px",
+                                            padding: "0 3px",
+                                            background: "var(--danger, #ef4444)",
+                                            border: "2px solid var(--background)",
+                                        }}
+                                    >
+                                        {notifUnread > 9 ? "9+" : notifUnread}
+                                    </span>
+                                )}
+                            </span>
+                            <span className="truncate">Notificaciones</span>
+                        </button>
+                    )}
                 </div>
             </nav>
 
