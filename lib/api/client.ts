@@ -92,6 +92,11 @@ async function tryRefreshToken(): Promise<string | null> {
         if (newRefreshToken) parsed.refreshToken = newRefreshToken;
         localStorage.setItem(SESSION_KEY, JSON.stringify(parsed));
 
+        // Notify React context so in-flight WS connections get the fresh token
+        window.dispatchEvent(new CustomEvent("rankeao:token-refreshed", {
+            detail: { accessToken: clean, refreshToken: newRefreshToken ?? parsed.refreshToken },
+        }));
+
         return clean;
     } catch {
         return null;

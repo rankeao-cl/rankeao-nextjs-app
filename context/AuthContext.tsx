@@ -266,6 +266,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("unauthenticated");
   }, []);
 
+  // Sync token when client.ts refreshes it in localStorage (e.g. after 401 retry)
+  // This keeps session.accessToken fresh so WS reconnections use the latest token
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { accessToken, refreshToken } = (e as CustomEvent<{ accessToken: string; refreshToken?: string }>).detail;
+      setSession((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          accessToken,
+          ...(refreshToken ? { refreshToken } : {}),
+        };
+      });
+    };
+    window.addEventListener("rankeao:token-refreshed", handler);
+    return () => window.removeEventListener("rankeao:token-refreshed", handler);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
