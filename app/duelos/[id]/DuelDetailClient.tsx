@@ -224,7 +224,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         if (!token || !duel) return;
         setGameLoading(true);
         try {
-            await startGame(duelId, { mode: "simple", game_rules_slug: duel.game_slug ?? "" }, token);
+            await startGame(duelId, { mode: "advanced", game_rules_slug: duel.game_slug ?? "" }, token);
             toast.success("Partida iniciada");
             setTimeout(() => fetchActiveGame(), 500);
         } catch (err: any) {
