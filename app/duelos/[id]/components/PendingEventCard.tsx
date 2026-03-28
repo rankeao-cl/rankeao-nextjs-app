@@ -39,6 +39,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
     heal: "Cura",
     poison: "Veneno",
     counter: "Contrahechizo",
+    life_change: "Cambio de vida",
 };
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
@@ -46,6 +47,16 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
     heal: "#22c55e",
     poison: "#a855f7",
     counter: "var(--accent)",
+    life_change: "var(--foreground)",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    responded: "Respondido",
+    countered: "Contrarrestado",
+    disputed: "En disputa",
+    passed: "Pasado",
+    resolved: "Resuelto",
+    cancelled: "Cancelado",
 };
 
 export default function PendingEventCard({
@@ -59,7 +70,7 @@ export default function PendingEventCard({
     onResponded,
 }: PendingEventCardProps) {
     const secondsLeft = useCountdown(event.response_deadline);
-    const isTarget = event.target_player_id === myPlayerID;
+    const canRespond = event.source_player_id !== myPlayerID;
     const [responding, setResponding] = useState(false);
     const [showRespondInput, setShowRespondInput] = useState(false);
     const [respondDescription, setRespondDescription] = useState("");
@@ -74,6 +85,35 @@ export default function PendingEventCard({
         setError(null);
         try {
             await respondEvent(duelID, gameNumber, event.id, { response_type: "pass" }, token);
+            onResponded?.();
+        } catch (err) {
+            setError(mapErrorMessage(err));
+        } finally {
+            setResponding(false);
+        }
+    };
+
+    const handleCounter = async () => {
+        if (responding) return;
+        setResponding(true);
+        setError(null);
+        try {
+            await respondEvent(duelID, gameNumber, event.id, { response_type: "counter" }, token);
+            onResponded?.();
+        } catch (err) {
+            setError(mapErrorMessage(err));
+        } finally {
+            setResponding(false);
+        }
+    };
+
+    const handleDispute = async () => {
+        if (responding) return;
+        const reason = prompt("¿Por qué disputas esta acción? (opcional)") ?? "";
+        setResponding(true);
+        setError(null);
+        try {
+            await respondEvent(duelID, gameNumber, event.id, { response_type: "dispute", description: reason }, token);
             onResponded?.();
         } catch (err) {
             setError(mapErrorMessage(err));
@@ -134,12 +174,17 @@ export default function PendingEventCard({
                     {isPassed && (
                         <span style={{
                             fontSize: 10, fontWeight: 700,
-                            color: "var(--muted)",
-                            backgroundColor: "var(--surface-solid)",
-                            border: "1px solid var(--border)",
+                            color: event.status === "disputed" ? "var(--warning)" : event.status === "countered" ? "var(--accent)" : "var(--muted)",
+                            backgroundColor: event.status === "disputed" ? "rgba(245,158,11,0.1)" : event.status === "countered" ? "rgba(59,130,246,0.1)" : "var(--surface-solid)",
+                            border: `1px solid ${event.status === "disputed" ? "rgba(245,158,11,0.3)" : event.status === "countered" ? "rgba(59,130,246,0.3)" : "var(--border)"}`,
                             padding: "2px 8px", borderRadius: 999,
                         }}>
-                            {event.status === "responded" ? "Respondido" : "Resuelto"}
+                            {STATUS_LABELS[event.status] ?? event.status}
+                        </span>
+                    )}
+                    {event.chain_depth > 0 && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.08)", padding: "2px 6px", borderRadius: 999 }}>
+                            cadena ×{event.chain_depth}
                         </span>
                     )}
                 </div>
@@ -173,14 +218,14 @@ export default function PendingEventCard({
                 )}
             </div>
 
-            {/* Actions (only for target, only when pending) */}
-            {isTarget && !isPassed && (
+            {/* Actions (only for opponent/non-source, only when pending) */}
+            {canRespond && !isPassed && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {showRespondInput ? (
                         <>
                             <input
                                 type="text"
-                                placeholder="Descripción de tu respuesta..."
+                                placeholder="Descripción (opcional)..."
                                 value={respondDescription}
                                 onChange={(e) => setRespondDescription(e.target.value)}
                                 maxLength={200}
@@ -213,21 +258,41 @@ export default function PendingEventCard({
                             </div>
                         </>
                     ) : (
-                        <div style={{ display: "flex", gap: 8 }}>
-                            <button
-                                onClick={handlePass}
-                                disabled={responding}
-                                style={actionBtn("var(--muted)", responding)}
-                            >
-                                {responding ? "..." : "PASAR"}
-                            </button>
-                            <button
-                                onClick={() => setShowRespondInput(true)}
-                                disabled={responding}
-                                style={actionBtn("var(--accent)", responding)}
-                            >
-                                RESPONDER
-                            </button>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {/* Primary: pass or counter */}
+                            <div style={{ display: "flex", gap: 6 }}>
+                                <button
+                                    onClick={handlePass}
+                                    disabled={responding}
+                                    style={actionBtn("var(--muted)", responding)}
+                                >
+                                    {responding ? "..." : "✓ Pasar"}
+                                </button>
+                                <button
+                                    onClick={handleCounter}
+                                    disabled={responding}
+                                    style={actionBtn("var(--accent)", responding)}
+                                >
+                                    🛡 Contrahechizo
+                                </button>
+                            </div>
+                            {/* Secondary: respond or dispute */}
+                            <div style={{ display: "flex", gap: 6 }}>
+                                <button
+                                    onClick={() => setShowRespondInput(true)}
+                                    disabled={responding}
+                                    style={{ ...actionBtn("var(--foreground)", responding), fontSize: 11 }}
+                                >
+                                    💬 Responder
+                                </button>
+                                <button
+                                    onClick={handleDispute}
+                                    disabled={responding}
+                                    style={{ ...actionBtn("var(--danger)", responding), fontSize: 11 }}
+                                >
+                                    ⚑ Disputar
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

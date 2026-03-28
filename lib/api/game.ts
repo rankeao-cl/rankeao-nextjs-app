@@ -1,6 +1,6 @@
 import { apiFetch, apiPost, apiPatch } from './client';
 import type { ApiResponse } from '@/lib/types/api';
-import type { GameStateSnapshot } from '../types/game';
+import type { GameStateSnapshot, GameInteraction } from '../types/game';
 
 // ── Start Game ──
 
@@ -81,6 +81,20 @@ export async function respondEvent(
         `/social/duels/${encodeURIComponent(duelID)}/games/${gameNumber}/events/${encodeURIComponent(eventID)}/respond`,
         data,
         { token }
+    );
+}
+
+// ── Get Interactions (timeline) ──
+
+export async function getInteractions(
+    duelID: string,
+    gameNumber: number,
+    token?: string
+) {
+    return apiFetch<ApiResponse<{ interactions: GameInteraction[] }>>(
+        `/social/duels/${encodeURIComponent(duelID)}/games/${gameNumber}/interactions`,
+        undefined,
+        { cache: 'no-store', token }
     );
 }
 

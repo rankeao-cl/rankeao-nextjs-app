@@ -6,6 +6,7 @@ import type {
     GameWSMessage,
     PlayerState,
     PendingEvent,
+    GameInteraction,
 } from "@/lib/types/game";
 
 const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "wss://api.rankeao.cl";
@@ -20,6 +21,7 @@ export function useGameState(
 ) {
     const wsRef = useRef<WebSocket | null>(null);
     const [gameState, setGameState] = useState<GameStateSnapshot | null>(initialState ?? null);
+    const [interactions, setInteractions] = useState<GameInteraction[]>([]);
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +86,7 @@ export function useGameState(
                             event_id: string;
                             source_id: number;
                             target_id: number;
-                            event_type: string;
+                            type: string;
                             amount: number;
                             description: string;
                             deadline: string;
@@ -94,7 +96,7 @@ export function useGameState(
                             game_id: prev.game.id,
                             source_player_id: payload.source_id,
                             target_player_id: payload.target_id,
-                            event_type: payload.event_type as PendingEvent["event_type"],
+                            event_type: payload.type as PendingEvent["event_type"],
                             amount: payload.amount,
                             description: payload.description || null,
                             status: "pending",
@@ -125,6 +127,39 @@ export function useGameState(
                                 e.id === payload.event_id ? { ...e, status: "responded" as const } : e
                             ),
                         };
+                    }
+
+                    case "counter.declared": {
+                        const payload = msg.payload as {
+                            parent_event_id: string;
+                            new_event: PendingEvent;
+                            chain_depth: number;
+                        };
+                        return {
+                            ...prev,
+                            // Mark parent as countered, add new counter event
+                            pending_events: [
+                                ...prev.pending_events.map((e) =>
+                                    e.id === payload.parent_event_id ? { ...e, status: "countered" as const } : e
+                                ),
+                                payload.new_event,
+                            ],
+                        };
+                    }
+
+                    case "dispute.opened": {
+                        const payload = msg.payload as { event_id: string; dispute_id: string };
+                        return {
+                            ...prev,
+                            pending_events: prev.pending_events.map((e) =>
+                                e.id === payload.event_id ? { ...e, status: "disputed" as const } : e
+                            ),
+                        };
+                    }
+
+                    case "dispute.resolved": {
+                        // Full state refresh handled by re-fetch; update disputed events
+                        return prev;
                     }
 
                     default:
@@ -163,6 +198,9 @@ export function useGameState(
             ws.onmessage = handleMessage;
 
             ws.onclose = () => {
+                // Only act if this is still the active connection
+                if (wsRef.current !== ws) return;
+
                 setIsConnected(false);
                 clearReconnectTimer();
 
@@ -213,5 +251,5 @@ export function useGameState(
         };
     }, [duelID, gameNumber, token, connect, clearReconnectTimer]);
 
-    return { gameState, isConnected, error };
+    return { gameState, interactions, isConnected, error };
 }

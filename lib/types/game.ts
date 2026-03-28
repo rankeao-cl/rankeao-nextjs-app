@@ -29,6 +29,15 @@ export interface DuelGame {
   ended_at: string | null;
 }
 
+export interface GameInteraction {
+  id: string;
+  game_id: string;
+  player_id: number;
+  type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface PlayerState {
   id: string;
   game_id: string;
@@ -43,10 +52,12 @@ export interface PendingEvent {
   game_id: string;
   source_player_id: number;
   target_player_id: number | null;
-  event_type: EventType;
+  event_type: EventType | 'life_change';
   amount: number;
   description: string | null;
-  status: EventStatus;
+  status: EventStatus | 'countered' | 'disputed';
+  parent_event_id: string | null;
+  chain_depth: number;
   response_deadline: string | null;
   created_at: string;
 }
