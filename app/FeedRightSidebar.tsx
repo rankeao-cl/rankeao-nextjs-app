@@ -31,7 +31,7 @@ export default function FeedRightSidebar({ tournaments }: { tournaments: Tournam
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <TargetDart style={{ width: 16, height: 16, color: "var(--accent)" }} />
+              <TargetDart style={{ width: 16, height: 16, color: "var(--foreground)" }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Duelos</span>
             </div>
             <Link href="/duelos" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>
@@ -49,7 +49,7 @@ export default function FeedRightSidebar({ tournaments }: { tournaments: Tournam
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Cup style={{ width: 16, height: 16, color: "var(--accent)" }} />
+              <Cup style={{ width: 16, height: 16, color: "var(--foreground)" }} />
               <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Torneos</span>
             </div>
             <Link href="/torneos" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>

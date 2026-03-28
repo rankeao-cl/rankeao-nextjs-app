@@ -227,7 +227,7 @@ export default function Sidebar() {
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${isActive("/perfil/me") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Perfil"
                     >
-                        <Person className="size-7 shrink-0" />
+                        <Person className="size-[22px] shrink-0" />
                         <span className="truncate">Perfil</span>
                     </Link>
                     <Link
@@ -235,7 +235,7 @@ export default function Sidebar() {
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${isActive("/config") ? "text-foreground" : "text-muted hover:text-foreground"}`}
                         aria-label="Ajustes"
                     >
-                        <Gear className="size-7 shrink-0" />
+                        <Gear className="size-[22px] shrink-0" />
                         <span className="truncate">Ajustes</span>
                     </Link>
                 </div>

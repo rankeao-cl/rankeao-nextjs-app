@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
 import { Clock, Persons, MapPin, Cup } from "@gravity-ui/icons";
+import { getGameBrand } from "@/lib/gameLogos";
 
 const STATUS_COLORS: Record<string, string> = {
     ROUND_IN_PROGRESS: "var(--success)", STARTED: "var(--success)", ROUND_COMPLETE: "var(--success)",
@@ -46,6 +47,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
         : null;
 
     const organizerName = tournament.tenant_name || tournament.organizer_username || "Torneo";
+    const brand = getGameBrand(tournament.game);
 
     // Imagen de fondo: usar game_logo_url o tenant_logo_url como fallback
     const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
@@ -59,6 +61,15 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                         box-shadow: 0 0 20px rgba(59,130,246,0.15), 0 4px 16px rgba(0,0,0,0.1) !important;
                     }
                 `}</style>
+                {/* Banner de color del juego */}
+                <div
+                    className="absolute top-0 left-0 right-0 z-10"
+                    style={{
+                        height: 4,
+                        background: `linear-gradient(90deg, ${brand.color}, ${brand.color}88, transparent)`,
+                    }}
+                />
+
                 {/* Imagen de fondo */}
                 {bgImage ? (
                     <Image
@@ -72,14 +83,18 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                     <div
                         className="absolute inset-0"
                         style={{
-                            background: live
-                                ? "linear-gradient(135deg, #0d2b1a 0%, #1a3a28 50%, #0a1a10 100%)"
-                                : open
-                                    ? "linear-gradient(135deg, #0d1b2b 0%, #1a2a3a 50%, #0a1020 100%)"
-                                    : "linear-gradient(135deg, #131318 0%, #1e1e24 50%, #0e0e14 100%)",
+                            background: `linear-gradient(135deg, ${brand.bg} 0%, color-mix(in srgb, ${brand.color} 8%, ${brand.bg}) 50%, #0a0a10 100%)`,
                         }}
                     />
                 )}
+
+                {/* Glow sutil del color del juego en la parte superior */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        background: `radial-gradient(ellipse 70% 40% at 50% 0%, ${brand.color}18 0%, transparent 70%)`,
+                    }}
+                />
 
                 {/* Overlay degradado inferior negro */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -136,7 +151,14 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                     {/* Info: juego + fecha + ciudad */}
                     <div className="flex items-center gap-3 mb-2.5 flex-wrap">
                         {(tournament.game_name || tournament.game) && (
-                            <span className="text-[11px] font-medium text-white/70">
+                            <span
+                                className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                                style={{
+                                    color: brand.color,
+                                    backgroundColor: `${brand.color}18`,
+                                    border: `1px solid ${brand.color}30`,
+                                }}
+                            >
                                 {tournament.game_name || tournament.game}
                             </span>
                         )}

@@ -69,7 +69,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
                                 {sellerName}
                             </span>
                             {isStore && (
@@ -78,7 +78,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 </span>
                             )}
                         </div>
-                        <span style={{ fontSize: 12, color: "var(--muted)" }}>{timeAgo(listing.created_at)}</span>
+                        <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgo(listing.created_at)}</span>
                     </div>
                     {listing.city && (
                         <span style={{
@@ -148,8 +148,8 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         <Link href={`/marketplace/${listing.id}`} style={{ textDecoration: "none", flex: 1, minWidth: 0 }}>
                             <span
                                 style={{
-                                    fontSize: 17,
-                                    fontWeight: 800,
+                                    fontSize: 15,
+                                    fontWeight: 700,
                                     color: "var(--foreground)",
                                     display: "-webkit-box",
                                     WebkitLineClamp: 2,
@@ -268,30 +268,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
 
             {/* ── DESKTOP: horizontal layout ── */}
             <div className="hidden md:flex">
-                {/* Left: Card image 260px */}
-                {imageUrl && (
-                    <Link
-                        href={`/marketplace/${listing.id}`}
-                        style={{
-                            flexShrink: 0,
-                            width: 260,
-                            background: "var(--background)",
-                            display: "block",
-                        }}
-                    >
-                        <div style={{ position: "relative", width: 260, aspectRatio: "63 / 88" }}>
-                            <Image
-                                src={imageUrl}
-                                alt={listing.title}
-                                fill
-                                style={{ objectFit: "contain" }}
-                                sizes="260px"
-                            />
-                        </div>
-                    </Link>
-                )}
-
-                {/* Right: Full detail */}
+                {/* Left: Full detail */}
                 <div
                     style={{
                         flex: 1,
@@ -300,29 +277,28 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         flexDirection: "column",
                         padding: "14px 16px",
                         gap: 10,
-                        borderLeft: imageUrl ? "1px solid var(--border)" : "none",
                     }}
                 >
                     {/* Seller row */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <div style={{
-                            width: 32, height: 32, borderRadius: 16,
+                            width: 40, height: 40, borderRadius: 20,
                             background: "var(--accent)", padding: 2,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             flexShrink: 0,
                         }}>
                             <div style={{
-                                width: 28, height: 28, borderRadius: 14,
+                                width: 36, height: 36, borderRadius: 18,
                                 backgroundColor: "var(--background)", overflow: "hidden",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 11, fontWeight: 700, color: "var(--foreground)",
+                                fontSize: 14, fontWeight: 700, color: "var(--foreground)",
                             }}>
                                 {listing.seller_avatar_url ? (
                                     <Image
                                         src={listing.seller_avatar_url}
                                         alt={sellerName}
-                                        width={28}
-                                        height={28}
+                                        width={36}
+                                        height={36}
                                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                     />
                                 ) : (
@@ -332,15 +308,15 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         </div>
                         <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {sellerName}
                                 </span>
                                 {isStore && <span style={{ color: "var(--success)", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>✓</span>}
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--muted)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--muted)" }}>
                                 {listing.city && (
                                     <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                        <MapPin style={{ width: 9, height: 9 }} />
+                                        <MapPin style={{ width: 14, height: 14 }} />
                                         {listing.city}
                                     </span>
                                 )}
@@ -437,11 +413,35 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             href={`/marketplace/${listing.id}`}
                             style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: "#FFFFFF", background: "var(--accent)", padding: "6px 14px", borderRadius: 8, textDecoration: "none", whiteSpace: "nowrap" }}
                         >
-                            <ShoppingCart style={{ width: 13, height: 13 }} />
+                            <ShoppingCart style={{ width: 16, height: 16 }} />
                             Ver oferta
                         </Link>
                     </div>
                 </div>
+
+                {/* Right: Card image 260px */}
+                {imageUrl && (
+                    <Link
+                        href={`/marketplace/${listing.id}`}
+                        style={{
+                            flexShrink: 0,
+                            width: 260,
+                            background: "var(--background)",
+                            display: "block",
+                            borderLeft: "1px solid var(--border)",
+                        }}
+                    >
+                        <div style={{ position: "relative", width: 260, aspectRatio: "63 / 88" }}>
+                            <Image
+                                src={imageUrl}
+                                alt={listing.title}
+                                fill
+                                style={{ objectFit: "contain" }}
+                                sizes="260px"
+                            />
+                        </div>
+                    </Link>
+                )}
             </div>
         </article>
     );
