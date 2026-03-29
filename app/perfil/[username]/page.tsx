@@ -62,6 +62,7 @@ function toArray<T>(value: unknown): T[] {
         const inner = v.data as any;
         if (Array.isArray(inner.activity)) return inner.activity;
         if (Array.isArray(inner.items)) return inner.items;
+        if (Array.isArray(inner.collection)) return inner.collection;
         if (Array.isArray(inner.feed)) return inner.feed;
         if (Array.isArray(inner.decks)) return inner.decks;
         if (Array.isArray(inner.listings)) return inner.listings;
