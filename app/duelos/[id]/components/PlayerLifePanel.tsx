@@ -34,7 +34,7 @@ export default function PlayerLifePanel({
 
     // Delta display
     const [lastDelta, setLastDelta] = useState<number | null>(null);
-    const deltaTimer = useRef<ReturnType<typeof setTimeout>>();
+    const deltaTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const prevLife = useRef(lifeTotal);
 
     if (lifeTotal !== prevLife.current) {

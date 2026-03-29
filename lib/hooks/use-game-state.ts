@@ -101,6 +101,8 @@ export function useGameState(
                             description: payload.description || null,
                             status: "pending",
                             response_deadline: payload.deadline || null,
+                            parent_event_id: null,
+                            chain_depth: 0,
                             created_at: new Date().toISOString(),
                         };
                         return {

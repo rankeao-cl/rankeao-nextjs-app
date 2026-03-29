@@ -19,7 +19,7 @@ export default function CartasClient() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
 
-    const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Autocomplete
