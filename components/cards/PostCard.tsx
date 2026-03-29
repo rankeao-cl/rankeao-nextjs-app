@@ -22,6 +22,7 @@ export interface FeedPost {
     tags?: string[];
     game?: string;
     likes_count?: number;
+    is_liked?: boolean;
     comments_count?: number;
     rank_badge?: string;
     created_at: string;
@@ -39,7 +40,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
     const isAuth = status === "authenticated";
     const accessToken = session?.accessToken;
 
-    const [liked, setLiked] = useState(false);
+    const [liked, setLiked] = useState(post.is_liked ?? false);
     const [likesCount, setLikesCount] = useState(post.likes_count ?? 0);
     const [bookmarked, setBookmarked] = useState(false);
     const [showComments, setShowComments] = useState(false);
@@ -58,6 +59,10 @@ export default function PostCard({ post }: { post: FeedPost }) {
         likeMutation.mutate(
             { postId: post.id, like: !wasLiked, token: accessToken },
             {
+                onSuccess: (data) => {
+                    // Sync with server count if available
+                    if (data?.likes_count != null) setLikesCount(data.likes_count);
+                },
                 onError: () => {
                     // Revert on error
                     setLiked(wasLiked);

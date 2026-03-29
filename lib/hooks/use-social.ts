@@ -118,10 +118,15 @@ export function useLikeDeck() {
 
 export function useLikePost() {
     const qc = useQueryClient();
-    return useMutation<void, Error, { postId: string; like: boolean; token?: string }>({
+    return useMutation<{ liked: boolean; likes_count: number } | null, Error, { postId: string; like: boolean; token?: string }>({
         mutationFn: async ({ postId, like, token }) => {
-            if (like) await socialApi.likePost(postId, token);
-            else await socialApi.unlikePost(postId, token);
+            if (like) {
+                const res = await socialApi.likePost(postId, token);
+                return (res as any)?.data ?? null;
+            } else {
+                const res = await socialApi.unlikePost(postId, token);
+                return (res as any)?.data ?? null;
+            }
         },
         onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),
     });

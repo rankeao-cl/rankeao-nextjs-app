@@ -26,11 +26,11 @@ export async function deletePost(postId: number, token?: string) {
 }
 
 export async function likePost(postId: string | number, token?: string) {
-    return apiPost<{ liked: boolean }>(`/social/feed/posts/${postId}/like`, {}, { token });
+    return apiPost<{ liked: boolean; likes_count: number }>(`/social/feed/posts/${postId}/like`, {}, { token });
 }
 
 export async function unlikePost(postId: string | number, token?: string) {
-    return apiDelete<void>(`/social/feed/posts/${postId}/like`, { token });
+    return apiDelete<{ liked: boolean; likes_count: number }>(`/social/feed/posts/${postId}/like`, { token });
 }
 
 export interface PostComment {
