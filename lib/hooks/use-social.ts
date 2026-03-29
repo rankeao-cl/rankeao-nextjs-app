@@ -114,6 +114,39 @@ export function useLikeDeck() {
     });
 }
 
+// ── Post Likes & Comments ──
+
+export function useLikePost() {
+    const qc = useQueryClient();
+    return useMutation<void, Error, { postId: string; like: boolean; token?: string }>({
+        mutationFn: async ({ postId, like, token }) => {
+            if (like) await socialApi.likePost(postId, token);
+            else await socialApi.unlikePost(postId, token);
+        },
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),
+    });
+}
+
+export function usePostComments(postId: string, enabled = false) {
+    return useQuery({
+        queryKey: ["social", "post", postId, "comments"],
+        queryFn: () => socialApi.getPostComments(postId),
+        enabled: enabled && !!postId,
+    });
+}
+
+export function useAddComment() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ postId, content, token }: { postId: string; content: string; token?: string }) =>
+            socialApi.addPostComment(postId, content, token),
+        onSuccess: (_, vars) => {
+            qc.invalidateQueries({ queryKey: ["social", "post", vars.postId, "comments"] });
+            qc.invalidateQueries({ queryKey: ["social", "feed"] });
+        },
+    });
+}
+
 // ── Follow ──
 
 export function useFollowUser() {

@@ -25,6 +25,30 @@ export async function deletePost(postId: number, token?: string) {
     return apiDelete<ApiResponse<ApiMessage>>(`/social/feed/posts/${postId}`, { token });
 }
 
+export async function likePost(postId: string | number, token?: string) {
+    return apiPost<{ liked: boolean }>(`/social/feed/posts/${postId}/like`, {}, { token });
+}
+
+export async function unlikePost(postId: string | number, token?: string) {
+    return apiDelete<void>(`/social/feed/posts/${postId}/like`, { token });
+}
+
+export interface PostComment {
+    id: string;
+    post_id: string;
+    user: { id: string; username: string; avatar_url?: string; display_name?: string };
+    content: string;
+    created_at: string;
+}
+
+export async function getPostComments(postId: string | number, params?: Params) {
+    return apiFetch<{ comments: PostComment[]; meta?: PaginationMeta }>(`/social/feed/posts/${postId}/comments`, params);
+}
+
+export async function addPostComment(postId: string | number, content: string, token?: string) {
+    return apiPost<{ comment: PostComment }>(`/social/feed/posts/${postId}/comments`, { content }, { token });
+}
+
 // ── Friends ──
 
 export async function getFriends(params?: Params, token?: string) {
