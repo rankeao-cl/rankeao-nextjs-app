@@ -15,6 +15,7 @@ export interface Notification {
     read_at?: string | null; // API returns read_at (nullable timestamp)
     action_url?: string;
     metadata?: Record<string, unknown>;
+    variables?: Record<string, string>;
     created_at: string;
 }
 
