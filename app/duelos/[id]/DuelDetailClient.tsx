@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useDuelSocket } from "@/lib/hooks/use-duel-socket";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -93,10 +94,11 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [duel, setDuel] = useState<Duel | null>(initialDuel);
     const [initialLoading, setInitialLoading] = useState(!initialDuel);
     const [loading, setLoading] = useState<string | null>(null);
-    const [introChecked, setIntroChecked] = useState(false);
     const [showIntro, setShowIntro] = useState(false);
     const [introFading, setIntroFading] = useState(false);
     const introEligible = duel ? ["ACCEPTED", "IN_PROGRESS"].includes(duel.status) : false;
+    const prevDuelStatusRef = useRef<string | null>(null);
+    const prevGameNumberRef = useRef<number | null>(null);
 
     // Canonical redirect: once slug is available, update URL silently
     useEffect(() => {
@@ -105,11 +107,18 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         }
     }, [duel?.slug, duelId, router]);
 
+    // Show intro animation once per duel — guarded by sessionStorage so it only fires once ever
     useEffect(() => {
-        if (introChecked || !duel) return;
-        setIntroChecked(true);
-        if (["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) setShowIntro(true);
-    }, [duel, introChecked]);
+        if (!duel || typeof window === "undefined") return;
+        if (!["ACCEPTED", "IN_PROGRESS"].includes(duel.status)) return;
+        const key = `intro_shown_${duelId}`;
+        if (!sessionStorage.getItem(key)) {
+            sessionStorage.setItem(key, "1");
+            setShowIntro(true);
+        }
+    // Only run once when duel first loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [duelId]);
 
     useEffect(() => {
         if (!showIntro) return;
@@ -179,10 +188,20 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         if (!token) return;
         try {
             const snap = await getGameState(duelId, 1, token);
-            if (snap?.game?.game_number) {
-                setActiveGameNumber(snap.game.game_number);
+            const gameNum = snap?.game?.game_number ?? null;
+            if (gameNum) {
+                setActiveGameNumber(gameNum);
                 setActiveGameSnapshot(snap);
+                // Trigger animation when opponent starts game (we had no active game before)
+                if (prevGameNumberRef.current === null && typeof window !== "undefined") {
+                    const key = `game_intro_${duelId}_${gameNum}`;
+                    if (!sessionStorage.getItem(key)) {
+                        sessionStorage.setItem(key, "1");
+                        setShowIntro(true);
+                    }
+                }
             }
+            prevGameNumberRef.current = gameNum;
         } catch {}
     }, [duelId, token]);
 
@@ -208,9 +227,23 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         try {
             const res = await getDuel(duelId, token);
             if (res?.duel) {
-                setDuel(res.duel);
+                const updated = res.duel;
+                // Detect PENDING → ACCEPTED: show intro to the challenger waiting
+                if (
+                    prevDuelStatusRef.current === "PENDING" &&
+                    updated.status === "ACCEPTED" &&
+                    typeof window !== "undefined"
+                ) {
+                    const key = `intro_shown_${duelId}`;
+                    if (!sessionStorage.getItem(key)) {
+                        sessionStorage.setItem(key, "1");
+                        setShowIntro(true);
+                    }
+                }
+                prevDuelStatusRef.current = updated.status;
+                setDuel(updated);
                 setInitialLoading(false);
-                return res.duel;
+                return updated;
             }
         } catch (err) { console.error("[DuelDetail] Error refreshing duel:", err); }
         finally { setInitialLoading(false); }
@@ -220,18 +253,45 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     useEffect(() => {
         if (token) {
             refreshDuel().then((d) => {
-                if (d && ["ACCEPTED", "IN_PROGRESS"].includes(d.status)) fetchActiveGame();
+                if (d) {
+                    prevDuelStatusRef.current = d.status;
+                    if (["ACCEPTED", "IN_PROGRESS"].includes(d.status)) fetchActiveGame();
+                }
             });
             fetchComments();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, duelId]);
 
+    // WebSocket: recibe eventos de aceptación y arranque de partida en tiempo real
+    useDuelSocket(duelId, token ?? null, {
+        onDuelAccepted: useCallback(() => {
+            refreshDuel().then((d) => {
+                if (!d) return;
+                prevDuelStatusRef.current = d.status;
+                if (["ACCEPTED", "IN_PROGRESS"].includes(d.status)) fetchActiveGame();
+                // Mostrar animación al challenger (quien estaba esperando)
+                if (typeof window !== "undefined") {
+                    const key = `intro_shown_${duelId}`;
+                    if (!sessionStorage.getItem(key)) {
+                        sessionStorage.setItem(key, "1");
+                        setShowIntro(true);
+                    }
+                }
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [duelId, refreshDuel, fetchActiveGame]),
+        onGameStarted: useCallback(() => {
+            fetchActiveGame();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [fetchActiveGame]),
+    });
+
+    // Polling de respaldo solo para AWAITING_CONFIRMATION (no cubierto por WS)
     useEffect(() => {
         if (!duel) return;
-        const isLive = ["PENDING", "ACCEPTED", "IN_PROGRESS", "AWAITING_CONFIRMATION"].includes(duel.status);
-        if (!isLive) return;
-        const interval = setInterval(refreshDuel, 10000);
+        if (duel.status !== "AWAITING_CONFIRMATION") return;
+        const interval = setInterval(() => refreshDuel(), 10000);
         return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [duel?.status, duelId, token]);
