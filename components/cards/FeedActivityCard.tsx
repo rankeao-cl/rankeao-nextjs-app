@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import {
     Cup,
@@ -12,7 +13,12 @@ import {
     ArrowUp,
     ChevronRight,
     CircleInfo,
+    Comment,
 } from "@gravity-ui/icons";
+import { useAuth } from "@/context/AuthContext";
+import { useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
+import { timeAgo as timeAgoLib } from "@/lib/utils/format";
+import type { PostComment } from "@/lib/api/social";
 
 // ── Activity data shape (from backend ActivityFeedItem) ──
 
@@ -26,6 +32,11 @@ export interface ActivityData {
     entity_type?: string;
     entity_id?: string;
     metadata?: Record<string, unknown>;
+    likes_count?: number;
+    is_liked?: boolean;
+    fires_count?: number;
+    is_fired?: boolean;
+    comments_count?: number;
     created_at: string;
 }
 
@@ -88,25 +99,63 @@ const ENTITY_LABELS: Record<string, string> = {
     duel: "Ver duelo",
 };
 
-// ── Inline timeAgo (compact) ──
-
-function timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "ahora";
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `${days}d`;
-}
-
 // ── Component ──
 
 export default function FeedActivityCard({ activity }: { activity: ActivityData }) {
     const config = ACTIVITY_CONFIG[activity.type] ?? FALLBACK_CONFIG;
     const href = getEntityHref(activity.entity_type, activity.entity_id);
     const entityLabel = activity.entity_type ? ENTITY_LABELS[activity.entity_type.toLowerCase()] ?? "Ver detalle" : "Ver detalle";
+
+    const { status, session } = useAuth();
+    const isAuth = status === "authenticated";
+    const accessToken = session?.accessToken;
+
+    const [fired, setFired] = useState(activity.is_fired ?? false);
+    const [firesCount, setFiresCount] = useState(activity.fires_count ?? 0);
+    const [showComments, setShowComments] = useState(false);
+    const [commentText, setCommentText] = useState("");
+
+    const fireMutation = useFirePost();
+    const addCommentMutation = useAddComment();
+    const commentsQuery = usePostComments(activity.id, showComments);
+    const comments: PostComment[] = commentsQuery.data?.comments ?? [];
+
+    useEffect(() => {
+        if (!fireMutation.isPending) {
+            setFired(activity.is_fired ?? false);
+            setFiresCount(activity.fires_count ?? 0);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activity.is_fired, activity.fires_count]);
+
+    const handleFire = () => {
+        if (!isAuth) return;
+        const wasFired = fired;
+        setFired(!wasFired);
+        setFiresCount(c => c + (wasFired ? -1 : 1));
+        fireMutation.mutate(
+            { postId: activity.id, fire: !wasFired, token: accessToken },
+            {
+                onSuccess: (data) => {
+                    if (data?.fires_count != null) setFiresCount(data.fires_count);
+                },
+                onError: () => {
+                    setFired(wasFired);
+                    setFiresCount(c => c + (wasFired ? 1 : -1));
+                },
+            }
+        );
+    };
+
+    const handleSubmitComment = (e: React.FormEvent) => {
+        e.preventDefault();
+        const content = commentText.trim();
+        if (!content || !isAuth) return;
+        addCommentMutation.mutate(
+            { postId: activity.id, content, token: accessToken },
+            { onSuccess: () => setCommentText("") }
+        );
+    };
 
     return (
         <article className="feed-card-hover" style={{
@@ -161,7 +210,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                             {config.label}
                         </span>
                     </div>
-                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgo(activity.created_at)}</span>
+                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgoLib(activity.created_at)}</span>
                 </div>
             </div>
 
@@ -195,6 +244,111 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                     {entityLabel}
                     <ChevronRight style={{ width: 12, height: 12 }} />
                 </Link>
+            )}
+
+            {/* Reaction bar */}
+            <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                paddingTop: 8, borderTop: "1px solid var(--border)",
+            }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {/* Fire reaction */}
+                    <button type="button" onClick={handleFire} style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: fired ? "rgba(249,115,22,0.12)" : "none",
+                        border: "none", cursor: isAuth ? "pointer" : "default",
+                        color: fired ? "#F97316" : "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                        transition: "transform 0.15s, background 0.15s",
+                        transform: fired ? "scale(1.05)" : "scale(1)",
+                        opacity: fireMutation.isPending ? 0.6 : 1,
+                    }}>
+                        <span style={{ fontSize: 16 }}>🔥</span>
+                        <span>{firesCount > 0 ? firesCount : ""}</span>
+                    </button>
+
+                    {/* Comment */}
+                    <button type="button" onClick={() => setShowComments(v => !v)} style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: "none", border: "none", cursor: "pointer",
+                        color: showComments ? "var(--accent)" : "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                    }}>
+                        <Comment style={{ width: 16, height: 16 }} />
+                        {(activity.comments_count ?? 0) > 0 && <span>{activity.comments_count}</span>}
+                    </button>
+                </div>
+            </div>
+
+            {/* Comments section */}
+            {showComments && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {isAuth && (
+                        <form onSubmit={handleSubmitComment} style={{ display: "flex", gap: 8 }}>
+                            <input
+                                type="text"
+                                value={commentText}
+                                onChange={e => setCommentText(e.target.value)}
+                                placeholder="Escribe un comentario..."
+                                maxLength={500}
+                                style={{
+                                    flex: 1, fontSize: 13, padding: "6px 12px",
+                                    borderRadius: 999, border: "1px solid var(--border)",
+                                    background: "var(--surface)", color: "var(--foreground)",
+                                    outline: "none",
+                                }}
+                            />
+                            <button
+                                type="submit"
+                                disabled={!commentText.trim() || addCommentMutation.isPending}
+                                style={{
+                                    padding: "6px 14px", borderRadius: 999, border: "none",
+                                    background: "var(--accent)", color: "#fff",
+                                    fontSize: 12, fontWeight: 700, cursor: "pointer",
+                                    opacity: !commentText.trim() || addCommentMutation.isPending ? 0.5 : 1,
+                                }}
+                            >
+                                {addCommentMutation.isPending ? "..." : "Enviar"}
+                            </button>
+                        </form>
+                    )}
+                    {commentsQuery.isLoading ? (
+                        <p style={{ fontSize: 12, color: "var(--muted)", textAlign: "center" }}>Cargando...</p>
+                    ) : comments.length === 0 ? (
+                        <p style={{ fontSize: 12, color: "var(--muted)", textAlign: "center" }}>Sin comentarios aún</p>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {comments.map(c => (
+                                <div key={c.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                    <div style={{
+                                        width: 28, height: 28, borderRadius: 14, flexShrink: 0,
+                                        background: "var(--accent)", overflow: "hidden",
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: 11, fontWeight: 700, color: "#fff",
+                                    }}>
+                                        {c.user.avatar_url ? (
+                                            <img src={c.user.avatar_url} alt={c.user.username}
+                                                style={{ width: 28, height: 28, objectFit: "cover" }} />
+                                        ) : c.user.username[0]?.toUpperCase()}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                            <Link href={`/perfil/${c.user.username}`} style={{ textDecoration: "none" }}>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>
+                                                    {c.user.username}
+                                                </span>
+                                            </Link>
+                                            <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgoLib(c.created_at)}</span>
+                                        </div>
+                                        <p style={{ margin: 0, fontSize: 13, color: "var(--foreground)", lineHeight: "18px" }}>
+                                            {c.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
 
         </article>

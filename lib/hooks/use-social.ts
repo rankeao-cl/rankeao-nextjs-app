@@ -134,6 +134,22 @@ export function useLikePost() {
     });
 }
 
+export function useFirePost() {
+    const qc = useQueryClient();
+    return useMutation<{ fired: boolean; fires_count: number } | null, Error, { postId: string; fire: boolean; token?: string }>({
+        mutationFn: async ({ postId, fire, token }) => {
+            if (fire) {
+                const res = await socialApi.firePost(postId, token);
+                return (res as any)?.data ?? null;
+            } else {
+                const res = await socialApi.unfirePost(postId, token);
+                return (res as any)?.data ?? null;
+            }
+        },
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),
+    });
+}
+
 export function usePostComments(postId: string, enabled = false) {
     return useQuery({
         queryKey: ["social", "post", postId, "comments"],

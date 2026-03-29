@@ -33,6 +33,14 @@ export async function unlikePost(postId: string | number, token?: string) {
     return apiDelete<{ liked: boolean; likes_count: number }>(`/social/feed/posts/${postId}/like`, { token });
 }
 
+export async function firePost(postId: string | number, token?: string) {
+    return apiPost<{ fired: boolean; fires_count: number }>(`/social/feed/posts/${postId}/fire`, {}, { token });
+}
+
+export async function unfirePost(postId: string | number, token?: string) {
+    return apiDelete<{ fired: boolean; fires_count: number }>(`/social/feed/posts/${postId}/fire`, { token });
+}
+
 export interface PostComment {
     id: string;
     post_id: string;

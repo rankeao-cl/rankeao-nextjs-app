@@ -7,7 +7,7 @@ import { timeAgo } from "@/lib/utils/format";
 import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useAuth } from "@/context/AuthContext";
-import { useLikePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
+import { useLikePost, useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
 import type { PostComment } from "@/lib/api/social";
 
 export interface FeedPost {
@@ -23,6 +23,8 @@ export interface FeedPost {
     game?: string;
     likes_count?: number;
     is_liked?: boolean;
+    fires_count?: number;
+    is_fired?: boolean;
     comments_count?: number;
     rank_badge?: string;
     created_at: string;
@@ -42,11 +44,14 @@ export default function PostCard({ post }: { post: FeedPost }) {
 
     const [liked, setLiked] = useState(post.is_liked ?? false);
     const [likesCount, setLikesCount] = useState(post.likes_count ?? 0);
+    const [fired, setFired] = useState(post.is_fired ?? false);
+    const [firesCount, setFiresCount] = useState(post.fires_count ?? 0);
     const [bookmarked, setBookmarked] = useState(false);
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState("");
 
     const likeMutation = useLikePost();
+    const fireMutation = useFirePost();
 
     // Sync server state into local state when the feed refreshes (e.g. after stale cache expires).
     // Skip sync while a mutation is in flight to avoid overriding optimistic updates.
@@ -57,6 +62,14 @@ export default function PostCard({ post }: { post: FeedPost }) {
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [post.is_liked, post.likes_count]);
+
+    useEffect(() => {
+        if (!fireMutation.isPending) {
+            setFired(post.is_fired ?? false);
+            setFiresCount(post.fires_count ?? 0);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [post.is_fired, post.fires_count]);
     const addCommentMutation = useAddComment();
     const commentsQuery = usePostComments(post.id, showComments);
 
@@ -77,6 +90,25 @@ export default function PostCard({ post }: { post: FeedPost }) {
                     // Revert on error
                     setLiked(wasLiked);
                     setLikesCount((c) => c + (wasLiked ? 1 : -1));
+                },
+            }
+        );
+    };
+
+    const handleFire = () => {
+        if (!isAuth) return;
+        const wasFired = fired;
+        setFired(!wasFired);
+        setFiresCount((c) => c + (wasFired ? -1 : 1));
+        fireMutation.mutate(
+            { postId: post.id, fire: !wasFired, token: accessToken },
+            {
+                onSuccess: (data) => {
+                    if (data?.fires_count != null) setFiresCount(data.fires_count);
+                },
+                onError: () => {
+                    setFired(wasFired);
+                    setFiresCount((c) => c + (wasFired ? 1 : -1));
                 },
             }
         );
@@ -232,6 +264,21 @@ export default function PostCard({ post }: { post: FeedPost }) {
                     }}>
                         <Heart style={{ width: 18, height: 18 }} />
                         <span>{likesCount}</span>
+                    </button>
+
+                    {/* Fire reaction */}
+                    <button type="button" onClick={handleFire} style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: fired ? "rgba(249,115,22,0.12)" : "none",
+                        border: "none", cursor: isAuth ? "pointer" : "default",
+                        color: fired ? "#F97316" : "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                        transition: "transform 0.15s, background 0.15s",
+                        transform: fired ? "scale(1.05)" : "scale(1)",
+                        opacity: fireMutation.isPending ? 0.6 : 1,
+                    }}>
+                        <span style={{ fontSize: 16 }}>🔥</span>
+                        {firesCount > 0 && <span>{firesCount}</span>}
                     </button>
 
                     {/* Comment */}
