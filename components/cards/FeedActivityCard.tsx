@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -13,10 +12,6 @@ import {
     ArrowUp,
     ChevronRight,
     CircleInfo,
-    Heart,
-    Comment,
-    ArrowShapeTurnUpRight,
-    Bookmark,
 } from "@gravity-ui/icons";
 
 // ── Activity data shape (from backend ActivityFeedItem) ──
@@ -113,17 +108,6 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const href = getEntityHref(activity.entity_type, activity.entity_id);
     const entityLabel = activity.entity_type ? ENTITY_LABELS[activity.entity_type.toLowerCase()] ?? "Ver detalle" : "Ver detalle";
 
-    const [liked, setLiked] = useState(false);
-    const [likesCount, setLikesCount] = useState(0);
-    const [bookmarked, setBookmarked] = useState(false);
-
-    const handleLike = () => {
-        setLiked((prev) => {
-            setLikesCount((c) => c + (prev ? -1 : 1));
-            return !prev;
-        });
-    };
-
     return (
         <article className="feed-card-hover" style={{
             backgroundColor: "var(--surface-solid)",
@@ -213,51 +197,6 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                 </Link>
             )}
 
-            {/* Reaction bar */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                paddingTop: 8, borderTop: "1px solid var(--border)",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <button type="button" onClick={handleLike} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: "none", border: "none", cursor: "pointer",
-                        color: liked ? "#EF4444" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                        transition: "transform 0.15s",
-                        transform: liked ? "scale(1.05)" : "scale(1)",
-                    }}>
-                        <Heart style={{ width: 18, height: 18 }} />
-                        <span>{likesCount}</span>
-                    </button>
-                    <button type="button" style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: "none", border: "none", cursor: "pointer",
-                        color: "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                    }}>
-                        <Comment style={{ width: 18, height: 18 }} />
-                        <span>0</span>
-                    </button>
-                    <button type="button" style={{
-                        display: "flex", alignItems: "center",
-                        background: "none", border: "none", cursor: "pointer",
-                        color: "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999,
-                    }}>
-                        <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
-                    </button>
-                </div>
-                <button type="button" onClick={() => setBookmarked((b) => !b)} style={{
-                    display: "flex", alignItems: "center",
-                    background: "none", border: "none", cursor: "pointer",
-                    color: bookmarked ? "var(--accent)" : "var(--muted)",
-                    padding: "4px 8px", borderRadius: 999,
-                    transition: "color 0.15s",
-                }}>
-                    <Bookmark style={{ width: 18, height: 18 }} />
-                </button>
-            </div>
         </article>
     );
 }
