@@ -225,6 +225,9 @@ export default function FeedContent({
                 />
               );
             }
+            if (item.type !== "post") {
+              return null;
+            }
             return (
               <PostCard key={item.id} post={item.data as FeedPost} />
             );

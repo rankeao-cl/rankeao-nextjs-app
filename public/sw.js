@@ -1,4 +1,4 @@
-const CACHE_NAME = "rankeao-v1";
+const CACHE_NAME = "rankeao-v2";
 const OFFLINE_URL = "/offline";
 
 const PRECACHE = [
@@ -70,9 +70,8 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            caches
-              .open(CACHE_NAME)
-              .then((cache) => cache.put(request, response.clone()));
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
             return response;
           })
       )
@@ -90,9 +89,8 @@ self.addEventListener("fetch", (event) => {
           cached ||
           fetch(request)
             .then((response) => {
-              caches
-                .open(CACHE_NAME)
-                .then((cache) => cache.put(request, response.clone()));
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
               return response;
             })
             .catch(() => cached)
