@@ -78,7 +78,7 @@
   --shadow-card: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.12);
   --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.18);
   --shadow-elevated: 0 16px 48px -8px rgba(0,0,0,0.20);
-  --shadow-popover: 0 20px 60px rgba(0,0,0,0.22);
+  --shadow-popover: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06);
 
   --purple: #7C3AED;
   --orange: #EA580C;

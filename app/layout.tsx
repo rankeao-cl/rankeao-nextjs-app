@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Poppins, Reddit_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import Navbar from "@/components/Navbar";
 import AppShell from "@/components/AppShell";
+import NavigationProgress from "@/components/NavigationProgress";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -92,6 +94,7 @@ export default function RootLayout({
         style={{ background: "var(--background)", color: "var(--foreground)" }}
       >
         <Providers>
+          <Suspense fallback={null}><NavigationProgress /></Suspense>
           <Navbar />
           <AppShell>{children}</AppShell>
         </Providers>

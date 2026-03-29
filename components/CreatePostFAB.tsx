@@ -278,7 +278,7 @@ export default function CreatePostFAB() {
                 style={{
                     height: 52, borderRadius: 999,
                     backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 1px 8px rgba(0,0,0,0.15)",
+                    boxShadow: "var(--shadow-popover)",
                     cursor: "pointer", alignItems: "center", gap: 12,
                     padding: "0 24px",
                     transition: "transform 0.15s, box-shadow 0.15s, bottom 0.2s",
@@ -289,7 +289,7 @@ export default function CreatePostFAB() {
             >
                 {/* Icon with badge */}
                 <div style={{ position: "relative", flexShrink: 0 }}>
-                    <PaperPlane style={{ width: 22, height: 22, color: "#FFFFFF" }} />
+                    <PaperPlane style={{ width: 22, height: 22, color: "var(--foreground)" }} />
                     {totalUnread > 0 && (
                         <span style={{
                             position: "absolute", top: -6, right: -10,
@@ -342,7 +342,7 @@ export default function CreatePostFAB() {
                         height: "65vh",
                         backgroundColor: "var(--background)",
                         borderRadius: 16, border: "1px solid var(--border)",
-                        boxShadow: "0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15)",
+                        boxShadow: "var(--shadow-popover)",
                         flexDirection: "column", overflow: "hidden",
                         animation: "chatPanelIn 0.2s ease-out",
                     }}

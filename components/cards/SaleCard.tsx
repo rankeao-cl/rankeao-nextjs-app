@@ -11,26 +11,24 @@ export default function SaleCard({ listing }: { listing: Listing }) {
     const name = listing.title || listing.card_name || "Sin titulo";
     const setName = listing.set_name;
     const condition = listing.card_condition;
+    const isFoil = listing.is_foil;
+    const gameName = listing.game_name;
+    const rarity = listing.rarity;
     const price =
         listing.price != null
             ? `$${listing.price.toLocaleString("es-CL")}`
             : "Consultar";
 
     return (
-        <Link href={`/marketplace/${listing.id}`} className="block h-full">
-            <div
-                className="rounded-2xl overflow-hidden h-full flex flex-col"
-                style={{
-                    backgroundColor: "var(--surface-solid)",
-                    border: "1px solid var(--border)",
-                }}
-            >
-                {/* Image — fixed aspect ratio, cover to fill uniformly */}
+        <Link href={`/marketplace/${listing.id}`} className="block h-full group">
+            <div className="h-full flex flex-col">
+                {/* Card image — sharp corners, TCG feel */}
                 <div
-                    className="relative w-full shrink-0"
+                    className="relative w-full shrink-0 overflow-hidden"
                     style={{
                         aspectRatio: "63 / 88",
-                        backgroundColor: "var(--code-bg)",
+                        borderRadius: 4,
+                        backgroundColor: "#0a0a0a",
                     }}
                 >
                     {imageUrl ? (
@@ -38,75 +36,101 @@ export default function SaleCard({ listing }: { listing: Listing }) {
                             src={imageUrl}
                             alt={name}
                             fill
-                            className="object-cover"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
                         />
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <span className="text-3xl opacity-30">🃏</span>
+                            <span className="text-2xl opacity-20" style={{ color: "var(--muted)" }}>?</span>
                         </div>
+                    )}
+
+                    {/* Foil indicator */}
+                    {isFoil && (
+                        <span
+                            className="absolute top-1.5 left-1.5 text-[8px] font-bold uppercase px-1.5 py-0.5"
+                            style={{
+                                borderRadius: 3,
+                                color: "var(--yellow)",
+                                backgroundColor: "rgba(0,0,0,0.7)",
+                                backdropFilter: "blur(4px)",
+                                letterSpacing: "0.5px",
+                            }}
+                        >
+                            Foil
+                        </span>
                     )}
                 </div>
 
-                {/* Body — fixed height so all cards align */}
-                <div className="flex flex-col flex-1" style={{ padding: "10px" }}>
-                    {/* Title — always 2 lines tall */}
+                {/* Info — pills below the card */}
+                <div className="flex flex-col gap-1.5 pt-2">
+                    {/* Title */}
                     <p
                         className="line-clamp-2"
                         style={{
                             color: "var(--foreground)",
-                            fontSize: "12px",
+                            fontSize: 12,
                             fontWeight: 600,
                             lineHeight: "16px",
-                            minHeight: "32px",
+                            minHeight: 32,
+                            margin: 0,
                         }}
                     >
                         {name}
                     </p>
 
-                    {/* Set name — always 1 line tall */}
-                    <p
-                        className="truncate"
-                        style={{
-                            color: "var(--muted)",
-                            fontSize: "10px",
-                            marginTop: "2px",
-                            minHeight: "14px",
-                        }}
-                    >
-                        {setName || "\u00A0"}
-                    </p>
-
-                    {/* Price + condition — pushed to bottom */}
-                    <div
-                        className="flex items-center justify-between mt-auto"
-                        style={{ paddingTop: "6px" }}
-                    >
+                    {/* Pills row */}
+                    <div className="flex flex-wrap gap-1">
+                        {/* Price pill */}
                         <span
+                            className="text-xs font-bold px-2 py-0.5"
                             style={{
+                                borderRadius: 4,
                                 color: "var(--foreground)",
-                                fontSize: "14px",
-                                fontWeight: 700,
+                                backgroundColor: "var(--surface-solid)",
+                                border: "1px solid var(--border)",
                             }}
                         >
                             {price}
                         </span>
+
+                        {/* Condition pill */}
                         {condition && (
                             <span
-                                className="uppercase"
+                                className="uppercase text-[9px] font-semibold px-1.5 py-0.5"
                                 style={{
+                                    borderRadius: 4,
                                     color: "var(--muted)",
-                                    fontSize: "9px",
-                                    fontWeight: 600,
                                     backgroundColor: "var(--surface)",
-                                    padding: "2px 6px",
-                                    borderRadius: "8px",
                                 }}
                             >
                                 {condition.replace("_", " ")}
                             </span>
                         )}
+
+                        {/* Rarity pill */}
+                        {rarity && (
+                            <span
+                                className="text-[9px] font-semibold px-1.5 py-0.5"
+                                style={{
+                                    borderRadius: 4,
+                                    color: "var(--muted)",
+                                    backgroundColor: "var(--surface)",
+                                }}
+                            >
+                                {rarity}
+                            </span>
+                        )}
                     </div>
+
+                    {/* Set + game */}
+                    {(setName || gameName) && (
+                        <p className="m-0 text-[10px] leading-[14px]" style={{ color: "var(--muted)" }}>
+                            {gameName && <span style={{ color: "var(--accent)", fontWeight: 600 }}>{gameName}</span>}
+                            {gameName && setName && " · "}
+                            {setName}
+                        </p>
+                    )}
                 </div>
             </div>
         </Link>
