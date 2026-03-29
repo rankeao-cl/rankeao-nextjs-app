@@ -95,7 +95,7 @@ export default function FeedContent({
         }
 
         // User-generated posts → PostCard
-        if (itemType === "POST" || !itemType) {
+        if (itemType === "POST") {
           if (feedFilter !== "actividad") {
             items.push({
               id: `post-${s.id}`,
