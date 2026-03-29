@@ -122,12 +122,18 @@ export function useLikePost() {
     const qc = useQueryClient();
     return useMutation<{ liked: boolean; likes_count: number } | null, Error, { postId: string; like: boolean; token?: string }>({
         mutationFn: async ({ postId, like, token }) => {
-            if (like) {
-                const res = await socialApi.likePost(postId, token);
-                return (res as any)?.data ?? null;
-            } else {
-                const res = await socialApi.unlikePost(postId, token);
-                return (res as any)?.data ?? null;
+            try {
+                if (like) {
+                    const res = await socialApi.likePost(postId, token);
+                    return (res as any)?.data ?? null;
+                } else {
+                    const res = await socialApi.unlikePost(postId, token);
+                    return (res as any)?.data ?? null;
+                }
+            } catch (err: any) {
+                // 409 = already in the desired state — keep optimistic update, don't revert
+                if (err?.status === 409) return null;
+                throw err;
             }
         },
         onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),
@@ -138,12 +144,18 @@ export function useFirePost() {
     const qc = useQueryClient();
     return useMutation<{ fired: boolean; fires_count: number } | null, Error, { postId: string; fire: boolean; token?: string }>({
         mutationFn: async ({ postId, fire, token }) => {
-            if (fire) {
-                const res = await socialApi.firePost(postId, token);
-                return (res as any)?.data ?? null;
-            } else {
-                const res = await socialApi.unfirePost(postId, token);
-                return (res as any)?.data ?? null;
+            try {
+                if (fire) {
+                    const res = await socialApi.firePost(postId, token);
+                    return (res as any)?.data ?? null;
+                } else {
+                    const res = await socialApi.unfirePost(postId, token);
+                    return (res as any)?.data ?? null;
+                }
+            } catch (err: any) {
+                // 409 = already in the desired state — keep optimistic update, don't revert
+                if (err?.status === 409) return null;
+                throw err;
             }
         },
         onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),

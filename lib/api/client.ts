@@ -126,7 +126,7 @@ async function handleError(res: Response, endpoint: string): Promise<never> {
     const { code, message } = await parseErrorResponse(res);
     const error = new ApiError(code, message, res.status);
 
-    if (res.status !== 401 && res.status !== 404) {
+    if (res.status !== 401 && res.status !== 404 && res.status !== 409) {
         showErrorToast(error);
     }
 

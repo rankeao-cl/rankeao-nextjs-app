@@ -14,6 +14,7 @@ import {
     ChevronRight,
     CircleInfo,
     Comment,
+    Flame,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
@@ -263,8 +264,8 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                         transform: fired ? "scale(1.05)" : "scale(1)",
                         opacity: fireMutation.isPending ? 0.6 : 1,
                     }}>
-                        <span style={{ fontSize: 16 }}>🔥</span>
-                        <span>{firesCount > 0 ? firesCount : ""}</span>
+                        <Flame style={{ width: 16, height: 16 }} />
+                        {firesCount > 0 && <span>{firesCount}</span>}
                     </button>
 
                     {/* Comment */}

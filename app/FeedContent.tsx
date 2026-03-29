@@ -113,6 +113,8 @@ export default function FeedContent({
                 game: s.game ?? s.game_name,
                 likes_count: s.likes_count ?? s.like_count ?? 0,
                 is_liked: s.is_liked ?? false,
+                fires_count: s.fires_count ?? 0,
+                is_fired: s.is_fired ?? false,
                 comments_count: s.comments_count ?? s.comment_count,
                 created_at: s.created_at ?? "",
               },

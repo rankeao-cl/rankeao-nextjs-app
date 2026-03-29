@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { timeAgo } from "@/lib/utils/format";
-import { Heart, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
+import { Heart, Flame, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useAuth } from "@/context/AuthContext";
 import { useLikePost, useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
@@ -277,7 +277,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         transform: fired ? "scale(1.05)" : "scale(1)",
                         opacity: fireMutation.isPending ? 0.6 : 1,
                     }}>
-                        <span style={{ fontSize: 16 }}>🔥</span>
+                        <Flame style={{ width: 18, height: 18 }} />
                         {firesCount > 0 && <span>{firesCount}</span>}
                     </button>
 
