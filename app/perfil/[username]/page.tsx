@@ -4,6 +4,8 @@ import { useEffect, useState, use } from "react";
 import Image from "next/image";
 import PostCard from "@/components/cards/PostCard";
 import type { FeedPost } from "@/components/cards/PostCard";
+import FeedActivityCard from "@/components/cards/FeedActivityCard";
+import type { ActivityData } from "@/components/cards/FeedActivityCard";
 import DeckCard from "@/components/cards/DeckCard";
 import ProfileCollectionTab from "./ProfileCollectionTab";
 import ProfileTournamentsTab from "./ProfileTournamentsTab";
@@ -848,15 +850,34 @@ export default function PublicProfilePage({
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     {activity.length > 0 ? activity.map((item: any, i: number) => {
                         const user = item.user ?? {};
-                        const post: FeedPost = {
+                        const itemType = (item.type ?? "").toUpperCase();
+                        if (itemType === "POST") {
+                            const post: FeedPost = {
+                                id: String(item.id),
+                                username: user.username ?? item.username ?? profile?.username,
+                                avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
+                                text: item.description ?? item.text ?? item.content ?? "",
+                                images: item.images ?? (item.image_url ? [item.image_url] : undefined),
+                                created_at: item.created_at ?? "",
+                            };
+                            return <PostCard key={post.id || i} post={post} />;
+                        }
+                        const activity: ActivityData = {
                             id: String(item.id),
-                            username: user.username ?? item.username ?? profile?.username,
-                            avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
-                            text: item.description ?? item.text ?? item.content ?? item.title ?? "",
-                            images: item.images ?? (item.image_url ? [item.image_url] : undefined),
+                            type: itemType,
+                            user: {
+                                username: user.username ?? item.username ?? profile?.username ?? "",
+                                avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
+                            },
+                            title: item.title ?? item.description ?? "",
+                            description: item.title ? (item.description ?? undefined) : undefined,
+                            image_url: item.image_url,
+                            entity_type: item.entity_type,
+                            entity_id: item.entity_id,
+                            metadata: item.metadata,
                             created_at: item.created_at ?? "",
                         };
-                        return <PostCard key={post.id || i} post={post} />;
+                        return <FeedActivityCard key={activity.id || i} activity={activity} />;
                     }) : <EmptyState emoji="📝" title="Sin actividad reciente" description="Aun no hay publicaciones en este perfil." />}
                 </div>
             )}
