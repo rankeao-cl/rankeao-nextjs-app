@@ -65,13 +65,8 @@ export default function GameTracker({
             })
             .catch(() => {});
     }, [duelID, gameNumber, token]);
-    const [mode, setMode] = useState<GameMode>((initialSnapshot?.game?.mode ?? "simple") as GameMode);
+    const [mode, setMode] = useState<GameMode>("simple");
     const [loading, setLoading] = useState<string | null>(null);
-
-    // Sync mode from server when game state loads
-    useEffect(() => {
-        if (gameState?.game?.mode) setMode(gameState.game.mode as GameMode);
-    }, [gameState?.game?.mode]);
     const [showEndConfirm, setShowEndConfirm] = useState(false);
     const [selectedWinner, setSelectedWinner] = useState<number | null>(null);
     const [advForm, setAdvForm] = useState<AdvancedFormState>({
@@ -201,7 +196,7 @@ export default function GameTracker({
                                     color: mode === m ? "#fff" : "var(--muted)",
                                 }}
                             >
-                                {m === "simple" ? "Simple" : "Avanzado"}
+                                {m === "simple" ? "⚡ Simple" : "⚔️ Avanzado"}
                             </button>
                         ))}
                     </div>

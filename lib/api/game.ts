@@ -6,7 +6,7 @@ import type { GameStateSnapshot, GameInteraction } from '../types/game';
 
 export async function startGame(
     duelID: string,
-    data: { mode: string; game_rules_slug: string },
+    data: { game_rules_slug: string },
     token?: string
 ) {
     return apiPost<ApiResponse<{ game: GameStateSnapshot }>>(

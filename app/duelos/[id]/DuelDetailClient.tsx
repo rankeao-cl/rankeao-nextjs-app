@@ -165,7 +165,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [activeGameNumber, setActiveGameNumber] = useState<number | null>(null);
     const [activeGameSnapshot, setActiveGameSnapshot] = useState<GameStateSnapshot | null>(null);
     const [gameLoading, setGameLoading] = useState(false);
-    const [startMode, setStartMode] = useState<"simple" | "advanced">("simple");
 
     const fetchComments = useCallback(async () => {
         if (!token) return;
@@ -191,7 +190,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         if (!token || !duel) return;
         setGameLoading(true);
         try {
-            await startGame(duelId, { mode: startMode, game_rules_slug: duel.game_slug ?? "" }, token);
+            await startGame(duelId, { game_rules_slug: duel.game_slug ?? "" }, token);
             toast.success("Partida iniciada");
             setTimeout(() => fetchActiveGame(), 500);
         } catch (err: any) {
@@ -969,21 +968,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                         </div>
                     ) : (
                         <>
-                            <div className="mb-3 flex rounded-xl overflow-hidden border" style={{ borderColor: "var(--border)" }}>
-                                {(["simple", "advanced"] as const).map((m) => (
-                                    <button
-                                        key={m}
-                                        onClick={() => setStartMode(m)}
-                                        className="flex-1 py-2.5 text-[12px] font-bold border-none cursor-pointer transition-all"
-                                        style={{
-                                            backgroundColor: startMode === m ? "var(--accent)" : "var(--surface-solid)",
-                                            color: startMode === m ? "#fff" : "var(--muted)",
-                                        }}
-                                    >
-                                        {m === "simple" ? "Simple (vida)" : "Avanzado (hechizos)"}
-                                    </button>
-                                ))}
-                            </div>
                             <button
                                 onClick={handleStartGame}
                                 disabled={gameLoading}
