@@ -47,6 +47,16 @@ export default function PostCard({ post }: { post: FeedPost }) {
     const [commentText, setCommentText] = useState("");
 
     const likeMutation = useLikePost();
+
+    // Sync server state into local state when the feed refreshes (e.g. after stale cache expires).
+    // Skip sync while a mutation is in flight to avoid overriding optimistic updates.
+    useEffect(() => {
+        if (!likeMutation.isPending) {
+            setLiked(post.is_liked ?? false);
+            setLikesCount(post.likes_count ?? 0);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [post.is_liked, post.likes_count]);
     const addCommentMutation = useAddComment();
     const commentsQuery = usePostComments(post.id, showComments);
 

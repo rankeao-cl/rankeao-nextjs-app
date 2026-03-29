@@ -11,6 +11,7 @@ export function useFeed(params?: Params, enabled = true) {
         queryKey: ["social", "feed", params],
         queryFn: () => socialApi.getFeed(params),
         enabled,
+        staleTime: 0,
     });
 }
 
@@ -19,6 +20,7 @@ export function useFeedDiscover(params?: Params, enabled = true) {
         queryKey: ["social", "feed-discover", params],
         queryFn: () => socialApi.getFeedDiscover(params),
         enabled,
+        staleTime: 0,
     });
 }
 
