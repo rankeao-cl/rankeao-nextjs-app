@@ -82,14 +82,14 @@ const FALLBACK_CONFIG: ActivityConfig = {
 
 // ── Entity link resolver ──
 
-function getEntityHref(entityType?: string, entityId?: string): string | null {
+function getEntityHref(entityType?: string, entityId?: string, metadata?: Record<string, unknown>): string | null {
     if (!entityType || !entityId) return null;
     const t = entityType.toLowerCase();
     if (t === "tournament") return `/torneos/${entityId}`;
     if (t === "clan") return `/clanes/${entityId}`;
     if (t === "user") return `/perfil/${entityId}`;
     if (t === "deck") return `/decks/${entityId}`;
-    if (t === "duel") return `/duelos/${entityId}`;
+    if (t === "duel") return `/duelos/${metadata?.duel_id ?? entityId}`;
     return null;
 }
 
@@ -105,7 +105,7 @@ const ENTITY_LABELS: Record<string, string> = {
 
 export default function FeedActivityCard({ activity }: { activity: ActivityData }) {
     const config = ACTIVITY_CONFIG[activity.type] ?? FALLBACK_CONFIG;
-    const href = getEntityHref(activity.entity_type, activity.entity_id);
+    const href = getEntityHref(activity.entity_type, activity.entity_id, activity.metadata);
     const entityLabel = activity.entity_type ? ENTITY_LABELS[activity.entity_type.toLowerCase()] ?? "Ver detalle" : "Ver detalle";
 
     const { status, session } = useAuth();
