@@ -28,6 +28,8 @@ import { TargetDart, Comment } from "@gravity-ui/icons";
 import RankeaoSpinner from "@/components/RankeaoSpinner";
 import { getGameBrand } from "@/lib/gameLogos";
 import GameTracker from "./components/GameTracker";
+import MatchFoundOverlay from "./components/MatchFoundOverlay";
+import GameStartedOverlay from "./components/GameStartedOverlay";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     PENDING: { label: "Pendiente", color: "var(--warning)" },
@@ -96,6 +98,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [loading, setLoading] = useState<string | null>(null);
     const [showIntro, setShowIntro] = useState(false);
     const [introFading, setIntroFading] = useState(false);
+    const [introType, setIntroType] = useState<"match_found" | "match_accepted" | "game_started" | null>(null);
+    const [gameStartedInfo, setGameStartedInfo] = useState<{ gameNumber: number; mode: string } | null>(null);
     const introEligible = duel ? ["ACCEPTED", "IN_PROGRESS"].includes(duel.status) : false;
     const prevDuelStatusRef = useRef<string | null>(null);
     const prevGameNumberRef = useRef<number | null>(null);
@@ -114,6 +118,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         const key = `intro_shown_${duelId}`;
         if (!sessionStorage.getItem(key)) {
             sessionStorage.setItem(key, "1");
+            setIntroType(duel.status === "IN_PROGRESS" ? "game_started" : "match_accepted");
             setShowIntro(true);
         }
     // Only run once when duel first loads
@@ -197,6 +202,9 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     const key = `game_intro_${duelId}_${gameNum}`;
                     if (!sessionStorage.getItem(key)) {
                         sessionStorage.setItem(key, "1");
+                        const gameMode = snap?.game?.mode ?? "simple";
+                        setGameStartedInfo({ gameNumber: gameNum, mode: gameMode });
+                        setIntroType("game_started");
                         setShowIntro(true);
                     }
                 }
@@ -237,6 +245,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     const key = `intro_shown_${duelId}`;
                     if (!sessionStorage.getItem(key)) {
                         sessionStorage.setItem(key, "1");
+                        setIntroType("match_accepted");
                         setShowIntro(true);
                     }
                 }
@@ -275,6 +284,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     const key = `intro_shown_${duelId}`;
                     if (!sessionStorage.getItem(key)) {
                         sessionStorage.setItem(key, "1");
+                        setIntroType("match_found");
                         setShowIntro(true);
                     }
                 }
@@ -282,9 +292,20 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [duelId, refreshDuel, fetchActiveGame]),
         onGameStarted: useCallback(() => {
-            fetchActiveGame();
+            fetchActiveGame().then(() => {
+                if (typeof window !== "undefined") {
+                    const gameNum = prevGameNumberRef.current ?? 1;
+                    const key = `game_intro_ws_${duelId}_${gameNum}`;
+                    if (!sessionStorage.getItem(key)) {
+                        sessionStorage.setItem(key, "1");
+                        setIntroType("game_started");
+                        setShowIntro(true);
+                    }
+                }
+            });
+        // eslint-disable name-line react-hooks/exhaustive-deps
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [fetchActiveGame]),
+        }, [duelId, fetchActiveGame]),
     });
 
     // Polling de respaldo solo para AWAITING_CONFIRMATION (no cubierto por WS)
@@ -405,6 +426,43 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     // ── Intro animation ──
 
     if (showIntro && duel) {
+        // Match found / accepted overlay
+        if (introType === "match_found" || introType === "match_accepted") {
+            return (
+                <MatchFoundOverlay
+                    type={introType === "match_found" ? "found" : "accepted"}
+                    challengerUsername={p1.display_name || p1.username}
+                    challengerAvatarUrl={p1.avatar_url}
+                    challengedUsername={p2.display_name || p2.username}
+                    challengedAvatarUrl={p2.avatar_url}
+                    gameName={duel.game_name}
+                    bestOf={duel.best_of}
+                    isFading={introFading}
+                    onSkip={skipIntro}
+                />
+            );
+        }
+
+        // Game started overlay
+        if (introType === "game_started") {
+            const gameNum = gameStartedInfo?.gameNumber ?? 1;
+            const rawMode = gameStartedInfo?.mode ?? "simple";
+            const overlayMode: "simple" | "advanced" =
+                rawMode === "advanced" ? "advanced" : "simple";
+            return (
+                <GameStartedOverlay
+                    gameNumber={gameNum}
+                    totalGames={duel.best_of ?? 1}
+                    mode={overlayMode}
+                    gameName={duel.game_name}
+                    formatName={duel.format_name}
+                    isFading={introFading}
+                    onSkip={skipIntro}
+                />
+            );
+        }
+
+        // Fallback: legacy full-screen VS intro
         const renderAvatar = (player: typeof p1, size: number) => (
             <PlayerAvatar player={player} size={size} ringColor="var(--accent)" />
         );
