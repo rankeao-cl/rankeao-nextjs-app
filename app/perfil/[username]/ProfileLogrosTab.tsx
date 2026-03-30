@@ -111,9 +111,9 @@ export default function ProfileLogrosTab({
     }
 
     const level = gamiStats?.level ?? 1;
-    const totalXp = gamiStats?.total_xp ?? 0;
-    const currentLevelXp = gamiStats?.current_level_xp ?? 0;
-    const xpToNext = gamiStats?.xp_to_next_level ?? 100;
+    const totalXp = gamiStats?.xp ?? gamiStats?.total_xp ?? 0;
+    const currentLevelXp = gamiStats?.xp_this_level ?? gamiStats?.current_level_xp ?? 0;
+    const xpToNext = gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 100;
     const xpProgress = xpToNext > 0 ? Math.min((currentLevelXp / xpToNext) * 100, 100) : 0;
 
     return (

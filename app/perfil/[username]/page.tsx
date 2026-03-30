@@ -341,9 +341,9 @@ export default function PublicProfilePage({
     const name = profile?.display_name || profile?.name || profile?.username || usernameParam;
     const bio = profile?.bio || "";
     const level = gamiStats?.level ?? profile?.level ?? 0;
-    const totalXp = gamiStats?.total_xp ?? profile?.total_xp ?? 0;
-    const xpToNextLevel = gamiStats?.xp_to_next_level ?? 0;
-    const currentLevelXp = gamiStats?.current_level_xp ?? 0;
+    const totalXp = gamiStats?.xp ?? gamiStats?.total_xp ?? profile?.total_xp ?? 0;
+    const xpToNextLevel = gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 0;
+    const currentLevelXp = gamiStats?.xp_this_level ?? gamiStats?.current_level_xp ?? 0;
     const rating = gamiStats?.peak_rating ?? gamiStats?.rating ?? profile?.rating ?? 0;
     const winRate = gamiStats?.win_rate ?? profile?.win_rate ?? 0;
     const tournamentsPlayed = gamiStats?.tournaments_played ?? profile?.tournaments_count ?? 0;
