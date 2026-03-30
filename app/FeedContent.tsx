@@ -34,8 +34,15 @@ export default function FeedContent({
   const isAuth = status === "authenticated";
 
   const personalFeedQ = useFeed({ per_page: 20 }, isAuth);
-  const discoverFeedQ = useFeedDiscover({ per_page: 20 }, !isAuth);
-  const socialQ = isAuth ? personalFeedQ : discoverFeedQ;
+
+  // Detect whether the personal feed resolved to empty (so we can fall back to discover)
+  const personalFeedData: any = personalFeedQ.data;
+  const personalFeedArray: any[] = personalFeedData?.data?.feed ?? personalFeedData?.feed ?? personalFeedData?.data?.items ?? personalFeedData?.items ?? [];
+  const personalFeedEmpty = isAuth && !personalFeedQ.isLoading && Array.isArray(personalFeedArray) && personalFeedArray.length === 0;
+
+  // Discover feed: for unauthenticated users always, or as fallback when personal feed is empty
+  const discoverFeedQ = useFeedDiscover({ per_page: 20 }, !isAuth || personalFeedEmpty);
+  const socialQ = isAuth && !personalFeedEmpty ? personalFeedQ : discoverFeedQ;
 
   const feedItems = useMemo<FeedItemType[]>(() => {
     const items: FeedItemType[] = [];
