@@ -126,7 +126,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
         );
     };
 
-    const comments: PostComment[] = commentsQuery.data?.comments ?? [];
+    const comments: PostComment[] = commentsQuery.data?.data?.comments ?? commentsQuery.data?.comments ?? [];
 
     return (
         <article

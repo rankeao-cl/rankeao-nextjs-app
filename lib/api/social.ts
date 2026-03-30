@@ -50,7 +50,7 @@ export interface PostComment {
 }
 
 export async function getPostComments(postId: string | number, params?: Params) {
-    return apiFetch<{ comments: PostComment[]; meta?: PaginationMeta }>(`/social/feed/posts/${postId}/comments`, params);
+    return apiFetch<{ data?: { comments: PostComment[] }; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/posts/${postId}/comments`, params);
 }
 
 export async function addPostComment(postId: string | number, content: string, token?: string) {

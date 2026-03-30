@@ -123,7 +123,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const fireMutation = useFirePost();
     const addCommentMutation = useAddComment();
     const commentsQuery = usePostComments(activity.id, showComments);
-    const comments: PostComment[] = commentsQuery.data?.comments ?? [];
+    const comments: PostComment[] = commentsQuery.data?.data?.comments ?? commentsQuery.data?.comments ?? [];
 
     useEffect(() => {
         if (!likeMutation.isPending) {
