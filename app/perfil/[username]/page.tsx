@@ -858,6 +858,11 @@ export default function PublicProfilePage({
                                 avatar_url: user.avatar_url ?? item.avatar_url ?? profile?.avatar_url,
                                 text: item.description ?? item.text ?? item.content ?? "",
                                 images: item.images ?? (item.image_url ? [item.image_url] : undefined),
+                                likes_count: item.likes_count ?? 0,
+                                is_liked: item.is_liked ?? false,
+                                fires_count: item.fires_count ?? 0,
+                                is_fired: item.is_fired ?? false,
+                                comments_count: item.comments_count ?? 0,
                                 created_at: item.created_at ?? "",
                             };
                             return <PostCard key={post.id || i} post={post} />;
@@ -875,6 +880,11 @@ export default function PublicProfilePage({
                             entity_type: item.entity_type,
                             entity_id: item.entity_id,
                             metadata: item.metadata,
+                            likes_count: item.likes_count ?? 0,
+                            is_liked: item.is_liked ?? false,
+                            fires_count: item.fires_count ?? 0,
+                            is_fired: item.is_fired ?? false,
+                            comments_count: item.comments_count ?? 0,
                             created_at: item.created_at ?? "",
                         };
                         return <FeedActivityCard key={activity.id || i} activity={activity} />;
