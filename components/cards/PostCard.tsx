@@ -278,7 +278,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         opacity: fireMutation.isPending ? 0.6 : 1,
                     }}>
                         <Flame style={{ width: 18, height: 18 }} />
-                        {firesCount > 0 && <span>{firesCount}</span>}
+                        <span>{firesCount}</span>
                     </button>
 
                     {/* Comment */}

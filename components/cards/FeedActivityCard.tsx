@@ -16,8 +16,9 @@ import {
     Comment,
     Flame,
 } from "@gravity-ui/icons";
+import { Heart } from "@gravity-ui/icons";
 import { useAuth } from "@/context/AuthContext";
-import { useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
+import { useLikePost, useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
 import { timeAgo as timeAgoLib } from "@/lib/utils/format";
 import type { PostComment } from "@/lib/api/social";
 
@@ -111,15 +112,26 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const isAuth = status === "authenticated";
     const accessToken = session?.accessToken;
 
+    const [liked, setLiked] = useState(activity.is_liked ?? false);
+    const [likesCount, setLikesCount] = useState(activity.likes_count ?? 0);
     const [fired, setFired] = useState(activity.is_fired ?? false);
     const [firesCount, setFiresCount] = useState(activity.fires_count ?? 0);
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState("");
 
+    const likeMutation = useLikePost();
     const fireMutation = useFirePost();
     const addCommentMutation = useAddComment();
     const commentsQuery = usePostComments(activity.id, showComments);
     const comments: PostComment[] = commentsQuery.data?.comments ?? [];
+
+    useEffect(() => {
+        if (!likeMutation.isPending) {
+            setLiked(activity.is_liked ?? false);
+            setLikesCount(activity.likes_count ?? 0);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activity.is_liked, activity.likes_count]);
 
     useEffect(() => {
         if (!fireMutation.isPending) {
@@ -128,6 +140,25 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activity.is_fired, activity.fires_count]);
+
+    const handleLike = () => {
+        if (!isAuth) return;
+        const wasLiked = liked;
+        setLiked(!wasLiked);
+        setLikesCount(c => c + (wasLiked ? -1 : 1));
+        likeMutation.mutate(
+            { postId: activity.id, like: !wasLiked, token: accessToken },
+            {
+                onSuccess: (data) => {
+                    if (data?.likes_count != null) setLikesCount(data.likes_count);
+                },
+                onError: () => {
+                    setLiked(wasLiked);
+                    setLikesCount(c => c + (wasLiked ? 1 : -1));
+                },
+            }
+        );
+    };
 
     const handleFire = () => {
         if (!isAuth) return;
@@ -253,6 +284,20 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                 paddingTop: 8, borderTop: "1px solid var(--border)",
             }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {/* Like */}
+                    <button type="button" onClick={handleLike} style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
+                        color: liked ? "#EF4444" : "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                        transition: "transform 0.15s",
+                        transform: liked ? "scale(1.05)" : "scale(1)",
+                        opacity: likeMutation.isPending ? 0.6 : 1,
+                    }}>
+                        <Heart style={{ width: 16, height: 16 }} />
+                        <span>{likesCount}</span>
+                    </button>
+
                     {/* Fire reaction */}
                     <button type="button" onClick={handleFire} style={{
                         display: "flex", alignItems: "center", gap: 5,
@@ -265,7 +310,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                         opacity: fireMutation.isPending ? 0.6 : 1,
                     }}>
                         <Flame style={{ width: 16, height: 16 }} />
-                        {firesCount > 0 && <span>{firesCount}</span>}
+                        <span>{firesCount}</span>
                     </button>
 
                     {/* Comment */}
@@ -276,7 +321,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                         padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
                     }}>
                         <Comment style={{ width: 16, height: 16 }} />
-                        {(activity.comments_count ?? 0) > 0 && <span>{activity.comments_count}</span>}
+                        <span>{activity.comments_count ?? 0}</span>
                     </button>
                 </div>
             </div>
