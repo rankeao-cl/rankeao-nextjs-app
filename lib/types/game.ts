@@ -25,6 +25,8 @@ export interface DuelGame {
   game_rules: GameRules;
   status: GameStatus;
   winner_id: number | null;
+  active_player_id: number | null;
+  turn_number: number;
   started_at: string;
   ended_at: string | null;
 }

@@ -164,6 +164,18 @@ export function useGameState(
                         return prev;
                     }
 
+                    case "turn.changed": {
+                        const payload = msg.payload as { active_player_id: number; turn_number: number };
+                        return {
+                            ...prev,
+                            game: {
+                                ...prev.game,
+                                active_player_id: payload.active_player_id,
+                                turn_number: payload.turn_number,
+                            },
+                        };
+                    }
+
                     default:
                         return prev;
                 }

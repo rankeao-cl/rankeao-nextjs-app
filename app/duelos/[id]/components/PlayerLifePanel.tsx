@@ -30,7 +30,10 @@ export default function PlayerLifePanel({
     const isLow = lifeTotal <= 5;
     const canControl = isMe && mode === "simple" && !!onDeltaLife;
     const poisonCount = counters?.poison ?? 0;
-    const showPoison = rules.supports_poison && poisonCount > 0;
+    const showPoison = rules.supports_poison;
+    const poisonDanger = poisonCount >= (rules.poison_to_lose ?? 10);
+    const poisonColor = poisonDanger ? "var(--danger)" : "#a855f7";
+    const poisonBg = poisonDanger ? "rgba(239,68,68,0.12)" : "rgba(168,85,247,0.12)";
 
     // Delta display
     const [lastDelta, setLastDelta] = useState<number | null>(null);
@@ -166,7 +169,7 @@ export default function PlayerLifePanel({
                         {/* Counters */}
                         <div style={{ display: "flex", gap: 6, marginTop: 4, minHeight: 18 }}>
                             {showPoison && (
-                                <span style={{ fontSize: 11, fontWeight: 700, color: "#a855f7", backgroundColor: "rgba(168,85,247,0.12)", padding: "2px 8px", borderRadius: 999, display: "flex", alignItems: "center", gap: 3 }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: poisonColor, backgroundColor: poisonBg, padding: "2px 8px", borderRadius: 999, display: "flex", alignItems: "center", gap: 3 }}>
                                     <Flame style={{ width: 12, height: 12 }} /> {poisonCount}/{rules.poison_to_lose ?? 10}
                                 </span>
                             )}
@@ -241,7 +244,7 @@ export default function PlayerLifePanel({
                     <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "1px" }}>vidas</span>
 
                     {showPoison && (
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "#a855f7", backgroundColor: "rgba(168,85,247,0.12)", padding: "3px 8px", borderRadius: 999, display: "flex", alignItems: "center", gap: 3, marginTop: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: poisonColor, backgroundColor: poisonBg, padding: "3px 8px", borderRadius: 999, display: "flex", alignItems: "center", gap: 3, marginTop: 4 }}>
                             <Flame style={{ width: 12, height: 12 }} /> {poisonCount}/{rules.poison_to_lose ?? 10}
                         </span>
                     )}

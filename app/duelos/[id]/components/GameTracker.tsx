@@ -5,7 +5,7 @@ import { toast } from "@heroui/react";
 import { TargetDart, HeartFill, Flame, Shield, Cup, Clock } from "@gravity-ui/icons";
 import RankeaoSpinner from "@/components/RankeaoSpinner";
 import { useGameState } from "@/lib/hooks/use-game-state";
-import { updateLife, declareEvent, endGame, getInteractions } from "@/lib/api/game";
+import { updateLife, declareEvent, endGame, getInteractions, passTurn } from "@/lib/api/game";
 import { mapErrorMessage } from "@/lib/api/errors";
 import type { GameMode, GameStateSnapshot, GameInteraction } from "@/lib/types/game";
 import PlayerLifePanel from "./PlayerLifePanel";
@@ -81,6 +81,19 @@ export default function GameTracker({
     const rules = gameState?.game.game_rules;
     const pendingEvents = gameState?.pending_events ?? [];
     const isCompleted = gameState?.game.status === "completed";
+    const isMyTurn = !isCompleted && gameState?.game.active_player_id === myPlayerID;
+
+    const handlePassTurn = useCallback(async () => {
+        if (!token || loading) return;
+        setLoading("pass_turn");
+        try {
+            await passTurn(duelID, gameNumber, token);
+        } catch (err) {
+            toast.danger("Error", { description: mapErrorMessage(err) });
+        } finally {
+            setLoading(null);
+        }
+    }, [duelID, gameNumber, token, loading]);
 
     const handleDeltaLife = useCallback(
         async (delta: number) => {
@@ -212,6 +225,57 @@ export default function GameTracker({
                     <span className="text-[13px] font-extrabold" style={{ color: "#22c55e" }}>
                         {gameState.game.winner_id === myPlayerID ? `¡${myUsername} gana la partida!` : `${opponentUsername} gana la partida`}
                     </span>
+                </div>
+            )}
+
+            {/* ── Turn indicator ── */}
+            {!isCompleted && gameState.game.active_player_id !== null && (
+                <div style={{
+                    padding: "8px 16px",
+                    background: isMyTurn ? "rgba(59,130,246,0.08)" : "rgba(0,0,0,0.06)",
+                    borderBottom: "1px solid var(--border)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
+                }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{
+                            width: 8, height: 8, borderRadius: 4,
+                            backgroundColor: isMyTurn ? "var(--accent)" : "var(--muted)",
+                            display: "inline-block",
+                            boxShadow: isMyTurn ? "0 0 6px var(--accent)" : undefined,
+                        }} />
+                        <span style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: isMyTurn ? "var(--accent)" : "var(--muted)",
+                        }}>
+                            {isMyTurn ? "TU TURNO" : `Turno de ${opponentUsername}`}
+                        </span>
+                        <span style={{ fontSize: 10, color: "var(--muted)" }}>
+                            #{gameState.game.turn_number}
+                        </span>
+                    </div>
+                    {isMyTurn && (
+                        <button
+                            onClick={handlePassTurn}
+                            disabled={!!loading}
+                            style={{
+                                padding: "4px 12px",
+                                borderRadius: 999,
+                                border: "1px solid var(--border)",
+                                backgroundColor: "transparent",
+                                color: "var(--muted)",
+                                fontSize: 11,
+                                fontWeight: 700,
+                                cursor: loading ? "not-allowed" : "pointer",
+                                opacity: loading ? 0.5 : 1,
+                            }}
+                        >
+                            {loading === "pass_turn" ? "..." : "Pasar turno"}
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -449,6 +513,7 @@ const INTERACTION_ICONS: Record<string, string> = {
     event_disputed: "⚑",
     event_responded: "💬",
     event_resolved: "✔️",
+    turn_passed: "↩️",
 };
 
 function InteractionRow({ item, myPlayerID, myUsername, opponentUsername }: {
@@ -472,6 +537,7 @@ function InteractionRow({ item, myPlayerID, myUsername, opponentUsername }: {
         event_disputed: "disputó la acción",
         event_responded: "respondió",
         event_resolved: "efecto resuelto",
+        turn_passed: `pasó el turno → ${(item.payload as any)?.to_player_id === myPlayerID ? "ti" : opponentUsername}`,
     };
 
     return (

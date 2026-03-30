@@ -112,3 +112,17 @@ export async function endGame(
         { token }
     );
 }
+
+// ── Pass Turn ──
+
+export async function passTurn(
+    duelID: string,
+    gameNumber: number,
+    token?: string
+) {
+    return apiPost<ApiResponse<unknown>>(
+        `/social/duels/${encodeURIComponent(duelID)}/games/${gameNumber}/turn/pass`,
+        {},
+        { token }
+    );
+}
