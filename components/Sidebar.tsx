@@ -65,13 +65,8 @@ export default function Sidebar() {
         const username = session.username;
 
         const poll = () => {
-            getDuels({ per_page: 50 }, token)
-                .then(({ duels }) => {
-                    const count = duels.filter(
-                        d => d.status === "PENDING" && d.opponent.username === username
-                    ).length;
-                    setPendingDuels(count);
-                })
+            getDuels({ per_page: 50, status: "PENDING", role: "challenged" }, token)
+                .then(({ duels }) => setPendingDuels(duels.length))
                 .catch(() => {});
         };
 
@@ -202,7 +197,7 @@ export default function Sidebar() {
                                                 height: "16px",
                                                 fontSize: "9px",
                                                 padding: "0 3px",
-                                                background: "var(--danger, #ef4444)",
+                                                background: "var(--warning, #f97316)",
                                                 border: "2px solid var(--background)",
                                             }}
                                         >

@@ -509,12 +509,13 @@ export default function PublicProfilePage({
             </div>
             <div>
                 {recentDuels.map((duel) => {
-                    const isChallenger = duel.challenger.id === (profile?.id || profile?.user_id);
+                    const profileUsername = profile?.username?.toLowerCase();
+                    const isChallenger = duel.challenger.username?.toLowerCase() === profileUsername;
                     const opponent = isChallenger ? duel.opponent : duel.challenger;
                     const myWins = isChallenger ? (duel.challenger_wins ?? 0) : (duel.opponent_wins ?? 0);
                     const opponentWins = isChallenger ? (duel.opponent_wins ?? 0) : (duel.challenger_wins ?? 0);
-                    const isWin = duel.winner_id === (profile?.id || profile?.user_id);
-                    const isDraw = duel.status === "COMPLETED" && !duel.winner_id;
+                    const isWin = myWins > opponentWins;
+                    const isDraw = duel.status === "COMPLETED" && myWins === opponentWins;
                     const resultLabel = isDraw ? "EMPATE" : isWin ? "VICTORIA" : "DERROTA";
                     const resultColor = isDraw ? "var(--muted)" : isWin ? "var(--success)" : "var(--danger)";
                     const date = duel.played_at || duel.created_at;
