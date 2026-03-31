@@ -1,0 +1,1 @@
+export { BadgesGallery } from "./BadgesGallery";

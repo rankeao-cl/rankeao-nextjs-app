@@ -1,11 +1,11 @@
 import { toast } from "@heroui/react";
 import type { FetchOptions } from "@/lib/types/api";
 import { ApiError, mapErrorMessage, parseErrorResponse } from "./errors";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 // ── Configuration ──
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
-const SESSION_KEY = "rankeao.auth.session";
 
 // ── Helpers ──
 
@@ -18,16 +18,12 @@ export function showErrorToast(err: unknown) {
 export function getAuthHeaders(): Record<string, string> {
     if (typeof window === "undefined") return {};
     try {
-        const rawSession = localStorage.getItem(SESSION_KEY);
-        if (rawSession) {
-            const parsed = JSON.parse(rawSession);
-            const token = parsed.accessToken || parsed.token || parsed.access_token;
-            if (token) {
-                const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-                return { Authorization: `Bearer ${cleanToken}` };
-            }
+        const token = useAuthStore.getState().accessToken;
+        if (token) {
+            const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+            return { Authorization: `Bearer ${cleanToken}` };
         }
-    } catch (error) {
+    } catch {
         // ignore
     }
     return {};
@@ -55,7 +51,7 @@ let isRefreshing = false;
 
 function forceLogout() {
     if (typeof window === "undefined") return;
-    localStorage.removeItem(SESSION_KEY);
+    useAuthStore.getState().logout();
     toast.danger("Error", { description: "Tu sesion ha expirado. Inicia sesion nuevamente." });
     window.location.href = "/login";
 }
@@ -63,10 +59,7 @@ function forceLogout() {
 async function tryRefreshToken(): Promise<string | null> {
     if (typeof window === "undefined") return null;
     try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        const refreshToken = parsed.refreshToken || parsed.refresh_token;
+        const refreshToken = useAuthStore.getState().refreshToken;
         if (!refreshToken) return null;
 
         const res = await fetch(`${BASE_URL}/auth/refresh`, {
@@ -87,15 +80,11 @@ async function tryRefreshToken(): Promise<string | null> {
 
         const clean = newAccessToken.startsWith("Bearer ") ? newAccessToken.substring(7) : newAccessToken;
 
-        // Update localStorage
-        parsed.accessToken = clean;
-        if (newRefreshToken) parsed.refreshToken = newRefreshToken;
-        localStorage.setItem(SESSION_KEY, JSON.stringify(parsed));
-
-        // Notify React context so in-flight WS connections get the fresh token
-        window.dispatchEvent(new CustomEvent("rankeao:token-refreshed", {
-            detail: { accessToken: clean, refreshToken: newRefreshToken ?? parsed.refreshToken },
-        }));
+        // Update Zustand store
+        useAuthStore.getState().setTokens({
+            accessToken: clean,
+            ...(newRefreshToken ? { refreshToken: newRefreshToken } : {}),
+        });
 
         return clean;
     } catch {
