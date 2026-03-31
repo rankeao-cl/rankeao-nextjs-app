@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeSlash, Envelope, Lock } from "@gravity-ui/icons";
 import { Button, Form, Input } from "@heroui/react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
 import { useTheme } from "next-themes";
 

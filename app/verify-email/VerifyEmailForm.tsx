@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button, Card } from "@heroui/react";
 import { verifyEmail, resendVerification } from "@/lib/api/auth";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 export default function VerifyEmailForm() {
   const searchParams = useSearchParams();

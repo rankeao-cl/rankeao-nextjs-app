@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import VerifyEmailForm from "./VerifyEmailForm";
 
 export const metadata = {
@@ -5,5 +6,9 @@ export const metadata = {
 };
 
 export default function VerifyEmailPage() {
-  return <VerifyEmailForm />;
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailForm />
+    </Suspense>
+  );
 }
