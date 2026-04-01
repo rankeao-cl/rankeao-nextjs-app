@@ -107,11 +107,17 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
         typeof window !== "undefined" ? window.innerWidth : 900
     );
     const [selectedCard, setSelectedCard] = useState<UniqueCard | null>(null);
+    const [entered, setEntered] = useState(false);
 
     useEffect(() => {
         const onResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener("resize", onResize);
         return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    useEffect(() => {
+        const id = requestAnimationFrame(() => setEntered(true));
+        return () => cancelAnimationFrame(id);
     }, []);
 
     const layout = useMemo<Layout>(() => calcLayout(fanCount, windowWidth), [fanCount, windowWidth]);
@@ -182,6 +188,8 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 padding: 20,
+                opacity: entered ? 1 : 0,
+                transition: "opacity 0.22s ease",
             }}
         >
             {/* Creador del mazo — esquina superior izquierda */}
@@ -322,6 +330,10 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                             const stackCount = card ? Math.min(card.totalQty - 1, 3) : 0;
                             const isLoading = deckQuery.isPending;
 
+                            const mid = (fanCount - 1) / 2;
+                            const stagger = Math.round(Math.abs(i - mid) * 35);
+                            const entryTransition = `transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) ${stagger}ms, opacity 0.3s ease ${stagger}ms`;
+
                             return (
                                 <Fragment key={i}>
                                     {/* Sombras apiladas */}
@@ -334,12 +346,13 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                                                 left: "50%", marginLeft: -(cardW / 2), bottom: liftPx,
                                                 borderRadius: Math.round(cardW * 0.07),
                                                 overflow: "hidden",
-                                                transform: `rotate(${angle}deg) translateY(${(s + 1) * 6}px)`,
+                                                transform: entered ? `rotate(${angle}deg) translateY(${(s + 1) * 6}px)` : `rotate(0deg) translateY(${(s + 1) * 6}px)`,
                                                 transformOrigin: `center ${originY}px`,
                                                 zIndex: baseZ - (s + 1),
-                                                opacity: 1 - (s + 1) * 0.18,
+                                                opacity: entered ? 1 - (s + 1) * 0.18 : 0,
                                                 border: "1.5px solid rgba(255,255,255,0.10)",
                                                 pointerEvents: "auto",
+                                                transition: entryTransition,
                                             }}
                                         >
                                             <CardBack w={cardW} h={cardH} />
@@ -352,10 +365,12 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                                             position: "absolute",
                                             width: cardW, height: cardH,
                                             left: "50%", marginLeft: -(cardW / 2), bottom: liftPx,
-                                            transform: `rotate(${angle}deg)`,
+                                            transform: entered ? `rotate(${angle}deg)` : "rotate(0deg) scale(0.75)",
                                             transformOrigin: `center ${originY}px`,
+                                            opacity: entered ? 1 : 0,
                                             zIndex: baseZ,
                                             pointerEvents: "none",
+                                            transition: entryTransition,
                                         }}
                                     >
                                     <div
