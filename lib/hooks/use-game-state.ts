@@ -63,7 +63,7 @@ export function useGameState(
                             game: {
                                 ...prev.game,
                                 status: "completed",
-                                winner_id: payload.winner_id,
+                                winner_id: Number(payload.winner_id),
                             },
                             player_states: payload.final_states ?? prev.player_states,
                         };
@@ -71,10 +71,11 @@ export function useGameState(
 
                     case "life.updated": {
                         const payload = msg.payload as { player_id: number; new_total: number; delta: number };
+                        const pid = Number(payload.player_id);
                         return {
                             ...prev,
                             player_states: prev.player_states.map((ps) =>
-                                ps.player_id === payload.player_id
+                                Number(ps.player_id) === pid
                                     ? { ...ps, life_total: payload.new_total }
                                     : ps
                             ),
@@ -170,7 +171,7 @@ export function useGameState(
                             ...prev,
                             game: {
                                 ...prev.game,
-                                active_player_id: payload.active_player_id,
+                                active_player_id: Number(payload.active_player_id),
                                 turn_number: payload.turn_number,
                             },
                         };

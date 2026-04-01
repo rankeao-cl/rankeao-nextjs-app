@@ -76,12 +76,12 @@ export default function GameTracker({
         target: "opponent",
     });
 
-    const myState = gameState?.player_states.find((ps) => ps.player_id === myPlayerID);
-    const oppState = gameState?.player_states.find((ps) => ps.player_id === opponentPlayerID);
+    const myState = gameState?.player_states.find((ps) => Number(ps.player_id) === myPlayerID);
+    const oppState = gameState?.player_states.find((ps) => Number(ps.player_id) === opponentPlayerID);
     const rules = gameState?.game.game_rules;
     const pendingEvents = gameState?.pending_events ?? [];
     const isCompleted = gameState?.game.status === "completed";
-    const isMyTurn = !isCompleted && gameState?.game.active_player_id === myPlayerID;
+    const isMyTurn = !isCompleted && Number(gameState?.game.active_player_id) === myPlayerID;
 
     const handlePassTurn = useCallback(async () => {
         if (!token || loading) return;
@@ -223,7 +223,7 @@ export default function GameTracker({
                 }}>
                     <Cup style={{ width: 18, height: 18, color: "#22c55e" }} />
                     <span className="text-[13px] font-extrabold" style={{ color: "#22c55e" }}>
-                        {gameState.game.winner_id === myPlayerID ? `¡${myUsername} gana la partida!` : `${opponentUsername} gana la partida`}
+                        {Number(gameState.game.winner_id) === myPlayerID ? `¡${myUsername} gana la partida!` : `${opponentUsername} gana la partida`}
                     </span>
                 </div>
             )}
@@ -400,8 +400,8 @@ export default function GameTracker({
                             duelID={duelID}
                             gameNumber={gameNumber}
                             myPlayerID={myPlayerID}
-                            sourceUsername={event.source_player_id === myPlayerID ? myUsername : opponentUsername}
-                            targetUsername={event.target_player_id === myPlayerID ? myUsername : opponentUsername}
+                            sourceUsername={Number(event.source_player_id) === myPlayerID ? myUsername : opponentUsername}
+                            targetUsername={Number(event.target_player_id) === myPlayerID ? myUsername : opponentUsername}
                             token={token}
                         />
                     ))}
@@ -522,7 +522,7 @@ function InteractionRow({ item, myPlayerID, myUsername, opponentUsername }: {
     myUsername: string;
     opponentUsername: string;
 }) {
-    const isMe = item.player_id === myPlayerID;
+    const isMe = Number(item.player_id) === myPlayerID;
     const username = isMe ? myUsername : opponentUsername;
     const icon = INTERACTION_ICONS[item.type] ?? "•";
     const time = new Date(item.created_at).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -537,7 +537,7 @@ function InteractionRow({ item, myPlayerID, myUsername, opponentUsername }: {
         event_disputed: "disputó la acción",
         event_responded: "respondió",
         event_resolved: "efecto resuelto",
-        turn_passed: `pasó el turno → ${(item.payload as any)?.to_player_id === myPlayerID ? "ti" : opponentUsername}`,
+        turn_passed: `pasó el turno → ${Number((item.payload as any)?.to_player_id) === myPlayerID ? "ti" : opponentUsername}`,
     };
 
     return (

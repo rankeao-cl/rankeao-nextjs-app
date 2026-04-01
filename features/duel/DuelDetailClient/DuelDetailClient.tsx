@@ -292,11 +292,13 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [duelId, refreshDuel, fetchActiveGame]),
         onGameStarted: useCallback(() => {
+            const prevGame = prevGameNumberRef.current;
             fetchActiveGame().then(() => {
                 if (typeof window !== "undefined") {
                     const gameNum = prevGameNumberRef.current ?? 1;
-                    const key = `game_intro_ws_${duelId}_${gameNum}`;
-                    if (!sessionStorage.getItem(key)) {
+                    const key = `game_intro_${duelId}_${gameNum}`;
+                    // Show animation if we didn't already show it via fetchActiveGame
+                    if (prevGame === null && !sessionStorage.getItem(key)) {
                         sessionStorage.setItem(key, "1");
                         setIntroType("game_started");
                         setShowIntro(true);
