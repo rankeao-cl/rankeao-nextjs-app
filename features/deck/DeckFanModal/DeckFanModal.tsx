@@ -11,6 +11,23 @@ interface DeckFanModalProps {
     onClose: () => void;
 }
 
+// Shape of the deck object as returned by the API (fields vary by endpoint)
+interface RawDeck {
+    id?: string;
+    name?: string;
+    cards?: RawCard[];
+    game_name?: string;
+    game?: string;
+    format_name?: string;
+    format?: string;
+    username?: string;
+    avatar_url?: string;
+    owner?: { username?: string; avatar_url?: string };
+    user?: { username?: string; avatar_url?: string };
+}
+
+type RawCard = DeckCard & { board?: string };
+
 const MAX_ANGLE = 22;
 const MAX_FAN = 10;
 const CARD_RATIO = 1.4;       // height / width
@@ -27,9 +44,9 @@ interface Layout {
     liftPx: number;
 }
 
-function calcLayout(fanCount: number): Layout {
+function calcLayout(fanCount: number, winWidth: number): Layout {
     const n = Math.max(fanCount, 2);
-    const availW = typeof window !== "undefined" ? window.innerWidth * 0.78 : 900;
+    const availW = winWidth * 0.78;
     const rawW = availW / (OVERLAP * (n - 1) + 1);
     const cardW = Math.round(Math.min(MAX_CARD_W, Math.max(MIN_CARD_W, rawW)));
     const cardH = Math.round(cardW * CARD_RATIO);
@@ -41,15 +58,16 @@ function calcLayout(fanCount: number): Layout {
     return { cardW, cardH, originY, containerH, liftPx };
 }
 
-type UniqueCard = DeckCard & { totalQty: number };
+type UniqueCard = DeckCard & { board?: string; totalQty: number };
 
 export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
     const deckQuery = useDeck(deckId);
-    const raw = deckQuery.data as any;
-    const deck = raw?.data?.deck ?? raw?.deck ?? raw?.data ?? null;
+    const rawData = deckQuery.data as { data?: { deck?: RawDeck; [k: string]: unknown }; deck?: RawDeck; [k: string]: unknown } | null | undefined;
+    const deck: RawDeck | null = rawData?.data?.deck ?? (rawData?.deck as RawDeck | undefined) ?? (rawData?.data as RawDeck | undefined) ?? null;
 
-    const mainCards: DeckCard[] = (deck?.cards ?? [])
-        .filter((c: any) => !c.board || c.board === "MAIN");
+    const mainCards = useMemo<RawCard[]>(() =>
+        (deck?.cards ?? []).filter(c => !c.board || c.board === "MAIN"),
+    [deck?.cards]);
 
     const uniqueCards = useMemo<UniqueCard[]>(() => {
         const map = new Map<string, UniqueCard>();
@@ -68,11 +86,11 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
     const fanCount = uniqueCards.length > 0 ? uniqueCards.length : MAX_FAN;
 
     const deckStats = useMemo(() => {
-        const allCards: DeckCard[] = (deck?.cards ?? []);
+        const allCards = deck?.cards ?? [];
         if (allCards.length === 0) return null;
         const boards: Record<string, { total: number; unique: number }> = {};
         for (const c of allCards) {
-            const b = (c as any).board ?? "MAIN";
+            const b = c.board ?? "MAIN";
             if (!boards[b]) boards[b] = { total: 0, unique: 0 };
             boards[b].total += c.quantity ?? 1;
             boards[b].unique += 1;
@@ -85,15 +103,18 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
         return { mainTotal, mainUnique, sideTotal, extraTotal, grandTotal };
     }, [deck?.cards]);
 
-    const [layout, setLayout] = useState<Layout>(() => calcLayout(fanCount));
+    const [windowWidth, setWindowWidth] = useState(() =>
+        typeof window !== "undefined" ? window.innerWidth : 900
+    );
     const [selectedCard, setSelectedCard] = useState<UniqueCard | null>(null);
 
     useEffect(() => {
-        setLayout(calcLayout(fanCount));
-        const onResize = () => setLayout(calcLayout(fanCount));
+        const onResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener("resize", onResize);
         return () => window.removeEventListener("resize", onResize);
-    }, [fanCount]);
+    }, []);
+
+    const layout = useMemo<Layout>(() => calcLayout(fanCount, windowWidth), [fanCount, windowWidth]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -119,18 +140,18 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
 
     const copyDeck = useCallback(() => {
         if (!deck) return;
-        const allCards: DeckCard[] = deck.cards ?? [];
-        const boards: Record<string, DeckCard[]> = {};
+        const allCards = deck.cards ?? [];
+        const boards: Record<string, RawCard[]> = {};
         for (const c of allCards) {
-            const b = (c as any).board ?? "MAIN";
+            const b = c.board ?? "MAIN";
             if (!boards[b]) boards[b] = [];
             boards[b].push(c);
         }
         const boardLabel: Record<string, string> = { MAIN: "Maindeck", SIDE: "Sideboard", EXTRA: "Extra", MAYBE: "Maybe" };
         const lines: string[] = [];
-        const deckName  = deck.name ?? "Mazo";
-        const gameName  = (deck as any).game_name ?? (deck as any).game ?? "";
-        const formatName = (deck as any).format_name ?? (deck as any).format ?? "";
+        const deckName   = deck.name ?? "Mazo";
+        const gameName   = deck.game_name ?? deck.game ?? "";
+        const formatName = deck.format_name ?? deck.format ?? "";
         lines.push(`// ${deckName}${formatName ? ` — ${formatName}` : ""}`);
         if (gameName) lines.push(`// ${gameName}`);
         lines.push("");
@@ -147,6 +168,10 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
         }).catch(() => {});
     }, [deck]);
 
+    const ownerUsername = deck?.username ?? deck?.owner?.username ?? deck?.user?.username ?? "";
+    const ownerAvatar   = deck?.avatar_url ?? deck?.owner?.avatar_url ?? deck?.user?.avatar_url ?? "";
+    const gameName      = deck?.game_name ?? deck?.game ?? "";
+
     return (
         <div
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -160,52 +185,46 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
             }}
         >
             {/* Creador del mazo — esquina superior izquierda */}
-            {deck && (() => {
-                const ownerUsername = (deck as any).username || (deck as any).owner?.username || (deck as any).user?.username || "";
-                const ownerAvatar   = (deck as any).avatar_url || (deck as any).owner?.avatar_url || (deck as any).user?.avatar_url || "";
-                const gameName      = (deck as any).game_name || (deck as any).game || "";
-                if (!ownerUsername) return null;
-                return (
-                    <Link
-                        href={`/perfil/${ownerUsername}`}
-                        onClick={onClose}
-                        style={{
-                            position: "absolute", top: 18, left: 20,
-                            display: "flex", alignItems: "center", gap: 9,
-                            textDecoration: "none", zIndex: 10,
-                        }}
-                    >
+            {deck && ownerUsername && (
+                <Link
+                    href={`/perfil/${ownerUsername}`}
+                    onClick={onClose}
+                    style={{
+                        position: "absolute", top: 18, left: 20,
+                        display: "flex", alignItems: "center", gap: 9,
+                        textDecoration: "none", zIndex: 10,
+                    }}
+                >
+                    <div style={{
+                        width: 36, height: 36, borderRadius: 18,
+                        background: "var(--accent)", padding: 2,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                    }}>
                         <div style={{
-                            width: 36, height: 36, borderRadius: 18,
-                            background: "var(--accent)", padding: 2,
+                            width: 32, height: 32, borderRadius: 16,
+                            backgroundColor: "var(--background)", overflow: "hidden",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            flexShrink: 0,
+                            fontSize: 13, fontWeight: 700, color: "var(--foreground)",
                         }}>
-                            <div style={{
-                                width: 32, height: 32, borderRadius: 16,
-                                backgroundColor: "var(--background)", overflow: "hidden",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 13, fontWeight: 700, color: "var(--foreground)",
-                            }}>
-                                {ownerAvatar
-                                    ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 32, height: 32, objectFit: "cover" }} />
-                                    : ownerUsername[0].toUpperCase()
-                                }
-                            </div>
+                            {ownerAvatar
+                                ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 32, height: 32, objectFit: "cover" }} />
+                                : ownerUsername[0].toUpperCase()
+                            }
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1.2 }}>
-                                @{ownerUsername}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1.2 }}>
+                            @{ownerUsername}
+                        </span>
+                        {gameName && (
+                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.2 }}>
+                                {gameName}
                             </span>
-                            {gameName && (
-                                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.2 }}>
-                                    {gameName}
-                                </span>
-                            )}
-                        </div>
-                    </Link>
-                );
-            })()}
+                        )}
+                    </div>
+                </Link>
+            )}
 
             {/* Nombre del mazo + copiar — top center */}
             {deck?.name && (
@@ -374,7 +393,7 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                                             <CardBack w={cardW} h={cardH} />
                                         )}
 
-                                        {/* Badge ×N — fuera del overflow */}
+                                        {/* Badge ×N */}
                                         {!isLoading && card && card.totalQty > 1 && (
                                             <div style={{
                                                 position: "absolute",
