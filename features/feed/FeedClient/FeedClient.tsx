@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getUserFollowing, browseDecks } from "@/lib/api/social";
 import type { UserProfile, Deck } from "@/lib/types/social";
+import DeckFanModal from "@/features/deck/DeckFanModal";
 
 type FeedItem =
   | { kind: "user"; date: string; data: UserProfile }
@@ -23,6 +24,7 @@ export default function FeedClient() {
 
   const [following, setFollowing] = useState<UserProfile[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
+  const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -219,10 +221,11 @@ export default function FeedClient() {
           const coverImg = hasCards ? deck.cards![0].image_url : undefined;
 
           return (
-            <Link
+            <button
               key={`d-${deck.id}`}
-              href={`/decks/${deck.id}`}
-              style={{ textDecoration: "none", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH, scrollSnapAlign: snapAlign }}
+              type="button"
+              onClick={() => setActiveDeckId(deck.id)}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH, scrollSnapAlign: snapAlign }}
             >
               <div style={{
                 width: 80, height: 80, borderRadius: 16,
@@ -252,7 +255,7 @@ export default function FeedClient() {
               <span style={{ fontSize: 11, fontWeight: 500, color: "var(--muted)", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
                 {deck.name}
               </span>
-            </Link>
+            </button>
           );
         })}
 
@@ -269,6 +272,10 @@ export default function FeedClient() {
         .feed-stories-scroll::-webkit-scrollbar { display: none; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
       `}</style>
+
+      {activeDeckId && (
+        <DeckFanModal deckId={activeDeckId} onClose={() => setActiveDeckId(null)} />
+      )}
     </div>
   );
 }

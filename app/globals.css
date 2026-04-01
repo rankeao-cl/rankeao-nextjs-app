@@ -533,3 +533,7 @@ button[data-variant="primary"]:active,
   transform: scale(0.95);
   transition: transform 0.15s ease-out;
 }
+@keyframes deck-skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.75; }
+}
