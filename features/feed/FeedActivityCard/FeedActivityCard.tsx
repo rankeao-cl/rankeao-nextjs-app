@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import DeckFanModal from "@/features/deck/DeckFanModal";
 import type { ReactNode } from "react";
 import {
     Cup,
@@ -112,6 +113,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const isAuth = status === "authenticated";
     const accessToken = session?.accessToken;
 
+    const [deckFanOpen, setDeckFanOpen] = useState(false);
     const [liked, setLiked] = useState(activity.is_liked ?? false);
     const [likesCount, setLikesCount] = useState(activity.likes_count ?? 0);
     const [fired, setFired] = useState(activity.is_fired ?? false);
@@ -263,8 +265,22 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                 </div>
             )}
 
-            {/* Entity link */}
-            {href && (
+            {/* Entity link / deck fan trigger */}
+            {activity.type === "DECK_PUBLISH" && (activity.entity_id ?? (activity.metadata?.deck_id as string | undefined)) ? (
+                <button
+                    type="button"
+                    onClick={() => setDeckFanOpen(true)}
+                    style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        fontSize: 13, fontWeight: 600, color: config.color,
+                        background: "none", border: "none", cursor: "pointer",
+                        padding: 0,
+                    }}
+                >
+                    {entityLabel}
+                    <ChevronRight style={{ width: 12, height: 12 }} />
+                </button>
+            ) : href ? (
                 <Link
                     href={href}
                     style={{
@@ -276,6 +292,14 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                     {entityLabel}
                     <ChevronRight style={{ width: 12, height: 12 }} />
                 </Link>
+            ) : null}
+
+            {/* Modal fan de cartas */}
+            {deckFanOpen && (activity.entity_id ?? (activity.metadata?.deck_id as string | undefined)) && (
+                <DeckFanModal
+                    deckId={String(activity.entity_id ?? (activity.metadata?.deck_id as string | undefined))}
+                    onClose={() => setDeckFanOpen(false)}
+                />
             )}
 
             {/* Reaction bar */}
