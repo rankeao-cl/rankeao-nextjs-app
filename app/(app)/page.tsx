@@ -37,9 +37,11 @@ export default async function HomePage() {
           <FeedContent tournaments={tournaments} listings={listings} />
         </div>
 
-        {/* Right sidebar */}
-        <div className="hidden lg:block" style={{ width: 300, flexShrink: 0, paddingTop: 96 }}>
-          <FeedRightSidebar tournaments={tournaments} />
+        {/* Right sidebar — sticky con scroll propio */}
+        <div className="hidden lg:block" style={{ width: 300, flexShrink: 0, paddingTop: 16 }}>
+          <div style={{ position: "sticky", top: 0, maxHeight: "calc(100vh - 4rem - 16px)", overflowY: "auto", paddingBottom: 16, scrollbarWidth: "none" }} className="[&::-webkit-scrollbar]:hidden">
+            <FeedRightSidebar tournaments={tournaments} />
+          </div>
         </div>
       </div>
     </div>

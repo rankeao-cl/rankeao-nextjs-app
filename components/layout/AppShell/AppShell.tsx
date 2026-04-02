@@ -38,11 +38,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Sidebar />
 
             {isFixedLayout ? (
-                <main className="flex-1 min-w-0 pb-16 lg:pb-0 overflow-hidden">
+                <main className="flex-1 min-w-0 pb-16 lg:pb-0 lg:ml-[72px] overflow-hidden">
                     {children}
                 </main>
             ) : (
-                <main className="flex-1 min-w-0 pb-16 lg:pb-0 overflow-y-auto overflow-x-hidden">
+                <main className="flex-1 min-w-0 pb-16 lg:pb-0 lg:ml-[72px] overflow-y-auto overflow-x-hidden">
                     <SwipeWrapper>
                         {children}
                     </SwipeWrapper>

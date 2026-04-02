@@ -25,7 +25,7 @@ export default function FeedRightSidebar({ tournaments }: { tournaments: Tournam
   const upcomingTournaments = tournaments.slice(0, 5);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Duelos */}
       {isAuth && duels.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

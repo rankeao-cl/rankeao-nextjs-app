@@ -7,302 +7,195 @@ import { ArrowShapeTurnUpRight, MapPin } from "@gravity-ui/icons";
 import { toast } from "@heroui/react";
 import type { Listing } from "@/lib/types/marketplace";
 
+const CONDITION_COLORS: Record<string, string> = {
+    M: "#22c55e", MINT: "#22c55e",
+    NM: "#22c55e",
+    LP: "#eab308",
+    MP: "#f97316",
+    HP: "#ef4444",
+    DMG: "#ef4444",
+};
+
+function fmtPrice(n: number) {
+    return n.toLocaleString("es-CL");
+}
+
 export default function FeedListingCard({ listing }: { listing: Listing }) {
     const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
     const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
     const isStore = !!listing.tenant_name || listing.is_verified_store || listing.is_verified_seller;
+    const condColor = CONDITION_COLORS[listing.card_condition ?? ""] ?? "var(--muted)";
 
-    const conditionColor = listing.card_condition === "NM" || listing.card_condition === "M"
-        ? "var(--success)" : listing.card_condition === "LP"
-        ? "var(--warning)" : "var(--muted)";
+    const handleShare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = `https://rankeao.cl/marketplace/${listing.id}`;
+        if (navigator.share) navigator.share({ title: listing.title, url }).catch(() => {});
+        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+    };
 
     return (
         <Link href={`/marketplace/${listing.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <article
-                className="feed-listing-card"
-                style={{
-                    background: "var(--surface-solid)",
-                    borderRadius: 16,
-                    border: "1px solid var(--border)",
-                    overflow: "hidden",
-                    transition: "border-color 0.2s, box-shadow 0.2s, transform 0.2s",
-                }}
-            >
-                <style>{`
-                    .feed-listing-card:hover {
-                        border-color: rgba(59,130,246,0.35) !important;
-                        box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(59,130,246,0.15) !important;
-                        transform: translateY(-2px);
-                    }
-                `}</style>
-
-                {/* ── MOBILE ── */}
-                <div className="flex flex-col md:hidden">
-                    {/* Image hero with overlays */}
-                    <div style={{ position: "relative", background: "var(--background)" }}>
+            <article style={{
+                background: "var(--surface-solid)",
+                borderRadius: 16,
+                border: "1px solid var(--border)",
+                overflow: "hidden",
+            }}>
+                {/* Layout: imagen izq + info der en todos los tamaños */}
+                <div style={{ display: "flex", minHeight: 140 }}>
+                    {/* Imagen */}
+                    <div style={{
+                        flexShrink: 0, width: 120,
+                        background: "var(--background)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        padding: 10, position: "relative",
+                    }}>
                         {imageUrl ? (
-                            <div style={{
-                                display: "flex", justifyContent: "center", alignItems: "center",
-                                padding: "16px 12px", minHeight: 200,
-                            }}>
-                                <div style={{ position: "relative", width: "55%", aspectRatio: "63 / 88" }}>
-                                    <Image
-                                        src={imageUrl}
-                                        alt={listing.title}
-                                        fill
-                                        style={{ objectFit: "contain", filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.4))" }}
-                                        sizes="(max-width: 768px) 55vw, 200px"
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <span style={{ fontSize: 13, color: "var(--muted)" }}>Sin imagen</span>
-                            </div>
-                        )}
-
-                        {/* Top-left: condition badge */}
-                        {listing.card_condition && (
-                            <div style={{ position: "absolute", top: 10, left: 10 }}>
-                                <span style={{
-                                    fontSize: 11, fontWeight: 800, letterSpacing: "0.5px",
-                                    color: conditionColor,
-                                    backgroundColor: "rgba(0,0,0,0.6)",
-                                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                                    padding: "4px 10px", borderRadius: 8,
-                                    border: `1px solid color-mix(in srgb, ${conditionColor} 30%, transparent)`,
-                                }}>
-                                    {listing.card_condition}
-                                    {listing.is_foil && <span style={{ color: "var(--yellow)", marginLeft: 4 }}>&#10022;</span>}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Top-right: share */}
-                        <div style={{ position: "absolute", top: 10, right: 10 }}>
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const url = `https://rankeao.cl/marketplace/${listing.id}`;
-                                    if (navigator.share) navigator.share({ title: listing.title, url }).catch(() => {});
-                                    else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
-                                }}
-                                style={{
-                                    width: 34, height: 34, borderRadius: 10,
-                                    backgroundColor: "rgba(0,0,0,0.5)",
-                                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                                    border: "none", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                }}
-                            >
-                                <ArrowShapeTurnUpRight style={{ width: 16, height: 16, color: "#fff" }} />
-                            </button>
-                        </div>
-
-                        {/* Bottom-left: game tag */}
-                        {listing.game_name && (
-                            <div style={{ position: "absolute", bottom: 10, left: 10 }}>
-                                <span style={{
-                                    fontSize: 10, fontWeight: 700,
-                                    color: "var(--accent)",
-                                    backgroundColor: "rgba(0,0,0,0.6)",
-                                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                                    padding: "3px 8px", borderRadius: 6,
-                                }}>
-                                    {listing.game_name}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Info section */}
-                    <div style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
-                        {/* Title */}
-                        <span style={{
-                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
-                            lineHeight: 1.3,
-                            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-                        }}>
-                            {listing.title}
-                        </span>
-
-                        {/* Set + rarity */}
-                        {(listing.set_name || listing.rarity) && (
-                            <span style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.2 }}>
-                                {[listing.set_name, listing.rarity].filter(Boolean).join(" · ")}
-                            </span>
-                        )}
-
-                        {/* Seller + price row */}
-                        <div style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            marginTop: 2,
-                        }}>
-                            {/* Seller mini */}
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                                <div style={{
-                                    width: 22, height: 22, borderRadius: 11, flexShrink: 0,
-                                    backgroundColor: "var(--surface)", overflow: "hidden",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    fontSize: 10, fontWeight: 700, color: "var(--foreground)",
-                                }}>
-                                    {listing.seller_avatar_url ? (
-                                        <Image src={listing.seller_avatar_url} alt={sellerName} width={22} height={22}
-                                            style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                    ) : (
-                                        sellerName[0]?.toUpperCase()
-                                    )}
-                                </div>
-                                <span className="truncate" style={{ fontSize: 12, color: "var(--muted)", maxWidth: 100 }}>
-                                    {sellerName}
-                                </span>
-                                {isStore && <span style={{ fontSize: 9, color: "var(--success)", fontWeight: 700 }}>&#10003;</span>}
-                                {listing.city && (
-                                    <span style={{ fontSize: 10, color: "var(--muted)", display: "inline-flex", alignItems: "center", gap: 2 }}>
-                                        <MapPin style={{ width: 10, height: 10 }} />{listing.city}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Price */}
-                            {listing.price != null && (
-                                <span style={{
-                                    fontSize: 18, fontWeight: 800, color: "var(--foreground)",
-                                    letterSpacing: "-0.5px",
-                                }}>
-                                    <span style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)" }}>$</span>
-                                    {listing.price.toLocaleString("es-CL")}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── DESKTOP: horizontal ── */}
-                <div className="hidden md:flex" style={{ minHeight: 160 }}>
-                    {/* Left: Card image */}
-                    {imageUrl && (
-                        <div style={{
-                            flexShrink: 0, width: 140,
-                            background: "var(--background)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            padding: 12, position: "relative",
-                        }}>
                             <div style={{ position: "relative", width: "100%", aspectRatio: "63 / 88" }}>
                                 <Image
                                     src={imageUrl}
                                     alt={listing.title}
                                     fill
-                                    style={{ objectFit: "contain", filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.3))" }}
-                                    sizes="140px"
+                                    style={{ objectFit: "contain", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.3))" }}
+                                    sizes="120px"
                                 />
                             </div>
-                            {/* Condition overlay */}
-                            {listing.card_condition && (
-                                <span style={{
-                                    position: "absolute", top: 8, left: 8,
-                                    fontSize: 10, fontWeight: 800,
-                                    color: conditionColor,
-                                    backgroundColor: "rgba(0,0,0,0.6)",
-                                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-                                    padding: "2px 7px", borderRadius: 6,
-                                    border: `1px solid color-mix(in srgb, ${conditionColor} 25%, transparent)`,
-                                }}>
-                                    {listing.card_condition}
-                                    {listing.is_foil && <span style={{ color: "var(--yellow)", marginLeft: 3 }}>&#10022;</span>}
-                                </span>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Center: Details */}
-                    <div style={{
-                        flex: 1, minWidth: 0, padding: "14px 16px",
-                        display: "flex", flexDirection: "column", justifyContent: "center", gap: 6,
-                        borderLeft: imageUrl ? "1px solid var(--border)" : undefined,
-                    }}>
-                        {/* Game tag */}
-                        {listing.game_name && (
-                            <span style={{
-                                fontSize: 10, fontWeight: 700, color: "var(--accent)",
-                                background: "rgba(59,130,246,0.08)",
-                                padding: "2px 8px", borderRadius: 999, alignSelf: "flex-start",
-                            }}>
-                                {listing.game_name}
-                            </span>
+                        ) : (
+                            <span style={{ fontSize: 11, color: "var(--muted)" }}>Sin imagen</span>
                         )}
 
-                        {/* Title */}
-                        <span style={{
-                            fontSize: 15, fontWeight: 700, color: "var(--foreground)", lineHeight: 1.3,
-                            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-                        }}>
-                            {listing.title}
-                        </span>
+                        {/* Condition badge */}
+                        {listing.card_condition && (
+                            <span style={{
+                                position: "absolute", top: 6, left: 6,
+                                fontSize: 9, fontWeight: 800, letterSpacing: "0.5px",
+                                color: condColor,
+                                backgroundColor: "rgba(0,0,0,0.65)",
+                                backdropFilter: "blur(6px)",
+                                padding: "2px 6px", borderRadius: 5,
+                                border: `1px solid ${condColor}44`,
+                            }}>
+                                {listing.card_condition}
+                                {listing.is_foil && <span style={{ color: "#eab308", marginLeft: 3 }}>&#10022;</span>}
+                            </span>
+                        )}
+                    </div>
 
-                        {/* Set + rarity + tags */}
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                            {listing.set_name && (
-                                <span style={{ fontSize: 11, color: "var(--muted)" }}>{listing.set_name}</span>
-                            )}
-                            {listing.rarity && (
-                                <span style={{ fontSize: 10, color: "var(--muted)", background: "var(--surface)", padding: "1px 6px", borderRadius: 4, border: "1px solid var(--border)" }}>
-                                    {listing.rarity}
+                    {/* Info */}
+                    <div style={{
+                        flex: 1, minWidth: 0, padding: "12px 14px",
+                        display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 4,
+                        borderLeft: "1px solid var(--border)",
+                    }}>
+                        {/* Title + time */}
+                        <div>
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                                <p style={{
+                                    margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)",
+                                    lineHeight: 1.3,
+                                    display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as any, overflow: "hidden",
+                                }}>
+                                    {listing.title}
+                                </p>
+                                <span style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                                    {timeAgo(listing.created_at, { verbose: true })}
                                 </span>
-                            )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4, flexWrap: "wrap" }}>
+                                {listing.set_name && (
+                                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{listing.set_name}</span>
+                                )}
+                                {listing.rarity && (
+                                    <span style={{
+                                        fontSize: 9, fontWeight: 700, color: "var(--muted)",
+                                        background: "var(--surface)", padding: "1px 5px", borderRadius: 4,
+                                        border: "1px solid var(--border)", textTransform: "uppercase",
+                                    }}>
+                                        {listing.rarity}
+                                    </span>
+                                )}
+                                {listing.game_name && (
+                                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)" }}>
+                                        {listing.game_name}
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Seller row */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                        {/* Seller */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <div style={{
-                                width: 20, height: 20, borderRadius: 10, flexShrink: 0,
+                                width: 22, height: 22, borderRadius: 11, flexShrink: 0,
                                 backgroundColor: "var(--surface)", overflow: "hidden",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 fontSize: 9, fontWeight: 700, color: "var(--foreground)",
                             }}>
                                 {listing.seller_avatar_url ? (
-                                    <Image src={listing.seller_avatar_url} alt={sellerName} width={20} height={20}
+                                    <Image src={listing.seller_avatar_url} alt={sellerName} width={22} height={22}
                                         style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                ) : (
-                                    sellerName[0]?.toUpperCase()
-                                )}
+                                ) : sellerName[0]?.toUpperCase()}
                             </div>
-                            <span style={{ fontSize: 12, color: "var(--muted)" }}>{sellerName}</span>
-                            {isStore && <span style={{ fontSize: 9, color: "var(--success)", fontWeight: 700 }}>&#10003;</span>}
-                            {listing.city && (
-                                <span style={{ fontSize: 10, color: "var(--muted)", display: "inline-flex", alignItems: "center", gap: 2 }}>
-                                    <MapPin style={{ width: 10, height: 10 }} />{listing.city}
-                                </span>
-                            )}
-                            <span style={{ fontSize: 10, color: "var(--muted)", marginLeft: "auto" }}>
-                                {timeAgo(listing.created_at)}
+                            <span className="truncate" style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>
+                                {sellerName}
                             </span>
+                            {isStore && <span style={{ fontSize: 9, color: "var(--success)", fontWeight: 700 }}>&#10003;</span>}
                         </div>
                     </div>
 
-                    {/* Right: Price + CTA */}
+                    {/* Right column: city+share top, price+CTA bottom */}
                     <div style={{
-                        flexShrink: 0, width: 140,
-                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                        gap: 8, padding: 16,
-                        borderLeft: "1px solid var(--border)",
+                        flexShrink: 0,
+                        display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between",
+                        padding: "12px 14px",
                     }}>
-                        {listing.price != null && (
-                            <span style={{ fontSize: 24, fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.5px" }}>
-                                <span style={{ fontSize: 14, fontWeight: 500, color: "var(--muted)" }}>$</span>
-                                {listing.price.toLocaleString("es-CL")}
+                        {/* City + share — top right */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            {listing.city && (
+                                <span style={{ fontSize: 11, color: "var(--muted)", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                    <MapPin style={{ width: 11, height: 11 }} />{listing.city}
+                                </span>
+                            )}
+                            <button onClick={handleShare} style={{
+                                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                                background: "var(--surface)", border: "1px solid var(--border)",
+                                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                                color: "var(--muted)",
+                            }}>
+                                <ArrowShapeTurnUpRight style={{ width: 13, height: 13 }} />
+                            </button>
+                        </div>
+
+                        {/* Price + CTA — bottom right */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                            {listing.price != null && (
+                                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, whiteSpace: "nowrap" }}>
+                                    <span style={{
+                                        fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.3)",
+                                        fontFamily: "Georgia, 'Times New Roman', serif",
+                                        lineHeight: 1, marginBottom: 2,
+                                    }}>$</span>
+                                    <span style={{
+                                        fontSize: 38, fontWeight: 900, color: "#fff",
+                                        letterSpacing: "-2px", lineHeight: 0.85,
+                                        textShadow: "0 2px 0 rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.25)",
+                                    }}>
+                                        {fmtPrice(listing.price)}
+                                    </span>
+                                </div>
+                            )}
+                            <span style={{
+                                fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)",
+                                whiteSpace: "nowrap",
+                                display: "inline-flex", alignItems: "center", gap: 4,
+                                background: "rgba(255,255,255,0.08)",
+                                border: "1px solid rgba(255,255,255,0.15)",
+                                backdropFilter: "blur(8px)",
+                                padding: "6px 16px", borderRadius: 999,
+                            }}>
+                                Ver oferta &rsaquo;
                             </span>
-                        )}
-                        <span style={{
-                            fontSize: 12, fontWeight: 700, color: "var(--accent)",
-                            display: "inline-flex", alignItems: "center", gap: 4,
-                        }}>
-                            Ver oferta
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                        </span>
+                        </div>
                     </div>
                 </div>
             </article>

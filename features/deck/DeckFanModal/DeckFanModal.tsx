@@ -451,7 +451,7 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 </>
             ) : (
                 /* ── Desktop: Fan ── */
-                <>
+                <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
                     <div style={{
                         position: "relative",
                         width: "80dvw",
@@ -459,7 +459,6 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                         display: "flex",
                         alignItems: "flex-end",
                         justifyContent: "center",
-                        marginBottom: 32,
                         pointerEvents: "none",
                     }}>
                         {(deckQuery.isPending ? Array.from({ length: MAX_FAN }) : Array.from({ length: fanCount })).map((_, i) => {
@@ -572,8 +571,7 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                             );
                         })}
                     </div>
-
-                </>
+                </div>
             )}
 
             <style>{`

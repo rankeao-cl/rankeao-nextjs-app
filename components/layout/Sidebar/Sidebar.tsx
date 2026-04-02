@@ -91,8 +91,8 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-full border-r shrink-0 transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
-            style={{ borderColor: "var(--border)", background: "var(--background)" }}
+            className={`hidden lg:flex flex-col h-full border-r transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
+            style={{ borderColor: "var(--border)", background: "var(--background)", position: "fixed", top: "4rem", left: 0, zIndex: 40 }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
@@ -102,7 +102,7 @@ export default function Sidebar() {
                     <div className="relative mb-3" ref={createRef}>
                         <button
                             onClick={() => setCreateOpen(v => !v)}
-                            className={`flex items-center rounded-xl text-sm font-bold overflow-hidden w-full ${expanded ? "gap-3 px-3 py-2.5" : "justify-center py-2.5"}`}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold overflow-hidden w-full"
                             style={{
                                 backgroundColor: "var(--accent)",
                                 color: "#fff",
