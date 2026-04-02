@@ -108,7 +108,7 @@ async function handle401(): Promise<string | null> {
 }
 
 async function handleError(res: Response, endpoint: string): Promise<never> {
-    if (res.status !== 401 && res.status !== 404) {
+    if (res.status !== 401 && res.status !== 404 && res.status !== 409) {
         console.error(`API ERROR ${res.status} to ${endpoint}`);
     }
 

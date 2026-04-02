@@ -287,7 +287,13 @@ function DeckCardInner({ deck }: DeckCardProps) {
             </article>
 
             {fanOpen && (
-                <DeckFanModal deckId={deck.id} onClose={() => setFanOpen(false)} />
+                <DeckFanModal
+                    deckId={deck.id}
+                    onClose={() => setFanOpen(false)}
+                    initialLiked={liked}
+                    initialLikesCount={likesCount}
+                    onLikeChange={(l, c) => { setLiked(l); setLikesCount(c); }}
+                />
             )}
         </>
     );

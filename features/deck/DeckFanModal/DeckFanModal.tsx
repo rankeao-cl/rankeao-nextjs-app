@@ -11,6 +11,9 @@ import type { DeckCard } from "@/lib/types/social";
 interface DeckFanModalProps {
     deckId: string;
     onClose: () => void;
+    initialLiked?: boolean;
+    initialLikesCount?: number;
+    onLikeChange?: (liked: boolean, count: number) => void;
 }
 
 // Shape of the deck object as returned by the API (fields vary by endpoint)
@@ -62,7 +65,7 @@ function calcLayout(fanCount: number, winWidth: number): Layout {
 
 type UniqueCard = DeckCard & { board?: string; totalQty: number };
 
-export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
+export default function DeckFanModal({ deckId, onClose, initialLiked, initialLikesCount, onLikeChange }: DeckFanModalProps) {
     const deckQuery = useDeck(deckId);
     const rawData = deckQuery.data as { data?: { deck?: RawDeck; [k: string]: unknown }; deck?: RawDeck; [k: string]: unknown } | null | undefined;
     const deck: RawDeck | null = rawData?.data?.deck ?? (rawData?.deck as RawDeck | undefined) ?? (rawData?.data as RawDeck | undefined) ?? null;
@@ -118,8 +121,8 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
     const { status: authStatus, session } = useAuth();
     const isAuth = authStatus === "authenticated";
     const likeMutation = useLikeDeck();
-    const [liked, setLiked] = useState((deck as any)?.is_liked ?? false);
-    const [likesCount, setLikesCount] = useState((deck as any)?.like_count ?? (deck as any)?.likes_count ?? 0);
+    const [liked, setLiked] = useState(initialLiked ?? (deck as any)?.is_liked ?? false);
+    const [likesCount, setLikesCount] = useState(initialLikesCount ?? (deck as any)?.like_count ?? (deck as any)?.likes_count ?? 0);
 
     useEffect(() => {
         const onResize = () => setWindowWidth(window.innerWidth);
@@ -201,12 +204,18 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
         e.stopPropagation();
         if (!isAuth) return;
         const next = !liked;
+        const newCount = likesCount + (next ? 1 : -1);
         setLiked(next);
-        setLikesCount((c: number) => c + (next ? 1 : -1));
+        setLikesCount(newCount);
+        onLikeChange?.(next, newCount);
         likeMutation.mutate({ deckId, like: next }, {
-            onError: () => { setLiked(!next); setLikesCount((c: number) => c + (next ? -1 : 1)); },
+            onError: () => {
+                setLiked(!next);
+                setLikesCount(likesCount);
+                onLikeChange?.(!next, likesCount);
+            },
         });
-    }, [isAuth, liked, likeMutation, deckId]);
+    }, [isAuth, liked, likesCount, likeMutation, deckId, onLikeChange]);
 
     const handleShare = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
