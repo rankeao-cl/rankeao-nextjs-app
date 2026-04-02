@@ -7,6 +7,7 @@ import { getDuels } from "@/lib/api/duels";
 import type { Duel } from "@/lib/types/duel";
 import type { CatalogGame } from "@/lib/types/catalog";
 import DuelCard from "@/features/duel/DuelCard";
+import DuelTableRow from "@/features/duel/DuelTableRow";
 import NewDuelModal from "@/features/duel/NewDuelModal";
 
 
@@ -254,11 +255,43 @@ export default function DuelosClient({ duels: initialDuels, games, currentTab, c
             {/* Content */}
             <div className="mx-4 lg:mx-6 mb-12">
                 {filtered.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[10px]">
-                        {filtered.map((d) => (
-                            <DuelCard key={d.id} duel={d} />
-                        ))}
-                    </div>
+                    tab === "history" ? (
+                        <>
+                            {/* Desktop: table view */}
+                            <div className="hidden lg:block rounded-2xl border border-border overflow-hidden" style={{ backgroundColor: "var(--surface-solid)" }}>
+                                <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                                            <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textAlign: "left", textTransform: "uppercase", letterSpacing: "0.5px" }}>Jugadores</th>
+                                            <th style={{ padding: "12px 12px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px" }}>Score</th>
+                                            <th style={{ padding: "12px 12px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textAlign: "left", textTransform: "uppercase", letterSpacing: "0.5px" }}>Juego</th>
+                                            <th style={{ padding: "12px 12px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px" }}>Serie</th>
+                                            <th style={{ padding: "12px 12px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textAlign: "center", textTransform: "uppercase", letterSpacing: "0.5px" }}>Estado</th>
+                                            <th style={{ padding: "12px 12px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textAlign: "right", textTransform: "uppercase", letterSpacing: "0.5px" }}>Fecha</th>
+                                            <th style={{ padding: "12px 16px", width: 40 }} />
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filtered.map((d) => (
+                                            <DuelTableRow key={d.id} duel={d} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {/* Mobile: card view */}
+                            <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+                                {filtered.map((d) => (
+                                    <DuelCard key={d.id} duel={d} />
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[10px]">
+                            {filtered.map((d) => (
+                                <DuelCard key={d.id} duel={d} />
+                            ))}
+                        </div>
+                    )
                 ) : (
                     <div className="rounded-2xl border border-border bg-surface-solid">
                         <div className="py-16 text-center">
