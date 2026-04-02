@@ -5,7 +5,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
 
@@ -36,9 +35,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const [hasUpdate, setHasUpdate] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
-  const swRef = useRef<ServiceWorkerRegistration | null>(null);
 
   // Online / offline tracking
   useEffect(() => {
@@ -67,43 +64,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Register service worker & listen for updates
-  useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-
-    const register = async () => {
-      try {
-        const reg = await navigator.serviceWorker.register("/sw.js", {
-          scope: "/",
-        });
-        swRef.current = reg;
-
-        // Listen for a new SW waiting to activate
-        const checkWaiting = () => {
-          if (reg.waiting) setHasUpdate(true);
-        };
-        checkWaiting();
-        reg.addEventListener("updatefound", () => {
-          const newSW = reg.installing;
-          if (!newSW) return;
-          newSW.addEventListener("statechange", () => {
-            if (newSW.state === "installed" && navigator.serviceWorker.controller) {
-              setHasUpdate(true);
-            }
-          });
-        });
-
-        // Reload when the new SW takes control
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-          window.location.reload();
-        });
-      } catch {
-        // SW not supported or failed silently
-      }
-    };
-
-    register();
-  }, []);
+  // Service worker deshabilitado — sin caching
 
   const install = useCallback(async () => {
     if (!installPrompt) return;
@@ -117,12 +78,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem("pwa-install-dismissed", "1");
   }, []);
 
-  const applyUpdate = useCallback(() => {
-    if (swRef.current?.waiting) {
-      swRef.current.waiting.postMessage({ type: "SKIP_WAITING" });
-    }
-    window.location.reload();
-  }, []);
+  const applyUpdate = useCallback(() => {}, []);
 
   return (
     <PWAContext.Provider
@@ -130,7 +86,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
         canInstall: Boolean(installPrompt) && !dismissed,
         install,
         dismissInstall,
-        hasUpdate,
+        hasUpdate: false,
         applyUpdate,
         isOffline,
       }}
