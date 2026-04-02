@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { timeAgo } from "@/lib/utils/format";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { usePostComments, useAddComment } from "@/lib/hooks/use-social";
+import { usePostComments, useAddComment, useLikeComment } from "@/lib/hooks/use-social";
 import { getCommentReplies } from "@/lib/api/social";
 import type { PostComment } from "@/lib/api/social";
 
@@ -23,10 +23,10 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
     const [replyingTo, setReplyingTo] = useState<{ commentId: string; username: string } | null>(null);
     const [expandedReplies, setExpandedReplies] = useState<Record<string, PostComment[]>>({});
     const [loadingReplies, setLoadingReplies] = useState<Record<string, boolean>>({});
-    const [likedComments, setLikedComments] = useState<Record<string, boolean>>({});
     const inputRef = useRef<HTMLInputElement>(null);
 
     const addCommentMutation = useAddComment();
+    const likeCommentMutation = useLikeComment();
     const commentsQuery = usePostComments(postId, show);
     const comments: PostComment[] = commentsQuery.data?.data?.comments ?? commentsQuery.data?.comments ?? [];
 
@@ -78,10 +78,10 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
         }
     }, []);
 
-    const toggleLikeComment = useCallback((commentId: string) => {
-        setLikedComments((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
-        // TODO: call API when backend supports comment likes
-    }, []);
+    const toggleLikeComment = useCallback((commentId: string, currentlyLiked: boolean) => {
+        if (!isAuth) return;
+        likeCommentMutation.mutate({ commentId, like: !currentlyLiked, token });
+    }, [isAuth, token, likeCommentMutation]);
 
     if (!show) return null;
 
@@ -152,7 +152,7 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                         const repliesCount = c.replies_count ?? 0;
                         const loadedReplies = expandedReplies[c.id] ?? [];
                         const isLoadingR = loadingReplies[c.id] ?? false;
-                        const isLiked = likedComments[c.id] ?? false;
+                        const isLiked = c.is_liked ?? false;
 
                         return (
                             <div key={c.id}>
@@ -174,9 +174,9 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                             <span style={{ fontSize: 12, color: "var(--muted)" }}>
                                                 {timeAgo(c.created_at)}
                                             </span>
-                                            {isLiked && (
+                                            {(c.likes_count ?? 0) > 0 && (
                                                 <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>
-                                                    1 Me gusta
+                                                    {c.likes_count} Me gusta
                                                 </span>
                                             )}
                                             {isAuth && (
@@ -196,11 +196,11 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                     {/* Like heart — right side */}
                                     <button
                                         type="button"
-                                        onClick={() => toggleLikeComment(c.id)}
+                                        onClick={() => toggleLikeComment(c.id, isLiked)}
                                         style={{
-                                            background: "none", border: "none", cursor: "pointer",
+                                            background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
                                             padding: "4px 0 0", flexShrink: 0, display: "flex", flexDirection: "column",
-                                            alignItems: "center", gap: 2,
+                                            alignItems: "center", gap: 2, opacity: isAuth ? 1 : 0.5,
                                         }}
                                     >
                                         <svg width="14" height="14" viewBox="0 0 24 24"
@@ -251,7 +251,7 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                         display: "flex", flexDirection: "column", gap: 14,
                                     }}>
                                         {loadedReplies.map((r) => {
-                                            const rLiked = likedComments[r.id] ?? false;
+                                            const rLiked = r.is_liked ?? false;
                                             return (
                                                 <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                                                     <CommentAvatar user={r.user} size={24} />
@@ -274,9 +274,9 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                                             <span style={{ fontSize: 12, color: "var(--muted)" }}>
                                                                 {timeAgo(r.created_at)}
                                                             </span>
-                                                            {rLiked && (
+                                                            {(r.likes_count ?? 0) > 0 && (
                                                                 <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>
-                                                                    1 Me gusta
+                                                                    {r.likes_count} Me gusta
                                                                 </span>
                                                             )}
                                                             {isAuth && (
@@ -296,10 +296,10 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                                     {/* Like */}
                                                     <button
                                                         type="button"
-                                                        onClick={() => toggleLikeComment(r.id)}
+                                                        onClick={() => toggleLikeComment(r.id, rLiked)}
                                                         style={{
-                                                            background: "none", border: "none", cursor: "pointer",
-                                                            padding: "4px 0 0", flexShrink: 0,
+                                                            background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
+                                                            padding: "4px 0 0", flexShrink: 0, opacity: isAuth ? 1 : 0.5,
                                                         }}
                                                     >
                                                         <svg width="12" height="12" viewBox="0 0 24 24"

@@ -182,6 +182,30 @@ export function useAddComment() {
     });
 }
 
+export function useLikeComment() {
+    const qc = useQueryClient();
+    return useMutation<{ liked: boolean; likes_count: number } | null, Error, { commentId: string; like: boolean; token?: string }>({
+        mutationFn: async ({ commentId, like, token }) => {
+            try {
+                if (like) {
+                    const res = await socialApi.likeComment(commentId, token);
+                    return (res as any)?.data ?? null;
+                } else {
+                    const res = await socialApi.unlikeComment(commentId, token);
+                    return (res as any)?.data ?? null;
+                }
+            } catch (err: any) {
+                if (err?.status === 409) return null;
+                throw err;
+            }
+        },
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["social", "post"] });
+            qc.invalidateQueries({ queryKey: ["social", "feed"] });
+        },
+    });
+}
+
 // ── Follow ──
 
 export function useFollowUser() {

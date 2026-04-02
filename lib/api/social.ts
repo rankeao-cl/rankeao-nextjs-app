@@ -50,6 +50,8 @@ export interface PostComment {
     parent_comment_id?: string | null;
     reply_to_username?: string | null;
     replies_count?: number;
+    likes_count?: number;
+    is_liked?: boolean;
     replies?: PostComment[];
 }
 
@@ -66,6 +68,14 @@ export async function addPostComment(postId: string | number, content: string, t
 
 export async function getCommentReplies(commentId: string | number, params?: Params) {
     return apiFetch<{ data?: { comments: PostComment[] }; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/comments/${commentId}/replies`, params);
+}
+
+export async function likeComment(commentId: string | number, token?: string) {
+    return apiPost<{ liked: boolean; likes_count: number }>(`/social/feed/comments/${commentId}/like`, {}, { token });
+}
+
+export async function unlikeComment(commentId: string | number, token?: string) {
+    return apiDelete<{ liked: boolean; likes_count: number }>(`/social/feed/comments/${commentId}/like`, { token });
 }
 
 // ── Friends ──
