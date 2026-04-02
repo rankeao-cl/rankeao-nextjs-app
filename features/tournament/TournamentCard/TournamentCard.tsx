@@ -47,7 +47,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
         : null;
 
     const organizerName = tournament.tenant_name || tournament.organizer_username || "Torneo";
-    const brand = getGameBrand(tournament.game);
+    const brand = getGameBrand(tournament.game || tournament.game_name || "");
 
     // Imagen de fondo: usar game_logo_url o tenant_logo_url como fallback
     const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;

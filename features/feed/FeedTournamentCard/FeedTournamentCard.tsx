@@ -44,7 +44,7 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
     const maxPlayers = tournament.max_players;
     const progress = maxPlayers && maxPlayers > 0 ? Math.min(100, (registered / maxPlayers) * 100) : null;
 
-    const gameSlug = tournament.game || tournament.game_name?.toLowerCase().replace(/[^a-z0-9-]/g, "") || "";
+    const gameSlug = tournament.game || tournament.game_name || "";
     const gameBrand = getGameBrand(gameSlug);
     const bannerStyle = getGameBannerStyle(gameSlug);
 

@@ -48,7 +48,7 @@ export default function FeedMobileCarousel({ tournaments }: { tournaments: Tourn
           const sColor = STATUS_COLORS[t.status] ?? "var(--muted)";
           const sLabel = STATUS_LABELS[t.status] ?? t.status;
           const registered = t.registered_count ?? t.current_players ?? 0;
-          const gameSlug = t.game || t.game_name?.toLowerCase().replace(/[^a-z0-9-]/g, "") || "";
+          const gameSlug = t.game || t.game_name || "";
           const gameBrand = getGameBrand(gameSlug);
           const bannerStyle = getGameBannerStyle(gameSlug);
 

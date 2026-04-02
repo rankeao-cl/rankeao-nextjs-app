@@ -20,9 +20,58 @@ const gameBrands: Record<string, GameBrand> = {
 
 const defaultBrand: GameBrand = { logo: "", color: "#3B82F6", bg: "#0A0A1A" };
 
-export function getGameBrand(slug: string): GameBrand {
-  return gameBrands[slug] || defaultBrand;
+// Alias map: various names/slugs → canonical key
+const aliases: Record<string, string> = {
+  "magic: the gathering": "magic",
+  "magicthegathering": "magic",
+  "mtg": "magic",
+  "pokémon tcg": "pokemon",
+  "pokemontcg": "pokemon",
+  "ptcg": "pokemon",
+  "yu-gi-oh!": "yugioh",
+  "yu-gi-oh": "yugioh",
+  "ygo": "yugioh",
+  "one piece card game": "onepiece",
+  "onepiececardgame": "onepiece",
+  "opcg": "onepiece",
+  "disney lorcana": "lorcana",
+  "disneylorcana": "lorcana",
+  "digimon card game": "digimon",
+  "digimoncardgame": "digimon",
+  "dcg": "digimon",
+  "flesh and blood": "flesh-and-blood",
+  "fleshandblood": "flesh-and-blood",
+  "fab": "flesh-and-blood",
+  "star wars: unlimited": "star-wars-unlimited",
+  "starwarsunlimited": "star-wars-unlimited",
+  "swu": "star-wars-unlimited",
+};
+
+function resolveSlug(input: string): string {
+  if (!input) return "";
+  // Direct match
+  if (gameBrands[input]) return input;
+  // Lowercase match
+  const lower = input.toLowerCase();
+  if (gameBrands[lower]) return lower;
+  // Alias match
+  if (aliases[lower]) return aliases[lower];
+  // Strip non-alphanumeric and try alias
+  const stripped = lower.replace(/[^a-z0-9]/g, "");
+  if (aliases[stripped]) return aliases[stripped];
+  // Partial match: check if any brand key is contained in the input
+  for (const key of Object.keys(gameBrands)) {
+    if (lower.includes(key)) return key;
+  }
+  return input;
 }
+
+export function getGameBrand(slug: string): GameBrand {
+  return gameBrands[resolveSlug(slug)] || defaultBrand;
+}
+
+/** Resolve any game name/slug to canonical key */
+export { resolveSlug as resolveGameSlug };
 
 /** CSS background for tournament banners — rich gradient per game */
 export function getGameBannerStyle(slug: string): React.CSSProperties {
