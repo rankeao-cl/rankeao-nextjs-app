@@ -173,8 +173,8 @@ export function usePostComments(postId: string, enabled = false) {
 export function useAddComment() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ postId, content, token }: { postId: string; content: string; token?: string }) =>
-            socialApi.addPostComment(postId, content, token),
+        mutationFn: ({ postId, content, token, parentCommentId, replyToUsername }: { postId: string; content: string; token?: string; parentCommentId?: string; replyToUsername?: string }) =>
+            socialApi.addPostComment(postId, content, token, parentCommentId, replyToUsername),
         onSuccess: (_, vars) => {
             qc.invalidateQueries({ queryKey: ["social", "post", vars.postId, "comments"] });
             qc.invalidateQueries({ queryKey: ["social", "feed"] });

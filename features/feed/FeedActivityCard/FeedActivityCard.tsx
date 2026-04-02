@@ -19,9 +19,10 @@ import {
 } from "@gravity-ui/icons";
 import { Heart } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { useLikePost, useFirePost, usePostComments, useAddComment } from "@/lib/hooks/use-social";
+import { useLikePost, useFirePost } from "@/lib/hooks/use-social";
+import CommentSection from "@/features/social/CommentSection";
 import { timeAgo as timeAgoLib } from "@/lib/utils/format";
-import type { PostComment } from "@/lib/api/social";
+// PostComment type used indirectly via CommentSection
 
 // ── Activity data shape (from backend ActivityFeedItem) ──
 
@@ -119,13 +120,9 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const [fired, setFired] = useState(activity.is_fired ?? false);
     const [firesCount, setFiresCount] = useState(activity.fires_count ?? 0);
     const [showComments, setShowComments] = useState(false);
-    const [commentText, setCommentText] = useState("");
 
     const likeMutation = useLikePost();
     const fireMutation = useFirePost();
-    const addCommentMutation = useAddComment();
-    const commentsQuery = usePostComments(activity.id, showComments);
-    const comments: PostComment[] = commentsQuery.data?.data?.comments ?? commentsQuery.data?.comments ?? [];
 
     useEffect(() => {
         if (!likeMutation.isPending) {
@@ -181,15 +178,6 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
         );
     };
 
-    const handleSubmitComment = (e: React.FormEvent) => {
-        e.preventDefault();
-        const content = commentText.trim();
-        if (!content || !isAuth) return;
-        addCommentMutation.mutate(
-            { postId: activity.id, content, token: accessToken },
-            { onSuccess: () => setCommentText("") }
-        );
-    };
 
     return (
         <article className="feed-card-hover" style={{
@@ -351,75 +339,7 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
             </div>
 
             {/* Comments section */}
-            {showComments && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {isAuth && (
-                        <form onSubmit={handleSubmitComment} style={{ display: "flex", gap: 8 }}>
-                            <input
-                                type="text"
-                                value={commentText}
-                                onChange={e => setCommentText(e.target.value)}
-                                placeholder="Escribe un comentario..."
-                                maxLength={500}
-                                style={{
-                                    flex: 1, fontSize: 13, padding: "6px 12px",
-                                    borderRadius: 999, border: "1px solid var(--border)",
-                                    background: "var(--surface)", color: "var(--foreground)",
-                                    outline: "none",
-                                }}
-                            />
-                            <button
-                                type="submit"
-                                disabled={!commentText.trim() || addCommentMutation.isPending}
-                                style={{
-                                    padding: "6px 14px", borderRadius: 999, border: "none",
-                                    background: "var(--accent)", color: "#fff",
-                                    fontSize: 12, fontWeight: 700, cursor: "pointer",
-                                    opacity: !commentText.trim() || addCommentMutation.isPending ? 0.5 : 1,
-                                }}
-                            >
-                                {addCommentMutation.isPending ? "..." : "Enviar"}
-                            </button>
-                        </form>
-                    )}
-                    {commentsQuery.isLoading ? (
-                        <p style={{ fontSize: 12, color: "var(--muted)", textAlign: "center" }}>Cargando...</p>
-                    ) : comments.length === 0 ? (
-                        <p style={{ fontSize: 12, color: "var(--muted)", textAlign: "center" }}>Sin comentarios aún</p>
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {comments.map(c => (
-                                <div key={c.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                                    <div style={{
-                                        width: 28, height: 28, borderRadius: 14, flexShrink: 0,
-                                        background: "var(--accent)", overflow: "hidden",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 11, fontWeight: 700, color: "#fff",
-                                    }}>
-                                        {c.user.avatar_url ? (
-                                            <img src={c.user.avatar_url} alt={c.user.username}
-                                                style={{ width: 28, height: 28, objectFit: "cover" }} />
-                                        ) : c.user.username[0]?.toUpperCase()}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                            <Link href={`/perfil/${c.user.username}`} style={{ textDecoration: "none" }}>
-                                                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>
-                                                    {c.user.username}
-                                                </span>
-                                            </Link>
-                                            <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgoLib(c.created_at)}</span>
-                                        </div>
-                                        <p style={{ margin: 0, fontSize: 13, color: "var(--foreground)", lineHeight: "18px" }}>
-                                            {c.content}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+            <CommentSection postId={activity.id} show={showComments} />
 
         </article>
     );

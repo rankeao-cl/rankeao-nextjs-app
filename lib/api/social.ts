@@ -47,14 +47,25 @@ export interface PostComment {
     user: { id: string; username: string; avatar_url?: string; display_name?: string };
     content: string;
     created_at: string;
+    parent_comment_id?: string | null;
+    reply_to_username?: string | null;
+    replies_count?: number;
+    replies?: PostComment[];
 }
 
 export async function getPostComments(postId: string | number, params?: Params) {
     return apiFetch<{ data?: { comments: PostComment[] }; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/posts/${postId}/comments`, params);
 }
 
-export async function addPostComment(postId: string | number, content: string, token?: string) {
-    return apiPost<{ comment: PostComment }>(`/social/feed/posts/${postId}/comments`, { content }, { token });
+export async function addPostComment(postId: string | number, content: string, token?: string, parentCommentId?: string, replyToUsername?: string) {
+    const body: any = { content };
+    if (parentCommentId) body.parent_comment_id = Number(parentCommentId);
+    if (replyToUsername) body.reply_to_username = replyToUsername;
+    return apiPost<{ comment: PostComment }>(`/social/feed/posts/${postId}/comments`, body, { token });
+}
+
+export async function getCommentReplies(commentId: string | number, params?: Params) {
+    return apiFetch<{ data?: { comments: PostComment[] }; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/comments/${commentId}/replies`, params);
 }
 
 // ── Friends ──
