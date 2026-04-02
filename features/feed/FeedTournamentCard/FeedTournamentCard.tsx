@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
-import { Heart, Comment, ArrowShapeTurnUpRight, Clock, Persons, MapPin, Cup, Bookmark } from "@gravity-ui/icons";
+import { ArrowShapeTurnUpRight, Clock, Persons, MapPin, Cup, Bookmark } from "@gravity-ui/icons";
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
     active: { color: "var(--foreground)", bg: "var(--overlay)", label: "EN VIVO" },
@@ -360,18 +360,12 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                 >
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                         <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
-                            <Heart style={{ width: 16, height: 16 }} />
-                        </button>
-                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
-                            <Comment style={{ width: 16, height: 16 }} />
-                        </button>
-                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
                             <ArrowShapeTurnUpRight style={{ width: 16, height: 16 }} />
                         </button>
+                        <button type="button" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
+                            <Bookmark style={{ width: 16, height: 16 }} />
+                        </button>
                     </div>
-                    <button type="button" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
-                        <Bookmark style={{ width: 16, height: 16 }} />
-                    </button>
                 </div>
             </article>
         </Link>
