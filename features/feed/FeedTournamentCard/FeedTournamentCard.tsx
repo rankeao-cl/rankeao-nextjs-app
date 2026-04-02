@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
+import { getGameBrand, getGameBannerStyle } from "@/lib/gameLogos";
 import { ArrowShapeTurnUpRight, Clock, Persons, MapPin, Cup, Bookmark } from "@gravity-ui/icons";
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
@@ -43,6 +44,10 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
     const maxPlayers = tournament.max_players;
     const progress = maxPlayers && maxPlayers > 0 ? Math.min(100, (registered / maxPlayers) * 100) : null;
 
+    const gameSlug = tournament.game || tournament.game_name?.toLowerCase().replace(/[^a-z0-9-]/g, "") || "";
+    const gameBrand = getGameBrand(gameSlug);
+    const bannerStyle = getGameBannerStyle(gameSlug);
+
     const dateFormatted = tournament.starts_at
         ? new Date(tournament.starts_at).toLocaleDateString("es-CL", { weekday: "short", day: "numeric", month: "short" })
         : null;
@@ -60,10 +65,71 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                     overflow: "hidden",
                 }}
             >
-                {/* Top accent line */}
-                <div style={{ height: 3, backgroundColor: "var(--border)" }} />
+                {/* Game banner */}
+                <div style={{
+                    position: "relative",
+                    height: 80,
+                    ...bannerStyle,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                }}>
+                    {/* Game logo watermark */}
+                    {gameBrand.logo && (
+                        <img
+                            src={gameBrand.logo}
+                            alt=""
+                            style={{
+                                position: "absolute",
+                                right: 16,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                height: 48,
+                                opacity: 0.12,
+                                filter: "brightness(2)",
+                            }}
+                        />
+                    )}
+                    {/* Status badge on banner */}
+                    <span
+                        style={{
+                            position: "absolute",
+                            top: 10,
+                            right: 10,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "4px 10px",
+                            borderRadius: 8,
+                            backgroundColor: "rgba(0,0,0,0.5)",
+                            backdropFilter: "blur(8px)",
+                            WebkitBackdropFilter: "blur(8px)",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: "0.3px",
+                            color: "#fff",
+                            border: `1px solid ${isLive ? "rgba(239,68,68,0.4)" : isOpen ? `${gameBrand.color}40` : "rgba(255,255,255,0.15)"}`,
+                        }}
+                    >
+                        {isLive && (
+                            <span style={{
+                                width: 6, height: 6, borderRadius: 3,
+                                backgroundColor: "#EF4444",
+                                animation: "pulse 1.6s ease-in-out infinite",
+                            }} />
+                        )}
+                        {status.label}
+                    </span>
+                    {/* Top accent bar */}
+                    <div style={{
+                        position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                        background: isLive ? "#EF4444" : gameBrand.color,
+                        opacity: 0.8,
+                    }} />
+                </div>
 
-                {/* Header: organizer + status */}
+                {/* Header: organizer + tournament name */}
                 <div
                     style={{
                         display: "flex",
@@ -132,35 +198,6 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                         </span>
                     </div>
 
-                    {/* Status badge */}
-                    <span
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            padding: "5px 10px",
-                            borderRadius: 10,
-                            backgroundColor: status.bg,
-                            fontSize: 10,
-                            fontWeight: 700,
-                            letterSpacing: "0.3px",
-                            color: status.color,
-                            flexShrink: 0,
-                        }}
-                    >
-                        {isLive && (
-                            <span
-                                style={{
-                                    width: 7,
-                                    height: 7,
-                                    borderRadius: 4,
-                                    backgroundColor: "var(--danger)",
-                                    animation: "pulse 1.6s ease-in-out infinite",
-                                }}
-                            />
-                        )}
-                        {status.label}
-                    </span>
                 </div>
 
                 {/* Body */}
