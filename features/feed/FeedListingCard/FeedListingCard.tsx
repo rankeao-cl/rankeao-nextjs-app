@@ -2,16 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import { timeAgo } from "@/lib/utils/format";
-import { Bookmark, MapPin } from "@gravity-ui/icons";
+import { ArrowShapeTurnUpRight, MapPin } from "@gravity-ui/icons";
+import { toast } from "@heroui/react";
 import type { Listing } from "@/lib/types/marketplace";
 
 export default function FeedListingCard({ listing }: { listing: Listing }) {
     const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
     const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
     const isStore = !!listing.tenant_name || listing.is_verified_store || listing.is_verified_seller;
-    const [bookmarked, setBookmarked] = useState(false);
 
     const conditionColor = listing.card_condition === "NM" || listing.card_condition === "M"
         ? "var(--success)" : listing.card_condition === "LP"
@@ -79,21 +78,25 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             </div>
                         )}
 
-                        {/* Top-right: bookmark */}
+                        {/* Top-right: share */}
                         <div style={{ position: "absolute", top: 10, right: 10 }}>
                             <button
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setBookmarked(!bookmarked); }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const url = `https://rankeao.cl/marketplace/${listing.id}`;
+                                    if (navigator.share) navigator.share({ title: listing.title, url }).catch(() => {});
+                                    else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+                                }}
                                 style={{
                                     width: 34, height: 34, borderRadius: 10,
                                     backgroundColor: "rgba(0,0,0,0.5)",
                                     backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                                     border: "none", cursor: "pointer",
                                     display: "flex", alignItems: "center", justifyContent: "center",
-                                    transition: "transform 0.15s",
-                                    transform: bookmarked ? "scale(1.1)" : "scale(1)",
                                 }}
                             >
-                                <Bookmark style={{ width: 16, height: 16, color: bookmarked ? "var(--accent)" : "#fff" }} />
+                                <ArrowShapeTurnUpRight style={{ width: 16, height: 16, color: "#fff" }} />
                             </button>
                         </div>
 

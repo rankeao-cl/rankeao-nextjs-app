@@ -15,11 +15,12 @@ import {
     ChevronRight,
     CircleInfo,
     Comment,
-    Flame,
+    ArrowShapeTurnUpRight,
 } from "@gravity-ui/icons";
 import { Heart } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { useLikePost, useFirePost } from "@/lib/hooks/use-social";
+import { useLikePost } from "@/lib/hooks/use-social";
+import { toast } from "@heroui/react";
 import CommentSection from "@/features/social/CommentSection";
 import { timeAgo as timeAgoLib } from "@/lib/utils/format";
 // PostComment type used indirectly via CommentSection
@@ -38,8 +39,6 @@ export interface ActivityData {
     metadata?: Record<string, unknown>;
     likes_count?: number;
     is_liked?: boolean;
-    fires_count?: number;
-    is_fired?: boolean;
     comments_count?: number;
     created_at: string;
 }
@@ -117,12 +116,9 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     const [deckFanOpen, setDeckFanOpen] = useState(false);
     const [liked, setLiked] = useState(activity.is_liked ?? false);
     const [likesCount, setLikesCount] = useState(activity.likes_count ?? 0);
-    const [fired, setFired] = useState(activity.is_fired ?? false);
-    const [firesCount, setFiresCount] = useState(activity.fires_count ?? 0);
     const [showComments, setShowComments] = useState(false);
 
     const likeMutation = useLikePost();
-    const fireMutation = useFirePost();
 
     useEffect(() => {
         if (!likeMutation.isPending) {
@@ -131,14 +127,6 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activity.is_liked, activity.likes_count]);
-
-    useEffect(() => {
-        if (!fireMutation.isPending) {
-            setFired(activity.is_fired ?? false);
-            setFiresCount(activity.fires_count ?? 0);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activity.is_fired, activity.fires_count]);
 
     const handleLike = () => {
         if (!isAuth) return;
@@ -159,23 +147,11 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
         );
     };
 
-    const handleFire = () => {
-        if (!isAuth) return;
-        const wasFired = fired;
-        setFired(!wasFired);
-        setFiresCount(c => c + (wasFired ? -1 : 1));
-        fireMutation.mutate(
-            { postId: activity.id, fire: !wasFired, token: accessToken },
-            {
-                onSuccess: (data) => {
-                    if (data?.fires_count != null) setFiresCount(data.fires_count);
-                },
-                onError: () => {
-                    setFired(wasFired);
-                    setFiresCount(c => c + (wasFired ? 1 : -1));
-                },
-            }
-        );
+    const handleShare = () => {
+        const entityHref = getEntityHref(activity.entity_type, activity.entity_id, activity.metadata);
+        const url = `https://rankeao.cl${entityHref || '/feed'}`;
+        if (navigator.share) navigator.share({ title: activity.title, url }).catch(() => {});
+        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
     };
 
 
@@ -310,21 +286,6 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                         <span>{likesCount}</span>
                     </button>
 
-                    {/* Fire reaction */}
-                    <button type="button" onClick={handleFire} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: fired ? "rgba(249,115,22,0.12)" : "none",
-                        border: "none", cursor: isAuth ? "pointer" : "default",
-                        color: fired ? "#F97316" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                        transition: "transform 0.15s, background 0.15s",
-                        transform: fired ? "scale(1.05)" : "scale(1)",
-                        opacity: fireMutation.isPending ? 0.6 : 1,
-                    }}>
-                        <Flame style={{ width: 16, height: 16 }} />
-                        <span>{firesCount}</span>
-                    </button>
-
                     {/* Comment */}
                     <button type="button" onClick={() => setShowComments(v => !v)} style={{
                         display: "flex", alignItems: "center", gap: 5,
@@ -334,6 +295,16 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                     }}>
                         <Comment style={{ width: 16, height: 16 }} />
                         <span>{activity.comments_count ?? 0}</span>
+                    </button>
+
+                    {/* Share */}
+                    <button type="button" onClick={handleShare} style={{
+                        display: "flex", alignItems: "center",
+                        background: "none", border: "none", cursor: "pointer",
+                        color: "var(--muted)",
+                        padding: "4px 8px", borderRadius: 999,
+                    }}>
+                        <ArrowShapeTurnUpRight style={{ width: 16, height: 16 }} />
                     </button>
                 </div>
             </div>

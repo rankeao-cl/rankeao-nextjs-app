@@ -861,8 +861,6 @@ export default function PublicProfilePage({
                                 images: item.images ?? (item.image_url ? [item.image_url] : undefined),
                                 likes_count: item.likes_count ?? 0,
                                 is_liked: item.is_liked ?? false,
-                                fires_count: item.fires_count ?? 0,
-                                is_fired: item.is_fired ?? false,
                                 comments_count: item.comments_count ?? 0,
                                 created_at: item.created_at ?? "",
                             };
@@ -883,8 +881,6 @@ export default function PublicProfilePage({
                             metadata: item.metadata,
                             likes_count: item.likes_count ?? 0,
                             is_liked: item.is_liked ?? false,
-                            fires_count: item.fires_count ?? 0,
-                            is_fired: item.is_fired ?? false,
                             comments_count: item.comments_count ?? 0,
                             created_at: item.created_at ?? "",
                         };

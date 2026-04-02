@@ -206,6 +206,16 @@ export async function removeJudge(id: string, userId: string) {
     return apiDelete<{ message: string }>(`/tournaments/${encodeURIComponent(id)}/judges/${encodeURIComponent(userId)}`);
 }
 
+// ── Follow ──
+
+export async function followTournament(id: string) {
+    return apiPost<{ following: boolean; followers_count: number }>(`/tournaments/${encodeURIComponent(id)}/follow`, {});
+}
+
+export async function unfollowTournament(id: string) {
+    return apiDelete<{ message: string }>(`/tournaments/${encodeURIComponent(id)}/follow`);
+}
+
 // ── Penalties ──
 
 export async function issuePenalty(id: string, payload: { player_id: string; match_id: string; severity: string; reason: string; infraction?: string; notes?: string }) {

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button, toast } from "@heroui/react";
 import { Bell, BellDot } from "@gravity-ui/icons";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { followTournament, unfollowTournament } from "@/lib/api/tournaments";
 
 interface FollowTournamentButtonProps {
     tournamentId: string;
@@ -13,16 +15,37 @@ export default function FollowTournamentButton({
     tournamentId,
     isFollowing: initialFollowing = false,
 }: FollowTournamentButtonProps) {
+    const { status, session } = useAuth();
+    const isAuth = status === "authenticated";
     const [following, setFollowing] = useState(initialFollowing);
-    async function handleToggle() {
-        toast.warning("Proximamente", { description: "Esta funcion estara disponible pronto." });
-    }
+    const [loading, setLoading] = useState(false);
+
+    const handleToggle = useCallback(async () => {
+        if (!isAuth) {
+            toast.warning("Inicia sesión para seguir torneos");
+            return;
+        }
+        const wasFollowing = following;
+        setFollowing(!wasFollowing);
+        setLoading(true);
+        try {
+            if (wasFollowing) {
+                await unfollowTournament(tournamentId);
+            } else {
+                await followTournament(tournamentId);
+            }
+        } catch {
+            setFollowing(wasFollowing);
+            toast.danger("No se pudo actualizar");
+        }
+        setLoading(false);
+    }, [isAuth, following, tournamentId]);
 
     return (
         <Button
             size="sm"
             variant={following ? "secondary" : "tertiary"}
-            isDisabled={false}
+            isDisabled={loading}
             onPress={handleToggle}
             className="font-semibold gap-1.5"
             style={

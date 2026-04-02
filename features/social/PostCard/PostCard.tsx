@@ -4,11 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { timeAgo } from "@/lib/utils/format";
-import { Heart, Flame, Comment, ArrowShapeTurnUpRight, Bookmark } from "@gravity-ui/icons";
+import { Heart, Comment, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
 import MarkdownRenderer from "@/features/social/MarkdownRenderer";
 import CommentSection from "@/features/social/CommentSection";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { useLikePost, useFirePost } from "@/lib/hooks/use-social";
+import { useLikePost } from "@/lib/hooks/use-social";
+import { toast } from "@heroui/react";
 
 export interface FeedPost {
     id: string;
@@ -23,8 +24,6 @@ export interface FeedPost {
     game?: string;
     likes_count?: number;
     is_liked?: boolean;
-    fires_count?: number;
-    is_fired?: boolean;
     comments_count?: number;
     rank_badge?: string;
     created_at: string;
@@ -44,13 +43,9 @@ export default function PostCard({ post }: { post: FeedPost }) {
 
     const [liked, setLiked] = useState(post.is_liked ?? false);
     const [likesCount, setLikesCount] = useState(post.likes_count ?? 0);
-    const [fired, setFired] = useState(post.is_fired ?? false);
-    const [firesCount, setFiresCount] = useState(post.fires_count ?? 0);
-    const [bookmarked, setBookmarked] = useState(false);
     const [showComments, setShowComments] = useState(false);
 
     const likeMutation = useLikePost();
-    const fireMutation = useFirePost();
 
     // Sync server state into local state when the feed refreshes (e.g. after stale cache expires).
     // Skip sync while a mutation is in flight to avoid overriding optimistic updates.
@@ -61,14 +56,6 @@ export default function PostCard({ post }: { post: FeedPost }) {
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [post.is_liked, post.likes_count]);
-
-    useEffect(() => {
-        if (!fireMutation.isPending) {
-            setFired(post.is_fired ?? false);
-            setFiresCount(post.fires_count ?? 0);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [post.is_fired, post.fires_count]);
     const handleLike = () => {
         if (!isAuth) return;
         const wasLiked = liked;
@@ -91,23 +78,10 @@ export default function PostCard({ post }: { post: FeedPost }) {
         );
     };
 
-    const handleFire = () => {
-        if (!isAuth) return;
-        const wasFired = fired;
-        setFired(!wasFired);
-        setFiresCount((c) => c + (wasFired ? -1 : 1));
-        fireMutation.mutate(
-            { postId: post.id, fire: !wasFired, token: accessToken },
-            {
-                onSuccess: (data) => {
-                    if (data?.fires_count != null) setFiresCount(data.fires_count);
-                },
-                onError: () => {
-                    setFired(wasFired);
-                    setFiresCount((c) => c + (wasFired ? 1 : -1));
-                },
-            }
-        );
+    const handleShare = () => {
+        const url = `https://rankeao.cl/feed`;
+        if (navigator.share) navigator.share({ title: postText.slice(0, 60), url }).catch(() => {});
+        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
     };
 
     return (
@@ -248,21 +222,6 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         <span>{likesCount}</span>
                     </button>
 
-                    {/* Fire reaction */}
-                    <button type="button" onClick={handleFire} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: fired ? "rgba(249,115,22,0.12)" : "none",
-                        border: "none", cursor: isAuth ? "pointer" : "default",
-                        color: fired ? "#F97316" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                        transition: "transform 0.15s, background 0.15s",
-                        transform: fired ? "scale(1.05)" : "scale(1)",
-                        opacity: fireMutation.isPending ? 0.6 : 1,
-                    }}>
-                        <Flame style={{ width: 18, height: 18 }} />
-                        <span>{firesCount}</span>
-                    </button>
-
                     {/* Comment */}
                     <button type="button" onClick={() => setShowComments((v) => !v)} style={{
                         display: "flex", alignItems: "center", gap: 5,
@@ -275,7 +234,7 @@ export default function PostCard({ post }: { post: FeedPost }) {
                     </button>
 
                     {/* Share */}
-                    <button type="button" style={{
+                    <button type="button" onClick={handleShare} style={{
                         display: "flex", alignItems: "center",
                         background: "none", border: "none", cursor: "pointer",
                         color: "var(--muted)",
@@ -284,17 +243,6 @@ export default function PostCard({ post }: { post: FeedPost }) {
                         <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
                     </button>
                 </div>
-
-                {/* Bookmark */}
-                <button type="button" onClick={() => setBookmarked((b) => !b)} style={{
-                    display: "flex", alignItems: "center",
-                    background: "none", border: "none", cursor: "pointer",
-                    color: bookmarked ? "var(--accent)" : "var(--muted)",
-                    padding: "4px 8px", borderRadius: 999,
-                    transition: "color 0.15s",
-                }}>
-                    <Bookmark style={{ width: 18, height: 18 }} />
-                </button>
             </div>
 
             {/* Comments section */}

@@ -78,6 +78,22 @@ export async function unlikeComment(commentId: string | number, token?: string) 
     return apiDelete<{ liked: boolean; likes_count: number }>(`/social/feed/comments/${commentId}/like`, { token });
 }
 
+// ── Bookmarks ──
+
+export async function createBookmark(entityType: string, entityId: string, token?: string) {
+    return apiPost<{ bookmarked: boolean }>("/social/bookmarks", { entity_type: entityType, entity_id: entityId }, { token });
+}
+
+export async function deleteBookmark(entityType: string, entityId: string, token?: string) {
+    return apiDelete<{ bookmarked: boolean }>(`/social/bookmarks/${entityType}/${entityId}`, { token });
+}
+
+export async function listBookmarks(entityType?: string, params?: Params, token?: string) {
+    const p: Record<string, string> = { ...params as Record<string, string> };
+    if (entityType) p.entity_type = entityType;
+    return apiFetch<{ data?: { bookmarks: any[] }; bookmarks?: any[] }>("/social/bookmarks", p, { token });
+}
+
 // ── Friends ──
 
 export async function getFriends(params?: Params, token?: string) {

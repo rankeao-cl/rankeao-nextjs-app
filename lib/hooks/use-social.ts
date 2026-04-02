@@ -206,6 +206,19 @@ export function useLikeComment() {
     });
 }
 
+// ── Bookmarks ──
+
+export function useBookmark() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ entityType, entityId, bookmark, token }: { entityType: string; entityId: string; bookmark: boolean; token?: string }) => {
+            if (bookmark) return socialApi.createBookmark(entityType, entityId, token);
+            return socialApi.deleteBookmark(entityType, entityId, token);
+        },
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "bookmarks"] }),
+    });
+}
+
 // ── Follow ──
 
 export function useFollowUser() {

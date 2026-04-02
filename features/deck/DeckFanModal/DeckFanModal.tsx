@@ -196,144 +196,136 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 backgroundColor: "rgba(0,0,0,0.72)",
                 backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)",
                 display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                padding: 20,
-                overflowY: "auto",
-                overscrollBehavior: "contain" as any,
+                alignItems: "center", justifyContent: "space-between",
+                padding: "16px 20px",
+                paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+                overflow: "hidden",
                 opacity: entered ? 1 : 0,
                 transition: "opacity 0.22s ease",
             }}
         >
-            {/* Creador del mazo — esquina superior izquierda */}
-            {deck && ownerUsername && (
-                <Link
-                    href={`/perfil/${ownerUsername}`}
-                    onClick={onClose}
-                    style={{
-                        position: "absolute", top: 18, left: 20,
-                        display: "flex", alignItems: "center", gap: 9,
-                        textDecoration: "none", zIndex: 10,
-                    }}
-                >
-                    <div style={{
-                        width: 36, height: 36, borderRadius: 18,
-                        background: "var(--accent)", padding: 2,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0,
-                    }}>
+            {/* Header — flujo normal, no absolute */}
+            <div style={{
+                width: "100%", maxWidth: 400,
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "0 4px", flexShrink: 0, zIndex: 10,
+            }}>
+                {/* Avatar + username */}
+                {deck && ownerUsername && (
+                    <Link
+                        href={`/perfil/${ownerUsername}`}
+                        onClick={onClose}
+                        style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
+                    >
                         <div style={{
                             width: 32, height: 32, borderRadius: 16,
                             backgroundColor: "var(--background)", overflow: "hidden",
+                            border: "2px solid var(--accent)",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 13, fontWeight: 700, color: "var(--foreground)",
+                            fontSize: 12, fontWeight: 700, color: "var(--foreground)",
                         }}>
                             {ownerAvatar
-                                ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 32, height: 32, objectFit: "cover" }} />
+                                ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 28, height: 28, borderRadius: 14, objectFit: "cover" }} />
                                 : ownerUsername[0].toUpperCase()
                             }
                         </div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1.2 }}>
-                            @{ownerUsername}
-                        </span>
+                    </Link>
+                )}
+
+                {/* Name + game */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    {deck?.name && (
+                        <Link href={`/decks/${deckId}`} onClick={onClose} style={{ textDecoration: "none" }}>
+                            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "white", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {deck.name}
+                            </p>
+                        </Link>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                        {ownerUsername && (
+                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>@{ownerUsername}</span>
+                        )}
                         {gameName && (
-                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.2 }}>
-                                {gameName}
-                            </span>
+                            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{gameName}</span>
                         )}
                     </div>
-                </Link>
-            )}
-
-            {/* Nombre del mazo + copiar — top center */}
-            {deck?.name && (
-                <div style={{
-                    position: "absolute", top: 20,
-                    left: "50%", transform: "translateX(-50%)",
-                    display: "flex", alignItems: "center", gap: 8, zIndex: 10,
-                }}>
-                    <Link
-                        href={`/decks/${deckId}`}
-                        onClick={onClose}
-                        style={{ textDecoration: "none" }}
-                    >
-                        <span style={{
-                            fontSize: 15, fontWeight: 700,
-                            color: "rgba(255,255,255,0.80)",
-                            letterSpacing: "0.03em",
-                        }}>
-                            {deck.name}
-                        </span>
-                    </Link>
-                    <button
-                        onClick={copyDeck}
-                        title="Copiar lista"
-                        style={{
-                            background: "rgba(255,255,255,0.10)",
-                            border: "1px solid rgba(255,255,255,0.18)",
-                            borderRadius: 8, color: "rgba(255,255,255,0.65)",
-                            cursor: "pointer", padding: "4px 8px",
-                            display: "flex", alignItems: "center", gap: 5,
-                            fontSize: 11, fontWeight: 600,
-                        }}
-                    >
-                        <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" />
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                        </svg>
-                        Copiar lista
-                    </button>
                 </div>
-            )}
 
-            {/* Cerrar */}
-            <button
-                onClick={onClose}
-                style={{
-                    position: "absolute", top: 20, right: 20,
-                    width: 38, height: 38, borderRadius: 19,
-                    backgroundColor: "rgba(255,255,255,0.12)",
-                    border: "1.5px solid rgba(255,255,255,0.22)",
-                    color: "white", fontSize: 22, fontWeight: 700,
-                    cursor: "pointer", display: "flex",
-                    alignItems: "center", justifyContent: "center",
-                    lineHeight: 1, zIndex: 10,
-                }}
-            >×</button>
+                {/* Copiar */}
+                <button
+                    onClick={(e) => { e.stopPropagation(); copyDeck(); }}
+                    title="Copiar lista"
+                    style={{
+                        height: 34,
+                        background: "rgba(255,255,255,0.10)",
+                        border: "1px solid rgba(255,255,255,0.18)",
+                        borderRadius: 10, color: "rgba(255,255,255,0.65)",
+                        cursor: "pointer", padding: "0 10px",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        gap: 5, fontSize: 11, fontWeight: 600, flexShrink: 0,
+                    }}
+                >
+                    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                </button>
+
+                {/* Cerrar */}
+                <button
+                    onClick={onClose}
+                    style={{
+                        height: 34, width: 34,
+                        background: "rgba(255,255,255,0.10)",
+                        border: "1px solid rgba(255,255,255,0.18)",
+                        borderRadius: 17, color: "rgba(255,255,255,0.65)",
+                        cursor: "pointer", display: "flex",
+                        alignItems: "center", justifyContent: "center",
+                        fontSize: 18, fontWeight: 600, flexShrink: 0,
+                        lineHeight: 1,
+                    }}
+                >×</button>
+            </div>
 
             {selectedCard ? (
-                /* ── Detalle carta ── */
+                /* ── Detalle carta — centrado vertical ── */
                 <div
-                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, animation: "card-zoom-in 0.2s ease-out" }}
+                    style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div style={{ width: "min(380px, 72dvw)", aspectRatio: `1 / ${CARD_RATIO}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 72px rgba(0,0,0,0.75)", border: "2px solid rgba(255,255,255,0.22)" }}>
-                        {selectedCard.image_url
-                            ? <img src={selectedCard.image_url} alt={selectedCard.card_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            : <CardBack w={380} h={Math.round(380 * CARD_RATIO)} />
-                        }
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, animation: "card-zoom-in 0.2s ease-out" }}>
+                        <div style={{ width: "min(380px, 85dvw)", aspectRatio: `1 / ${CARD_RATIO}`, borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 72px rgba(0,0,0,0.75)", border: "2px solid rgba(255,255,255,0.22)" }}>
+                            {selectedCard.image_url
+                                ? <img src={selectedCard.image_url} alt={selectedCard.card_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                : <CardBack w={340} h={Math.round(340 * CARD_RATIO)} />
+                            }
+                        </div>
+                        <div style={{ textAlign: "center" }}>
+                            <p style={{ color: "white", fontWeight: 700, fontSize: 16, margin: "0 0 4px" }}>{selectedCard.card_name}</p>
+                            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>×{selectedCard.totalQty} · {selectedCard.board ?? "MAIN"}</p>
+                        </div>
+                        <button onClick={() => setSelectedCard(null)} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: 13, fontWeight: 600, padding: "8px 20px", borderRadius: 999, cursor: "pointer" }}>
+                            ← Volver al mazo
+                        </button>
                     </div>
-                    <div style={{ textAlign: "center" }}>
-                        <p style={{ color: "white", fontWeight: 700, fontSize: 17, margin: "0 0 4px" }}>{selectedCard.card_name}</p>
-                        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>×{selectedCard.totalQty} · {selectedCard.board ?? "MAIN"}</p>
-                    </div>
-                    <button onClick={() => setSelectedCard(null)} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", fontSize: 13, fontWeight: 600, padding: "8px 20px", borderRadius: 999, cursor: "pointer" }}>
-                        ← Volver al mazo
-                    </button>
                 </div>
             ) : windowWidth < 768 ? (
                 /* ── Mobile: Grid view ── */
                 <>
                     <div style={{
+                        flex: 1, minHeight: 0,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        width: "100%", overflow: "hidden",
+                    }}>
+                    <div style={{
                         width: "100%", maxWidth: 360,
-                        maxHeight: "calc(100dvh - 160px)",
+                        maxHeight: "100%",
                         overflowY: "auto",
-                        marginTop: 60,
                         display: "grid",
                         gridTemplateColumns: "repeat(3, 1fr)",
                         gap: 6,
-                        padding: "0 4px",
+                        padding: "8px 4px",
+                        alignContent: "start",
                         WebkitOverflowScrolling: "touch",
                     }}>
                         {(deckQuery.isPending
@@ -382,12 +374,14 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                         )}
                     </div>
 
-                    {/* Stats bar */}
+                    </div>
+
+                    {/* Stats bar — bottom */}
                     {deckStats && (
                         <div style={{
                             display: "flex", gap: 8, alignItems: "center",
                             flexWrap: "wrap", justifyContent: "center",
-                            marginTop: 12,
+                            flexShrink: 0, padding: "10px 0 4px",
                         }}>
                             <StatPill label="Total" value={deckStats.grandTotal} accent />
                             <StatPill label="Únicas" value={deckStats.mainUnique} />

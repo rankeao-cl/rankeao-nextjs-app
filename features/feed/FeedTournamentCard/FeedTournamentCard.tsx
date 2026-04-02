@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
 import { getGameBrand, getGameBannerStyle } from "@/lib/gameLogos";
 import { ArrowShapeTurnUpRight, Clock, Persons, MapPin, Cup, Bookmark } from "@gravity-ui/icons";
+import { toast } from "@heroui/react";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useBookmark } from "@/lib/hooks/use-social";
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
     active: { color: "var(--foreground)", bg: "var(--overlay)", label: "EN VIVO" },
@@ -38,6 +42,11 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
     const status = statusConfig[tournament.status] ?? statusConfig.upcoming;
     const isLive = isLiveStatus(tournament.status);
     const isOpen = isOpenStatus(tournament.status);
+
+    const { status: authStatus, session } = useAuth();
+    const isAuth = authStatus === "authenticated";
+    const bookmarkMutation = useBookmark();
+    const [bookmarked, setBookmarked] = useState(false);
 
     const organizerName = tournament.tenant_name || "Organizador";
     const registered = tournament.registered_count ?? 0;
@@ -396,13 +405,29 @@ export default function FeedTournamentCard({ tournament }: { tournament: Tournam
                     }}
                 >
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                        <button type="button" style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
+                        <button type="button" onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const url = `https://rankeao.cl/torneos/${tournament.slug ?? tournament.id}`;
+                            if (navigator.share) navigator.share({ title: tournament.name, url }).catch(() => {});
+                            else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+                        }} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
                             <ArrowShapeTurnUpRight style={{ width: 16, height: 16 }} />
                         </button>
-                        <button type="button" style={{ background: "none", border: "none", color: "var(--muted)", cursor: "pointer", padding: 0 }}>
-                            <Bookmark style={{ width: 16, height: 16 }} />
-                        </button>
                     </div>
+                    <button type="button" onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!isAuth) return;
+                        const next = !bookmarked;
+                        setBookmarked(next);
+                        bookmarkMutation.mutate(
+                            { entityType: "tournament", entityId: tournament.id, bookmark: next, token: session?.accessToken },
+                            { onError: () => setBookmarked(!next) }
+                        );
+                    }} style={{ display: "flex", alignItems: "center", background: "none", border: "none", color: bookmarked ? "var(--accent)" : "var(--muted)", cursor: isAuth ? "pointer" : "default", padding: 0 }}>
+                        <Bookmark style={{ width: 16, height: 16 }} />
+                    </button>
                 </div>
             </article>
         </Link>
