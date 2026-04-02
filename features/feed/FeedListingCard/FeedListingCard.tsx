@@ -147,7 +147,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                     <div style={{
                         flexShrink: 0,
                         display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between",
-                        padding: "12px 14px",
+                        padding: "12px 16px",
                     }}>
                         {/* City + share — top right */}
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -167,17 +167,17 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         </div>
 
                         {/* Price + CTA — bottom right */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10 }}>
                             {listing.price != null && (
-                                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, whiteSpace: "nowrap" }}>
+                                <div style={{ display: "flex", alignItems: "flex-end", gap: 4, whiteSpace: "nowrap" }}>
                                     <span style={{
-                                        fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.3)",
+                                        fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.28)",
                                         fontFamily: "Georgia, 'Times New Roman', serif",
-                                        lineHeight: 1, marginBottom: 2,
+                                        lineHeight: 1, marginBottom: 4,
                                     }}>$</span>
                                     <span style={{
-                                        fontSize: 38, fontWeight: 900, color: "#fff",
-                                        letterSpacing: "-2px", lineHeight: 0.85,
+                                        fontSize: 46, fontWeight: 900, color: "#fff",
+                                        letterSpacing: "-2.5px", lineHeight: 0.82,
                                         textShadow: "0 2px 0 rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.25)",
                                     }}>
                                         {fmtPrice(listing.price)}

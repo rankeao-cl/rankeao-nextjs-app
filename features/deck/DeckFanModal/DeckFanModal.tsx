@@ -223,7 +223,7 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 backgroundColor: "rgba(0,0,0,0.72)",
                 backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)",
                 display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "space-between",
+                alignItems: "center",
                 padding: "16px 20px",
                 paddingBottom: "max(16px, env(safe-area-inset-bottom))",
                 overflow: "hidden",
@@ -440,7 +440,7 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                         <div style={{
                             display: "flex", gap: 8, alignItems: "center",
                             flexWrap: "wrap", justifyContent: "center",
-                            flexShrink: 0, padding: "10px 0 4px",
+                            flexShrink: 0, padding: "10px 0 4px", marginTop: "auto",
                         }}>
                             <StatPill label="Total" value={deckStats.grandTotal} accent />
                             <StatPill label="Únicas" value={deckStats.mainUnique} />
