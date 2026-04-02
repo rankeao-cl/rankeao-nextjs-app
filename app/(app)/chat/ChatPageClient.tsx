@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { getChatChannels } from "@/lib/api/chat";
+import { getChatChannels, createChannel } from "@/lib/api/chat";
+import { autocompleteUsers } from "@/lib/api/social";
 import type { Channel } from "@/lib/types/chat";
 import ChatSidebar from "./ChatSidebar";
 import ChatArea from "./ChatArea";
@@ -12,23 +13,54 @@ export default function ChatPageClient() {
   const { session, status } = useAuth();
   const searchParams = useSearchParams();
   const initialFilter = searchParams.get("filter") as "clanes" | "torneos" | null;
+  const targetUser = searchParams.get("user");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [loadingChannels, setLoadingChannels] = useState(true);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.accessToken) return;
+    const token = session.accessToken;
 
     setLoadingChannels(true);
-    getChatChannels(undefined, session.accessToken)
-      .then((val: any) => {
-        const channels = val?.data?.channels || val?.channels || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-        setChannels(channels);
+    getChatChannels(undefined, token)
+      .then(async (val: any) => {
+        const chList: Channel[] = val?.data?.channels || val?.channels || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
+        setChannels(chList);
+
+        // If ?user=X param, find or create DM with that user
+        if (targetUser) {
+          // Check if DM already exists
+          const existing = chList.find(
+            (c) => c.type === "DM" && c.members?.some((m: any) => m.username === targetUser)
+          );
+          if (existing) {
+            setSelectedChannel(existing);
+          } else {
+            // Look up user ID
+            try {
+              const res = await autocompleteUsers(targetUser, token);
+              const users = res?.data || res?.users || [];
+              const user = users.find((u: any) => u.username === targetUser);
+              if (user) {
+                const dmRes: any = await createChannel({ type: "DM", user_ids: [user.id] }, token);
+                const newChannel = dmRes?.data?.channel || dmRes?.channel;
+                if (newChannel) {
+                  setChannels((prev) => [newChannel, ...prev.filter((c) => c.id !== newChannel.id)]);
+                  setSelectedChannel(newChannel);
+                }
+              }
+            } catch (err) {
+              console.error("Error creating DM:", err);
+            }
+          }
+        }
       })
       .catch((err: any) => {
         console.error("Error obteniendo canales:", err);
       })
       .finally(() => setLoadingChannels(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, session?.accessToken]);
 
   if (status === "loading" || status === "unauthenticated") {
