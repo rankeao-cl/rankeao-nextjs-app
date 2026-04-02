@@ -80,10 +80,13 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 map.set(key, { ...card, totalQty: card.quantity ?? 1 });
             }
         }
-        return Array.from(map.values()).slice(0, MAX_FAN);
+        return Array.from(map.values());
     }, [mainCards]);
 
-    const fanCount = uniqueCards.length > 0 ? uniqueCards.length : MAX_FAN;
+    // Fan view on desktop shows max 10 cards
+    const fanCards = useMemo(() => uniqueCards.slice(0, MAX_FAN), [uniqueCards]);
+
+    const fanCount = fanCards.length > 0 ? fanCards.length : MAX_FAN;
 
     const deckStats = useMemo(() => {
         const allCards = deck?.cards ?? [];
@@ -113,6 +116,13 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
         const onResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener("resize", onResize);
         return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    // Lock body scroll while modal is open
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev; };
     }, []);
 
     useEffect(() => {
@@ -188,6 +198,8 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 padding: 20,
+                overflowY: "auto",
+                overscrollBehavior: "contain" as any,
                 opacity: entered ? 1 : 0,
                 transition: "opacity 0.22s ease",
             }}
@@ -310,8 +322,82 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                         ← Volver al mazo
                     </button>
                 </div>
+            ) : windowWidth < 768 ? (
+                /* ── Mobile: Grid view ── */
+                <>
+                    <div style={{
+                        width: "100%", maxWidth: 360,
+                        maxHeight: "calc(100dvh - 160px)",
+                        overflowY: "auto",
+                        marginTop: 60,
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: 6,
+                        padding: "0 4px",
+                        WebkitOverflowScrolling: "touch",
+                    }}>
+                        {(deckQuery.isPending
+                            ? Array.from({ length: 9 }).map((_, i) => (
+                                <div key={i} style={{
+                                    aspectRatio: "63 / 88", borderRadius: 10,
+                                    background: "rgba(255,255,255,0.06)",
+                                    animation: "deck-skeleton-pulse 1.4s ease-in-out infinite",
+                                }} />
+                            ))
+                            : uniqueCards.map((card) => (
+                                <div
+                                    key={card.card_id || card.card_name}
+                                    onClick={() => setSelectedCard(card)}
+                                    style={{
+                                        position: "relative",
+                                        aspectRatio: "63 / 88",
+                                        borderRadius: 10,
+                                        overflow: "hidden",
+                                        cursor: "pointer",
+                                        border: "1.5px solid rgba(255,255,255,0.12)",
+                                        boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+                                        transition: "transform 0.15s",
+                                    }}
+                                >
+                                    {card.image_url ? (
+                                        <img src={card.image_url} alt={card.card_name}
+                                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                            loading="lazy" />
+                                    ) : (
+                                        <CardBack w={120} h={168} />
+                                    )}
+                                    {card.totalQty > 1 && (
+                                        <div style={{
+                                            position: "absolute", bottom: 4, right: 4,
+                                            backgroundColor: "rgba(0,0,0,0.8)",
+                                            color: "white", fontSize: 11, fontWeight: 800,
+                                            padding: "2px 7px", borderRadius: 999,
+                                            border: "1px solid rgba(255,255,255,0.3)",
+                                        }}>
+                                            &times;{card.totalQty}
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Stats bar */}
+                    {deckStats && (
+                        <div style={{
+                            display: "flex", gap: 8, alignItems: "center",
+                            flexWrap: "wrap", justifyContent: "center",
+                            marginTop: 12,
+                        }}>
+                            <StatPill label="Total" value={deckStats.grandTotal} accent />
+                            <StatPill label="Únicas" value={deckStats.mainUnique} />
+                            {deckStats.sideTotal > 0 && <StatPill label="Side" value={deckStats.sideTotal} />}
+                            {deckStats.extraTotal > 0 && <StatPill label="Extra" value={deckStats.extraTotal} />}
+                        </div>
+                    )}
+                </>
             ) : (
-                /* ── Fan ── */
+                /* ── Desktop: Fan ── */
                 <>
                     <div style={{
                         position: "relative",
@@ -324,7 +410,7 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                         pointerEvents: "none",
                     }}>
                         {(deckQuery.isPending ? Array.from({ length: MAX_FAN }) : Array.from({ length: fanCount })).map((_, i) => {
-                            const card = uniqueCards[i] as UniqueCard | undefined;
+                            const card = fanCards[i] as UniqueCard | undefined;
                             const angle = getAngle(i, fanCount);
                             const baseZ = getBaseZ(i, fanCount);
                             const stackCount = card ? Math.min(card.totalQty - 1, 3) : 0;
@@ -478,18 +564,18 @@ function CardBack({ w, h }: { w: number; h: number }) {
     return (
         <div style={{
             width: w, height: h,
-            background: "linear-gradient(145deg, #2b3c6a 0%, #1a2848 50%, #2b3c6a 100%)",
+            background: "linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
         }}>
             <div style={{
                 width: "70%", height: "80%",
-                border: "1.5px solid rgba(200,180,80,0.45)",
+                border: "1.5px solid rgba(255,255,255,0.18)",
                 borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center",
             }}>
                 <div style={{
                     width: "55%", height: "55%",
-                    border: "1px solid rgba(200,180,80,0.28)",
-                    borderRadius: 2, background: "rgba(200,180,80,0.05)",
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    borderRadius: 2, background: "rgba(255,255,255,0.03)",
                 }} />
             </div>
         </div>

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { Compass, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useFeed, useFeedDiscover } from "@/lib/hooks/use-social";
+import { browseDecks, getDeck } from "@/lib/api/social";
 import FeedTournamentCard from "@/features/feed/FeedTournamentCard";
 import FeedListingCard from "@/features/feed/FeedListingCard";
 import PostCard from "@/features/social/PostCard";
@@ -12,6 +13,8 @@ import type { FeedPost } from "@/features/social/PostCard";
 import FeedDuelSearchCard from "@/features/feed/FeedDuelSearchCard";
 import FeedActivityCard from "@/features/feed/FeedActivityCard";
 import type { ActivityData } from "@/features/feed/FeedActivityCard";
+import DeckCard from "@/features/deck/DeckCard";
+import type { Deck } from "@/lib/types/social";
 import type { Tournament } from "@/lib/types/tournament";
 import type { Listing } from "@/lib/types/marketplace";
 import type { Duel } from "@/lib/types/duel";
@@ -25,6 +28,7 @@ type FeedItemType =
   | { id: string; type: "sale"; data: Listing; timestamp: number; pinned?: boolean }
   | { id: string; type: "post"; data: FeedPost; timestamp: number; pinned?: boolean }
   | { id: string; type: "duel_search"; data: Duel; timestamp: number; pinned?: boolean }
+  | { id: string; type: "deck"; data: Deck; timestamp: number; pinned?: boolean }
   | { id: string; type: "activity"; data: ActivityData; timestamp: number; pinned?: boolean };
 
 export default function FeedContent({
@@ -42,6 +46,27 @@ export default function FeedContent({
 
   // Always fetch discover feed (for unauthenticated users it's the primary; for auth users it's the fallback)
   const discoverFeedQ = useFeedDiscover({ per_page: 20 });
+
+  // Load decks to inject into feed as DeckCards (with full card details)
+  const [feedDecks, setFeedDecks] = useState<Deck[]>([]);
+  useEffect(() => {
+    browseDecks({ per_page: 6, sort: "newest" })
+      .then(async (val: any) => {
+        const list: Deck[] = val?.data?.decks || val?.data || val?.decks || [];
+        if (!Array.isArray(list) || list.length === 0) return;
+        // Fetch details (with cards) for up to 4 random decks
+        const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 4);
+        const detailed = await Promise.all(
+          shuffled.map((dk) =>
+            getDeck(dk.id)
+              .then((res: any) => res?.data?.deck || res?.deck || res?.data || null)
+              .catch(() => null)
+          )
+        );
+        setFeedDecks(detailed.filter((dk): dk is Deck => dk !== null && (dk.cards?.length ?? 0) > 0));
+      })
+      .catch(() => {});
+  }, []);
 
   // Personal feed resolved with 0 items or errored → fall back to discover
   const personalFeedData: any = personalFeedQ.data;
@@ -108,6 +133,32 @@ export default function FeedContent({
           continue;
         }
 
+        // Deck published → DeckCard with miniature grid
+        if (itemType === "DECK_PUBLISHED") {
+          const meta = s.metadata ?? {};
+          if (feedFilter !== "actividad") {
+            items.push({
+              id: `deck-${s.id}`,
+              type: "deck",
+              data: {
+                id: String(meta.deck_id ?? s.entity_id ?? s.id),
+                user_id: user.id ?? "",
+                username: user.username ?? s.username ?? "",
+                name: meta.deck_name ?? s.title ?? "",
+                game_name: meta.game_name ?? s.game ?? "",
+                format_name: meta.format_name ?? "",
+                is_public: true,
+                like_count: s.likes_count ?? 0,
+                view_count: meta.views_count ?? 0,
+                cards: meta.cards ?? [],
+                created_at: s.created_at ?? "",
+              },
+              timestamp: new Date(s.created_at || Date.now()).getTime(),
+            });
+          }
+          continue;
+        }
+
         // User-generated posts → PostCard
         if (itemType === "POST") {
           if (feedFilter !== "actividad") {
@@ -169,13 +220,30 @@ export default function FeedContent({
       }
     }
 
+    // Inject deck cards from browse (only those with cards loaded)
+    if (feedFilter !== "torneos" && feedFilter !== "ventas") {
+      // Avoid duplicating decks that already appear as DECK_PUBLISHED activities
+      const existingDeckIds = new Set(items.filter(i => i.type === "deck").map(i => i.id));
+      for (const dk of feedDecks) {
+        const deckItemId = `deck-${dk.id}`;
+        if (!existingDeckIds.has(deckItemId)) {
+          items.push({
+            id: deckItemId,
+            type: "deck",
+            data: dk,
+            timestamp: new Date(dk.created_at || 0).getTime(),
+          });
+        }
+      }
+    }
+
     items.sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
       return b.timestamp - a.timestamp;
     });
     return items;
-  }, [feedFilter, tournaments, listings, socialQ.data]);
+  }, [feedFilter, tournaments, listings, socialQ.data, feedDecks]);
 
   return (
     <>
@@ -236,6 +304,14 @@ export default function FeedContent({
                 <FeedListingCard
                   key={item.id}
                   listing={item.data as Listing}
+                />
+              );
+            }
+            if (item.type === "deck") {
+              return (
+                <DeckCard
+                  key={item.id}
+                  deck={item.data as Deck}
                 />
               );
             }

@@ -201,7 +201,7 @@ export default function FeedClient() {
                     overflow: "hidden",
                   }}>
                     {user.avatar_url ? (
-                      <img src={user.avatar_url} alt={user.username} style={{ width: 62, height: 62, objectFit: "cover" }} />
+                      <img src={user.avatar_url} alt={user.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>
                         {user.username.slice(0, 2).toUpperCase()}
@@ -219,6 +219,8 @@ export default function FeedClient() {
           const deck = item.data;
           const hasCards = deck.cards && deck.cards.length > 0;
           const coverImg = hasCards ? deck.cards![0].image_url : undefined;
+          const deckOwner = (deck as any).username ?? (deck as any).owner?.username ?? "";
+          const deckAvatar = (deck as any).avatar_url ?? (deck as any).owner?.avatar_url ?? "";
 
           return (
             <button
@@ -227,33 +229,59 @@ export default function FeedClient() {
               onClick={() => setActiveDeckId(deck.id)}
               style={{ background: "none", border: "none", padding: 0, cursor: "pointer", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: ITEM_WIDTH, scrollSnapAlign: snapAlign }}
             >
-              <div style={{
-                width: 80, height: 80, borderRadius: 16,
-                background: "var(--accent)",
-                padding: 2.5, display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
+              {/* Cuadrado con imagen + avatar del dueño en esquina */}
+              <div style={{ position: "relative", width: 80, height: 80 }}>
+                {/* Borde accent */}
                 <div style={{
-                  width: "100%", height: "100%", borderRadius: 12,
-                  backgroundColor: "var(--background)", overflow: "hidden",
-                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 80, height: 80, borderRadius: 18,
+                  background: "var(--accent)",
+                  padding: 2.5, display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  {coverImg ? (
-                    <img src={coverImg} alt={deck.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: 6, textAlign: "center" }}>
-                      <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="3" width="20" height="18" rx="3" />
-                        <rect x="5" y="1" width="14" height="18" rx="2" opacity="0.4" />
-                      </svg>
-                      <span style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", lineHeight: "10px" }}>
-                        {deck.game_name || "TCG"}
-                      </span>
-                    </div>
-                  )}
+                  <div style={{
+                    width: "100%", height: "100%", borderRadius: 13,
+                    backgroundColor: "var(--surface-solid)", overflow: "hidden",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {coverImg ? (
+                      <img src={coverImg} alt={deck.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: 6, textAlign: "center" }}>
+                        <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="3" width="20" height="18" rx="3" />
+                          <rect x="5" y="1" width="14" height="18" rx="2" opacity="0.4" />
+                        </svg>
+                        <span style={{ fontSize: 7, fontWeight: 700, color: "var(--muted)", lineHeight: "10px" }}>
+                          {deck.game_name || "TCG"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Avatar del dueño — esquina inferior izquierda */}
+                {deckOwner && (
+                  <div style={{
+                    position: "absolute", bottom: -2, left: -2,
+                    width: 26, height: 26, borderRadius: 13,
+                    background: "var(--foreground)",
+                    padding: 1.5,
+                    border: "2px solid var(--background)",
+                    overflow: "hidden",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {deckAvatar ? (
+                      <img src={deckAvatar} alt={deckOwner} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 11 }} />
+                    ) : (
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "var(--background)", lineHeight: 1 }}>
+                        {deckOwner[0].toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
+
               <span style={{ fontSize: 11, fontWeight: 500, color: "var(--muted)", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
-                {deck.name}
+                {deckOwner || deck.name}
               </span>
             </button>
           );
