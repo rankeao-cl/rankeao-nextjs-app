@@ -899,6 +899,9 @@ export default function PublicProfilePage({
                             {decks.map((deck, i) => {
                                 const normalized = {
                                     id: deck.id,
+                                    user_id: deck.user_id || deck.owner?.id || "",
+                                    name: deck.name || deck.deck_name || "",
+                                    is_public: deck.is_public ?? true,
                                     author: {
                                         username: deck.owner?.username || deck.username || profile?.username || "",
                                         avatar_url: deck.owner?.avatar_url,

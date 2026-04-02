@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Clock, MapPin, Persons, Cup, Person, ShieldCheck, ArrowRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
+import { getGameBrand } from "@/lib/gameLogos";
 import type { Tournament, Round, Standing, Match } from "@/lib/types/tournament";
 import TournamentBracket from "@/features/tournament/TournamentBracket";
 import FollowTournamentButton from "@/features/tournament/FollowTournamentButton";
@@ -176,6 +177,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     const defaultTab = isLive ? "rounds" : isFinished ? "standings" : "info";
 
     const bannerBg = tournament.game_logo_url || tournament.tenant_logo_url || null;
+    const gameBrand = getGameBrand(tournament.game || tournament.game_name || "");
 
     return (
         <div className="flex flex-col w-full">
@@ -195,11 +197,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                     <div
                         className="absolute inset-0"
                         style={{
-                            background: isLive
-                                ? "linear-gradient(135deg, #0d2b1a 0%, #1a3a28 60%, #061008 100%)"
-                                : isOpen || isCheckIn
-                                    ? "linear-gradient(135deg, #0d1b2b 0%, #1a2a3a 60%, #060c14 100%)"
-                                    : "linear-gradient(135deg, #131318 0%, #1e1e24 60%, #0a0a0e 100%)",
+                            background: `radial-gradient(ellipse at 70% 20%, ${gameBrand.color}22 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, ${gameBrand.color}12 0%, transparent 50%), linear-gradient(145deg, ${gameBrand.bg} 0%, #0a0a0e 50%, ${gameBrand.bg}cc 100%)`,
                         }}
                     />
                 )}
@@ -215,7 +213,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                             ? "var(--success)"
                             : isOpen || isCheckIn
                                 ? "var(--warning)"
-                                : "var(--overlay)",
+                                : `linear-gradient(90deg, ${gameBrand.color}, ${gameBrand.color}88, transparent)`,
                     }}
                 />
 

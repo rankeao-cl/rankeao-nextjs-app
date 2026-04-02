@@ -19,6 +19,10 @@ function normalizeTournament(t: Record<string, unknown>): Tournament {
     if (t.current_players != null && t.registered_count == null) {
         t.registered_count = t.current_players;
     }
+    // Map game_slug → game (API returns game_slug, frontend expects game)
+    if (!t.game && t.game_slug) {
+        t.game = t.game_slug;
+    }
     // Flatten nested tenant object
     if (t.tenant && typeof t.tenant === "object") {
         const tenant = t.tenant as Record<string, unknown>;
