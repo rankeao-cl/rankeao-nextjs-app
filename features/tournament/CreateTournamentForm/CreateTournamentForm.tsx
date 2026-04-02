@@ -7,6 +7,8 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getGames, getGameFormats } from "@/lib/api/catalog";
 import { createTournament } from "@/lib/api/tournaments";
+import Image from "next/image";
+import { getGameBrand } from "@/lib/gameLogos";
 import type { CatalogGame, CatalogFormat } from "@/lib/types/catalog";
 
 const structures = [
@@ -71,6 +73,7 @@ export default function CreateTournamentForm() {
     const [city, setCity] = useState("");
     const [region, setRegion] = useState("");
     const [countryCode, setCountryCode] = useState("CL");
+    const [bannerUrl, setBannerUrl] = useState("");
 
     // Load games
     useEffect(() => {
@@ -133,6 +136,7 @@ export default function CreateTournamentForm() {
             if (venueName.trim()) payload.venue_name = venueName.trim();
             if (city.trim()) payload.city = city.trim();
             if (region.trim()) payload.region = region.trim();
+            if (bannerUrl.trim()) payload.banner_url = bannerUrl.trim();
 
             const res = await createTournament(payload as any);
             const data = (res as any).data || res;
@@ -223,6 +227,58 @@ export default function CreateTournamentForm() {
                             }}
                         />
                     </div>
+                </Card.Content>
+            </Card>
+
+            {/* ── Banner personalizado ── */}
+            <Card style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <Card.Content className="p-5 space-y-4">
+                    <h2 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Banner del torneo</h2>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>
+                        Opcional. Si no se agrega, se usará el banner del juego seleccionado.
+                    </p>
+
+                    <div>
+                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
+                            URL de imagen (landscape, mín. 1200px ancho)
+                        </label>
+                        <Input
+                            value={bannerUrl}
+                            onChange={(e) => setBannerUrl(e.target.value)}
+                            placeholder="https://ejemplo.com/banner.jpg"
+                            className="w-full"
+                        />
+                    </div>
+
+                    {/* Preview */}
+                    {(bannerUrl.trim() || selectedGame) && (
+                        <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9", border: "1px solid var(--border)" }}>
+                            {bannerUrl.trim() ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={bannerUrl.trim()}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                            ) : selectedGame ? (
+                                <div
+                                    className="absolute inset-0"
+                                    style={{
+                                        background: (() => {
+                                            const b = getGameBrand(selectedGame.slug);
+                                            return `radial-gradient(ellipse at 70% 20%, ${b.color}22 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, ${b.color}12 0%, transparent 50%), linear-gradient(145deg, ${b.bg} 0%, #0a0a0e 50%, ${b.bg}cc 100%)`;
+                                        })(),
+                                    }}
+                                />
+                            ) : null}
+                            <div className="absolute bottom-2 left-3">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.5)", color: "var(--muted)" }}>
+                                    {bannerUrl.trim() ? "Banner personalizado" : `Banner por defecto: ${selectedGame?.name}`}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </Card.Content>
             </Card>
 

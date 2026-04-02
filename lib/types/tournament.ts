@@ -160,6 +160,7 @@ export interface CreateTournamentRequest {
     prize_pool?: string;
     entry_fee?: string;
     is_ranked?: boolean;
+    banner_url?: string;
     venue_name?: string;
     venue_address?: string;
     city?: string;
