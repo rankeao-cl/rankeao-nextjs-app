@@ -23,6 +23,10 @@ function normalizeTournament(t: Record<string, unknown>): Tournament {
     if (!t.game && t.game_slug) {
         t.game = t.game_slug;
     }
+    // Fallback: use banner_url as game_logo_url if not already set
+    if (!t.game_logo_url && t.banner_url) {
+        t.game_logo_url = t.banner_url;
+    }
     // Flatten nested tenant object
     if (t.tenant && typeof t.tenant === "object") {
         const tenant = t.tenant as Record<string, unknown>;
