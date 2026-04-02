@@ -49,8 +49,8 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
     const organizerName = tournament.tenant_name || tournament.organizer_username || "Torneo";
     const brand = getGameBrand(tournament.game || tournament.game_name || "");
 
-    // Imagen de fondo: usar game_logo_url o tenant_logo_url como fallback
-    const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
+    // Imagen de fondo: banner_url (wallpaper) > game_logo_url > tenant_logo_url
+    const bgImage = tournament.banner_url || tournament.game_logo_url || tournament.tenant_logo_url || null;
 
     return (
         <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>

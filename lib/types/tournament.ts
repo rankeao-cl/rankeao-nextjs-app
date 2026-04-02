@@ -11,6 +11,8 @@ export interface Tournament {
     game_id?: string;
     game_name?: string;
     game_logo_url?: string;
+    banner_url?: string;
+    logo_url?: string;
     format: string;
     format_id?: string;
     format_name?: string;

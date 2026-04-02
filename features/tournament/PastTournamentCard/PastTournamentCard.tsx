@@ -30,7 +30,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
         ? new Date(tournament.starts_at).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })
         : null;
 
-    const bgImage = tournament.game_logo_url || tournament.tenant_logo_url || null;
+    const bgImage = tournament.banner_url || tournament.game_logo_url || tournament.tenant_logo_url || null;
 
     return (
         <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>

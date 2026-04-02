@@ -176,7 +176,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     // Default tab based on tournament status
     const defaultTab = isLive ? "rounds" : isFinished ? "standings" : "info";
 
-    const bannerBg = tournament.game_logo_url || tournament.tenant_logo_url || null;
+    const bannerBg = tournament.banner_url || tournament.game_logo_url || tournament.tenant_logo_url || null;
     const gameBrand = getGameBrand(tournament.game || tournament.game_name || "");
 
     return (
