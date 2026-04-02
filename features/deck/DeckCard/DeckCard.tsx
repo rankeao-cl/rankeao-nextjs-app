@@ -36,7 +36,7 @@ function DeckCardInner({ deck }: DeckCardProps) {
     const isAuth = status === "authenticated";
 
     const [liked, setLiked] = useState((deck as any).is_liked ?? false);
-    const [likesCount, setLikesCount] = useState(deck.like_count ?? 0);
+    const [likesCount, setLikesCount] = useState(deck.like_count ?? (deck as any).likes_count ?? 0);
     const likeMutation = useLikeDeck();
 
     const handleLike = useCallback((e: React.MouseEvent) => {

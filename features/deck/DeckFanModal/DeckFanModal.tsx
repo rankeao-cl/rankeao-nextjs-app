@@ -3,7 +3,9 @@
 import { useEffect, useState, useMemo, Fragment, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "@heroui/react";
-import { useDeck } from "@/lib/hooks/use-social";
+import { Heart, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useDeck, useLikeDeck } from "@/lib/hooks/use-social";
 import type { DeckCard } from "@/lib/types/social";
 
 interface DeckFanModalProps {
@@ -112,6 +114,13 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
     const [selectedCard, setSelectedCard] = useState<UniqueCard | null>(null);
     const [entered, setEntered] = useState(false);
 
+    // Interactions
+    const { status: authStatus, session } = useAuth();
+    const isAuth = authStatus === "authenticated";
+    const likeMutation = useLikeDeck();
+    const [liked, setLiked] = useState((deck as any)?.is_liked ?? false);
+    const [likesCount, setLikesCount] = useState((deck as any)?.like_count ?? (deck as any)?.likes_count ?? 0);
+
     useEffect(() => {
         const onResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener("resize", onResize);
@@ -188,6 +197,24 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
     const ownerAvatar   = deck?.avatar_url ?? deck?.owner?.avatar_url ?? deck?.user?.avatar_url ?? "";
     const gameName      = deck?.game_name ?? deck?.game ?? "";
 
+    const handleLike = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isAuth) return;
+        const next = !liked;
+        setLiked(next);
+        setLikesCount((c: number) => c + (next ? 1 : -1));
+        likeMutation.mutate({ deckId, like: next }, {
+            onError: () => { setLiked(!next); setLikesCount((c: number) => c + (next ? -1 : 1)); },
+        });
+    }, [isAuth, liked, likeMutation, deckId]);
+
+    const handleShare = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const url = `https://rankeao.cl/decks/${deckId}`;
+        if (navigator.share) navigator.share({ title: deck?.name ?? "Mazo", url }).catch(() => {});
+        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+    }, [deckId, deck?.name]);
+
     return (
         <div
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -204,87 +231,119 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 transition: "opacity 0.22s ease",
             }}
         >
-            {/* Header — flujo normal, no absolute */}
+            {/* Header */}
             <div style={{
-                width: "100%", maxWidth: 400,
-                display: "flex", alignItems: "center", gap: 10,
+                width: "100%", maxWidth: windowWidth < 768 ? 400 : 700,
+                display: "flex", flexDirection: "column", gap: 8,
                 padding: "0 4px", flexShrink: 0, zIndex: 10,
             }}>
-                {/* Avatar + username */}
-                {deck && ownerUsername && (
-                    <Link
-                        href={`/perfil/${ownerUsername}`}
-                        onClick={onClose}
-                        style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
-                    >
-                        <div style={{
-                            width: 32, height: 32, borderRadius: 16,
-                            backgroundColor: "var(--background)", overflow: "hidden",
-                            border: "2px solid var(--accent)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 12, fontWeight: 700, color: "var(--foreground)",
-                        }}>
-                            {ownerAvatar
-                                ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 28, height: 28, borderRadius: 14, objectFit: "cover" }} />
-                                : ownerUsername[0].toUpperCase()
-                            }
-                        </div>
-                    </Link>
-                )}
-
-                {/* Name + game */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    {deck?.name && (
-                        <Link href={`/decks/${deckId}`} onClick={onClose} style={{ textDecoration: "none" }}>
-                            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "white", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {deck.name}
-                            </p>
+                {/* Row 1: avatar + name + actions */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    {deck && ownerUsername && (
+                        <Link
+                            href={`/perfil/${ownerUsername}`}
+                            onClick={onClose}
+                            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
+                        >
+                            <div style={{
+                                width: 32, height: 32, borderRadius: 16,
+                                backgroundColor: "var(--background)", overflow: "hidden",
+                                border: "2px solid var(--accent)",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 12, fontWeight: 700, color: "var(--foreground)",
+                            }}>
+                                {ownerAvatar
+                                    ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 28, height: 28, borderRadius: 14, objectFit: "cover" }} />
+                                    : ownerUsername[0].toUpperCase()
+                                }
+                            </div>
                         </Link>
                     )}
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                        {ownerUsername && (
-                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>@{ownerUsername}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        {deck?.name && (
+                            <Link href={`/decks/${deckId}`} onClick={onClose} style={{ textDecoration: "none" }}>
+                                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "white", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {deck.name}
+                                </p>
+                            </Link>
                         )}
-                        {gameName && (
-                            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{gameName}</span>
-                        )}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                            {ownerUsername && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>@{ownerUsername}</span>}
+                            {gameName && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{gameName}</span>}
+                        </div>
                     </div>
-                </div>
 
-                {/* Copiar */}
-                <button
-                    onClick={(e) => { e.stopPropagation(); copyDeck(); }}
-                    title="Copiar lista"
-                    style={{
-                        height: 34,
-                        background: "rgba(255,255,255,0.10)",
-                        border: "1px solid rgba(255,255,255,0.18)",
-                        borderRadius: 10, color: "rgba(255,255,255,0.65)",
-                        cursor: "pointer", padding: "0 10px",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        gap: 5, fontSize: 11, fontWeight: 600, flexShrink: 0,
-                    }}
-                >
-                    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" />
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </svg>
-                </button>
+                    {/* Desktop: all buttons inline */}
+                    {windowWidth >= 768 && (
+                        <>
+                            <ModalBtn onClick={handleLike} active={liked} activeColor="#EF4444">
+                                <Heart style={{ width: 14, height: 14 }} />
+                                {likesCount > 0 && <span>{likesCount}</span>}
+                            </ModalBtn>
+                            <ModalBtn onClick={handleShare}>
+                                <ArrowShapeTurnUpRight style={{ width: 14, height: 14 }} />
+                            </ModalBtn>
+                            <ModalBtn onClick={(e) => { e.stopPropagation(); copyDeck(); }}>
+                                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg>
+                                <span>Copiar</span>
+                            </ModalBtn>
+                        </>
+                    )}
 
-                {/* Cerrar */}
-                <button
-                    onClick={onClose}
-                    style={{
+                    {/* Mobile: only copy + close */}
+                    {windowWidth < 768 && (
+                        <ModalBtn onClick={(e) => { e.stopPropagation(); copyDeck(); }}>
+                            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                        </ModalBtn>
+                    )}
+
+                    <button onClick={onClose} style={{
                         height: 34, width: 34,
                         background: "rgba(255,255,255,0.10)",
                         border: "1px solid rgba(255,255,255,0.18)",
                         borderRadius: 17, color: "rgba(255,255,255,0.65)",
                         cursor: "pointer", display: "flex",
                         alignItems: "center", justifyContent: "center",
-                        fontSize: 18, fontWeight: 600, flexShrink: 0,
-                        lineHeight: 1,
-                    }}
-                >×</button>
+                        fontSize: 18, fontWeight: 600, flexShrink: 0, lineHeight: 1,
+                    }}>×</button>
+                </div>
+
+                {/* Row 2 (mobile only): like + share + stats */}
+                {windowWidth < 768 && deck && !selectedCard && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <button type="button" onClick={handleLike} style={{
+                                display: "flex", alignItems: "center", gap: 4,
+                                background: "none", border: "none",
+                                cursor: isAuth ? "pointer" : "default",
+                                color: liked ? "#EF4444" : "rgba(255,255,255,0.5)",
+                                padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                            }}>
+                                <Heart style={{ width: 15, height: 15 }} />
+                                {likesCount > 0 && <span>{likesCount}</span>}
+                            </button>
+                            <button type="button" onClick={handleShare} style={{
+                                display: "flex", alignItems: "center",
+                                background: "none", border: "none", cursor: "pointer",
+                                color: "rgba(255,255,255,0.5)",
+                                padding: "4px 8px", borderRadius: 999,
+                            }}>
+                                <ArrowShapeTurnUpRight style={{ width: 15, height: 15 }} />
+                            </button>
+                        </div>
+                        {deckStats && (
+                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                                {deckStats.grandTotal} cartas{deckStats.sideTotal > 0 ? ` · ${deckStats.sideTotal} side` : ""}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
 
             {selectedCard ? (
@@ -514,19 +573,6 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                         })}
                     </div>
 
-                    {/* Stats bar */}
-                    {deckStats && (
-                        <div style={{
-                            display: "flex", gap: 8, alignItems: "center",
-                            flexWrap: "wrap", justifyContent: "center",
-                            pointerEvents: "none",
-                        }}>
-                            <StatPill label="Total" value={deckStats.grandTotal} accent />
-                            <StatPill label="Únicas" value={deckStats.mainUnique} />
-                            {deckStats.sideTotal > 0 && <StatPill label="Side" value={deckStats.sideTotal} />}
-                            {deckStats.extraTotal > 0 && <StatPill label="Extra" value={deckStats.extraTotal} />}
-                        </div>
-                    )}
                 </>
             )}
 
@@ -537,6 +583,22 @@ export default function DeckFanModal({ deckId, onClose }: DeckFanModalProps) {
                 }
             `}</style>
         </div>
+    );
+}
+
+function ModalBtn({ onClick, children, active, activeColor }: { onClick: (e: React.MouseEvent) => void; children: React.ReactNode; active?: boolean; activeColor?: string }) {
+    const bg = active && activeColor ? `${activeColor}22` : "rgba(255,255,255,0.10)";
+    const border = active && activeColor ? `${activeColor}44` : "rgba(255,255,255,0.18)";
+    const color = active && activeColor ? activeColor : "rgba(255,255,255,0.65)";
+    return (
+        <button onClick={onClick} style={{
+            height: 34, background: bg, border: `1px solid ${border}`,
+            borderRadius: 10, color, cursor: "pointer", padding: "0 10px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 5, fontSize: 12, fontWeight: 600, flexShrink: 0,
+        }}>
+            {children}
+        </button>
     );
 }
 
