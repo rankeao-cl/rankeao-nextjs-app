@@ -10,6 +10,7 @@ import {
     getNotifications,
     getUnreadNotificationCount,
     markAllNotificationsRead,
+    markNotificationRead,
 } from "@/lib/api/notifications";
 import type { Notification } from "@/lib/types/notification";
 
@@ -144,7 +145,7 @@ function NotifThumbnail({ cat, variables }: { cat: string; variables?: Record<st
 
 // ── Single notification row ──
 
-function NotifRow({ notif, onClose }: { notif: Notification; onClose: () => void }) {
+function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClose: () => void; accessToken?: string }) {
     const cat = getCategory(notif);
     const body = stripHtml(notif.body || notif.title || "Nueva notificación");
     const actor = extractActor(body);
@@ -197,15 +198,22 @@ function NotifRow({ notif, onClose }: { notif: Notification; onClose: () => void
         </div>
     );
 
+    const handleClick = () => {
+        if (!notif.is_read && accessToken) {
+            markNotificationRead(notif.id, accessToken).catch(() => {});
+        }
+        onClose();
+    };
+
     if (notif.action_url) {
         return (
-            <Link href={notif.action_url} onClick={onClose}
+            <Link href={notif.action_url} onClick={handleClick}
                 className="block hover:bg-white/5 transition-colors">
                 {inner}
             </Link>
         );
     }
-    return <div className="hover:bg-white/5 transition-colors">{inner}</div>;
+    return <div onClick={handleClick} className="hover:bg-white/5 transition-colors cursor-pointer">{inner}</div>;
 }
 
 // ── Main Component ──
@@ -401,7 +409,7 @@ export default function NotificationSidebar({
                                         {group.label}
                                     </p>
                                     {group.items.map((notif) => (
-                                        <NotifRow key={notif.id} notif={notif} onClose={onClose} />
+                                        <NotifRow key={notif.id} notif={notif} onClose={onClose} accessToken={accessToken} />
                                     ))}
                                 </div>
                             ))}
