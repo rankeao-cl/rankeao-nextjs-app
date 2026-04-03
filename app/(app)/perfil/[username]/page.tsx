@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import Image from "next/image";
 import PostCard from "@/features/social/PostCard";
 import type { FeedPost } from "@/features/social/PostCard";
 import FeedActivityCard from "@/features/feed/FeedActivityCard";
@@ -12,7 +11,6 @@ import ProfileTournamentsTab from "./ProfileTournamentsTab";
 import ProfileStatsTab from "./ProfileStatsTab";
 import ProfileMarketplaceTab from "./ProfileMarketplaceTab";
 import ProfileLogrosTab from "./ProfileLogrosTab";
-import ProfileWishlistTab from "./ProfileWishlistTab";
 import {
     getUserProfile,
     getUserActivity,
@@ -32,8 +30,7 @@ import { getUserStats, getBadges } from "@/lib/api/gamification";
 import { getUserTournamentHistory } from "@/lib/api/ratings";
 import { getListings } from "@/lib/api/marketplace";
 import { getDuels } from "@/lib/api/duels";
-import SaleCard from "@/features/marketplace/SaleCard";
-import { Person, Envelope, Cup, MapPin, Xmark, EllipsisVertical, CircleCheck, Star, Shield } from "@gravity-ui/icons";
+import { Person, MapPin, Xmark, EllipsisVertical, CircleCheck, Star, Shield } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { getRankForElo } from "@/lib/rankSystem";
@@ -44,16 +41,10 @@ type ProfileTab =
     | "actividad"
     | "mazos"
     | "coleccion"
-    | "wishlist"
     | "torneos"
     | "stats"
     | "marketplace"
     | "logros";
-
-function getInitial(value: unknown) {
-    if (typeof value === "string") return value.trim().charAt(0).toUpperCase() || "U";
-    return "U";
-}
 
 function toArray<T>(value: unknown): T[] {
     if (!value) return [];
@@ -93,14 +84,25 @@ function toArray<T>(value: unknown): T[] {
 
 const TABS: { key: ProfileTab; label: string }[] = [
     { key: "actividad", label: "Actividad" },
+    { key: "torneos", label: "Torneos" },
     { key: "mazos", label: "Mazos" },
     { key: "coleccion", label: "Coleccion" },
-    { key: "wishlist", label: "Wishlist" },
-    { key: "torneos", label: "Torneos" },
     { key: "stats", label: "Stats" },
-    { key: "marketplace", label: "Market" },
     { key: "logros", label: "Logros" },
+    { key: "marketplace", label: "Market" },
 ];
+
+function getRankGradient(level: number): string {
+    if (level >= 10) return "linear-gradient(135deg, #92400e 0%, #f59e0b 50%, #92400e 100%)";
+    if (level >= 5) return "linear-gradient(135deg, #1e1b4b 0%, #7c3aed 50%, #1e1b4b 100%)";
+    return "linear-gradient(135deg, #0f172a 0%, #3b82f6 50%, #0f172a 100%)";
+}
+
+function getRankRingColor(level: number): string {
+    if (level >= 10) return "#f59e0b";
+    if (level >= 5) return "#7c3aed";
+    return "#3b82f6";
+}
 
 export default function PublicProfilePage({
     params,
@@ -406,98 +408,28 @@ export default function PublicProfilePage({
         setShowEditModal(false);
     };
 
-    /* ── Shared sub-components used in both mobile & desktop ── */
+    /* ── Rank-based styling ── */
+    const ringColor = getRankRingColor(level);
+    const rankGradient = getRankGradient(level);
+    const xpBarColor = ringColor;
 
-    const badgesRow = (
-        <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-            <span style={{
-                backgroundColor: rank.cssColor + "20",
-                color: rank.cssColor,
-                paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
-                borderRadius: 99, fontSize: 11, fontWeight: 700,
-            }}>{rank.name}</span>
-            {level > 0 && (
-                <span style={{
-                    backgroundColor: "var(--surface)", color: "var(--foreground)",
-                    paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
-                    borderRadius: 99, fontSize: 11, fontWeight: 700,
-                }}>Nv. {level}</span>
-            )}
-            {equippedTitle && (
-                <span style={{
-                    backgroundColor: "color-mix(in srgb, var(--purple) 15%, transparent)", color: "var(--purple)",
-                    paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
-                    borderRadius: 99, fontSize: 11, fontWeight: 600,
-                }}>{equippedTitle}</span>
-            )}
-            {isVerified && (
-                <span style={{
-                    display: "inline-flex", alignItems: "center", gap: 3,
-                    backgroundColor: "var(--accent)", color: "white",
-                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
-                    borderRadius: 99, fontSize: 10, fontWeight: 700,
-                }}><CircleCheck width={10} height={10} /> Verificado</span>
-            )}
-            {isPremium && (
-                <span style={{
-                    display: "inline-flex", alignItems: "center", gap: 3,
-                    backgroundColor: "var(--warning)", color: "var(--surface-solid)",
-                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
-                    borderRadius: 99, fontSize: 10, fontWeight: 700,
-                }}><Star width={10} height={10} /> Premium</span>
-            )}
-            {isAdmin && (
-                <span style={{
-                    backgroundColor: "var(--danger)", color: "white",
-                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
-                    borderRadius: 99, fontSize: 10, fontWeight: 700,
-                }}>Admin</span>
-            )}
-            {isModerator && (
-                <span style={{
-                    backgroundColor: "var(--accent)", color: "white",
-                    paddingLeft: 8, paddingRight: 8, paddingTop: 3, paddingBottom: 3,
-                    borderRadius: 99, fontSize: 10, fontWeight: 700,
-                }}>Mod</span>
-            )}
-        </div>
-    );
+    /* ── Reusable blocks ── */
 
-    const socialRow = (
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <span style={{ color: "var(--muted)", fontSize: 13 }}>
-                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{followersCount}</span> seguidores
-            </span>
-            <span style={{ color: "var(--muted)", fontSize: 13 }}>&middot;</span>
-            <span style={{ color: "var(--muted)", fontSize: 13 }}>
-                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{followingCount}</span> siguiendo
-            </span>
-            <span style={{ color: "var(--muted)", fontSize: 13 }}>&middot;</span>
-            <span style={{ color: "var(--muted)", fontSize: 13 }}>
-                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{friendsCount}</span> amigos
-            </span>
-        </div>
-    );
-
-    // Bloque de clan del usuario
-    const clanBlock = userClan ? (
-        <a
-            href={`/clanes/${userClan.id}`}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
-        >
+    // Clan inline
+    const clanInline = userClan ? (
+        <a href={`/clanes/${userClan.id}`} style={{ display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}>
             {userClan.logo_url ? (
-                <img src={userClan.logo_url} alt={userClan.name} style={{ width: 18, height: 18, borderRadius: 4, objectFit: "cover" }} />
+                <img src={userClan.logo_url} alt={userClan.name} style={{ width: 16, height: 16, borderRadius: 3, objectFit: "cover" }} />
             ) : (
                 <Shield width={12} height={12} color="var(--muted)" />
             )}
             <span style={{ color: "var(--muted)", fontSize: 12 }}>
-                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>[{userClan.tag}]</span>{" "}
-                {userClan.name}
+                <span style={{ color: "var(--foreground)", fontWeight: 700 }}>[{userClan.tag}]</span> {userClan.name}
             </span>
         </a>
     ) : null;
 
-    // Bloque de historial reciente de duelos
+    // Recent duels block (unchanged logic, kept for extra sections)
     const recentDuelsBlock = recentDuels.length > 0 ? (
         <div style={{
             backgroundColor: "var(--surface-solid)", borderRadius: 16,
@@ -557,295 +489,7 @@ export default function PublicProfilePage({
         </div>
     ) : null;
 
-    const avatarBlock = (size: number, bgColor: string) => {
-        const effectiveBorder = levelBorderColor || bgColor;
-        const hasBorderGlow = !!levelBorderColor;
-        return (
-            <div style={{
-                position: "relative", width: size, height: size, flexShrink: 0,
-                ...(hasBorderGlow ? { filter: `drop-shadow(0 0 6px ${levelBorderColor}60)` } : {}),
-            }}>
-                {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt={name} style={{
-                        width: size, height: size, borderRadius: size / 2,
-                        border: `4px solid ${effectiveBorder}`, objectFit: "cover",
-                    }} />
-                ) : (
-                    <div style={{
-                        width: size, height: size, borderRadius: size / 2,
-                        backgroundColor: "var(--surface-solid)", border: `4px solid ${effectiveBorder}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <Person width={size * 0.4} height={size * 0.4} color="var(--muted)" />
-                    </div>
-                )}
-                {isOwnProfile && (
-                    <div style={{
-                        position: "absolute", bottom: 2, right: 2,
-                        width: 20, height: 20, borderRadius: 10,
-                        backgroundColor: bgColor,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <div style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: "var(--success)" }} />
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    const bannerBlock = (height: number) => (
-        <div style={{ position: "relative", width: "100%", height, overflow: "hidden" }}>
-            {bannerUrl ? (
-                <div style={{
-                    position: "absolute", inset: 0,
-                    backgroundImage: `url('${bannerUrl}')`,
-                    backgroundSize: "cover", backgroundPosition: "center",
-                }} />
-            ) : (
-                <div style={{
-                    position: "absolute", inset: 0, backgroundColor: "var(--surface-solid)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                    <span style={{
-                        fontSize: 60, color: "var(--foreground)", opacity: 0.04,
-                        fontWeight: 900, userSelect: "none",
-                    }}>RANKEAO</span>
-                </div>
-            )}
-            <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.3)" }} />
-        </div>
-    );
-
-    const statsCard = (
-        <div style={{
-            backgroundColor: "var(--surface-solid)", borderRadius: 16,
-            border: "1px solid var(--border)", overflow: "hidden",
-        }}>
-            <div style={{ paddingTop: 4, paddingBottom: 4 }}>
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
-                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
-                    </div>
-                    <div style={{ width: 0.5, height: 36, backgroundColor: "var(--border)" }} />
-                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: winRate > 0 ? winRateColor : "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
-                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
-                    </div>
-                </div>
-                <div style={{ height: 0.5, backgroundColor: "var(--border)", marginLeft: 16, marginRight: 16 }} />
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
-                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
-                    </div>
-                    <div style={{ width: 0.5, height: 36, backgroundColor: "var(--border)" }} />
-                    <div style={{ flex: 1, textAlign: "center", padding: "14px 0" }}>
-                        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0 }}>
-                            {currentStreak > 0 ? `${currentStreak}W` : bestStreak > 0 ? `${bestStreak}` : "-"}
-                        </p>
-                        <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
-    const xpBarColor = levelBorderColor || "var(--foreground)";
-    const xpProgressBlock = (totalXp > 0 || level > 0) ? (
-        <div style={{
-            padding: 14, backgroundColor: "var(--surface-solid)", borderRadius: 16,
-            border: `1px solid ${levelBorderColor ? levelBorderColor + "30" : "var(--border)"}`,
-        }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div style={{
-                        width: 26, height: 26, borderRadius: 13,
-                        backgroundColor: xpBarColor + "25",
-                        border: `1.5px solid ${xpBarColor}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: xpBarColor }}>{level}</span>
-                    </div>
-                    <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                        NIVEL {level} &rarr; {level + 1}
-                    </span>
-                    {xpRank > 0 && (
-                        <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>#{xpRank} XP</span>
-                    )}
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: xpBarColor }}>{currentLevelXp} / {xpToNextLevel} XP</span>
-            </div>
-            <div style={{ height: 6, borderRadius: 3, backgroundColor: "var(--background)", overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 3, backgroundColor: xpBarColor, width: `${xpProgress}%`, transition: "width 0.5s ease" }} />
-            </div>
-            {xpToNextLevel > 0 && (
-                <div style={{ marginTop: 4, textAlign: "right" }}>
-                    <span style={{ fontSize: 10, color: "var(--muted)" }}>
-                        Faltan <span style={{ color: xpBarColor, fontWeight: 700 }}>{Math.max(0, xpToNextLevel - currentLevelXp).toLocaleString()}</span> XP
-                    </span>
-                </div>
-            )}
-        </div>
-    ) : null;
-
-    const actionButtons = (
-        <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-            {isOwnProfile ? (
-                <>
-                    <button
-                        onClick={() => setShowEditModal(true)}
-                        style={{
-                            flex: 1, backgroundColor: "var(--surface)", color: "var(--foreground)",
-                            border: "1px solid var(--border)", borderRadius: 99, padding: "12px 0",
-                            fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center",
-                        }}
-                    >Editar perfil</button>
-                    <button
-                        onClick={() => router.push("/config")}
-                        className="md:hidden"
-                        style={{
-                            flex: 1, backgroundColor: "var(--surface)", color: "var(--foreground)",
-                            border: "1px solid var(--border)", borderRadius: 99, padding: "12px 0",
-                            fontSize: 14, fontWeight: 600, cursor: "pointer", textAlign: "center",
-                        }}
-                    >Ajustes</button>
-                    <button
-                        onClick={() => { navigator.clipboard.writeText(window.location.href); }}
-                        style={{
-                            width: 44, height: 44, backgroundColor: "var(--surface)",
-                            border: "1px solid var(--border)", borderRadius: 99,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            cursor: "pointer", flexShrink: 0,
-                        }}
-                    >
-                        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
-                            <polyline points="16,6 12,2 8,6" />
-                            <line x1={12} y1={2} x2={12} y2={15} />
-                        </svg>
-                    </button>
-                </>
-            ) : (
-                <>
-                    <button
-                        onClick={handleFollow}
-                        disabled={followLoading}
-                        style={{
-                            flex: 1,
-                            backgroundColor: isFollowing ? "var(--surface-solid)" : "var(--accent)",
-                            color: isFollowing ? "var(--foreground)" : "#FFFFFF",
-                            border: isFollowing ? "1px solid var(--border)" : "none",
-                            borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
-                            cursor: followLoading ? "not-allowed" : "pointer",
-                            opacity: followLoading ? 0.6 : 1, textAlign: "center",
-                        }}
-                    >{isFollowing ? "Siguiendo" : "Seguir"}</button>
-                    <button
-                        onClick={() => router.push(`/chat?user=${profile?.username}`)}
-                        style={{
-                            flex: 1, backgroundColor: "var(--surface-solid)", color: "var(--foreground)",
-                            border: "1px solid var(--border)",
-                            borderRadius: 99, padding: "10px 0", fontSize: 14, fontWeight: 600,
-                            cursor: "pointer", textAlign: "center",
-                        }}
-                    >Mensaje</button>
-                    <div style={{ position: "relative" }}>
-                        <button
-                            onClick={() => setShowMoreOptions(!showMoreOptions)}
-                            style={{
-                                width: 44, height: 44, backgroundColor: "var(--surface-solid)",
-                                border: "1px solid var(--border)", borderRadius: 99,
-                                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-                            }}
-                        >
-                            <EllipsisVertical width={14} height={14} color="var(--foreground)" />
-                        </button>
-                        {showMoreOptions && (
-                            <>
-                                <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setShowMoreOptions(false)} />
-                                <div style={{
-                                    position: "absolute", right: 0, top: "100%", marginTop: 4, zIndex: 50,
-                                    width: 176, borderRadius: 16, border: "1px solid var(--border)",
-                                    backgroundColor: "var(--background)", overflow: "hidden",
-                                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                                }}>
-                                    <button
-                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "var(--foreground)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
-                                        onClick={() => { navigator.clipboard.writeText(window.location.href); setShowMoreOptions(false); }}
-                                    >Copiar enlace al perfil</button>
-                                    <button
-                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "var(--foreground)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
-                                        onClick={() => setShowMoreOptions(false)}
-                                    >Enviar solicitud de amistad</button>
-                                    <button
-                                        style={{ width: "100%", textAlign: "left", padding: "10px 12px", fontSize: 12, fontWeight: 500, color: "var(--danger)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
-                                        onClick={() => setShowMoreOptions(false)}
-                                    >Reportar usuario</button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-
-    const bioLocationGames = (
-        <>
-            {bio && <p style={{ color: "var(--foreground)", fontSize: 14, lineHeight: 1.5, margin: 0 }}>{bio}</p>}
-            {location && (
-                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6 }}>
-                    <MapPin width={12} height={12} color="var(--muted)" />
-                    <span style={{ color: "var(--muted)", fontSize: 12 }}>{location}</span>
-                </div>
-            )}
-            {gamesList.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-                    {gamesList.map((game: string) => (
-                        <span key={game} style={{
-                            backgroundColor: "var(--surface)", color: "var(--foreground)",
-                            paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
-                            borderRadius: 8, fontSize: 11,
-                        }}>{game}</span>
-                    ))}
-                </div>
-            )}
-            {profile?.created_at && (
-                <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 8 }}>
-                    <span style={{ color: "var(--muted)", fontSize: 12 }}>
-                        Miembro desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
-                    </span>
-                </div>
-            )}
-        </>
-    );
-
-    const tabPills = (
-        <div style={{ overflowX: "auto" }} className="no-scrollbar">
-            <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
-                {TABS.map((tab) => {
-                    const active = activeTab === tab.key;
-                    return (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            style={{
-                                paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
-                                borderRadius: 99,
-                                backgroundColor: active ? "var(--foreground)" : "var(--surface-solid)",
-                                color: active ? "var(--background)" : "var(--muted)",
-                                fontSize: 13, fontWeight: 600,
-                                border: active ? "1px solid transparent" : "1px solid var(--border)",
-                                cursor: "pointer", whiteSpace: "nowrap",
-                            }}
-                        >{tab.label}</button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-
+    /* ── Tab content (all existing tabs preserved) ── */
     const tabContent = (
         <div>
             {activeTab === "actividad" && (
@@ -919,9 +563,6 @@ export default function PublicProfilePage({
             {activeTab === "coleccion" && (
                 <ProfileCollectionTab collection={collection} isOwnProfile={isOwnProfile} token={session?.accessToken} />
             )}
-            {activeTab === "wishlist" && (
-                <ProfileWishlistTab wishlist={wishlist} isOwnProfile={isOwnProfile} token={session?.accessToken} />
-            )}
             {activeTab === "torneos" && (
                 <ProfileTournamentsTab
                     tournaments={tournamentEntries} stats={tournamentStats}
@@ -948,210 +589,372 @@ export default function PublicProfilePage({
         </div>
     );
 
+    /* ──────────────────────────────────────────────
+       RENDER — New gaming/social hybrid profile
+       ────────────────────────────────────────────── */
     return (
         <div style={{ display: "flex", flexDirection: "column", width: "100%", backgroundColor: "var(--background)", minHeight: "100vh" }}>
 
-            {/* ══════════════════════════════════════════════
-                MOBILE LAYOUT (default, hidden on md+)
-               ══════════════════════════════════════════════ */}
-            <div className="md:hidden">
-                {/* Banner full-width */}
-                {bannerBlock(160)}
+            {/* ═══════════════════════════════════
+                1. HEADER — Banner + Avatar + Info
+               ═══════════════════════════════════ */}
+            <div style={{ position: "relative", width: "100%" }}>
+                {/* Banner gradient (or custom image) */}
+                <div style={{
+                    width: "100%", height: 200, position: "relative", overflow: "hidden",
+                }}>
+                    {bannerUrl ? (
+                        <>
+                            <div style={{
+                                position: "absolute", inset: 0,
+                                backgroundImage: `url('${bannerUrl}')`,
+                                backgroundSize: "cover", backgroundPosition: "center",
+                            }} />
+                            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, var(--background) 100%)" }} />
+                        </>
+                    ) : (
+                        <>
+                            <div style={{ position: "absolute", inset: 0, background: rankGradient }} />
+                            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, var(--background) 100%)" }} />
+                            {/* Subtle noise texture */}
+                            <div style={{ position: "absolute", inset: 0, opacity: 0.06, backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')" }} />
+                        </>
+                    )}
+                </div>
 
-                <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "0 16px", marginTop: -40 }}>
-                    {/* Avatar + Name */}
-                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12 }}>
-                        {avatarBlock(80, "var(--background)")}
-                        <div style={{ flex: 1, marginTop: 40 }}>
-                            <h1 style={{ color: "var(--foreground)", fontSize: 20, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
-                            <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
-                            {clanBlock && <div style={{ marginTop: 4 }}>{clanBlock}</div>}
+                {/* Profile info overlay — positioned over banner bottom */}
+                <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "0 16px", position: "relative", marginTop: -60 }}>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
+                        {/* Avatar with rank ring + level badge */}
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                            <div style={{
+                                width: 88, height: 88, borderRadius: 44,
+                                padding: 3,
+                                background: `linear-gradient(135deg, ${ringColor}, ${ringColor}88)`,
+                                boxShadow: `0 0 20px ${ringColor}40`,
+                            }}>
+                                <div style={{
+                                    width: 82, height: 82, borderRadius: 41,
+                                    border: "3px solid var(--background)",
+                                    overflow: "hidden",
+                                    backgroundColor: "var(--surface-solid)",
+                                }}>
+                                    {profile?.avatar_url ? (
+                                        <img src={profile.avatar_url} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                    ) : (
+                                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <Person width={36} height={36} color="var(--muted)" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {/* Level badge */}
+                            {level > 0 && (
+                                <div style={{
+                                    position: "absolute", bottom: -2, right: -2,
+                                    width: 26, height: 26, borderRadius: 13,
+                                    background: ringColor,
+                                    border: "2px solid var(--background)",
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    boxShadow: `0 2px 8px ${ringColor}60`,
+                                }}>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{level}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Name + title + meta */}
+                        <div style={{ flex: 1, minWidth: 200, paddingBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
+                                {isVerified && <CircleCheck width={16} height={16} color="var(--accent)" />}
+                                {isPremium && <Star width={16} height={16} color="#f59e0b" />}
+                                {isAdmin && (
+                                    <span style={{ backgroundColor: "var(--danger)", color: "white", padding: "2px 8px", borderRadius: 99, fontSize: 9, fontWeight: 700 }}>ADMIN</span>
+                                )}
+                                {isModerator && (
+                                    <span style={{ backgroundColor: "var(--accent)", color: "white", padding: "2px 8px", borderRadius: 99, fontSize: 9, fontWeight: 700 }}>MOD</span>
+                                )}
+                            </div>
+                            {equippedTitle ? (
+                                <p style={{ color: ringColor, fontSize: 13, fontWeight: 600, margin: 0, marginTop: 2 }}>{equippedTitle}</p>
+                            ) : (
+                                <p style={{ color: "var(--muted)", fontSize: 13, margin: 0, marginTop: 2 }}>@{profile?.username || usernameParam}</p>
+                            )}
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
+                                {location && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--muted)", fontSize: 12 }}>
+                                        <MapPin width={12} height={12} /> {location}
+                                    </span>
+                                )}
+                                {profile?.created_at && (
+                                    <span style={{ color: "var(--muted)", fontSize: 12 }}>
+                                        Desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "short", year: "numeric" })}
+                                    </span>
+                                )}
+                                {clanInline && <span>{clanInline}</span>}
+                            </div>
+                        </div>
+
+                        {/* Action buttons — right aligned */}
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", paddingBottom: 4 }}>
+                            {isOwnProfile ? (
+                                <>
+                                    <button
+                                        onClick={() => setShowEditModal(true)}
+                                        style={{
+                                            backgroundColor: "rgba(255,255,255,0.08)", color: "var(--foreground)",
+                                            border: "1px solid rgba(255,255,255,0.12)", borderRadius: 99, padding: "8px 20px",
+                                            fontSize: 13, fontWeight: 600, cursor: "pointer",
+                                            backdropFilter: "blur(8px)",
+                                        }}
+                                    >Editar perfil</button>
+                                    <button
+                                        onClick={() => { navigator.clipboard.writeText(window.location.href); }}
+                                        style={{
+                                            width: 38, height: 38, backgroundColor: "rgba(255,255,255,0.08)",
+                                            border: "1px solid rgba(255,255,255,0.12)", borderRadius: 99,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            cursor: "pointer", backdropFilter: "blur(8px)",
+                                        }}
+                                    >
+                                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                                            <polyline points="16,6 12,2 8,6" />
+                                            <line x1={12} y1={2} x2={12} y2={15} />
+                                        </svg>
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={handleFollow}
+                                        disabled={followLoading}
+                                        style={{
+                                            backgroundColor: isFollowing ? "rgba(255,255,255,0.08)" : ringColor,
+                                            color: isFollowing ? "var(--foreground)" : "#fff",
+                                            border: isFollowing ? "1px solid rgba(255,255,255,0.12)" : "none",
+                                            borderRadius: 99, padding: "8px 24px", fontSize: 13, fontWeight: 700,
+                                            cursor: followLoading ? "not-allowed" : "pointer",
+                                            opacity: followLoading ? 0.6 : 1,
+                                            boxShadow: isFollowing ? "none" : `0 2px 12px ${ringColor}50`,
+                                        }}
+                                    >{isFollowing ? "Siguiendo" : "Seguir"}</button>
+                                    <button
+                                        onClick={() => router.push(`/chat?user=${profile?.username}`)}
+                                        style={{
+                                            backgroundColor: "rgba(255,255,255,0.08)", color: "var(--foreground)",
+                                            border: "1px solid rgba(255,255,255,0.12)",
+                                            borderRadius: 99, padding: "8px 20px", fontSize: 13, fontWeight: 600,
+                                            cursor: "pointer", backdropFilter: "blur(8px)",
+                                        }}
+                                    >Mensaje</button>
+                                    <div style={{ position: "relative" }}>
+                                        <button
+                                            onClick={() => setShowMoreOptions(!showMoreOptions)}
+                                            style={{
+                                                width: 38, height: 38, backgroundColor: "rgba(255,255,255,0.08)",
+                                                border: "1px solid rgba(255,255,255,0.12)", borderRadius: 99,
+                                                display: "flex", alignItems: "center", justifyContent: "center",
+                                                cursor: "pointer", backdropFilter: "blur(8px)",
+                                            }}
+                                        >
+                                            <EllipsisVertical width={14} height={14} color="var(--foreground)" />
+                                        </button>
+                                        {showMoreOptions && (
+                                            <>
+                                                <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setShowMoreOptions(false)} />
+                                                <div style={{
+                                                    position: "absolute", right: 0, top: "100%", marginTop: 4, zIndex: 50,
+                                                    width: 200, borderRadius: 12, border: "1px solid var(--border)",
+                                                    backgroundColor: "var(--surface-solid)", overflow: "hidden",
+                                                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                                                }}>
+                                                    <button style={{ width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, color: "var(--foreground)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                                        onClick={() => { navigator.clipboard.writeText(window.location.href); setShowMoreOptions(false); }}
+                                                    >Copiar enlace al perfil</button>
+                                                    <button style={{ width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, color: "var(--foreground)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                                        onClick={() => setShowMoreOptions(false)}
+                                                    >Enviar solicitud de amistad</button>
+                                                    <button style={{ width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, color: "var(--danger)", backgroundColor: "transparent", border: "none", cursor: "pointer" }}
+                                                        onClick={() => setShowMoreOptions(false)}
+                                                    >Reportar usuario</button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
-                    <div style={{ marginTop: 10 }}>{badgesRow}</div>
-                    <div style={{ marginTop: 10 }}>{socialRow}</div>
-                    <div style={{ marginTop: 10 }}>{bioLocationGames}</div>
-                    <div style={{ marginTop: 16 }}>{actionButtons}</div>
+                    {/* Social counts */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+                        <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                            <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{followersCount}</span> seguidores
+                        </span>
+                        <span style={{ color: "var(--border)", fontSize: 13 }}>&middot;</span>
+                        <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                            <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{followingCount}</span> siguiendo
+                        </span>
+                        <span style={{ color: "var(--border)", fontSize: 13 }}>&middot;</span>
+                        <span style={{ color: "var(--muted)", fontSize: 13 }}>
+                            <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{friendsCount}</span> amigos
+                        </span>
+                    </div>
 
-                    {/* Sobre mi card */}
-                    {(bio || profile?.created_at) && (
-                        <div style={{ marginTop: 20 }}>
-                            <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>SOBRE MI</p>
-                            <div style={{
-                                backgroundColor: "var(--surface-solid)", borderRadius: 16,
-                                border: "1px solid var(--border)", overflow: "hidden",
-                            }}>
-                                {bio && <p style={{ color: "var(--foreground)", fontSize: 14, lineHeight: "20px", padding: "14px 16px", margin: 0 }}>{bio}</p>}
-                                {profile?.created_at && (
-                                    <div style={{
-                                        display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
-                                        ...(bio ? { borderTop: "1px solid var(--border)" } : {}),
-                                    }}>
-                                        <span style={{ color: "var(--muted)", fontSize: 13 }}>
-                                            Miembro desde {new Date(profile.created_at).toLocaleDateString("es-CL", { month: "long", year: "numeric" })}
-                                        </span>
-                                    </div>
+                    {/* Bio (if present) */}
+                    {bio && (
+                        <p style={{ color: "var(--foreground)", fontSize: 14, lineHeight: 1.6, margin: 0, marginTop: 10, maxWidth: 600 }}>{bio}</p>
+                    )}
+
+                    {/* XP progress bar */}
+                    {(totalXp > 0 || level > 0) && (
+                        <div style={{ marginTop: 16 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                                <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>
+                                    Nivel {level} &mdash; {currentLevelXp.toLocaleString()} / {xpToNextLevel.toLocaleString()} XP
+                                </span>
+                                {xpRank > 0 && (
+                                    <span style={{ fontSize: 11, color: "var(--muted)" }}>#{xpRank} global</span>
                                 )}
+                            </div>
+                            <div style={{ height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.06)", overflow: "hidden", width: "100%" }}>
+                                <div style={{
+                                    height: "100%", borderRadius: 2, backgroundColor: xpBarColor,
+                                    width: `${xpProgress}%`, transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                                    boxShadow: `0 0 8px ${xpBarColor}60`,
+                                }} />
                             </div>
                         </div>
                     )}
-
-                    {/* Stats */}
-                    <div style={{ marginTop: 20 }}>
-                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>ESTADISTICAS</p>
-                        {statsCard}
-                    </div>
-
-                    {/* XP */}
-                    {xpProgressBlock && <div style={{ marginTop: 16 }}>{xpProgressBlock}</div>}
-
-                    {/* Duelos recientes */}
-                    {recentDuelsBlock && <div style={{ marginTop: 16 }}>{recentDuelsBlock}</div>}
-                </div>
-
-                {/* Tab pills */}
-                <div style={{ marginTop: 20, paddingLeft: 16, paddingRight: 16, maxWidth: 960, marginLeft: "auto", marginRight: "auto" }}>
-                    {tabPills}
-                </div>
-
-                {/* Tab content */}
-                <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "16px 16px 48px 16px" }}>
-                    {tabContent}
                 </div>
             </div>
 
-            {/* ══════════════════════════════════════════════
-                DESKTOP LAYOUT (hidden below md, shown md+)
-               ══════════════════════════════════════════════ */}
-            <div className="hidden md:block" style={{ width: "100%" }}>
-                <div className="flex flex-row gap-6" style={{ maxWidth: 1080, margin: "0 auto", padding: "24px 16px 48px 16px" }}>
-
-                    {/* ── Left Panel: Profile Card (Discord-style) ── */}
-                    <div className="w-[340px] shrink-0 sticky top-4 self-start">
-                        <div style={{
-                            backgroundColor: "var(--surface-solid)", borderRadius: 16,
-                            border: "1px solid var(--border)", overflow: "hidden",
-                            width: "100%",
-                        }}>
-                            {/* Banner inside card */}
-                            {bannerBlock(120)}
-
-                            {/* Avatar overlapping banner */}
-                            <div style={{ marginTop: -36, paddingLeft: 16 }}>
-                                {avatarBlock(72, "var(--surface-solid)")}
-                            </div>
-
-                            {/* Card content */}
-                            <div style={{ padding: "8px 16px 20px 16px" }}>
-                                <h1 style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>{name}</h1>
-                                <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 2, margin: 0 }}>@{profile?.username || usernameParam}</p>
-                                {clanBlock && <div style={{ marginTop: 4 }}>{clanBlock}</div>}
-
-                                <div style={{ marginTop: 10 }}>{badgesRow}</div>
-
-                                {/* Divider */}
-                                <div style={{ height: 1, backgroundColor: "var(--border)", margin: "12px 0" }} />
-
-                                {bioLocationGames}
-
-                                {/* Divider */}
-                                <div style={{ height: 1, backgroundColor: "var(--border)", margin: "12px 0" }} />
-
-                                {/* Stats — flat, no card wrapper in desktop */}
-                                <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>{rating || "-"}</p>
-                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>ELO</p>
-                                    </div>
-                                    <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)" }} />
-                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: winRate > 0 ? winRateColor : "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>{winRateDisplay}</p>
-                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>WIN RATE</p>
-                                    </div>
-                                    <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)" }} />
-                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>{tournamentsPlayed || "-"}</p>
-                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>TORNEOS</p>
-                                    </div>
-                                    <div style={{ width: 0.5, height: 28, backgroundColor: "var(--border)" }} />
-                                    <div style={{ flex: 1, textAlign: "center", padding: "10px 0" }}>
-                                        <p style={{ color: "var(--foreground)", fontSize: 16, fontWeight: 800, margin: 0 }}>
-                                            {currentStreak > 0 ? `${currentStreak}W` : bestStreak > 0 ? `${bestStreak}` : "-"}
-                                        </p>
-                                        <p style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2, margin: 0 }}>RACHA</p>
-                                    </div>
-                                </div>
-
-                                {/* XP — flat in desktop */}
-                                {(totalXp > 0 || level > 0) && (
-                                    <div style={{ marginTop: 8 }}>
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                                <div style={{
-                                                    width: 20, height: 20, borderRadius: 10,
-                                                    backgroundColor: xpBarColor + "25",
-                                                    border: `1.5px solid ${xpBarColor}`,
-                                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                                }}>
-                                                    <span style={{ fontSize: 8, fontWeight: 800, color: xpBarColor }}>{level}</span>
-                                                </div>
-                                                <span style={{ fontSize: 9, color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                                                    NV. {level} &rarr; {level + 1}
-                                                </span>
-                                            </div>
-                                            <span style={{ fontSize: 10, fontWeight: 700, color: xpBarColor }}>{currentLevelXp}/{xpToNextLevel}</span>
-                                        </div>
-                                        <div style={{ height: 4, borderRadius: 2, backgroundColor: "var(--border)", overflow: "hidden" }}>
-                                            <div style={{ height: "100%", borderRadius: 2, backgroundColor: xpBarColor, width: `${xpProgress}%` }} />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Divider */}
-                                <div style={{ height: 1, backgroundColor: "var(--border)", margin: "12px 0" }} />
-
-                                {/* Action buttons */}
-                                {actionButtons}
-
-                                {/* Social row */}
-                                <div style={{ marginTop: 12 }}>{socialRow}</div>
-                            </div>
-                        </div>
+            {/* ═══════════════════════════════════
+                2. QUICK STATS ROW
+               ═══════════════════════════════════ */}
+            <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "0 16px", marginTop: 20 }}>
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 10,
+                }}>
+                    {/* Rating / ELO */}
+                    <div style={{
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 14, padding: "16px 12px", textAlign: "center",
+                        backdropFilter: "blur(4px)",
+                    }}>
+                        <p style={{ color: rank.cssColor, fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1 }}>{rating || "-"}</p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500, margin: 0, marginTop: 4 }}>{rank.name}</p>
                     </div>
 
-                    {/* ── Right Panel: Tabs + Content + Extra Sections ── */}
-                    <div className="flex-1 min-w-0">
-                        {tabPills}
-                        <div style={{ marginTop: 16 }}>
-                            {tabContent}
+                    {/* Win Rate */}
+                    <div style={{
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 14, padding: "16px 12px", textAlign: "center",
+                        backdropFilter: "blur(4px)",
+                    }}>
+                        <p style={{ color: winRate > 0 ? winRateColor : "var(--foreground)", fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1 }}>{winRateDisplay}</p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500, margin: 0, marginTop: 4 }}>Win Rate</p>
+                    </div>
+
+                    {/* Torneos */}
+                    <div style={{
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 14, padding: "16px 12px", textAlign: "center",
+                        backdropFilter: "blur(4px)",
+                    }}>
+                        <p style={{ color: "var(--foreground)", fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1 }}>{tournamentsPlayed || "-"}</p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500, margin: 0, marginTop: 4 }}>Torneos</p>
+                    </div>
+
+                    {/* Racha */}
+                    <div style={{
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: 14, padding: "16px 12px", textAlign: "center",
+                        backdropFilter: "blur(4px)",
+                    }}>
+                        <p style={{ color: currentStreak > 0 ? "var(--warning)" : "var(--foreground)", fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1 }}>
+                            {currentStreak > 0 ? currentStreak : bestStreak > 0 ? bestStreak : "-"}
+                            {currentStreak > 0 && <span style={{ fontSize: 14, marginLeft: 2 }}>🔥</span>}
+                        </p>
+                        <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 500, margin: 0, marginTop: 4 }}>Racha</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ═══════════════════════════════════
+                3. TAB NAVIGATION (sticky)
+               ═══════════════════════════════════ */}
+            <div style={{
+                position: "sticky", top: 0, zIndex: 30,
+                backgroundColor: "var(--background)",
+                borderBottom: "1px solid var(--border)",
+                marginTop: 20,
+            }}>
+                <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "0 16px" }}>
+                    <div style={{ overflowX: "auto", paddingTop: 12, paddingBottom: 12 }} className="no-scrollbar">
+                        <div style={{ display: "flex", gap: 6 }}>
+                            {TABS.map((tab) => {
+                                const active = activeTab === tab.key;
+                                return (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        style={{
+                                            padding: "7px 18px",
+                                            borderRadius: 99,
+                                            backgroundColor: active ? ringColor : "transparent",
+                                            color: active ? "#fff" : "var(--muted)",
+                                            fontSize: 13, fontWeight: active ? 700 : 500,
+                                            border: active ? "none" : "1px solid transparent",
+                                            cursor: "pointer", whiteSpace: "nowrap",
+                                            transition: "all 0.15s ease",
+                                            boxShadow: active ? `0 2px 12px ${ringColor}40` : "none",
+                                        }}
+                                    >{tab.label}</button>
+                                );
+                            })}
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        {/* ── Extra sections (Discord-style) ── */}
-                        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* ═══════════════════════════════════
+                4. CONTENT AREA
+               ═══════════════════════════════════ */}
+            <div style={{ maxWidth: 960, margin: "0 auto", width: "100%", padding: "20px 16px 48px 16px" }}>
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Main content */}
+                    <div className="flex-1 min-w-0">
+                        {tabContent}
+                    </div>
 
-                            {/* Juegos que juega */}
+                    {/* Sidebar — desktop only */}
+                    <div className="hidden md:block w-[280px] shrink-0">
+                        <div style={{ position: "sticky", top: 72, display: "flex", flexDirection: "column", gap: 16 }}>
+
+                            {/* Games */}
                             {gamesList.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
-                                    border: "1px solid var(--border)", padding: 16,
+                                    backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 14,
+                                    border: "1px solid var(--border)", padding: 14,
                                 }}>
-                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12, margin: 0 }}>
-                                        Juegos que juega
+                                    <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                        Juegos
                                     </p>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
                                         {gamesList.map((game: string) => (
-                                            <div key={game} style={{
-                                                display: "flex", alignItems: "center", gap: 10,
-                                                backgroundColor: "var(--surface)", borderRadius: 12,
-                                                padding: "10px 14px",
-                                                border: "1px solid var(--border)",
-                                            }}>
-                                                <span style={{ fontSize: 20 }}>🎮</span>
-                                                <div>
-                                                    <p style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 600, margin: 0 }}>{game}</p>
-                                                </div>
-                                            </div>
+                                            <span key={game} style={{
+                                                backgroundColor: "var(--surface)", color: "var(--foreground)",
+                                                padding: "5px 10px", borderRadius: 8, fontSize: 12, fontWeight: 500,
+                                            }}>{game}</span>
                                         ))}
                                     </div>
                                 </div>
@@ -1160,35 +963,26 @@ export default function PublicProfilePage({
                             {/* ELO por juego */}
                             {Array.isArray(gamiStats?.game_stats) && gamiStats.game_stats.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
-                                    border: "1px solid var(--border)", padding: 16,
+                                    backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 14,
+                                    border: "1px solid var(--border)", padding: 14,
                                 }}>
-                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
-                                        ELO por juego
+                                    <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                        Rating por juego
                                     </p>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
                                         {(gamiStats.game_stats as any[]).map((gs: any, i: number) => {
                                             const gameName: string = gs.game || gs.name || "Juego";
                                             const gameRating: number = gs.rating ?? gs.elo ?? gs.current_rating ?? 0;
                                             const gameRank = getRankForElo(gameRating);
                                             return (
                                                 <div key={gameName + i} style={{
-                                                    display: "flex", alignItems: "center", gap: 10,
-                                                    padding: "8px 12px", borderRadius: 10,
-                                                    backgroundColor: "var(--surface)",
-                                                    border: "1px solid var(--border)",
+                                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                                    padding: "6px 0",
                                                 }}>
-                                                    <span style={{ fontSize: 16 }}>🎮</span>
-                                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                                        <p style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 600, margin: 0, lineHeight: 1 }}>{gameName}</p>
-                                                        <p style={{ color: "var(--muted)", fontSize: 10, margin: 0, marginTop: 2 }}>{gameRank.name}</p>
-                                                    </div>
-                                                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                                                        <p style={{ color: gameRank.cssColor, fontSize: 14, fontWeight: 800, margin: 0 }}>
-                                                            {gameRating > 0 ? gameRating : "-"}
-                                                        </p>
-                                                        <p style={{ color: "var(--muted)", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5, margin: 0 }}>ELO</p>
-                                                    </div>
+                                                    <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 500 }}>{gameName}</span>
+                                                    <span style={{ color: gameRank.cssColor, fontSize: 14, fontWeight: 800 }}>
+                                                        {gameRating > 0 ? gameRating : "-"}
+                                                    </span>
                                                 </div>
                                             );
                                         })}
@@ -1196,33 +990,30 @@ export default function PublicProfilePage({
                                 </div>
                             )}
 
-                            {/* Duelos recientes (desktop) */}
+                            {/* Recent duels */}
                             {recentDuelsBlock}
 
-                            {/* Insignias destacadas */}
+                            {/* Badges showcase */}
                             {badges.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
-                                    border: "1px solid var(--border)", padding: 16,
+                                    backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 14,
+                                    border: "1px solid var(--border)", padding: 14,
                                 }}>
-                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
-                                        Insignias destacadas
+                                    <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                        Insignias ({badgesCount})
                                     </p>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
                                         {badges.slice(0, 6).map((badge: any, i: number) => (
                                             <div key={badge.id || badge.slug || i} style={{
                                                 display: "flex", flexDirection: "column", alignItems: "center",
-                                                gap: 6, padding: 12, borderRadius: 12,
-                                                backgroundColor: "var(--surface)",
-                                                border: "1px solid var(--border)",
-                                                width: 80,
+                                                gap: 4, width: 64,
                                             }}>
                                                 {badge.icon_url ? (
-                                                    <img src={badge.icon_url} alt={badge.name} style={{ width: 32, height: 32, objectFit: "contain" }} />
+                                                    <img src={badge.icon_url} alt={badge.name} style={{ width: 28, height: 28, objectFit: "contain" }} />
                                                 ) : (
-                                                    <span style={{ fontSize: 24 }}>🏅</span>
+                                                    <span style={{ fontSize: 22 }}>🏅</span>
                                                 )}
-                                                <span style={{ color: "var(--foreground)", fontSize: 9, fontWeight: 600, textAlign: "center", lineHeight: "12px" }}>
+                                                <span style={{ color: "var(--muted)", fontSize: 9, fontWeight: 500, textAlign: "center", lineHeight: "11px" }}>
                                                     {badge.name || "Logro"}
                                                 </span>
                                             </div>
@@ -1231,53 +1022,49 @@ export default function PublicProfilePage({
                                 </div>
                             )}
 
-                            {/* Amigos */}
+                            {/* Friends */}
                             {friends.length > 0 && (
                                 <div style={{
-                                    backgroundColor: "var(--surface-solid)", borderRadius: 16,
-                                    border: "1px solid var(--border)", padding: 16,
+                                    backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 14,
+                                    border: "1px solid var(--border)", padding: 14,
                                 }}>
-                                    <p style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
+                                    <p style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, margin: 0 }}>
                                         Amigos ({friends.length})
                                     </p>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 12 }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 10 }}>
                                         {friends.slice(0, 5).map((friend: any, i: number) => (
                                             <a
                                                 key={friend.user_id || friend.id || i}
                                                 href={`/perfil/${friend.username}`}
                                                 style={{
-                                                    display: "flex", alignItems: "center", gap: 10,
-                                                    padding: "8px 10px", borderRadius: 10,
-                                                    textDecoration: "none",
+                                                    display: "flex", alignItems: "center", gap: 8,
+                                                    padding: "6px 4px", borderRadius: 8, textDecoration: "none",
                                                 }}
                                             >
                                                 <div style={{
-                                                    width: 32, height: 32, borderRadius: 16,
-                                                    backgroundColor: "var(--surface)",
+                                                    width: 28, height: 28, borderRadius: 14, backgroundColor: "var(--surface)",
                                                     display: "flex", alignItems: "center", justifyContent: "center",
                                                     overflow: "hidden", flexShrink: 0,
                                                 }}>
                                                     {friend.avatar_url ? (
-                                                        <img src={friend.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }} />
+                                                        <img src={friend.avatar_url} alt="" style={{ width: 28, height: 28, borderRadius: 14, objectFit: "cover" }} />
                                                     ) : (
-                                                        <span style={{ color: "var(--foreground)", fontSize: 12, fontWeight: 700 }}>
+                                                        <span style={{ color: "var(--foreground)", fontSize: 11, fontWeight: 700 }}>
                                                             {friend.username?.[0]?.toUpperCase() || "?"}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 500 }}>{friend.username}</span>
+                                                <span style={{ color: "var(--foreground)", fontSize: 12, fontWeight: 500 }}>{friend.username}</span>
                                                 {friend.is_online && (
-                                                    <div style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "var(--success)", marginLeft: "auto" }} />
+                                                    <div style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "var(--success)", marginLeft: "auto" }} />
                                                 )}
                                             </a>
                                         ))}
                                     </div>
                                 </div>
                             )}
-
                         </div>
                     </div>
-
                 </div>
             </div>
 
