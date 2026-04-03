@@ -363,7 +363,8 @@ export default function PublicProfilePage({
     const isOwnProfile = session?.username === usernameParam;
 
     const location = [profile?.city, profile?.country].filter(Boolean).join(", ");
-    const equippedTitle = gamiStats?.current_title ?? profile?.title ?? "";
+    const rawTitle = gamiStats?.current_title ?? profile?.title ?? "";
+    const equippedTitle = typeof rawTitle === "object" && rawTitle !== null ? (rawTitle as any).name ?? "" : rawTitle;
 
     const gamesList: string[] = profile?.games
         ? profile.games.map((g: any) => typeof g === "string" ? g : g.name)
