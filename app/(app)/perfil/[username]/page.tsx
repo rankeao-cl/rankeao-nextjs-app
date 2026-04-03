@@ -342,7 +342,7 @@ export default function PublicProfilePage({
     const bio = profile?.bio || "";
     const level = gamiStats?.level ?? profile?.level ?? 0;
     const totalXp = gamiStats?.xp ?? gamiStats?.total_xp ?? profile?.total_xp ?? 0;
-    const xpToNextLevel = Math.max(0, gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 0);
+    const xpToNextLevel = gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 0;
     const currentLevelXp = Math.max(0, gamiStats?.xp_this_level ?? gamiStats?.current_level_xp ?? 0);
     const rating = gamiStats?.peak_rating ?? gamiStats?.rating ?? profile?.rating ?? 0;
     const winRate = gamiStats?.win_rate ?? profile?.win_rate ?? 0;
