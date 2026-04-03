@@ -348,7 +348,7 @@ export default function ProfileStatsTab({
                         {gameStats.map((g, i) => (
                             <div key={g.game + i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-[var(--foreground)] truncate">{g.game}</p>
+                                    <p className="text-sm font-semibold text-[var(--foreground)] truncate">{typeof g.game === "object" ? (g.game as any)?.name ?? "" : g.game}</p>
                                     <p className="text-[10px] text-[var(--muted)]">{g.matches} partidas</p>
                                 </div>
                                 <div className="text-right">

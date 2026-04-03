@@ -113,11 +113,11 @@ export default function ProfileTournamentsTab({
                                                 </span>
                                             )}
                                             <Chip variant="secondary" size="sm" className="text-[10px]">
-                                                {t.game}
+                                                {typeof t.game === "object" ? t.game?.name ?? "" : t.game}
                                             </Chip>
                                             {t.format && (
                                                 <Chip variant="secondary" size="sm" className="text-[10px]">
-                                                    {t.format}
+                                                    {typeof t.format === "object" ? t.format?.name ?? "" : t.format}
                                                 </Chip>
                                             )}
                                             {t.is_ranked && (
