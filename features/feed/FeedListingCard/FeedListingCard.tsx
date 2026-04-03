@@ -29,13 +29,13 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
     const handleShare = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        const url = `https://rankeao.cl/marketplace/${listing.id}`;
+        const url = `https://rankeao.cl/marketplace/${listing.slug || listing.id}`;
         if (navigator.share) navigator.share({ title: listing.title, url }).catch(() => {});
         else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
     };
 
     return (
-        <Link href={`/marketplace/${listing.id}`} style={{ textDecoration: "none", display: "block" }}>
+        <Link href={`/marketplace/${listing.slug || listing.id}`} style={{ textDecoration: "none", display: "block" }}>
             <article style={{
                 background: "var(--surface-solid)",
                 borderRadius: 16,

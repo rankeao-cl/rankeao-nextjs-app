@@ -22,7 +22,7 @@ export default function MyClanBanner({ clan }: { clan: Clan }) {
 
     return (
         <div className="mx-4 lg:mx-6 mb-3">
-            <Link href={`/clanes/${clan.id}`} style={{ textDecoration: "none" }}>
+            <Link href={`/clanes/${clan.slug || clan.id}`} style={{ textDecoration: "none" }}>
                 <div style={{
                     borderRadius: 16, overflow: "hidden",
                     border: "1px solid rgba(59,130,246,0.25)",

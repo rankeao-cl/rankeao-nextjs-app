@@ -24,7 +24,7 @@ export default function ClanCard({ clan }: { clan: Clan }) {
     const hasRating = clan.rating != null && clan.rating > 0;
 
     return (
-        <Link href={`/clanes/${clan.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
+        <Link href={`/clanes/${clan.slug || clan.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <div style={{
                 backgroundColor: "var(--surface-solid)",
                 borderRadius: 20,

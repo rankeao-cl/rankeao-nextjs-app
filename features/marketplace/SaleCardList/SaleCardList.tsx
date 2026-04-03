@@ -23,7 +23,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
             : "Consultar";
 
     return (
-        <Link href={`/marketplace/${listing.id}`} className="block group">
+        <Link href={`/marketplace/${listing.slug || listing.id}`} className="block group">
             <div
                 className="flex overflow-hidden"
                 style={{

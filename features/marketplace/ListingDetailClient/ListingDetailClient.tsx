@@ -222,7 +222,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
           <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">Publicaciones similares</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {similar.slice(0, 6).map((item: any) => (
-              <Link key={item.id} href={`/marketplace/${item.id}`} className="group">
+              <Link key={item.id} href={`/marketplace/${item.slug || item.id}`} className="group">
                 <Card className="surface-card rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                   <Card.Content className="p-0">
                     <div className="relative aspect-[3/4]" style={{ background: "var(--surface-secondary)" }}>

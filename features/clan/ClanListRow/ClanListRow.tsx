@@ -25,7 +25,7 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
     const memberCount = clan.member_count ?? 0;
 
     return (
-        <Link href={`/clanes/${clan.id}`} style={{ textDecoration: "none", display: "block" }}>
+        <Link href={`/clanes/${clan.slug || clan.id}`} style={{ textDecoration: "none", display: "block" }}>
             <div style={{
                 backgroundColor: "var(--surface-solid)", borderRadius: 16,
                 border: "1px solid var(--surface)",

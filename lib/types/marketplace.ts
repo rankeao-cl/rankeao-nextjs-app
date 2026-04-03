@@ -4,6 +4,7 @@ import type { PaginationMeta } from "./api";
 
 export interface Listing {
     id: string;
+    slug?: string;
     title: string;
     price?: number;
     currency?: string;

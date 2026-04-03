@@ -58,6 +58,7 @@ export interface Activity {
 
 export interface Deck {
     id: string;
+    slug?: string;
     user_id: string;
     username?: string;
     name: string;

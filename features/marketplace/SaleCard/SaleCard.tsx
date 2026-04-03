@@ -20,7 +20,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
             : "Consultar";
 
     return (
-        <Link href={`/marketplace/${listing.id}`} className="block h-full group">
+        <Link href={`/marketplace/${listing.slug || listing.id}`} className="block h-full group">
             <div className="h-full flex flex-col">
                 {/* Card image — sharp corners, TCG feel */}
                 <div

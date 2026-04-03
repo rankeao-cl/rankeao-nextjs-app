@@ -52,7 +52,7 @@ function DeckCardInner({ deck }: DeckCardProps) {
 
     const handleShare = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        const url = `https://rankeao.cl/decks/${deck.id}`;
+        const url = `https://rankeao.cl/decks/${(deck as any).slug || deck.id}`;
         if (navigator.share) navigator.share({ title: deck.name, url }).catch(() => {});
         else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
     }, [deck.id, deck.name]);

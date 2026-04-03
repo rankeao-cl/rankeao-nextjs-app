@@ -4,6 +4,7 @@ export type ClanRole = "LEADER" | "OFFICER" | "MEMBER";
 
 export interface Clan {
     id: string;
+    slug?: string;
     name: string;
     tag: string;
     description?: string;
