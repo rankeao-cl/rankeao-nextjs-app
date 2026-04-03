@@ -91,8 +91,8 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`hidden lg:flex flex-col h-full border-r transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
-            style={{ borderColor: "var(--border)", background: "var(--background)", position: "fixed", top: "4rem", left: 0, zIndex: 40 }}
+            className={`hidden lg:flex flex-col border-r transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
+            style={{ borderColor: "var(--border)", background: "var(--background)", position: "fixed", top: "4rem", left: 0, zIndex: 40, height: "calc(100vh - 4rem)" }}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
@@ -197,7 +197,7 @@ export default function Sidebar() {
                                                 height: "16px",
                                                 fontSize: "9px",
                                                 padding: "0 3px",
-                                                background: "var(--warning, #f97316)",
+                                                background: "#7c3aed",
                                                 border: "2px solid var(--background)",
                                             }}
                                         >
