@@ -169,15 +169,6 @@ export default function ProfileLogrosTab({
                         </div>
                     </div>
 
-                    {/* Cosmetics link for own profile */}
-                    {isOwnProfile && (
-                        <Link
-                            href="/gamificacion/cosmetics"
-                            className="block text-center text-xs font-semibold text-[var(--accent)] hover:underline py-1"
-                        >
-                            Personalizar títulos y cosméticos &rarr;
-                        </Link>
-                    )}
                 </>
             )}
 

@@ -1,1 +1,0 @@
-export { XpLevelDisplay } from "./XpLevelDisplay";
