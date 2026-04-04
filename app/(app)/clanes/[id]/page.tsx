@@ -36,7 +36,7 @@ export default async function ClanDetailPage({ params }: Props) {
         </div>
         <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 700, margin: 0, marginBottom: 4 }}>Clan no encontrado</p>
         <p style={{ color: "var(--muted)", fontSize: 13, margin: 0, marginBottom: 16 }}>Este clan no existe o fue eliminado.</p>
-        <Link href="/clanes" style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Volver a clanes</Link>
+        <Link href="/comunidades?type=clanes" style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Volver a clanes</Link>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default async function ClanDetailPage({ params }: Props) {
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
 
         {/* Back button */}
-        <Link href="/clanes" style={{ position: "absolute", top: 12, left: 12, zIndex: 2, textDecoration: "none" }}>
+        <Link href="/comunidades?type=clanes" style={{ position: "absolute", top: 12, left: 12, zIndex: 2, textDecoration: "none" }}>
           <div style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />

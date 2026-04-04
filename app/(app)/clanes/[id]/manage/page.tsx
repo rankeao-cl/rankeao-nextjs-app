@@ -175,7 +175,7 @@ export default function ManageClanPage() {
           Clan no encontrado
         </p>
         <button
-          onClick={() => router.push("/clanes")}
+          onClick={() => router.push("/comunidades?type=clanes")}
           className="mt-4 text-sm font-semibold text-[var(--accent)]"
         >
           ← Volver a clanes
@@ -231,7 +231,7 @@ export default function ManageClanPage() {
     try {
       await deleteClan(clanId, token);
       toast.success("Clan eliminado");
-      router.push("/clanes");
+      router.push("/comunidades?type=clanes");
     } catch {
       toast.danger("No se pudo eliminar el clan");
     } finally {

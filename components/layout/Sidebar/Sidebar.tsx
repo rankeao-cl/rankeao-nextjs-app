@@ -10,7 +10,6 @@ import {
     ChartColumn,
     ShoppingCart,
     Persons,
-    Bell,
     Pencil,
     Gear,
     Person,
@@ -43,8 +42,6 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { session, status } = useAuth();
     const openCreatePost = useUIStore((s) => s.openCreatePost);
-    const openNotifSidebar = useUIStore((s) => s.openNotificationSidebar);
-    const notifUnread = useUIStore((s) => s.notificationUnreadCount);
     const isAuth = status === "authenticated";
 
     const [pendingDuels, setPendingDuels] = useState(0);
@@ -55,8 +52,11 @@ export default function Sidebar() {
     // El sidebar se expande si hay hover O si el dropdown está abierto
     const expanded = hovered || createOpen;
 
-    const isActive = (href: string) =>
-        href === "/" ? pathname === "/" : pathname.startsWith(href);
+    const isActive = (href: string) => {
+        if (href === "/") return pathname === "/";
+        if (href === "/comunidades") return pathname.startsWith("/comunidades") || pathname.startsWith("/clanes");
+        return pathname.startsWith(href);
+    };
 
     // Sondeo de duelos pendientes (invitaciones recibidas)
     useEffect(() => {
@@ -210,37 +210,6 @@ export default function Sidebar() {
                         );
                     })}
 
-                    {/* Notificaciones — abre sidebar en vez de navegar */}
-                    {isAuth && (
-                        <button
-                            onClick={openNotifSidebar}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors text-muted hover:text-foreground cursor-pointer"
-                            style={{ background: "none", border: "none" }}
-                            aria-label="Notificaciones"
-                        >
-                            <span className="relative shrink-0">
-                                <Bell className="size-[22px]" />
-                                {notifUnread > 0 && (
-                                    <span
-                                        className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
-                                        style={{
-                                            bottom: "-7px",
-                                            right: "-7px",
-                                            minWidth: "16px",
-                                            height: "16px",
-                                            fontSize: "9px",
-                                            padding: "0 3px",
-                                            background: "var(--danger, #ef4444)",
-                                            border: "2px solid var(--background)",
-                                        }}
-                                    >
-                                        {notifUnread > 9 ? "9+" : notifUnread}
-                                    </span>
-                                )}
-                            </span>
-                            <span className="truncate">Notificaciones</span>
-                        </button>
-                    )}
                 </div>
             </nav>
 

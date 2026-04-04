@@ -90,7 +90,7 @@ export default function NewClanPage() {
       if (clanId) {
         router.push(`/clanes/${clanId}`);
       } else {
-        router.push("/clanes");
+        router.push("/comunidades?type=clanes");
       }
     } catch {
       toast.danger("No se pudo crear el clan. Intenta nuevamente.");

@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Tenant } from "@/lib/types/tenant";
+import type { Clan } from "@/lib/types/clan";
 import { Persons } from "@gravity-ui/icons";
 import ViewToggle, { GRID_ICON, LIST_ICON } from "@/components/ui/ViewToggle";
+import ClanesClient from "@/features/clan/ClanesClient";
 
 interface SortLink {
   key: string;
@@ -23,6 +25,8 @@ interface Props {
   paginationPrev: string | null;
   paginationNext: string | null;
   initialQuery?: string;
+  activeType?: "tiendas" | "clanes";
+  clans?: Clan[];
 }
 
 function renderStars(rating: number) {
@@ -43,6 +47,8 @@ export default function ComunidadesClient({
   paginationPrev,
   paginationNext,
   initialQuery,
+  activeType = "tiendas",
+  clans = [],
 }: Props) {
   const router = useRouter();
   const [search, setSearch] = useState(initialQuery || "");
@@ -55,6 +61,11 @@ export default function ComunidadesClient({
     params.set("page", "1");
     router.push(`/comunidades?${params.toString()}`);
   };
+
+  // ── Clanes mode: delegate to ClanesClient ──
+  if (activeType === "clanes") {
+    return <ClanesClient initialClans={clans} initialQuery={initialQuery} />;
+  }
 
   return (
     <div>
