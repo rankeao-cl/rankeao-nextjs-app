@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { toast } from "@heroui/react";
-import { Comment, Pencil, Xmark, ChevronLeft, PaperPlane } from "@gravity-ui/icons";
+import { Comment, Pencil, Xmark, ChevronLeft, PaperPlane, ArrowUpRightFromSquare } from "@gravity-ui/icons";
+import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getChatChannels, getChatMessages, sendChatMessage, createChannel } from "@/lib/api/chat";
 import { autocompleteUsers } from "@/lib/api/social";
@@ -372,8 +373,6 @@ export default function CreatePostFAB() {
                                             {totalUnread > 99 ? "99+" : totalUnread}
                                         </span>
                                     )}
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                     <button onClick={() => setView("newchat")} style={{
                                         width: 32, height: 32, borderRadius: 16,
                                         backgroundColor: "var(--surface-solid)", border: "none",
@@ -381,6 +380,16 @@ export default function CreatePostFAB() {
                                     }} aria-label="Nuevo mensaje">
                                         <Pencil style={{ width: 15, height: 15, color: "var(--foreground)" }} />
                                     </button>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <Link href="/chat" onClick={() => setIsOpen(false)} style={{
+                                        width: 32, height: 32, borderRadius: 16,
+                                        backgroundColor: "var(--surface-solid)", border: "none",
+                                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                                        textDecoration: "none",
+                                    }} aria-label="Abrir chat completo">
+                                        <ArrowUpRightFromSquare style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+                                    </Link>
                                     <button onClick={() => setIsOpen(false)} style={{
                                         width: 32, height: 32, borderRadius: 16,
                                         backgroundColor: "var(--surface-solid)", border: "none",
