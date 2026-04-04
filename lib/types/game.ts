@@ -2,7 +2,7 @@ export type GameMode = 'simple' | 'advanced';
 export type GameStatus = 'active' | 'completed';
 export type EventType = 'damage' | 'heal' | 'poison' | 'counter';
 export type EventStatus = 'pending' | 'passed' | 'responded' | 'resolved' | 'cancelled';
-export type ResponseType = 'pass' | 'respond';
+export type ResponseType = 'pass' | 'respond' | 'counter' | 'dispute';
 
 export interface GameRules {
   id: string;

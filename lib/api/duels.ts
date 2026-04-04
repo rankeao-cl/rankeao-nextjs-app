@@ -68,6 +68,10 @@ export async function disputeDuel(duelId: string, token?: string) {
     return apiPost<ApiResponse<ApiMessage>>(`/social/duels/${encodeURIComponent(duelId)}/dispute`, {}, { token });
 }
 
+export async function surrenderDuel(duelId: string, token?: string) {
+    return apiPost<ApiResponse<ApiMessage>>(`/social/duels/${encodeURIComponent(duelId)}/surrender`, {}, { token });
+}
+
 // ── Comments ──
 
 export async function getDuelComments(duelId: string, token?: string) {

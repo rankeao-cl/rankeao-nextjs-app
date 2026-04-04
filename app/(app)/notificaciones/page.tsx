@@ -249,7 +249,8 @@ export default function NotificacionesPage() {
                                             </div>
                                         </div>
                                     );
-                                    const href = notif.action_url || null;
+                                    const href = notif.action_url
+                                        || (notif.variables?.username ? `/perfil/${notif.variables.username}` : null);
                                     return href ? (
                                         <Link key={notif.id} href={href}>{content}</Link>
                                     ) : (

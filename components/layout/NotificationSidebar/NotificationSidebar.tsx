@@ -205,7 +205,8 @@ function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClos
         onClose();
     };
 
-    const href = notif.action_url || null;
+    const href = notif.action_url
+        || (notif.variables?.username ? `/perfil/${notif.variables.username}` : null);
 
     if (href) {
         return (
