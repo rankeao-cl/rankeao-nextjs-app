@@ -9,6 +9,8 @@ import ViewToggle, { GRID_ICON, LIST_ICON } from "@/components/ui/ViewToggle";
 import ConditionFilterChips from "./ConditionFilterChips";
 import type { Metadata } from "next";
 import Link from "next/link";
+import MarketplaceFavorites from "./MarketplaceFavorites";
+import MarketplaceSubastas from "./MarketplaceSubastas";
 
 export async function generateMetadata({ searchParams }: MarketplacePageProps): Promise<Metadata> {
   const params = (await searchParams) ?? {};
@@ -40,6 +42,7 @@ interface MarketplacePageProps {
 
 export default async function MarketplacePage({ searchParams }: MarketplacePageProps) {
   const params = (await searchParams) ?? {};
+  const activeTab = params.tab || "explorar";
   const page = Number(params.page || "1") || 1;
   const filters = {
     q: params.q,
@@ -133,7 +136,6 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
               Compra y vende cartas con jugadores de tu comunidad.
             </p>
           </div>
-          <div className="flex flex-col gap-2 shrink-0 ml-3">
           <Link
             href="/marketplace/new"
             className="shrink-0"
@@ -159,21 +161,48 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </svg>
             <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Vender</span>
           </Link>
-          <div className="flex gap-1.5">
-            <Link href="/marketplace/my-listings" style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textDecoration: "none", padding: "3px 8px", borderRadius: 8, backgroundColor: "var(--surface-secondary)" }}>
-              Mis publicaciones
-            </Link>
-            <Link href="/marketplace/offers" style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textDecoration: "none", padding: "3px 8px", borderRadius: 8, backgroundColor: "var(--surface-secondary)" }}>
-              Ofertas
-            </Link>
-            <Link href="/marketplace/favorites" style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", textDecoration: "none", padding: "3px 8px", borderRadius: 8, backgroundColor: "var(--surface-secondary)" }}>
-              Favoritos
-            </Link>
-          </div>
-          </div>
         </div>
       </div>
 
+      {/* ── Quick links ── */}
+      <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        {[
+          { href: "/marketplace", label: "Explorar", active: activeTab === "explorar" },
+          { href: "/marketplace?tab=favoritos", label: "Favoritos", active: activeTab === "favoritos" },
+          { href: "/marketplace?tab=subastas", label: "Subastas", active: activeTab === "subastas" },
+          { href: "/marketplace?category=accessories", label: "Accesorios", active: false },
+          { href: "/marketplace/my-listings", label: "Mis publicaciones", active: false },
+          { href: "/marketplace/offers", label: "Ofertas", active: false },
+          { href: "/marketplace/orders", label: "Pedidos", active: false },
+          { href: "/catalogo", label: "Catalogo de cartas", active: false },
+        ].map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              textDecoration: "none",
+              backgroundColor: link.active ? "var(--foreground)" : "var(--surface-solid)",
+              color: link.active ? "var(--background)" : "var(--muted)",
+              border: link.active ? "1px solid transparent" : "1px solid var(--border)",
+              flexShrink: 0,
+            }}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+
+      {activeTab === "subastas" ? (
+        <MarketplaceSubastas />
+      ) : activeTab === "favoritos" ? (
+        <MarketplaceFavorites />
+      ) : (
+      <>
       {/* ── Search + view toggle ── */}
       <div className="flex items-center gap-2 mx-4 lg:mx-6 mb-3">
         <div className="flex-1 min-w-0">
@@ -303,6 +332,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
           )}
         </main>
       </div>
+      </>
+      )}
     </div>
   );
 }
