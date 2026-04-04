@@ -60,6 +60,15 @@ export default function GameTracker({
         setLocalLog(prev => [{ text, color, ts: Date.now() }, ...prev].slice(0, 15));
     }, []);
 
+    // Auto-trigger onGameEnd when WebSocket reports game completed
+    const didCallGameEnd = useRef(false);
+    useEffect(() => {
+        if (isCompleted && gameState?.game.winner_id != null && !didCallGameEnd.current) {
+            didCallGameEnd.current = true;
+            onGameEnd?.(Number(gameState.game.winner_id));
+        }
+    }, [isCompleted, gameState?.game.winner_id, onGameEnd]);
+
     useEffect(() => {
         const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
@@ -556,6 +565,20 @@ export default function GameTracker({
             )}
 
             {/* Surrender confirm */}
+            {/* Game ended overlay */}
+            {isCompleted && gameState.game.winner_id !== null && (
+                <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-[200] p-5">
+                    <div className="rounded-2xl p-8 max-w-[300px] w-full text-center flex flex-col items-center gap-5" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                        <p className="text-[42px] m-0 leading-none" style={{ color: Number(gameState.game.winner_id) === myPlayerID ? "#22c55e" : "#ef4444" }}>
+                            {Number(gameState.game.winner_id) === myPlayerID ? "Victoria" : "Derrota"}
+                        </p>
+                        <p className="text-[15px] font-bold m-0" style={{ color: "rgba(255,255,255,0.5)" }}>
+                            {Number(gameState.game.winner_id) === myPlayerID ? myUsername : opponentUsername} gana la partida
+                        </p>
+                    </div>
+                </div>
+            )}
+
             {showSurrenderConfirm && (
                 <div className="fixed inset-0 bg-black/75 backdrop-blur flex items-center justify-center z-[200] p-5">
                     <div className="rounded-2xl p-6 max-w-[300px] w-full text-center flex flex-col gap-4" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
