@@ -5,11 +5,10 @@ import Image from "next/image";
 import { toast } from "@heroui/react";
 import RankeaoSpinner from "@/components/ui/RankeaoSpinner";
 import { useGameState } from "@/lib/hooks/use-game-state";
-import { updateLife, declareEvent, endGame, passTurn, getInteractions } from "@/lib/api/game";
+import { updateLife, declareEvent, endGame, passTurn, getInteractions, respondEvent } from "@/lib/api/game";
 import { surrenderDuel } from "@/lib/api/duels";
 import { mapErrorMessage } from "@/lib/api/errors";
 import type { GameStateSnapshot, GameInteraction } from "@/lib/types/game";
-import PendingEventCard from "@/features/duel/PendingEventCard";
 
 interface GameTrackerProps {
     duelID: string;
@@ -180,10 +179,11 @@ export default function GameTracker({
                     amount: damageToSend,
                 }, token);
             }
-            toast.success("Acciones confirmadas");
             if (healToSend !== 0) addLog(`+${healToSend} vida`, "rgba(74,222,128,0.6)");
             if (damageToSend > 0) addLog(`-${damageToSend} daño a ${opponentUsername}`, "rgba(248,113,113,0.6)");
             fetchInteractions();
+            // Auto-pass: confirmar acciones = terminar turno
+            await passTurn(duelID, gameNumber, token).catch(() => {});
         } catch (err) {
             setPendingHeal(healToSend);
             setPendingDamage(damageToSend);
@@ -242,7 +242,9 @@ export default function GameTracker({
     const oppLow = displayOppLife <= 5;
 
     return (
-        <div className="flex flex-col bg-[#0a0a0f] overflow-y-auto overflow-x-hidden h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)]">
+        <div className="flex flex-col lg:flex-row bg-[#0a0a0f] overflow-hidden h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)]">
+        {/* Game panel */}
+        <div className="flex flex-col overflow-y-auto overflow-x-hidden lg:w-1/2 flex-1 lg:flex-none relative">
             <style>{`
                 @keyframes gtD{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-18px) scale(.8)}}
                 @keyframes gtG{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 2px rgba(255,255,255,.04)}}
@@ -326,23 +328,25 @@ export default function GameTracker({
                 </div>
             )}
 
-            {/* Pending events from opponent */}
-            {myPendingEvents.length > 0 && (
-                <div className="mx-3 flex flex-col gap-1.5" style={{ marginTop: "clamp(4px, 0.8dvh, 8px)" }}>
-                    {myPendingEvents.map(pe => (
-                        <PendingEventCard
-                            key={pe.id}
-                            event={pe}
-                            duelID={duelID}
-                            gameNumber={gameNumber}
-                            myPlayerID={myPlayerID}
-                            sourceUsername={Number(pe.source_player_id) === myPlayerID ? myUsername : opponentUsername}
-                            targetUsername={Number(pe.target_player_id) === myPlayerID ? myUsername : opponentUsername}
-                            token={token}
-                        />
-                    ))}
-                </div>
-            )}
+            {/* Pending event popup overlay */}
+            {myPendingEvents.length > 0 && (() => {
+                const pe = myPendingEvents[0];
+                const isCounter = pe.event_type === "counter";
+                const eventColor = pe.event_type === "damage" ? "#ef4444" : pe.event_type === "heal" ? "#22c55e" : pe.event_type === "poison" ? "#a855f7" : "#3b82f6";
+                return (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[200] p-5">
+                        <div className="rounded-2xl p-6 max-w-[300px] w-full flex flex-col gap-4" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                            <p className="text-[15px] font-extrabold text-white m-0 text-center">
+                                {isCounter
+                                    ? <>{opponentUsername} contrarresta tu acción</>
+                                    : <>{opponentUsername} declara <span style={{ color: eventColor }}>{pe.amount}</span> de daño</>
+                                }
+                            </p>
+                            <PendingEventActions duelID={duelID} gameNumber={gameNumber} eventID={pe.id} token={token} deadline={pe.response_deadline} />
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Winner */}
             {isCompleted && gameState.game.winner_id !== null && (
@@ -366,9 +370,9 @@ export default function GameTracker({
                 </button>
             </div>
 
-            {/* History — full container when waiting */}
+            {/* History — mobile only, when waiting */}
             {!isCompleted && !isMyTurn && (
-                <div className="flex-1 min-h-0 flex flex-col overflow-hidden" style={{ marginTop: "clamp(6px, 1dvh, 12px)" }}>
+                <div className="flex-1 min-h-0 flex flex-col overflow-hidden lg:hidden" style={{ marginTop: "clamp(6px, 1dvh, 12px)" }}>
                     <div className="flex items-center justify-between px-4 shrink-0 py-2">
                         <span className="text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.25)" }}>Historial</span>
                     </div>
@@ -554,7 +558,7 @@ export default function GameTracker({
             {/* Surrender confirm */}
             {showSurrenderConfirm && (
                 <div className="fixed inset-0 bg-black/75 backdrop-blur flex items-center justify-center z-[200] p-5">
-                    <div className="bg-[#1a1a2e] rounded-2xl border border-white/[0.08] p-6 max-w-[300px] w-full text-center flex flex-col gap-4">
+                    <div className="rounded-2xl p-6 max-w-[300px] w-full text-center flex flex-col gap-4" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
                         <p className="text-base font-extrabold text-white m-0">Rendirse</p>
                         <p className="text-[13px] text-white/40 m-0">Perderás esta partida.</p>
                         <div className="flex gap-2.5">
@@ -568,7 +572,7 @@ export default function GameTracker({
             {/* Death popup */}
             {showDeathPopup && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[200] p-5">
-                    <div className="bg-[#1a1a2e] rounded-2xl border border-red-500/30 p-6 max-w-[300px] w-full text-center flex flex-col gap-4">
+                    <div className="rounded-2xl p-6 max-w-[300px] w-full text-center flex flex-col gap-4" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
                         <p className="text-lg font-black text-red-500 m-0">Vida en 0</p>
                         <p className="text-sm text-white/40 m-0">¿Perdiste esta partida?</p>
                         <div className="flex gap-2.5">
@@ -578,6 +582,92 @@ export default function GameTracker({
                     </div>
                 </div>
             )}
+        </div>{/* end game panel */}
+
+            {/* Desktop history panel — always visible on lg+ */}
+            <div className="hidden lg:flex flex-col w-1/2 border-l overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                <div className="flex items-center px-4 py-3 shrink-0 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                    <span className="text-[13px] font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>Historial de la partida</span>
+                </div>
+                <div className="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-px" style={{ scrollbarWidth: "thin" }}>
+                    {[...interactions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((item, i) => {
+                        const p = item.payload as Record<string, any>;
+                        const isMine = Number(item.player_id) === myPlayerID;
+                        const who = isMine ? myUsername : opponentUsername;
+                        const desc = formatInteraction(item.type, p, isMine, opponentUsername);
+                        const isHeal = item.type === "life_updated" && (p?.delta ?? 0) > 0;
+                        const isDamage = item.type === "event_declared" || (item.type === "life_updated" && (p?.delta ?? 0) < 0);
+                        const accentColor = isHeal ? "rgba(74,222,128,0.06)" : isDamage ? "rgba(248,113,113,0.06)" : "rgba(168,85,247,0.06)";
+                        const dotColor = isHeal ? "#4ade80" : isDamage ? "#f87171" : "#a78bfa";
+                        const time = new Date(item.created_at);
+                        const hh = String(time.getHours()).padStart(2, "0");
+                        const mm = String(time.getMinutes()).padStart(2, "0");
+                        return (
+                            <div key={item.id ?? i} className="flex items-center gap-2.5 rounded-lg" style={{ padding: "8px 12px", backgroundColor: accentColor }}>
+                                <span className="text-[10px] font-mono shrink-0" style={{ color: "rgba(255,255,255,0.2)" }}>{hh}:{mm}</span>
+                                <span className="text-[12px] font-semibold shrink-0" style={{ color: "rgba(255,255,255,0.6)" }}>{who}</span>
+                                <span className="text-[12px] flex-1" style={{ color: "rgba(255,255,255,0.4)" }}>{desc}</span>
+                            </div>
+                        );
+                    })}
+                    {interactions.length === 0 && (
+                        <p className="text-center m-0 py-8 text-[13px]" style={{ color: "rgba(255,255,255,0.12)" }}>Sin interacciones aún</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function PendingEventActions({ duelID, gameNumber, eventID, token, deadline }: { duelID: string; gameNumber: number; eventID: string; token: string; deadline: string | null }) {
+    const [busy, setBusy] = useState(false);
+    const didAutoPass = useRef(false);
+    const totalMs = 8000;
+    const [remaining, setRemaining] = useState(() => deadline ? Math.max(0, new Date(deadline).getTime() - Date.now()) : totalMs);
+
+    const respond = useCallback(async (type: string) => {
+        if (busy) return;
+        setBusy(true);
+        try {
+            await respondEvent(duelID, gameNumber, eventID, { response_type: type }, token);
+        } catch { /* auto-resolve lo manejará */ }
+        finally { setBusy(false); }
+    }, [busy, duelID, gameNumber, eventID, token]);
+
+    useEffect(() => {
+        if (!deadline) return;
+        const id = setInterval(() => {
+            const ms = Math.max(0, new Date(deadline).getTime() - Date.now());
+            setRemaining(ms);
+            if (ms <= 0 && !didAutoPass.current) {
+                didAutoPass.current = true;
+                respond("pass");
+            }
+        }, 100);
+        return () => clearInterval(id);
+    }, [deadline, respond]);
+
+    const pct = Math.max(0, (remaining / totalMs) * 100);
+    const secs = Math.ceil(remaining / 1000);
+    const urgent = secs <= 3;
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+            <div style={{ position: "relative", height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, borderRadius: 3, backgroundColor: urgent ? "#ef4444" : "#3b82f6", width: `${pct}%`, opacity: 0.8, transition: "width 0.15s linear" }} />
+            </div>
+            <div className="flex gap-2.5">
+                <button onClick={() => respond("pass")} disabled={busy}
+                    className={`flex-1 py-3 rounded-xl border border-white/[0.08] bg-transparent text-sm font-bold active:opacity-70 touch-manipulation ${busy ? "opacity-50" : ""}`}
+                    style={{ color: "rgba(255,255,255,0.4)" }}>
+                    {busy ? "..." : `Aceptar${secs > 0 ? ` (${secs})` : ""}`}
+                </button>
+                <button onClick={() => respond("counter")} disabled={busy}
+                    className={`flex-1 py-3 rounded-xl border-none text-sm font-extrabold active:opacity-70 touch-manipulation ${busy ? "opacity-50" : ""}`}
+                    style={{ backgroundColor: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.25)", color: "#a78bfa" }}>
+                    {busy ? "..." : "Contrahechizo"}
+                </button>
+            </div>
         </div>
     );
 }
