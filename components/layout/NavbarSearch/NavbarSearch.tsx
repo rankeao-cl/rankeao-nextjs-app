@@ -168,7 +168,7 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
             title: c.name,
             subtitle: [c.set_name, c.rarity].filter(Boolean).join(" · "),
             image: c.image_url_small || c.image_url,
-            href: `/cartas/${encodeURIComponent(c.name)}`,
+            href: `/cartas/${c.slug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
           });
           if (seen.size >= 4) break;
         }

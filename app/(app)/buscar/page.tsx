@@ -129,7 +129,7 @@ function SearchContent() {
                             title: card.name,
                             subtitle: [card.game_name || "Magic: The Gathering", card.set_name].filter(Boolean).join(" · "),
                             image: card.image_url_small || card.image_url,
-                            href: `/cartas/${encodeURIComponent(card.name)}`,
+                            href: `/cartas/${card.slug || card.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
                             meta: { rarity: card.rarity, price_usd: card.price_usd },
                         });
                     }
