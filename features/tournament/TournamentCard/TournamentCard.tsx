@@ -130,7 +130,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                     {/* Nombre */}
                     <h3
-                        className="text-white font-bold text-base line-clamp-1 mb-1.5"
+                        className="text-white font-bold text-sm line-clamp-1 mb-1.5 truncate"
                         style={{ textShadow: "0 1px 6px rgba(0,0,0,0.9)" }}
                     >
                         {tournament.name}

@@ -1,18 +1,12 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 
 import CreatePostModal from "@/features/social/CreatePostModal";
 import CreatePostFAB from "@/features/chat/ChatFAB";
-
-const SwipeWrapper = dynamic(() => import("@/components/ui/SwipeWrapper"), {
-    ssr: false,
-    loading: () => null,
-});
 
 const fullWidthPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/terminos", "/privacidad", "/cookies"];
 const fixedLayoutPages = ["/chat"];
@@ -43,9 +37,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 </main>
             ) : (
                 <main className="flex-1 min-w-0 pb-16 lg:pb-0 lg:ml-[72px] overflow-y-auto overflow-x-hidden">
-                    <SwipeWrapper>
-                        {children}
-                    </SwipeWrapper>
+                    {children}
                 </main>
             )}
 
