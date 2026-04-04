@@ -216,33 +216,78 @@ export default function ListingDetailClient({ listing, id }: Props) {
         </div>
       </div>
 
-      {/* Similar listings */}
-      {similar && similar.length > 0 && (
+      {/* All sellers for this card */}
+      {(() => {
+        const allSellers = [listing, ...(similar || [])];
+        return allSellers.length > 1 ? (
         <div>
-          <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">Publicaciones similares</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {similar.slice(0, 6).map((item: any) => (
-              <Link key={item.id} href={`/marketplace/${item.slug || item.id}`} className="group">
-                <Card className="surface-card rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                  <Card.Content className="p-0">
-                    <div className="relative aspect-[3/4]" style={{ background: "var(--surface-secondary)" }}>
-                      {(item.images?.[0]?.url || item.card_image_url) ? (
-                        <Image src={item.images?.[0]?.url || item.card_image_url} alt={item.title} fill className="object-contain" sizes="150px" />
+          <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">Vendedores de esta carta ({allSellers.length})</h2>
+          <div className="flex flex-col gap-2">
+            {allSellers.slice(0, 10).map((item: any) => {
+              const itemSeller = item.seller_username || item.tenant_name || "Vendedor";
+              const itemCondition = item.card_condition;
+              const itemImage = item.images?.[0]?.url || item.card_image_url;
+              return (
+                <Link key={item.id} href={`/marketplace/${item.slug || item.id}`} className="block">
+                  <div
+                    className="flex items-center gap-3 p-3 rounded-xl transition-colors hover:brightness-110"
+                    style={{ backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)" }}
+                  >
+                    {/* Mini image */}
+                    <div className="shrink-0 relative overflow-hidden" style={{ width: 40, height: 56, borderRadius: 3, backgroundColor: "#0a0a0a" }}>
+                      {itemImage ? (
+                        <Image src={itemImage} alt={item.title} fill className="object-cover" sizes="40px" />
                       ) : (
-                        <div className="flex items-center justify-center h-full text-2xl">🃏</div>
+                        <div className="flex items-center justify-center h-full">
+                          <span style={{ fontSize: 12, color: "var(--muted)", opacity: 0.3 }}>?</span>
+                        </div>
                       )}
                     </div>
-                    <div className="p-2">
-                      <p className="text-xs font-semibold text-[var(--foreground)] truncate">{item.title}</p>
-                      <p className="text-xs font-bold text-[var(--accent)]">${(item.price ?? 0).toLocaleString("es-CL")}</p>
+
+                    {/* Seller info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        {item.seller_avatar_url ? (
+                          <img src={item.seller_avatar_url} alt="" style={{ width: 18, height: 18, borderRadius: 9 }} />
+                        ) : (
+                          <div className="flex items-center justify-center" style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "var(--surface)" }}>
+                            <span style={{ fontSize: 9, color: "var(--muted)" }}>{itemSeller[0]?.toUpperCase()}</span>
+                          </div>
+                        )}
+                        <span className="text-xs font-semibold text-[var(--foreground)] truncate">{itemSeller}</span>
+                        {item.city && <span className="text-[10px]" style={{ color: "var(--muted)" }}>· {item.city}</span>}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {itemCondition && (
+                          <span className="uppercase text-[9px] font-semibold px-1.5 py-0.5" style={{ borderRadius: 4, color: "var(--muted)", backgroundColor: "var(--surface)" }}>
+                            {conditionLabels[itemCondition] || itemCondition}
+                          </span>
+                        )}
+                        {item.is_foil && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5" style={{ borderRadius: 4, color: "var(--yellow, #eab308)", backgroundColor: "var(--surface)" }}>
+                            Foil
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </Card.Content>
-                </Card>
-              </Link>
-            ))}
+
+                    {/* Price */}
+                    <span className="text-sm font-bold text-[var(--foreground)] shrink-0">
+                      ${(item.price ?? 0).toLocaleString("es-CL")}
+                    </span>
+
+                    {/* Chevron */}
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                      <path d="M6 3l5 5-5 5" stroke="var(--muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
-      )}
+        ) : null;
+      })()}
 
       {/* Modals */}
       <BuyModal listing={listing} open={buyOpen} onClose={() => setBuyOpen(false)} />

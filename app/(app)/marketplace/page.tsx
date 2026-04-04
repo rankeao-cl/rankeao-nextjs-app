@@ -1,7 +1,8 @@
-import SaleCard from "@/features/marketplace/SaleCard";
-import SaleCardList from "@/features/marketplace/SaleCardList";
+import GroupedSaleCard from "@/features/marketplace/GroupedSaleCard";
+import GroupedSaleCardList from "@/features/marketplace/GroupedSaleCardList";
 import { getListings } from "@/lib/api/marketplace";
 import { getGames } from "@/lib/api/catalog";
+import { groupListings } from "@/lib/utils/group-listings";
 import type { CatalogGame } from "@/lib/types/catalog";
 import MarketplaceFilters from "./MarketplaceFilters";
 import MarketplaceSearch from "./MarketplaceSearch";
@@ -70,6 +71,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   }
 
   const listings = listingsData?.listings ?? [];
+  const groupedCards = groupListings(listings);
   const meta = listingsData?.meta;
   const totalPages = meta?.total_pages ?? 1;
   const rawGames = gamesData?.data ?? gamesData?.games;
@@ -251,12 +253,12 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
 
         {/* Listings */}
         <main className="flex-1 min-w-0">
-          {listings.length > 0 ? (
+          {groupedCards.length > 0 ? (
             <>
               {viewMode === "list" ? (
                 <div className="flex flex-col gap-3">
-                  {listings.map((listing) => (
-                    <SaleCardList key={listing.id} listing={listing} />
+                  {groupedCards.map((group) => (
+                    <GroupedSaleCardList key={group.group_key} group={group} />
                   ))}
                 </div>
               ) : (
@@ -266,8 +268,8 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                     gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
                   }}
                 >
-                  {listings.map((listing) => (
-                    <SaleCard key={listing.id} listing={listing} />
+                  {groupedCards.map((group) => (
+                    <GroupedSaleCard key={group.group_key} group={group} />
                   ))}
                 </div>
               )}

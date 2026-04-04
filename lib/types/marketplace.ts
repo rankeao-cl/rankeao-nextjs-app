@@ -63,6 +63,19 @@ export interface ListingDetail extends Listing {
     similar_listings?: Listing[];
 }
 
+export interface GroupedCard {
+    group_key: string;
+    representative: Listing;
+    min_price: number;
+    seller_count: number;
+    listing_count: number;
+    card_name: string;
+    card_image_url?: string;
+    game_name?: string;
+    set_name?: string;
+    rarity?: string;
+}
+
 export interface ListingsResponse {
     listings: Listing[];
     meta?: PaginationMeta;

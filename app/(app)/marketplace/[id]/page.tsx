@@ -58,5 +58,22 @@ export default async function ListingDetailPage({ params }: Props) {
         );
     }
 
+    // Fetch other sellers for the same card
+    const cardName = listing.card_name || listing.title;
+    let otherSellers: any[] = [];
+    if (cardName) {
+        try {
+            const res = await getListings({ q: cardName, per_page: 20 });
+            otherSellers = (res.listings || []).filter((l: any) => l.id !== listing.id);
+        } catch {
+            // silent
+        }
+    }
+
+    // Merge: prefer server-fetched sellers over API's similar_listings
+    if (otherSellers.length > 0) {
+        listing.similar_listings = otherSellers;
+    }
+
     return <ListingDetailClient listing={listing} id={id} />;
 }
