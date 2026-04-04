@@ -249,8 +249,9 @@ export default function NotificacionesPage() {
                                             </div>
                                         </div>
                                     );
-                                    return notif.action_url ? (
-                                        <Link key={notif.id} href={notif.action_url}>{content}</Link>
+                                    const href = notif.action_url || null;
+                                    return href ? (
+                                        <Link key={notif.id} href={href}>{content}</Link>
                                     ) : (
                                         <div key={notif.id}>{content}</div>
                                     );

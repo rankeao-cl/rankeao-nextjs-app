@@ -21,6 +21,10 @@ export async function createPost(payload: { content: string; image_url?: string 
     return apiPost<ApiResponse<{ post: FeedPost }>>("/social/feed/posts", payload, { token });
 }
 
+export async function getPost(postId: string | number, params?: Params) {
+    return apiFetch<{ data?: { post: FeedPost }; post?: FeedPost }>(`/social/feed/posts/${postId}`, params);
+}
+
 export async function deletePost(postId: number, token?: string) {
     return apiDelete<ApiResponse<ApiMessage>>(`/social/feed/posts/${postId}`, { token });
 }

@@ -205,9 +205,11 @@ function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClos
         onClose();
     };
 
-    if (notif.action_url) {
+    const href = notif.action_url || null;
+
+    if (href) {
         return (
-            <Link href={notif.action_url} onClick={handleClick}
+            <Link href={href} onClick={handleClick}
                 className="block hover:bg-white/5 transition-colors">
                 {inner}
             </Link>
