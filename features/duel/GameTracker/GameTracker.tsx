@@ -279,6 +279,24 @@ export default function GameTracker({
                 </div>
             )}
 
+            {/* ── Pending events popup (when I'm the target) ── */}
+            {pendingEvents.filter(e => e.target_player_id === myPlayerID && e.status === "pending").length > 0 && (
+                <div style={{ padding: "8px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+                    {pendingEvents.filter(e => e.target_player_id === myPlayerID && e.status === "pending").map(pe => (
+                        <PendingEventCard
+                            key={pe.id}
+                            event={pe}
+                            duelID={duelID}
+                            gameNumber={gameNumber}
+                            myPlayerID={myPlayerID}
+                            sourceUsername={Number(pe.source_player_id) === myPlayerID ? myUsername : opponentUsername}
+                            targetUsername={Number(pe.target_player_id) === myPlayerID ? myUsername : opponentUsername}
+                            token={token}
+                        />
+                    ))}
+                </div>
+            )}
+
             {/* ── Player panels ── */}
             <div className="flex relative">
                 <div className="absolute top-0 bottom-0 left-1/2 w-px pointer-events-none z-[1]"
