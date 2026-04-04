@@ -45,38 +45,75 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const totalPages = meta?.total_pages ?? 1;
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col pt-4">
+    <div className="max-w-7xl mx-auto flex flex-col">
       {/* Header */}
-      <section className="px-4 lg:px-6 mb-6">
-        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden">
-          <div className="relative z-10">
-            <Chip color="accent" variant="soft" size="sm" className="mb-3 px-3">
-              Catalogo TCG
-            </Chip>
-            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+      <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
+        <div
+          style={{
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
+            borderRadius: 16,
+            padding: 18,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 120,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Link
+                href="/marketplace"
+                style={{
+                  width: 28, height: 28, borderRadius: 14,
+                  backgroundColor: "var(--surface)", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  textDecoration: "none", flexShrink: 0,
+                }}
+              >
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </Link>
+              <span
+                style={{
+                  display: "inline-block",
+                  backgroundColor: "var(--surface)",
+                  paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
+                  borderRadius: 999, color: "var(--muted)", fontSize: 11, fontWeight: 600,
+                }}
+              >
+                Catalogo TCG
+              </span>
+            </div>
+            <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
               Catalogo de Cartas
             </h1>
-            <p className="text-sm text-[var(--muted)] max-w-lg mb-6">
+            <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: "18px", margin: 0 }}>
               Explora cartas por juego, busca por nombre y consulta precios e historial.
             </p>
-
-            {/* Search */}
-            <form method="get" action="/catalogo" className="flex gap-2 max-w-lg">
-              <input
-                type="text"
-                name="q"
-                defaultValue={query}
-                placeholder="Buscar cartas por nombre..."
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)] transition-colors"
-              />
-              {params.game && <input type="hidden" name="game" value={params.game} />}
-              <Button type="submit" variant="primary" size="sm" className="rounded-xl px-5">
-                Buscar
-              </Button>
-            </form>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Search */}
+      <div className="mx-4 lg:mx-6 mb-3">
+        <form method="get" action="/catalogo" style={{ display: "flex", alignItems: "center", backgroundColor: "var(--surface-solid)", borderRadius: 999, padding: "10px 14px", border: "1px solid var(--border)", gap: 8 }}>
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            name="q"
+            defaultValue={query}
+            placeholder="Buscar cartas por nombre..."
+            style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: 14, color: "var(--foreground)", padding: 0 }}
+          />
+          {params.game && <input type="hidden" name="game" value={params.game} />}
+        </form>
+      </div>
 
       {/* Browse by game */}
       {games.length > 0 && !query && (

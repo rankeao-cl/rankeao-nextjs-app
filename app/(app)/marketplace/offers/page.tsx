@@ -436,29 +436,56 @@ export default function OffersPage() {
   // ── Render ──
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col pt-4 pb-12">
+    <div className="max-w-7xl mx-auto flex flex-col pb-12">
       {/* Header */}
-      <section className="px-4 lg:px-6 mb-6">
-        <div className="glass p-5 sm:p-6 rounded-2xl relative overflow-hidden">
-          <div className="flex items-center gap-3 mb-3">
-            <Link
-              href="/marketplace"
-              className="w-8 h-8 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center hover:bg-[var(--border)] transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 text-[var(--foreground)]" />
-            </Link>
-            <Chip color="accent" variant="soft" size="sm" className="px-3">
-              Mis Ofertas
-            </Chip>
+      <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
+        <div
+          style={{
+            backgroundColor: "var(--surface-solid)",
+            border: "1px solid var(--border)",
+            borderRadius: 16,
+            padding: 18,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 120,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Link
+                href="/marketplace"
+                style={{
+                  width: 28, height: 28, borderRadius: 14,
+                  backgroundColor: "var(--surface)", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  textDecoration: "none", flexShrink: 0,
+                }}
+              >
+                <ArrowLeft style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+              </Link>
+              <span
+                style={{
+                  display: "inline-block",
+                  backgroundColor: "var(--surface)",
+                  paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
+                  borderRadius: 999, color: "var(--muted)", fontSize: 11, fontWeight: 600,
+                }}
+              >
+                Mis Ofertas
+              </span>
+            </div>
+            <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
+              Ofertas del Marketplace
+            </h1>
+            <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: "18px", margin: 0 }}>
+              Gestiona las ofertas recibidas y enviadas en tus publicaciones.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-1">
-            Ofertas del Marketplace
-          </h1>
-          <p className="text-sm text-[var(--muted)]">
-            Gestiona las ofertas recibidas y enviadas en tus publicaciones.
-          </p>
         </div>
-      </section>
+      </div>
 
       {/* Tabs */}
       <section className="px-4 lg:px-6 mb-6">
