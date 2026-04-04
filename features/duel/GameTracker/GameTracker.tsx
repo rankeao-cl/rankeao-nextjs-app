@@ -9,6 +9,7 @@ import { updateLife, declareEvent, endGame, passTurn, getInteractions } from "@/
 import { surrenderDuel } from "@/lib/api/duels";
 import { mapErrorMessage } from "@/lib/api/errors";
 import type { GameStateSnapshot, GameInteraction } from "@/lib/types/game";
+import PendingEventCard from "@/features/duel/PendingEventCard";
 
 interface GameTrackerProps {
     duelID: string;
@@ -36,6 +37,8 @@ export default function GameTracker({
     const myState = gameState?.player_states.find((ps) => Number(ps.player_id) === myPlayerID);
     const oppState = gameState?.player_states.find((ps) => Number(ps.player_id) === opponentPlayerID);
     const rules = gameState?.game.game_rules;
+    const pendingEvents = gameState?.pending_events ?? [];
+    const myPendingEvents = pendingEvents.filter(e => Number(e.target_player_id) === myPlayerID && e.status === "pending");
     const isCompleted = gameState?.game.status === "completed";
     const isMyTurn = !isCompleted && Number(gameState?.game.active_player_id) === myPlayerID;
     const myLife = myState?.life_total ?? rules?.starting_life ?? 20;
@@ -320,6 +323,24 @@ export default function GameTracker({
             {!isCompleted && gameState.game.active_player_id !== null && (
                 <div className={`mx-3 shrink-0 text-center border rounded-xl ${isMyTurn ? "bg-purple-500/10 border-purple-500/20" : "bg-white/[0.03] border-white/[0.04]"}`} style={{ marginTop: "clamp(4px, 0.8dvh, 8px)", padding: "clamp(6px, 1dvh, 10px) 14px" }}>
                     <span className={`text-[13px] font-bold ${isMyTurn ? "text-white" : "text-white/30"}`}>{isMyTurn ? "Tu turno" : `Turno de ${opponentUsername}`}</span>
+                </div>
+            )}
+
+            {/* Pending events from opponent */}
+            {myPendingEvents.length > 0 && (
+                <div className="mx-3 flex flex-col gap-1.5" style={{ marginTop: "clamp(4px, 0.8dvh, 8px)" }}>
+                    {myPendingEvents.map(pe => (
+                        <PendingEventCard
+                            key={pe.id}
+                            event={pe}
+                            duelID={duelID}
+                            gameNumber={gameNumber}
+                            myPlayerID={myPlayerID}
+                            sourceUsername={Number(pe.source_player_id) === myPlayerID ? myUsername : opponentUsername}
+                            targetUsername={Number(pe.target_player_id) === myPlayerID ? myUsername : opponentUsername}
+                            token={token}
+                        />
+                    ))}
                 </div>
             )}
 
