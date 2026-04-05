@@ -59,7 +59,7 @@ export async function getTournaments(
     const res = await apiFetch<{ data?: TournamentListResponse } & TournamentListResponse>(
         "/tournaments",
         filters as Params,
-        { revalidate: 30 }
+        { cache: "no-store" }
     );
     const data = res.data || res;
     if (Array.isArray(data.tournaments)) {

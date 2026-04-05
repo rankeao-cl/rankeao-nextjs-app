@@ -10,7 +10,7 @@ export async function getTenants(
     return apiFetch<TenantsResponse>(
         "/tenants",
         filters as Params,
-        { revalidate: 60 }
+        { cache: "no-store" }
     );
 }
 
