@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Avatar, Spinner } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Spinner } from "@heroui/react/spinner";
+
 import { Magnifier, Person, Cup, Persons, ShoppingCart, Xmark, SquareDashed } from "@gravity-ui/icons";
 
 import { autocompleteUsers } from "@/lib/api/social";
@@ -257,6 +259,12 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
           className="w-full bg-transparent outline-none placeholder:text-[var(--field-placeholder)]"
           autoComplete="off"
           spellCheck={false}
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls="navbar-search-listbox"
+          aria-activedescendant={selectedIndex >= 0 ? `search-option-${selectedIndex}` : undefined}
+          aria-autocomplete="list"
+          aria-label="Buscar"
         />
         {isLoading && <Spinner size="sm" className="shrink-0" />}
         {query && !isLoading && (
@@ -269,6 +277,9 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
       {/* Results Dropdown */}
       {isOpen && (
         <div
+          id="navbar-search-listbox"
+          role="listbox"
+          aria-label="Resultados de búsqueda"
           className="absolute top-[calc(100%+8px)] left-0 right-0 rounded-[22px] overflow-hidden shadow-2xl z-50 border border-[var(--border)] max-h-[70vh] overflow-y-auto custom-scrollbar backdrop-blur-3xl"
           style={{ background: "var(--surface)" }}
         >
@@ -303,6 +314,9 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
                       key={`${item.type}-${item.id}`}
                       href={item.href}
                       onClick={handleClear}
+                      id={`search-option-${idx}`}
+                      role="option"
+                      aria-selected={idx === selectedIndex}
                       className={`flex items-center gap-3 px-3.5 py-2.5 hover:bg-[var(--surface-secondary)] transition-colors cursor-pointer ${idx === selectedIndex ? "bg-[var(--surface-secondary)]" : ""}`}
                     >
                       {item.image ? (

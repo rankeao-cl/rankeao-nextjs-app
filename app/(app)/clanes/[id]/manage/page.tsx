@@ -2,19 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  Button,
-  Card,
-  Chip,
-  Input,
-  Label,
-  ListBox,
-  Select,
-  Spinner,
-  TextArea,
-  TextField,
-  toast,
-} from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { Input } from "@heroui/react/input";
+import { Label } from "@heroui/react/label";
+import { ListBox } from "@heroui/react/list-box";
+import { Select } from "@heroui/react/select";
+import { Spinner } from "@heroui/react/spinner";
+import { TextArea } from "@heroui/react/textarea";
+import { TextField } from "@heroui/react/textfield";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import {
   getClan,

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { LeaderboardEntry } from "@/lib/types/gamification";
 
 interface Props {
@@ -85,10 +86,12 @@ export default function LeaderboardTable({ entries, type = "xp" }: Props) {
                             {/* Player */}
                             <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                                 {entry.avatar_url ? (
-                                    <img src={entry.avatar_url} alt={entry.username} style={{
-                                        width: 32, height: 32, borderRadius: 16, objectFit: "cover", flexShrink: 0,
-                                        border: isTop3 ? "2px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "none",
-                                    }} />
+                                    <Image src={entry.avatar_url} alt={entry.username} width={32} height={32}
+                                        className="object-cover rounded-full flex-shrink-0"
+                                        style={{
+                                            border: isTop3 ? "2px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "none",
+                                        }}
+                                    />
                                 ) : (
                                     <div style={{
                                         width: 32, height: 32, borderRadius: 16, backgroundColor: "var(--surface-solid)",

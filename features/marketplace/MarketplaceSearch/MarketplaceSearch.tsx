@@ -148,6 +148,7 @@ export default function MarketplaceSearch({ initialQuery = "" }: Props) {
                         <button
                             type="button"
                             onClick={handleClear}
+                            aria-label="Limpiar busqueda"
                             className="cursor-pointer"
                             style={{ color: "var(--muted)" }}
                         >

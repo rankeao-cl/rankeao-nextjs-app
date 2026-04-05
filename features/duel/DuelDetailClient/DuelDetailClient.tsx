@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useDuelSocket } from "@/lib/hooks/use-duel-socket";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
 import {

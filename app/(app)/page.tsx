@@ -28,7 +28,8 @@ export default async function HomePage() {
   const listings = asArray<Listing>(listingsData?.listings);
 
   return (
-    <div style={{ maxWidth: 980, marginLeft: "auto", marginRight: "auto", paddingLeft: 8, paddingRight: 8 }}>
+    <div className="max-w-[980px] mx-auto px-2">
+      <h1 className="sr-only">Feed principal</h1>
       <div style={{ paddingTop: 16, display: "flex", gap: 56 }}>
         {/* Main feed column */}
         <div style={{ flex: 1, minWidth: 0, maxWidth: 620 }}>

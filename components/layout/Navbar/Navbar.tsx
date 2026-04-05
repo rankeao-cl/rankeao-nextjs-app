@@ -6,8 +6,11 @@ import { usePathname } from "next/navigation";
 import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
 import NavbarSearch from "@/components/layout/NavbarSearch";
 
-import { Avatar, Button, Popover } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Button } from "@heroui/react/button";
+import { Popover } from "@heroui/react/popover";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { useUIStore } from "@/lib/stores/ui-store";
 import {
   ArrowRightFromSquare,
@@ -26,10 +29,12 @@ import {
   Comment,
 } from "@gravity-ui/icons";
 import { useTheme } from "next-themes";
+import dynamic from "next/dynamic";
 import { getUnreadNotificationCount } from "@/lib/api/notifications";
 import { getUserProfile } from "@/lib/api/social";
-import NotificationSidebar from "@/components/layout/NotificationSidebar";
 import type { UserProfile } from "@/lib/types/social";
+
+const NotificationSidebar = dynamic(() => import("@/components/layout/NotificationSidebar"), { ssr: false });
 
 const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
@@ -49,7 +54,7 @@ export default function Navbar() {
   const closeNotifSidebar = useUIStore((s) => s.closeNotificationSidebar);
   const unreadCount = useUIStore((s) => s.notificationUnreadCount);
   const setUnreadCount = useUIStore((s) => s.setNotificationUnreadCount);
-  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const userAvatarUrl = useAuthStore((s) => s.avatarUrl);
 
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
@@ -66,13 +71,13 @@ export default function Navbar() {
     };
 
     pollCount();
-    const interval = setInterval(pollCount, 30_000);
+    const interval = setInterval(pollCount, 60_000);
 
-    // Fetch user avatar once
+    // Fetch user avatar once and store in auth store for shared access
     if (session.username) {
       getUserProfile(session.username).then((res) => {
         const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
-        if (profile?.avatar_url) setUserAvatarUrl(profile.avatar_url);
+        if (profile?.avatar_url) useAuthStore.getState().setAvatarUrl(profile.avatar_url);
       }).catch(() => {});
     }
 
@@ -86,11 +91,7 @@ export default function Navbar() {
 
   return (
     <header
-      className="sticky top-0 z-50 h-16"
-      style={{
-        borderBottom: "1px solid var(--border)",
-        background: "var(--background)",
-      }}
+      className="sticky top-0 z-50 h-16 border-b border-border bg-background"
     >
       <div className="w-full h-full px-4 lg:px-6 flex items-center justify-between relative">
         {/* ── Mobile: Expanded Search ── */}
@@ -99,11 +100,10 @@ export default function Navbar() {
             <NavbarSearch expanded onClose={() => setIsSearchExpanded(false)} />
             <button
               onClick={() => setIsSearchExpanded(false)}
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer"
-              style={{ background: "var(--surface-solid)" }}
+              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 cursor-pointer bg-surface-solid"
               aria-label="Cerrar búsqueda"
             >
-              <Xmark className="size-4" style={{ color: "var(--muted)" }} />
+              <Xmark className="size-4 text-muted" />
             </button>
           </div>
         ) : (
@@ -128,37 +128,35 @@ export default function Navbar() {
             <div className="flex items-center gap-2 z-10">
               {/* ── Mobile actions (AppTopBar style) ── */}
               <div className="flex md:hidden items-center gap-1">
+                {/* Theme toggle */}
+                <button
+                  onClick={() => setTheme(isDark ? "light" : "dark")}
+                  className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer bg-surface-solid"
+                  aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+                >
+                  {mounted && (isDark ? <Sun className="size-4 text-muted" /> : <Moon className="size-4 text-muted" />)}
+                </button>
+
                 {/* Search */}
                 <button
                   onClick={() => setIsSearchExpanded(true)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
-                  style={{ background: "var(--surface-solid)" }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer bg-surface-solid"
                   aria-label="Buscar"
                 >
-                  <Magnifier className="size-4" style={{ color: "var(--muted)" }} />
+                  <Magnifier className="size-4 text-muted" />
                 </button>
 
                 {/* Bell */}
                 {isAuthenticated && (
                   <button
                     onClick={() => openNotifSidebar()}
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
-                    style={{ background: "var(--surface-solid)" }}
-                    aria-label="Notificaciones"
+                    className="relative w-10 h-10 rounded-full flex items-center justify-center cursor-pointer bg-surface-solid"
+                    aria-label={unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"}
                   >
-                    <Bell className="size-4" style={{ color: "var(--muted)" }} />
+                    <Bell className="size-4 text-muted" />
                     {unreadCount > 0 && (
                       <span
-                        className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none px-1"
-                        style={{
-                          top: "4px",
-                          right: "2px",
-                          minWidth: "18px",
-                          height: "18px",
-                          fontSize: "10px",
-                          background: "var(--danger)",
-                          border: "2px solid var(--background)",
-                        }}
+                        className="absolute top-1 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-white font-extrabold leading-none px-1 text-[10px] bg-danger border-2 border-background"
                       >
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
@@ -170,11 +168,10 @@ export default function Navbar() {
                 {isAuthenticated && (
                   <Link
                     href="/chat"
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "var(--surface-solid)" }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-surface-solid"
                     aria-label="Chat"
                   >
-                    <Comment className="size-4" style={{ color: "var(--foreground)" }} />
+                    <Comment className="size-4 text-foreground" />
                   </Link>
                 )}
 
@@ -182,8 +179,7 @@ export default function Navbar() {
                 {isAuthenticated && (
                   <button
                     onClick={openCreatePost}
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "var(--accent)", border: "none", cursor: "pointer" }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-accent border-none cursor-pointer"
                     aria-label="Crear"
                   >
                     <Plus className="size-4 text-white" />
@@ -211,9 +207,9 @@ export default function Navbar() {
                     <button
                       onClick={() => openNotifSidebar()}
                       className="relative flex items-center justify-center p-0 min-w-8 min-h-8 text-muted cursor-pointer hover:bg-black/5 rounded-lg transition-colors"
-                      aria-label="Notificaciones"
+                      aria-label={unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"}
                     >
-                      <Bell className="size-[18px]" style={{ color: "var(--foreground)" }} />
+                      <Bell className="size-[18px] text-foreground" />
                       {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-danger text-white text-[10px] font-bold leading-none px-1 border-2 border-background">
                           {unreadCount > 9 ? "9+" : unreadCount}
@@ -234,7 +230,7 @@ export default function Navbar() {
                           <p className="text-xs font-bold uppercase tracking-wider text-muted">Crear nuevo</p>
                         </div>
                         <div className="p-1.5 flex flex-col gap-0.5">
-                          <button onClick={openCreatePost} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer w-full text-left" style={{ background: "none", border: "none" }}>
+                          <button onClick={openCreatePost} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer w-full text-left bg-transparent border-none">
                             <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0 group-hover:bg-blue-500/25 transition-colors">
                               <Pencil className="size-4 text-blue-500" />
                             </div>

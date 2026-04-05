@@ -1,5 +1,5 @@
 import { apiFetch, apiPatch } from "./client";
-import type { XpLeaderboardResponse, BadgesResponse, XpPeriod, Badge, BadgeCategory, Cosmetic, Title, GamificationSeason, SeasonLeaderboardEntry, XpEvent } from "@/lib/types/gamification";
+import type { XpLeaderboardResponse, BadgesResponse, XpPeriod, Badge, BadgeCategory, Cosmetic, Title, GamificationSeason, SeasonLeaderboardEntry, XpEvent, UserStats, LevelsResponse, UserXpResponse, EquippedItems } from "@/lib/types/gamification";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 
 // ── XP Leaderboard ──
@@ -80,13 +80,13 @@ export async function getSeasonLeaderboardByGames(seasonId: string, params?: Par
 // ── User Stats ──
 
 export async function getUserStats(username: string) {
-    return apiFetch<ApiResponse<Record<string, unknown>>>(`/gamification/users/${encodeURIComponent(username)}/stats`, undefined, { revalidate: 60 });
+    return apiFetch<ApiResponse<UserStats>>(`/gamification/users/${encodeURIComponent(username)}/stats`, undefined, { revalidate: 60 });
 }
 
 // ── Levels ──
 
 export async function getLevels() {
-    return apiFetch<ApiResponse<Record<string, unknown>>>("/gamification/levels", undefined, { revalidate: 300 });
+    return apiFetch<ApiResponse<LevelsResponse>>("/gamification/levels", undefined, { revalidate: 300 });
 }
 
 // ── XP Events ──
@@ -106,7 +106,7 @@ export async function getMyTitles(token?: string) {
 }
 
 export async function getMyXp(token?: string) {
-    return apiFetch<ApiResponse<Record<string, unknown>>>("/social/me/xp", undefined, { cache: "no-store", token });
+    return apiFetch<ApiResponse<UserXpResponse>>("/social/me/xp", undefined, { cache: "no-store", token });
 }
 
 /**
@@ -114,7 +114,7 @@ export async function getMyXp(token?: string) {
  * This may be an internal/undocumented endpoint. Keep for backward compatibility.
  */
 export async function getMyEquipped(token?: string) {
-    return apiFetch<ApiResponse<Record<string, unknown>>>("/social/me/equipped", undefined, { cache: "no-store", token });
+    return apiFetch<ApiResponse<EquippedItems>>("/social/me/equipped", undefined, { cache: "no-store", token });
 }
 
 export async function updateEquipped(payload: { title_id?: string; cosmetic_ids?: string[] }, token?: string) {

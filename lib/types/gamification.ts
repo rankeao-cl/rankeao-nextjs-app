@@ -167,3 +167,30 @@ export interface XpEvent {
     category?: string;
     is_active?: boolean;
 }
+
+// ── Level & XP response types ──
+
+export interface LevelDefinition {
+    level: number;
+    xp_required: number;
+    title?: string;
+    rewards?: string[];
+}
+
+export interface LevelsResponse {
+    levels: LevelDefinition[];
+}
+
+export interface UserXpResponse {
+    total_xp: number;
+    level: number;
+    xp_to_next_level?: number;
+    current_level_xp?: number;
+}
+
+export interface EquippedItems {
+    title_id?: string;
+    title?: Title;
+    cosmetic_ids?: string[];
+    cosmetics?: Cosmetic[];
+}

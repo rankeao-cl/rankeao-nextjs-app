@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,8 +11,7 @@ import {
     TargetDart,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { getUserProfile } from "@/lib/api/social";
-import type { UserProfile } from "@/lib/types/social";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 const tabs = [
     { href: "/", label: "Feed", icon: House },
@@ -27,18 +27,7 @@ export default function BottomNav() {
     const { session, status } = useAuth();
     const isAuth = status === "authenticated";
 
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
-    // Fetch user avatar
-    useEffect(() => {
-        if (!isAuth || !session?.username) return;
-        getUserProfile(session.username)
-            .then((res) => {
-                const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
-                if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
-            })
-            .catch(() => {});
-    }, [isAuth, session?.username]);
+    const avatarUrl = useAuthStore((s) => s.avatarUrl);
 
     if (authPages.some((p) => pathname.startsWith(p))) {
         return null;
@@ -56,13 +45,12 @@ export default function BottomNav() {
 
     return (
         <nav
-            className="lg:hidden fixed bottom-0 inset-x-0 z-50"
-            style={{ background: "var(--background)" }}
+            aria-label="Navegacion inferior"
+            className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-background"
         >
             {/* Hairline divider */}
             <div
-                className="h-px w-full"
-                style={{ background: "var(--border)" }}
+                className="h-px w-full bg-border"
             />
 
             <div className="flex items-center justify-around pt-2 pb-[max(env(safe-area-inset-bottom,8px),8px)] px-1">
@@ -76,30 +64,19 @@ export default function BottomNav() {
                             <Link
                                 key={tab.href}
                                 href={tab.href}
-                                className="flex-1 flex flex-col items-center py-1"
+                                className="flex-1 flex flex-col items-center justify-end py-1"
                                 aria-label={tab.label}
-                                style={{ justifyContent: "flex-end" }}
                             >
                                 <div
-                                    className="flex items-center justify-center"
-                                    style={{
-                                        width: 40, height: 40, borderRadius: 20,
-                                        backgroundColor: "var(--accent)",
-                                        marginBottom: 4,
-                                    }}
+                                    className="flex items-center justify-center w-10 h-10 rounded-full bg-accent mb-1"
                                 >
                                     <Icon
-                                        className="size-[20px]"
-                                        style={{ color: "#FFFFFF" }}
+                                        className="size-[20px] text-white"
                                     />
                                 </div>
                                 <span
-                                    className="leading-none whitespace-nowrap transition-opacity duration-200"
+                                    className="leading-none whitespace-nowrap transition-opacity duration-200 text-[10px] font-semibold tracking-[0.1px] text-foreground"
                                     style={{
-                                        fontSize: "10px",
-                                        fontWeight: 600,
-                                        letterSpacing: "0.1px",
-                                        color: "var(--foreground)",
                                         opacity: active ? 1 : 0.5,
                                     }}
                                 >
@@ -118,21 +95,12 @@ export default function BottomNav() {
                         >
                             <div className="w-6 h-6 flex items-center justify-center mb-1 relative">
                                 <Icon
-                                    className="size-[22px] transition-opacity duration-200"
-                                    style={{
-                                        color: active
-                                            ? "var(--foreground)"
-                                            : "var(--muted)",
-                                    }}
+                                    className={`size-[22px] transition-opacity duration-200 ${active ? "text-foreground" : "text-muted"}`}
                                 />
                             </div>
                             <span
-                                className="leading-none whitespace-nowrap transition-opacity duration-200"
+                                className="leading-none whitespace-nowrap transition-opacity duration-200 text-[10px] font-semibold tracking-[0.1px] text-foreground"
                                 style={{
-                                    fontSize: "10px",
-                                    fontWeight: 600,
-                                    letterSpacing: "0.1px",
-                                    color: "var(--foreground)",
                                     opacity: active ? 1 : 0.5,
                                 }}
                             >
@@ -150,29 +118,22 @@ export default function BottomNav() {
                 >
                     <div className="relative w-7 h-7 mb-0.5">
                         <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-200"
-                            style={{
-                                borderWidth: "2px",
-                                borderStyle: "solid",
-                                borderColor: profileActive
-                                    ? "var(--foreground)"
-                                    : "transparent",
-                            }}
+                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-200 border-2 border-solid ${profileActive ? "border-foreground" : "border-transparent"}`}
                         >
                             {avatarUrl ? (
-                                <img
+                                <Image
                                     src={avatarUrl}
                                     alt="Avatar"
-                                    className="w-[22px] h-[22px] rounded-full object-cover"
+                                    width={22}
+                                    height={22}
+                                    className="rounded-full object-cover"
                                 />
                             ) : (
                                 <div
-                                    className="w-[22px] h-[22px] rounded-full flex items-center justify-center"
-                                    style={{ background: "var(--surface-solid)" }}
+                                    className="w-[22px] h-[22px] rounded-full flex items-center justify-center bg-surface-solid"
                                 >
                                     <span
-                                        className="text-[11px] font-bold"
-                                        style={{ color: "var(--foreground)" }}
+                                        className="text-[11px] font-bold text-foreground"
                                     >
                                         {initial}
                                     </span>
@@ -182,23 +143,17 @@ export default function BottomNav() {
                         {/* Online badge */}
                         {isAuth && (
                             <div
-                                className="absolute -bottom-px -right-px w-3 h-3 rounded-full flex items-center justify-center"
-                                style={{ background: "var(--background)" }}
+                                className="absolute -bottom-px -right-px w-3 h-3 rounded-full flex items-center justify-center bg-background"
                             >
                                 <div
-                                    className="w-2 h-2 rounded-full"
-                                    style={{ background: "var(--success)" }}
+                                    className="w-2 h-2 rounded-full bg-success"
                                 />
                             </div>
                         )}
                     </div>
                     <span
-                        className="leading-none whitespace-nowrap transition-opacity duration-200"
+                        className="leading-none whitespace-nowrap transition-opacity duration-200 text-[10px] font-semibold tracking-[0.1px] text-foreground"
                         style={{
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            letterSpacing: "0.1px",
-                            color: "var(--foreground)",
                             opacity: profileActive ? 1 : 0.5,
                         }}
                     >

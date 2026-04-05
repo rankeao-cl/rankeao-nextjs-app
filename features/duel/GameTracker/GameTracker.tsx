@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import RankeaoSpinner from "@/components/ui/RankeaoSpinner";
 import { useGameState } from "@/lib/hooks/use-game-state";
 import { updateLife, declareEvent, endGame, passTurn, getInteractions, respondEvent } from "@/lib/api/game";

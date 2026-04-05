@@ -2,6 +2,7 @@ import { getClan } from "@/lib/api/clans";
 import type { ClanDetail } from "@/lib/types/clan";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import ClanDetailClient from "./ClanDetailClient";
 
 interface Props {
@@ -54,9 +55,9 @@ export default async function ClanDetailPage({ params }: Props) {
       {/* ── Epic Banner ── */}
       <div style={{ position: "relative", height: 180, overflow: "hidden" }}>
         {clan.banner_url ? (
-          <img src={clan.banner_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <Image src={clan.banner_url} alt="" fill sizes="100vw" className="object-cover" />
         ) : clan.logo_url ? (
-          <img src={clan.logo_url} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.2 }} />
+          <Image src={clan.logo_url} alt="" fill sizes="100vw" className="object-cover scale-[3] blur-[24px] opacity-[0.2]" />
         ) : (
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
         )}
@@ -95,9 +96,10 @@ export default async function ClanDetailPage({ params }: Props) {
             backgroundColor: "var(--surface-solid)", overflow: "hidden",
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 4px 20px rgba(0,0,0,0.5)", flexShrink: 0,
+            position: "relative",
           }}>
             {clan.logo_url ? (
-              <img src={clan.logo_url} alt={clan.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <Image src={clan.logo_url} alt={clan.name} fill sizes="80px" className="object-cover" />
             ) : (
               <span style={{ fontSize: 32, fontWeight: 900, color: "var(--accent)" }}>{clan.name?.charAt(0)?.toUpperCase()}</span>
             )}
@@ -210,10 +212,10 @@ function MemberRow({
         <div style={{
           width: 40, height: 40, borderRadius: 20, backgroundColor: "var(--surface-solid)",
           overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0, border: "1px solid var(--border)",
+          flexShrink: 0, border: "1px solid var(--border)", position: "relative",
         }}>
           {member.avatar_url ? (
-            <img src={member.avatar_url} alt={member.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <Image src={member.avatar_url} alt={member.username} fill sizes="40px" className="object-cover" />
           ) : (
             <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>{member.username[0]?.toUpperCase()}</span>
           )}

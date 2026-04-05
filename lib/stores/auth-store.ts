@@ -64,6 +64,8 @@ export interface AuthSession {
 
 interface AuthState extends AuthSession {
   _hasHydrated: boolean;
+  avatarUrl: string | null;
+  setAvatarUrl: (url: string | null) => void;
   setAuth: (session: AuthSession) => void;
   setTokens: (data: { accessToken: string; refreshToken?: string }) => void;
   logout: () => void;
@@ -75,21 +77,22 @@ const SESSION_COOKIE = "rankeao.auth.session";
 
 function syncCookie(hasSession: boolean) {
   if (typeof document === "undefined") return;
-  if (hasSession) document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
-  else document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
+  if (hasSession) document.cookie = `${SESSION_COOKIE}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`;
+  else document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; Secure`;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      email: "", username: null, accessToken: null, refreshToken: null, _hasHydrated: false,
+      email: "", username: null, accessToken: null, refreshToken: null, _hasHydrated: false, avatarUrl: null,
+      setAvatarUrl: (url) => set({ avatarUrl: url }),
       setAuth: (session) => { set({ email: session.email, username: session.username, accessToken: session.accessToken, refreshToken: session.refreshToken }); syncCookie(!!session.accessToken); },
       setTokens: ({ accessToken, refreshToken }) => { set((state) => ({ accessToken, refreshToken: refreshToken ?? state.refreshToken })); syncCookie(true); },
-      logout: () => { set({ email: "", username: null, accessToken: null, refreshToken: null }); syncCookie(false); },
+      logout: () => { set({ email: "", username: null, accessToken: null, refreshToken: null, avatarUrl: null }); syncCookie(false); },
       isAuthenticated: () => { const { accessToken } = get(); return !!accessToken && !isJwtExpired(accessToken); },
       isTokenExpired: () => isJwtExpired(get().accessToken),
     }),
-    { name: "rankeao.auth", partialize: (state) => ({ email: state.email, username: state.username, accessToken: state.accessToken, refreshToken: state.refreshToken }) }
+    { name: "rankeao.auth", partialize: (state) => ({ email: state.email, username: state.username, accessToken: state.accessToken, refreshToken: state.refreshToken, avatarUrl: state.avatarUrl }) }
   )
 );
 

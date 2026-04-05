@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { acceptDuel, declineDuel, cancelDuel, reportDuelResult, confirmDuelResult, disputeDuel } from "@/lib/api/duels";

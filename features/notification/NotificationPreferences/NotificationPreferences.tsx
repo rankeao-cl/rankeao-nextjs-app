@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Switch, Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Switch } from "@heroui/react/switch";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/lib/hooks/use-notifications";
 

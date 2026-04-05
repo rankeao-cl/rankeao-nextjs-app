@@ -152,3 +152,19 @@ export interface StoreOrderReview {
     comment?: string;
     created_at?: string;
 }
+
+// ── Payload types ──
+
+export interface StoreReviewPayload {
+    overall_rating: number;
+    condition_accuracy?: number;
+    shipping_speed?: number;
+    communication?: number;
+    packaging?: number;
+    comment?: string;
+}
+
+export interface StorePayCheckoutPayload {
+    provider?: string;
+    payment_method?: string;
+}

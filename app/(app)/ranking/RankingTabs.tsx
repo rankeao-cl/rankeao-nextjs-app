@@ -1,6 +1,7 @@
 "use client";
 
 import LeaderboardTable from "@/features/tournament/LeaderboardTable";
+import Image from "next/image";
 import type { LeaderboardEntry } from "@/lib/types/gamification";
 import type { CatalogFormat, CatalogGame } from "@/lib/types/catalog";
 import Link from "next/link";
@@ -76,11 +77,13 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
                                     {/* Avatar */}
                                     <div style={{ position: "relative", marginBottom: 8 }}>
                                         {entry.avatar_url ? (
-                                            <img src={entry.avatar_url} alt={entry.username} style={{
-                                                width: isFirst ? 56 : 44, height: isFirst ? 56 : 44,
-                                                borderRadius: 999, objectFit: "cover",
-                                                border: `2px solid ${isFirst ? "var(--warning)" : "var(--border)"}`,
-                                            }} />
+                                            <Image src={entry.avatar_url} alt={entry.username}
+                                                width={isFirst ? 56 : 44} height={isFirst ? 56 : 44}
+                                                className="object-cover rounded-full"
+                                                style={{
+                                                    border: `2px solid ${isFirst ? "var(--warning)" : "var(--border)"}`,
+                                                }}
+                                            />
                                         ) : (
                                             <div style={{
                                                 width: isFirst ? 56 : 44, height: isFirst ? 56 : 44,

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PWAProvider } from "@/context/PWAContext";
-import { Toast } from "@heroui/react";
+import { Toast } from "@heroui/react/toast";
+
 import { ThemeProvider } from "next-themes";
 import dynamic from "next/dynamic";
 

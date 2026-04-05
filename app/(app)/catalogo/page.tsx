@@ -1,6 +1,10 @@
-import { Card, Chip, Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import { getGames, getCards } from "@/lib/api/catalog";
 import type { CatalogGame, Card as CatalogCard } from "@/lib/types/catalog";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -124,9 +128,11 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
               <Link key={game.id} href={`/catalogo?game=${game.slug}`}>
                 <div className="glass-sm p-4 rounded-2xl border border-[var(--border)] hover:border-[var(--accent)] transition-colors cursor-pointer group">
                   {game.logo_url ? (
-                    <img
+                    <Image
                       src={game.logo_url}
                       alt={game.name}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 object-contain rounded-lg mb-3"
                     />
                   ) : (
@@ -189,10 +195,12 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--accent)] transition-colors group cursor-pointer">
                       <div className="aspect-[2.5/3.5] bg-black/20 relative">
                         {imageUrl ? (
-                          <img
+                          <Image
                             src={imageUrl}
                             alt={card.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                            className="object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

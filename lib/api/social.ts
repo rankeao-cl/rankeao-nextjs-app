@@ -2,7 +2,9 @@ import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
 import type { Params, PaginationMeta, ApiResponse, ApiMessage } from "@/lib/types/api";
 import type {
     UserProfile, FriendRequest, Activity, Deck, CollectionItem, WishlistItem,
-    FeedResponse, FeedPost, FollowedTenant, UserSearchResult,
+    FeedResponse, FeedPost, FollowedTenant, UserSearchResult, PostComment,
+    AddCollectionItemPayload, UpdateCollectionItemPayload, AddWishlistItemPayload,
+    Bookmark, UserBadge, RatingHistoryEntry,
 } from "@/lib/types/social";
 
 // ── Feed ──
@@ -45,19 +47,7 @@ export async function unfirePost(postId: string | number, token?: string) {
     return apiDelete<{ fired: boolean; fires_count: number }>(`/social/feed/posts/${postId}/fire`, { token });
 }
 
-export interface PostComment {
-    id: string;
-    post_id: string;
-    user: { id: string; username: string; avatar_url?: string; display_name?: string };
-    content: string;
-    created_at: string;
-    parent_comment_id?: string | null;
-    reply_to_username?: string | null;
-    replies_count?: number;
-    likes_count?: number;
-    is_liked?: boolean;
-    replies?: PostComment[];
-}
+export type { PostComment };
 
 export async function getPostComments(postId: string | number, params?: Params) {
     return apiFetch<{ data?: { comments: PostComment[] }; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/posts/${postId}/comments`, params);
@@ -95,7 +85,7 @@ export async function deleteBookmark(entityType: string, entityId: string, token
 export async function listBookmarks(entityType?: string, params?: Params, token?: string) {
     const p: Record<string, string> = { ...params as Record<string, string> };
     if (entityType) p.entity_type = entityType;
-    return apiFetch<{ data?: { bookmarks: Record<string, unknown>[] }; bookmarks?: Record<string, unknown>[] }>("/social/bookmarks", p, { token });
+    return apiFetch<{ data?: { bookmarks: Bookmark[] }; bookmarks?: Bookmark[] }>("/social/bookmarks", p, { token });
 }
 
 // ── Friends ──
@@ -143,7 +133,7 @@ export async function getUserActivity(username: string, params?: Params) {
 }
 
 export async function getUserBadges(username: string) {
-    return apiFetch<{ data?: Record<string, unknown>[]; badges?: Record<string, unknown>[] }>(`/social/users/${encodeURIComponent(username)}/badges`);
+    return apiFetch<{ data?: UserBadge[]; badges?: UserBadge[] }>(`/social/users/${encodeURIComponent(username)}/badges`);
 }
 
 export async function getUserFriends(username: string, params?: Params) {
@@ -171,7 +161,7 @@ export async function getUserWishlist(username: string) {
 }
 
 export async function getUserRatingHistory(username: string) {
-    return apiFetch<{ data?: Record<string, unknown>[]; history?: Record<string, unknown>[] }>(`/social/users/${encodeURIComponent(username)}/rating-history`);
+    return apiFetch<{ data?: RatingHistoryEntry[]; history?: RatingHistoryEntry[] }>(`/social/users/${encodeURIComponent(username)}/rating-history`);
 }
 
 /**
@@ -254,11 +244,11 @@ export async function unlikeDeck(deckId: string, token?: string) {
 
 // ── Collection ──
 
-export async function addCollectionItem(payload: Record<string, unknown>, token?: string) {
+export async function addCollectionItem(payload: AddCollectionItemPayload, token?: string) {
     return apiPost<{ item: CollectionItem }>("/social/collection/items", payload, { token });
 }
 
-export async function updateCollectionItem(itemId: string, payload: Record<string, unknown>, token?: string) {
+export async function updateCollectionItem(itemId: string, payload: UpdateCollectionItemPayload, token?: string) {
     return apiPatch<{ item: CollectionItem }>(`/social/collection/items/${itemId}`, payload, { token });
 }
 
@@ -268,7 +258,7 @@ export async function removeCollectionItem(itemId: string, token?: string) {
 
 // ── Wishlist ──
 
-export async function addWishlistItem(payload: Record<string, unknown>, token?: string) {
+export async function addWishlistItem(payload: AddWishlistItemPayload, token?: string) {
     return apiPost<{ item: WishlistItem }>("/social/wishlist/items", payload, { token });
 }
 

@@ -2,8 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/react/spinner";
+
 
 /** Decode JWT payload and extract a field */
 function getJwtField(token: string | undefined, field: string): string | undefined {
@@ -61,13 +63,13 @@ export default function PerfilMePage() {
       <div className="flex flex-col items-center gap-4 text-center px-4">
         <p className="text-lg font-semibold text-[var(--foreground)]">Inicia sesión o regístrate para ver tu perfil</p>
         <div className="flex gap-3">
-          <a href="/login" className="text-sm font-semibold text-[var(--accent)] hover:underline">
+          <Link href="/login" className="text-sm font-semibold text-[var(--accent)] hover:underline">
             Iniciar sesión
-          </a>
+          </Link>
           <span className="text-sm text-[var(--muted)]">|</span>
-          <a href="/register" className="text-sm font-semibold text-[var(--accent)] hover:underline">
+          <Link href="/register" className="text-sm font-semibold text-[var(--accent)] hover:underline">
             Registrarse
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -29,20 +29,21 @@ export interface DuelHeroBannerProps {
 function PlayerAvatar({ player, size, ringColor }: { player: DuelPlayer; size: number; ringColor: string }) {
     const inner = size - 6;
     return (
-        <div style={{
-            width: size, height: size, borderRadius: size / 2,
-            background: ringColor, padding: 3,
-            display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-            <div style={{
-                width: inner, height: inner, borderRadius: inner / 2,
-                backgroundColor: "var(--background)", overflow: "hidden",
-                display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+        <div
+            className="flex items-center justify-center"
+            style={{
+                width: size, height: size, borderRadius: size / 2,
+                background: ringColor, padding: 3,
+            }}
+        >
+            <div
+                className="flex items-center justify-center overflow-hidden bg-background"
+                style={{ width: inner, height: inner, borderRadius: inner / 2 }}
+            >
                 {player.avatar_url ? (
-                    <Image src={player.avatar_url} alt={player.username} width={inner} height={inner} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <Image src={player.avatar_url} alt={player.username} width={inner} height={inner} className="w-full h-full object-cover" />
                 ) : (
-                    <span style={{ fontSize: size * 0.3, fontWeight: 800, color: "var(--foreground)" }}>
+                    <span className="font-extrabold text-foreground" style={{ fontSize: size * 0.3 }}>
                         {(player.username || "?").charAt(0).toUpperCase()}
                     </span>
                 )}
@@ -70,7 +71,7 @@ export default function DuelHeroBanner({
     onShare,
 }: DuelHeroBannerProps) {
     return (
-        <div className="relative w-full overflow-hidden" style={{ height: 200, backgroundColor: "var(--surface-solid)", animation: introEligible ? "duelStagger1 0.8s cubic-bezier(0.16,1,0.3,1) both" : undefined }}>
+        <div className="relative w-full overflow-hidden h-[200px] bg-surface-solid" style={{ animation: introEligible ? "duelStagger1 0.8s cubic-bezier(0.16,1,0.3,1) both" : undefined }}>
             {/* Background gradient with game brand */}
             <div className="absolute inset-0" style={{
                 background: `linear-gradient(135deg, ${brand.bg} 0%, color-mix(in srgb, ${brand.color} 10%, ${brand.bg}) 50%, #0a0a10 100%)`,
@@ -83,23 +84,21 @@ export default function DuelHeroBanner({
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
             {/* Status bar at top */}
-            <div className={`absolute top-0 inset-x-0 z-10 ${hasActiveStatus ? "animate-pulse" : ""}`}
-                style={{ height: 3, background: `linear-gradient(90deg, ${brand.color}, ${statusColor}, transparent)` }}
+            <div className={`absolute top-0 inset-x-0 z-10 h-[3px] ${hasActiveStatus ? "animate-pulse" : ""}`}
+                style={{ background: `linear-gradient(90deg, ${brand.color}, ${statusColor}, transparent)` }}
             />
 
             {/* Nav buttons */}
             <div className="absolute top-4 left-4 z-10">
-                <Link href="/duelos" style={{
-                    width: 40, height: 40, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
-                    backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)", textDecoration: "none",
+                <Link href="/duelos" className="w-10 h-10 rounded-full flex items-center justify-center no-underline" style={{
+                    backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)",
                 }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 </Link>
             </div>
             <div className="absolute top-4 right-4 z-10">
-                <button onClick={onShare} style={{
-                    width: 40, height: 40, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center",
-                    backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer",
+                <button onClick={onShare} className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer" style={{
+                    backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)",
                 }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                 </button>

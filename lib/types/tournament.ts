@@ -215,3 +215,37 @@ export interface TournamentRegistration {
     deck_id?: string;
     deck_list?: string;
 }
+
+// ── Registration response ──
+
+export interface TournamentRegistrationResponse {
+    id: string;
+    tournament_id: string;
+    user_id: string;
+    username?: string;
+    status: string;
+    deck_id?: string;
+    registered_at?: string;
+    checked_in?: boolean;
+    checked_in_at?: string;
+}
+
+// ── Match action payloads ──
+
+export interface ReportMatchPayload {
+    player1_wins: number;
+    player2_wins: number;
+    draws?: number;
+}
+
+export interface DisputeMatchPayload {
+    reason: string;
+    description?: string;
+}
+
+export interface ResolveDisputePayload {
+    player1_wins: number;
+    player2_wins: number;
+    draws?: number;
+    notes?: string;
+}

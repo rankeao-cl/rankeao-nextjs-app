@@ -3,7 +3,26 @@ import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE = "rankeao.auth.session";
 
-const PROTECTED_ROUTES = ["/config", "/chat"];
+const PROTECTED_ROUTES = [
+  "/config",
+  "/chat",
+  "/notificaciones",
+  "/perfil/me",
+  "/marketplace/new",
+  "/marketplace/my-listings",
+  "/marketplace/orders",
+  "/marketplace/offers",
+  "/marketplace/payouts",
+  "/marketplace/seller-setup",
+  "/marketplace/checkout",
+  "/marketplace/disputes",
+  "/marketplace/favorites",
+  "/marketplace/price-alerts",
+  "/marketplace/saved-searches",
+  "/torneos/new",
+  "/clanes/new",
+  "/decks/new",
+];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {

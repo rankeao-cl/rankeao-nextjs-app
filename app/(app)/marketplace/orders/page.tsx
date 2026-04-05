@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, Chip, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { Spinner } from "@heroui/react/spinner";
+
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getMarketplaceOrders } from "@/lib/api/marketplace";

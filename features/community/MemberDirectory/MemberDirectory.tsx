@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Select, ListBox, Input } from "@heroui/react";
+import { Input } from "@heroui/react/input";
+import { ListBox } from "@heroui/react/list-box";
+import { Select } from "@heroui/react/select";
+
 import { Magnifier } from "@gravity-ui/icons";
 import MemberCard from "@/features/clan/MemberCard";
 import type { ClanMemberCard } from "@/lib/types/clan";

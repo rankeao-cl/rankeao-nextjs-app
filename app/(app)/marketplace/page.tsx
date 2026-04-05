@@ -11,6 +11,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import MarketplaceFavorites from "./MarketplaceFavorites";
 import MarketplaceSubastas from "./MarketplaceSubastas";
+import PageHero from "@/components/ui/PageHero";
+import FilterPills from "@/components/ui/FilterPills";
+import type { FilterPill } from "@/components/ui/FilterPills";
 
 export async function generateMetadata({ searchParams }: MarketplacePageProps): Promise<Metadata> {
   const params = (await searchParams) ?? {};
@@ -79,63 +82,11 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
   return (
     <div className="max-w-7xl mx-auto flex flex-col min-h-full">
       {/* ── Hero header ── */}
-      <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
-        <div
-          style={{
-            backgroundColor: "var(--surface-solid)",
-            border: "1px solid var(--border)",
-            borderRadius: 16,
-            padding: 18,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            minHeight: 120,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            {/* Badge */}
-            <span
-              style={{
-                display: "inline-block",
-                backgroundColor: "var(--surface)",
-                alignSelf: "flex-start",
-                paddingLeft: 10,
-                paddingRight: 10,
-                paddingTop: 4,
-                paddingBottom: 4,
-                borderRadius: 999,
-                marginBottom: 8,
-                color: "var(--muted)",
-                fontSize: 11,
-                fontWeight: 600,
-              }}
-            >
-              Compra y venta
-            </span>
-            <h1
-              style={{
-                color: "var(--foreground)",
-                fontSize: 22,
-                fontWeight: 800,
-                margin: 0,
-                marginBottom: 4,
-              }}
-            >
-              Marketplace TCG
-            </h1>
-            <p
-              style={{
-                color: "var(--muted)",
-                fontSize: 13,
-                lineHeight: "18px",
-                margin: 0,
-              }}
-            >
-              Compra y vende cartas con jugadores de tu comunidad.
-            </p>
-          </div>
+      <PageHero
+        badge="Compra y venta"
+        title="Marketplace TCG"
+        subtitle="Compra y vende cartas con jugadores de tu comunidad."
+        action={
           <Link
             href="/marketplace/new"
             className="shrink-0"
@@ -161,40 +112,24 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
             </svg>
             <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Vender</span>
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Quick links ── */}
-      <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
-        {[
-          { href: "/marketplace", label: "Explorar", active: activeTab === "explorar" },
-          { href: "/marketplace?tab=favoritos", label: "Favoritos", active: activeTab === "favoritos" },
-          { href: "/marketplace?tab=subastas", label: "Subastas", active: activeTab === "subastas" },
-          { href: "/marketplace?category=accessories", label: "Accesorios", active: false },
-          { href: "/marketplace/my-listings", label: "Mis publicaciones", active: false },
-          { href: "/marketplace/offers", label: "Ofertas", active: false },
-          { href: "/marketplace/orders", label: "Pedidos", active: false },
-          { href: "/catalogo", label: "Catalogo de cartas", active: false },
-        ].map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            style={{
-              padding: "8px 16px",
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              textDecoration: "none",
-              backgroundColor: link.active ? "var(--foreground)" : "var(--surface-solid)",
-              color: link.active ? "var(--background)" : "var(--muted)",
-              border: link.active ? "1px solid transparent" : "1px solid var(--border)",
-              flexShrink: 0,
-            }}
-          >
-            {link.label}
-          </a>
-        ))}
+      <div className="mx-4 lg:mx-6 mb-3">
+        <FilterPills
+          items={[
+            { key: "explorar", label: "Explorar", href: "/marketplace" },
+            { key: "favoritos", label: "Favoritos", href: "/marketplace?tab=favoritos" },
+            { key: "subastas", label: "Subastas", href: "/marketplace?tab=subastas" },
+            { key: "accessories", label: "Accesorios", href: "/marketplace?category=accessories" },
+            { key: "my-listings", label: "Mis publicaciones", href: "/marketplace/my-listings" },
+            { key: "offers", label: "Ofertas", href: "/marketplace/offers" },
+            { key: "orders", label: "Pedidos", href: "/marketplace/orders" },
+            { key: "catalogo", label: "Catalogo de cartas", href: "/catalogo" },
+          ] satisfies FilterPill[]}
+          activeKey={activeTab}
+        />
       </div>
 
       {activeTab === "subastas" ? (
@@ -250,7 +185,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         </aside>
 
         {/* Listings */}
-        <main className="flex-1 min-w-0">
+        <section className="flex-1 min-w-0">
           {groupedCards.length > 0 ? (
             <>
               {viewMode === "list" ? (
@@ -330,7 +265,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
               </p>
             </div>
           )}
-        </main>
+        </section>
       </div>
       </>
       )}

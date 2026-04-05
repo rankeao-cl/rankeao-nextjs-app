@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "@heroui/react";
+import Image from "next/image";
+import { toast } from "@heroui/react/toast";
+
 import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear, Shield } from "@gravity-ui/icons";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
@@ -460,12 +462,13 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     ) : (
                         <>
                             {displayAvatar ? (
-                                <img
+                                <Image
                                     src={displayAvatar}
                                     alt={displayName}
+                                    width={40}
+                                    height={40}
+                                    unoptimized
                                     style={{
-                                        width: 40,
-                                        height: 40,
                                         borderRadius: 20,
                                         objectFit: "cover",
                                         background: "var(--surface-solid)",
@@ -757,7 +760,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                     <div key={m.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 12px" }}>
                         <div style={{ position: "relative", flexShrink: 0 }}>
                             {m.avatar_url ? (
-                                <img src={m.avatar_url} alt={m.username} style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }} />
+                                <Image src={m.avatar_url} alt={m.username} width={32} height={32} className="object-cover rounded-full" />
                             ) : (
                                 <div style={{ width: 32, height: 32, borderRadius: 16, background: "var(--surface-solid)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)", fontSize: 12, fontWeight: 700 }}>
                                     {m.username?.charAt(0).toUpperCase()}
@@ -856,12 +859,13 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                         background: "var(--surface-solid)",
                         border: "1px solid var(--border)",
                     }}>
-                        <img
+                        <Image
                             src={imagePreviewUrl}
                             alt="Vista previa"
+                            width={64}
+                            height={64}
+                            unoptimized
                             style={{
-                                width: 64,
-                                height: 64,
                                 borderRadius: 8,
                                 objectFit: "cover",
                                 border: "1px solid var(--border)",

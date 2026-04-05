@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Chip, Button, Spinner, Switch, toast } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { Spinner } from "@heroui/react/spinner";
+import { Switch } from "@heroui/react/switch";
+import { toast } from "@heroui/react/toast";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";

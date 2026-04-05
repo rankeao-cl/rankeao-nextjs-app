@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Chip, Button, Spinner, toast } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { Spinner } from "@heroui/react/spinner";
+import { toast } from "@heroui/react/toast";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Eye, Heart, Plus, CirclePlay, CirclePause, TrashBin, ArrowRotateRight } from "@gravity-ui/icons";

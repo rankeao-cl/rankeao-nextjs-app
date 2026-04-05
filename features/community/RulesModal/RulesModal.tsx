@@ -1,6 +1,8 @@
 "use client";
 
-import { Modal, Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Modal } from "@heroui/react/modal";
+
 import { BookOpen } from "@gravity-ui/icons";
 
 interface RulesModalProps {

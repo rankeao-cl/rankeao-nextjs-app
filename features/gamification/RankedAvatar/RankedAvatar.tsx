@@ -1,4 +1,4 @@
-import { Avatar } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
 import { getRankForElo, type RankInfo } from "@/lib/rankSystem";
 
 interface Props {

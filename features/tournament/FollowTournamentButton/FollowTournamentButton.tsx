@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button, toast } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { toast } from "@heroui/react/toast";
+
 import { Bell, BellDot } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { followTournament, unfollowTournament } from "@/lib/api/tournaments";

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Select, ListBox } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { ListBox } from "@heroui/react/list-box";
+import { Select } from "@heroui/react/select";
+
 import { Plus } from "@gravity-ui/icons";
 import PostCard from "@/features/social/PostCard";
 import type { FeedItem } from "@/lib/types/social";

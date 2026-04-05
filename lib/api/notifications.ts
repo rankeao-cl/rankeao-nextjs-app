@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiPatch, apiPut, apiDelete } from "./client";
+import { apiFetch, apiPost, apiPatch, apiPut, apiDelete, BASE_URL } from "./client";
 import type { Params, ApiResponse } from "@/lib/types/api";
 import type {
     RegisterDevicePayload, NotificationPreferences,
@@ -44,13 +44,12 @@ export async function batchDeleteNotifications(
     token?: string
 ) {
     const { getAuthHeaders } = await import("./client");
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
     const headers: Record<string, string> = { "Content-Type": "application/json", ...getAuthHeaders() };
     if (token) {
         const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         headers.Authorization = `Bearer ${cleanToken}`;
     }
-    const res = await fetch(`${baseUrl}/notifications`, {
+    const res = await fetch(`${BASE_URL}/notifications`, {
         method: "DELETE",
         headers,
         body: JSON.stringify(payload),

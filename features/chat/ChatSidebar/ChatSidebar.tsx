@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { timeAgo } from "@/lib/utils/format";
 import type { Channel, ChannelMember, Room } from "@/lib/types/chat";
 import { getChatRooms } from "@/lib/api/chat";
 import { useAuth } from "@/lib/hooks/use-auth";
-import NewChatModal from "@/features/chat/NewChatModal";
-import ChatSettingsModal from "@/features/chat/ChatSettingsModal";
+import dynamic from "next/dynamic";
+const NewChatModal = dynamic(() => import("@/features/chat/NewChatModal"), { ssr: false });
+const ChatSettingsModal = dynamic(() => import("@/features/chat/ChatSettingsModal"), { ssr: false });
 
 interface ChatSidebarProps {
     channels: Channel[];
@@ -144,32 +146,15 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
             <div key={channel.id}>
                 <button
                     onClick={() => onSelectChannel(channel)}
+                    className="w-full flex items-center gap-3 px-4 py-3 border-none cursor-pointer text-left"
                     style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        padding: "12px 16px",
                         background: isSelected ? "rgba(59,130,246,0.08)" : "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        textAlign: "left",
                     }}
                 >
                     {/* Avatar */}
-                    <div style={{ position: "relative", flexShrink: 0, width: 44, height: 44 }}>
+                    <div className="relative shrink-0 w-[44px] h-[44px]">
                         {isGroup ? (
-                            <div
-                                style={{
-                                    width: 44,
-                                    height: 44,
-                                    borderRadius: 22,
-                                    backgroundColor: "var(--surface-solid)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
+                            <div className="w-[44px] h-[44px] rounded-full bg-surface-solid flex items-center justify-center">
                                 <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                                     <circle cx="9" cy="7" r="4" />
@@ -179,26 +164,14 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                             </div>
                         ) : (
                             <>
-                                <div
-                                    style={{
-                                        width: 44,
-                                        height: 44,
-                                        borderRadius: 22,
-                                        backgroundColor: "var(--surface-solid)",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        color: "var(--foreground)",
-                                        fontSize: 14,
-                                        fontWeight: 700,
-                                        overflow: "hidden",
-                                    }}
-                                >
+                                <div className="w-[44px] h-[44px] rounded-full bg-surface-solid flex items-center justify-center text-foreground text-[14px] font-bold overflow-hidden">
                                     {otherMember?.avatar_url ? (
-                                        <img
+                                        <Image
                                             src={otherMember.avatar_url}
                                             alt={displayName}
-                                            style={{ width: 44, height: 44, objectFit: "cover" }}
+                                            width={44}
+                                            height={44}
+                                            className="object-cover"
                                         />
                                     ) : (
                                         initials
@@ -206,14 +179,8 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                 </div>
                                 {channel.type === "DM" && (
                                     <span
+                                        className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background"
                                         style={{
-                                            position: "absolute",
-                                            bottom: 0,
-                                            right: 0,
-                                            width: 12,
-                                            height: 12,
-                                            borderRadius: "50%",
-                                            border: "2px solid var(--background)",
                                             backgroundColor: isOnline ? "var(--success)" : "var(--muted)",
                                         }}
                                     />
@@ -223,25 +190,22 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     </div>
 
                     {/* Text content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
                             <span
+                                className="text-[15px] overflow-hidden text-ellipsis whitespace-nowrap"
                                 style={{
-                                    fontSize: 15,
                                     fontWeight: hasUnread ? 700 : 500,
                                     color: hasUnread ? "var(--foreground)" : "var(--muted)",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
                                 }}
                             >
                                 {displayName}
                             </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                            <div className="flex items-center gap-1.5 shrink-0">
                                 {channel.last_message?.created_at && (
                                     <span
+                                        className="text-[11px]"
                                         style={{
-                                            fontSize: 11,
                                             color: hasUnread ? "var(--foreground)" : "var(--muted)",
                                             fontWeight: hasUnread ? 600 : 400,
                                         }}
@@ -250,26 +214,15 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                                     </span>
                                 )}
                                 {hasUnread && (
-                                    <span
-                                        style={{
-                                            minWidth: 10,
-                                            height: 10,
-                                            borderRadius: 5,
-                                            backgroundColor: "var(--accent)",
-                }}
-                                    />
+                                    <span className="min-w-[10px] h-[10px] rounded-full bg-accent" />
                                 )}
                             </div>
                         </div>
                         <p
+                            className="text-[13px] overflow-hidden text-ellipsis whitespace-nowrap mt-0.5 mb-0 ml-0 mr-0"
                             style={{
-                                fontSize: 13,
                                 color: hasUnread ? "var(--foreground)" : "var(--muted)",
                                 fontWeight: hasUnread ? 500 : 400,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                margin: "2px 0 0 0",
                             }}
                         >
                             {lastMessageContent ? (
@@ -290,81 +243,35 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 </button>
                 {/* Divider */}
                 {!isLast && (
-                    <div
-                        style={{
-                            height: 1,
-                            backgroundColor: "var(--border)",
-                            marginLeft: 72,
-                        }}
-                    />
+                    <div className="h-px bg-border ml-[72px]" />
                 )}
             </div>
         );
     };
 
     const renderSectionHeader = (title: string) => (
-        <div
-            style={{
-                padding: "20px 16px 8px 16px",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "var(--muted)",
-                textTransform: "uppercase",
-                letterSpacing: 1.2,
-            }}
-        >
+        <div className="px-4 pt-5 pb-2 text-[11px] font-bold text-muted uppercase tracking-[1.2px]">
             {title}
         </div>
     );
 
     const renderEmptyState = (message: string, showButton = false) => (
-        <div
-            style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 24,
-                textAlign: "center",
-            }}
-        >
-            <div
-                style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: "50%",
-                    backgroundColor: "var(--surface-solid)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 16,
-                }}
-            >
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-surface-solid flex items-center justify-center mb-4">
                 <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
             </div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: "0 0 4px 0" }}>
+            <h3 className="text-[16px] font-semibold text-foreground m-0 mb-1">
                 Sin chats
             </h3>
-            <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+            <p className="text-[13px] text-muted m-0">
                 {message}
             </p>
             {showButton && (
                 <button
                     onClick={() => setIsNewChatOpen(true)}
-                    style={{
-                        marginTop: 16,
-                        backgroundColor: "var(--accent)",
-                        color: "#FFFFFF",
-                        border: "none",
-                        borderRadius: 999,
-                        padding: "10px 20px",
-                        fontSize: 14,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                    }}
+                    className="mt-4 bg-accent text-white border-none rounded-full px-5 py-2.5 text-[14px] font-semibold cursor-pointer"
                 >
                     Iniciar chat
                 </button>
@@ -373,38 +280,21 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     );
 
     const renderLoadingSkeleton = () => (
-        <div style={{ padding: 16 }}>
+        <div className="p-4">
             {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", alignItems: "center" }}>
+                <div key={i} className="flex gap-3 py-3 items-center">
                     <div
-                        style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 22,
-                            backgroundColor: "var(--surface-solid)",
-                            flexShrink: 0,
-                            animation: "pulse 1.5s ease-in-out infinite",
-                        }}
+                        className="w-[44px] h-[44px] rounded-full bg-surface-solid shrink-0"
+                        style={{ animation: "pulse 1.5s ease-in-out infinite" }}
                     />
-                    <div style={{ flex: 1 }}>
+                    <div className="flex-1">
                         <div
-                            style={{
-                                height: 12,
-                                width: "70%",
-                                borderRadius: 6,
-                                backgroundColor: "var(--surface-solid)",
-                                marginBottom: 8,
-                                animation: "pulse 1.5s ease-in-out infinite",
-                            }}
+                            className="h-3 w-[70%] rounded-md bg-surface-solid mb-2"
+                            style={{ animation: "pulse 1.5s ease-in-out infinite" }}
                         />
                         <div
-                            style={{
-                                height: 12,
-                                width: "45%",
-                                borderRadius: 6,
-                                backgroundColor: "var(--surface-solid)",
-                                animation: "pulse 1.5s ease-in-out infinite",
-                            }}
+                            className="h-3 w-[45%] rounded-md bg-surface-solid"
+                            style={{ animation: "pulse 1.5s ease-in-out infinite" }}
                         />
                     </div>
                 </div>
@@ -414,87 +304,35 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     );
 
     return (
-        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", backgroundColor: "var(--background)" }}>
+        <div className="w-full h-full flex flex-col bg-background">
             {/* Hero header */}
-            <div
-                style={{
-                    margin: "12px 16px 14px 16px",
-                    backgroundColor: "var(--surface-solid)",
-                    borderRadius: 16,
-                    border: "1px solid var(--border)",
-                    padding: 18,
-                    minHeight: 120,
-                    display: "flex",
-                    alignItems: "center",
-                }}
-            >
-                <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="mx-4 mt-3 mb-3.5 bg-surface-solid rounded-2xl border border-border p-[18px] min-h-[120px] flex items-center">
+                <div className="flex-1 min-w-0">
                     {/* Badge */}
-                    <span
-                        style={{
-                            display: "inline-block",
-                            backgroundColor: "var(--border)",
-                            paddingLeft: 10,
-                            paddingRight: 10,
-                            paddingTop: 4,
-                            paddingBottom: 4,
-                            borderRadius: 999,
-                            marginBottom: 8,
-                            color: "var(--muted)",
-                            fontSize: 11,
-                            fontWeight: 600,
-                        }}
-                    >
+                    <span className="inline-block bg-border px-2.5 py-1 rounded-full mb-2 text-muted text-[11px] font-semibold">
                         Mensajes
                     </span>
-                    <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", margin: 0, marginBottom: 4 }}>Tus Chats</h2>
-                    <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: "18px", margin: 0 }}>
+                    <h2 className="text-[22px] font-extrabold text-foreground m-0 mb-1">Tus Chats</h2>
+                    <p className="text-[13px] text-muted leading-[18px] m-0">
                         Conversa con jugadores de tu comunidad.
                     </p>
                 </div>
-                {/* New chat button — same as torneos/marketplace */}
+                {/* New chat button -- same as torneos/marketplace */}
                 <button
                     onClick={() => setIsNewChatOpen(true)}
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                        backgroundColor: "var(--accent)",
-                        borderRadius: 12,
-                        paddingLeft: 14,
-                        paddingRight: 14,
-                        paddingTop: 8,
-                        paddingBottom: 8,
-                        marginLeft: 12,
-                        alignSelf: "center",
-                        border: "none",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                    }}
+                    className="flex flex-row items-center gap-1 bg-accent rounded-xl px-3.5 py-2 ml-3 self-center border-none cursor-pointer shrink-0"
                 >
                     <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Nuevo</span>
+                    <span className="text-white text-[12px] font-bold">Nuevo</span>
                 </button>
             </div>
 
             {/* Search bar */}
-            <div
-                style={{
-                    margin: "0 16px 12px 16px",
-                    backgroundColor: "var(--surface-solid)",
-                    borderRadius: 999,
-                    padding: "10px 14px",
-                    border: "1px solid var(--border)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                }}
-            >
-                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <div className="mx-4 mb-3 bg-surface-solid rounded-full px-3.5 py-2.5 border border-border flex items-center gap-2">
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -503,44 +341,21 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                     placeholder="Buscar chats..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    style={{
-                        flex: 1,
-                        backgroundColor: "transparent",
-                        border: "none",
-                        outline: "none",
-                        fontSize: 14,
-                        color: "var(--foreground)",
-                        padding: 0,
-                        margin: 0,
-                        lineHeight: "normal",
-                    }}
+                    className="flex-1 bg-transparent border-none outline-none text-[14px] text-foreground p-0 m-0 leading-normal"
                 />
             </div>
 
             {/* Filter pills */}
-            <div
-                style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 6,
-                    margin: "0 16px 12px 16px",
-                }}
-            >
+            <div className="flex flex-wrap gap-1.5 mx-4 mb-3">
                 {CHAT_FILTERS.map((f) => (
                     <button
                         key={f.key}
                         onClick={() => setChatFilter(f.key)}
-                        style={{
-                            padding: "6px 12px",
-                            borderRadius: 999,
-                            fontSize: 12,
-                            fontWeight: 600,
-                            whiteSpace: "nowrap",
-                            cursor: "pointer",
-                            border: chatFilter === f.key ? "1px solid transparent" : "1px solid var(--border)",
-                            backgroundColor: chatFilter === f.key ? "var(--foreground)" : "var(--surface-solid)",
-                            color: chatFilter === f.key ? "var(--background)" : "var(--muted)",
-                        }}
+                        className={`px-3 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap cursor-pointer ${
+                            chatFilter === f.key
+                                ? "border border-transparent bg-foreground text-background"
+                                : "border border-border bg-surface-solid text-muted"
+                        }`}
                     >
                         {f.label}
                     </button>
@@ -548,7 +363,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
             </div>
 
             {/* Channel list */}
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            <div className="flex-1 min-h-0 overflow-y-auto">
                 {loading ? (
                     renderLoadingSkeleton()
                 ) : channels.length === 0 ? (

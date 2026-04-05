@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Card, Chip, Button, toast } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { toast } from "@heroui/react/toast";
 import { Heart, HeartFill, TrashBin } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useMyFavorites, useToggleFavorite } from "@/lib/hooks/use-marketplace";

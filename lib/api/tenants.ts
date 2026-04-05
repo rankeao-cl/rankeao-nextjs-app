@@ -1,5 +1,5 @@
 import { apiFetch, apiPost } from "./client";
-import type { TenantsResponse, TenantFilters, Tenant, TenantEvent, TenantReviewsResponse, CreateTenantReviewRequest, CreateTenantRequest } from "@/lib/types/tenant";
+import type { TenantsResponse, TenantFilters, Tenant, TenantEvent, TenantReviewsResponse, CreateTenantReviewRequest, CreateTenantRequest, TenantStaffMembership, TenantMember } from "@/lib/types/tenant";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 
 // ── Directory ──
@@ -54,7 +54,7 @@ export async function createTenantReview(slug: string, data: CreateTenantReviewR
 // ── Staff ──
 
 export async function getMyMemberships(token?: string) {
-    return apiFetch<ApiResponse<Record<string, unknown>[]>>("/tenants/staff/mine", undefined, { cache: "no-store", token });
+    return apiFetch<ApiResponse<TenantStaffMembership[]>>("/tenants/staff/mine", undefined, { cache: "no-store", token });
 }
 
 export async function acceptStaffInvitation(invitationId: string, token?: string) {
@@ -72,5 +72,5 @@ export async function declineStaffInvitation(invitationId: string, token?: strin
  * This may be an internal/undocumented endpoint.
  */
 export async function getTenantMembers(slug: string, params?: Params) {
-    return apiFetch<ApiResponse<Record<string, unknown>[]>>(`/tenants/${encodeURIComponent(slug)}/members`, params, { revalidate: 30 });
+    return apiFetch<ApiResponse<TenantMember[]>>(`/tenants/${encodeURIComponent(slug)}/members`, params, { revalidate: 30 });
 }

@@ -24,22 +24,11 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
 
     return (
         <Link href={`/marketplace/${listing.slug || listing.id}`} className="block group">
-            <div
-                className="flex overflow-hidden"
-                style={{
-                    backgroundColor: "var(--surface-solid)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 6,
-                }}
-            >
+            <div className="flex overflow-hidden bg-surface-solid border border-border rounded-[6px]">
                 {/* Thumbnail — sharp corners */}
                 <div
-                    className="shrink-0 relative overflow-hidden"
-                    style={{
-                        width: 80,
-                        aspectRatio: "63 / 88",
-                        backgroundColor: "#0a0a0a",
-                    }}
+                    className="shrink-0 relative overflow-hidden w-[80px] bg-[#0a0a0a]"
+                    style={{ aspectRatio: "63 / 88" }}
                 >
                     {imageUrl ? (
                         <Image
@@ -51,13 +40,13 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                         />
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <span className="text-lg opacity-20" style={{ color: "var(--muted)" }}>?</span>
+                            <span className="text-lg opacity-20 text-muted">?</span>
                         </div>
                     )}
                     {isFoil && (
                         <span
-                            className="absolute top-1 left-1 text-[7px] font-bold uppercase px-1 py-px"
-                            style={{ borderRadius: 2, color: "var(--yellow)", backgroundColor: "rgba(0,0,0,0.7)" }}
+                            className="absolute top-1 left-1 text-[7px] font-bold uppercase px-1 py-px rounded-[2px] text-yellow"
+                            style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
                         >
                             Foil
                         </span>
@@ -65,59 +54,37 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5" style={{ padding: 12 }}>
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 p-3">
                     {/* Title */}
-                    <p
-                        className="line-clamp-2 m-0"
-                        style={{
-                            color: "var(--foreground)",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            lineHeight: "17px",
-                        }}
-                    >
+                    <p className="line-clamp-2 m-0 text-foreground text-[13px] font-semibold leading-[17px]">
                         {name}
                     </p>
 
                     {/* Pills */}
                     <div className="flex flex-wrap items-center gap-1">
-                        <span
-                            className="text-xs font-bold px-2 py-0.5"
-                            style={{
-                                borderRadius: 4,
-                                color: "var(--foreground)",
-                                backgroundColor: "var(--surface-solid)",
-                                border: "1px solid var(--border)",
-                            }}
-                        >
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-[4px] text-foreground bg-surface-solid border border-border">
                             {price}
                         </span>
                         {condition && (
-                            <span
-                                className="uppercase text-[9px] font-semibold px-1.5 py-0.5"
-                                style={{ borderRadius: 4, color: "var(--muted)", backgroundColor: "var(--surface)" }}
-                            >
+                            <span className="uppercase text-[9px] font-semibold px-1.5 py-0.5 rounded-[4px] text-muted bg-surface">
                                 {condition.replace("_", " ")}
                             </span>
                         )}
                         {rarity && (
-                            <span
-                                className="text-[9px] font-semibold px-1.5 py-0.5"
-                                style={{ borderRadius: 4, color: "var(--muted)", backgroundColor: "var(--surface)" }}
-                            >
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-[4px] text-muted bg-surface">
                                 {rarity}
                             </span>
                         )}
                         {gameName && (
                             <span
-                                className="text-[9px] font-semibold px-1.5 py-0.5"
-                                style={{ borderRadius: 4, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.08)" }}
+                                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-[4px] text-accent"
+                                style={{ backgroundColor: "rgba(59,130,246,0.08)" }}
                             >
                                 {gameName}
                             </span>
                         )}
                         {setName && (
-                            <span className="text-[9px] truncate" style={{ color: "var(--muted)" }}>
+                            <span className="text-[9px] truncate text-muted">
                                 {setName}
                             </span>
                         )}
@@ -127,15 +94,15 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                     {sellerName && (
                         <div className="flex items-center gap-1.5">
                             {listing.seller_avatar_url ? (
-                                <img src={listing.seller_avatar_url} alt="" style={{ width: 16, height: 16, borderRadius: 8 }} />
+                                <Image src={listing.seller_avatar_url} alt="" width={16} height={16} className="rounded-full" />
                             ) : (
-                                <div className="flex items-center justify-center" style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: "var(--surface)" }}>
-                                    <span style={{ fontSize: 8, color: "var(--muted)" }}>{sellerName[0]?.toUpperCase()}</span>
+                                <div className="flex items-center justify-center w-4 h-4 rounded-full bg-surface">
+                                    <span className="text-[8px] text-muted">{sellerName[0]?.toUpperCase()}</span>
                                 </div>
                             )}
-                            <span className="text-[11px] truncate" style={{ color: "var(--muted)" }}>{sellerName}</span>
-                            {isVerified && <span className="text-[11px]" style={{ color: "var(--success)" }}>✓</span>}
-                            {city && <span className="text-[10px]" style={{ color: "var(--muted)" }}>· {city}</span>}
+                            <span className="text-[11px] truncate text-muted">{sellerName}</span>
+                            {isVerified && <span className="text-[11px] text-success">&#10003;</span>}
+                            {city && <span className="text-[10px] text-muted">&middot; {city}</span>}
                         </div>
                     )}
                 </div>

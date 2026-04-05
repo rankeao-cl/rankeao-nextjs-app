@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ScrollShadow } from "@heroui/react";
+import { ScrollShadow } from "@heroui/react/scroll-shadow";
+
 import { Bell, Person, ShoppingCart, StarFill } from "@gravity-ui/icons";
-import { timeAgo, stripHtml } from "@/lib/utils/format";
+import { timeAgo, stripHtml, sanitizeHref } from "@/lib/utils/format";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
 import type { Notification } from "@/lib/types/notification";
@@ -249,8 +250,8 @@ export default function NotificacionesPage() {
                                             </div>
                                         </div>
                                     );
-                                    const href = notif.action_url
-                                        || (notif.variables?.username ? `/perfil/${notif.variables.username}` : null);
+                                    const href = sanitizeHref(notif.action_url)
+                                        || (notif.variables?.username ? `/perfil/${encodeURIComponent(String(notif.variables.username))}` : null);
                                     return href ? (
                                         <Link key={notif.id} href={href}>{content}</Link>
                                     ) : (

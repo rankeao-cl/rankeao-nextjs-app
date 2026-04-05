@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import DeckFanModal from "@/features/deck/DeckFanModal";
+import dynamic from "next/dynamic";
+const DeckFanModal = dynamic(() => import("@/features/deck/DeckFanModal"), { ssr: false });
 import type { ReactNode } from "react";
 import {
     Cup,
@@ -20,7 +22,7 @@ import {
 import { Heart } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useLikePost } from "@/lib/hooks/use-social";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
 import CommentSection from "@/features/social/CommentSection";
 import { timeAgo as timeAgoLib } from "@/lib/utils/format";
 // PostComment type used indirectly via CommentSection
@@ -156,34 +158,16 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
 
 
     return (
-        <article className="feed-card-hover" style={{
-            backgroundColor: "var(--surface-solid)",
-            borderRadius: 16,
-            border: "1px solid var(--border)",
-            padding: 14,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            transition: "box-shadow 0.25s, border-color 0.25s",
-        }}>
+        <article className="feed-card-hover bg-surface-solid rounded-2xl border border-border p-[14px] flex flex-col gap-2.5 transition-[box-shadow,border-color] duration-[0.25s]">
             {/* Header: avatar + username + badge + time */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="flex items-center gap-2.5">
                 {/* Avatar with accent ring */}
-                <Link href={`/perfil/${activity.user.username}`} style={{ flexShrink: 0, textDecoration: "none" }}>
-                    <div style={{
-                        width: 40, height: 40, borderRadius: 20,
-                        background: "var(--accent)", padding: 2,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <div style={{
-                            width: 36, height: 36, borderRadius: 18,
-                            backgroundColor: "var(--background)", overflow: "hidden",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
-                        }}>
+                <Link href={`/perfil/${activity.user.username}`} className="shrink-0 no-underline">
+                    <div className="w-10 h-10 rounded-full bg-accent p-0.5 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-full bg-background overflow-hidden flex items-center justify-center text-sm font-bold text-foreground">
                             {activity.user.avatar_url ? (
-                                <img src={activity.user.avatar_url} alt={activity.user.username}
-                                    style={{ width: 36, height: 36, objectFit: "cover" }} />
+                                <Image src={activity.user.avatar_url} alt={activity.user.username}
+                                    width={36} height={36} className="object-cover" />
                             ) : (
                                 activity.user.username?.charAt(0).toUpperCase()
                             )}
@@ -191,41 +175,40 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                     </div>
                 </Link>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Link href={`/perfil/${activity.user.username}`} style={{ textDecoration: "none" }}>
-                            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <Link href={`/perfil/${activity.user.username}`} className="no-underline">
+                            <span className="text-sm font-bold text-foreground">
                                 {activity.user.username}
                             </span>
                         </Link>
-                        <span style={{
-                            fontSize: 10, fontWeight: 600, color: config.color,
-                            background: `color-mix(in srgb, ${config.color} 12%, transparent)`,
-                            padding: "2px 6px", borderRadius: 6,
-                            display: "inline-flex", alignItems: "center", gap: 3,
-                        }}>
+                        <span className="text-[10px] font-semibold inline-flex items-center gap-[3px] rounded-[6px] px-1.5 py-0.5"
+                            style={{
+                                color: config.color,
+                                background: `color-mix(in srgb, ${config.color} 12%, transparent)`,
+                            }}>
                             {config.icon}
                             {config.label}
                         </span>
                     </div>
-                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{timeAgoLib(activity.created_at)}</span>
+                    <span className="text-[11px] text-muted">{timeAgoLib(activity.created_at)}</span>
                 </div>
             </div>
 
             {/* Activity content */}
-            <div style={{ fontSize: 14, lineHeight: "21px", color: "var(--foreground)", fontWeight: 600 }}>
+            <div className="text-sm leading-[21px] text-foreground font-semibold">
                 {activity.title}
             </div>
             {activity.description && (
-                <div style={{ fontSize: 13, lineHeight: "19px", color: "var(--muted)" }}>
+                <div className="text-[13px] leading-[19px] text-muted">
                     {activity.description}
                 </div>
             )}
 
             {/* Image if present */}
             {activity.image_url && (
-                <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid var(--border)" }}>
-                    <img src={activity.image_url} alt="" style={{ width: "100%", display: "block" }} />
+                <div className="rounded-xl overflow-hidden border border-border">
+                    <Image src={activity.image_url} alt="" width={600} height={400} sizes="(max-width: 640px) 100vw, 600px" className="w-full block h-auto" />
                 </div>
             )}
 
@@ -234,12 +217,8 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                 <button
                     type="button"
                     onClick={() => setDeckFanOpen(true)}
-                    style={{
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                        fontSize: 13, fontWeight: 600, color: config.color,
-                        background: "none", border: "none", cursor: "pointer",
-                        padding: 0,
-                    }}
+                    className="inline-flex items-center gap-1 text-[13px] font-semibold bg-transparent border-none cursor-pointer p-0"
+                    style={{ color: config.color }}
                 >
                     {entityLabel}
                     <ChevronRight style={{ width: 12, height: 12 }} />
@@ -247,11 +226,8 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
             ) : href ? (
                 <Link
                     href={href}
-                    style={{
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                        fontSize: 13, fontWeight: 600, color: config.color,
-                        textDecoration: "none",
-                    }}
+                    className="inline-flex items-center gap-1 text-[13px] font-semibold no-underline"
+                    style={{ color: config.color }}
                 >
                     {entityLabel}
                     <ChevronRight style={{ width: 12, height: 12 }} />
@@ -267,43 +243,33 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
             )}
 
             {/* Reaction bar */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                paddingTop: 8, borderTop: "1px solid var(--border)",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center gap-1">
                     {/* Like */}
-                    <button type="button" onClick={handleLike} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
-                        color: liked ? "#EF4444" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                        transition: "transform 0.15s",
-                        transform: liked ? "scale(1.05)" : "scale(1)",
-                        opacity: likeMutation.isPending ? 0.6 : 1,
-                    }}>
+                    <button type="button" onClick={handleLike}
+                        className={`flex items-center gap-[5px] bg-transparent border-none px-2 py-1 rounded-full text-xs font-semibold transition-transform duration-150 ${isAuth ? "cursor-pointer" : "cursor-default"}`}
+                        style={{
+                            color: liked ? "#EF4444" : "var(--muted)",
+                            transform: liked ? "scale(1.05)" : "scale(1)",
+                            opacity: likeMutation.isPending ? 0.6 : 1,
+                        }}>
                         <Heart style={{ width: 16, height: 16 }} />
                         <span>{likesCount}</span>
                     </button>
 
                     {/* Comment */}
-                    <button type="button" onClick={() => setShowComments(v => !v)} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: "none", border: "none", cursor: "pointer",
-                        color: showComments ? "var(--accent)" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                    }}>
+                    <button type="button" onClick={() => setShowComments(v => !v)}
+                        className="flex items-center gap-[5px] bg-transparent border-none cursor-pointer px-2 py-1 rounded-full text-xs font-semibold"
+                        style={{
+                            color: showComments ? "var(--accent)" : "var(--muted)",
+                        }}>
                         <Comment style={{ width: 16, height: 16 }} />
                         <span>{activity.comments_count ?? 0}</span>
                     </button>
 
                     {/* Share */}
-                    <button type="button" onClick={handleShare} style={{
-                        display: "flex", alignItems: "center",
-                        background: "none", border: "none", cursor: "pointer",
-                        color: "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999,
-                    }}>
+                    <button type="button" onClick={handleShare}
+                        className="flex items-center bg-transparent border-none cursor-pointer px-2 py-1 rounded-full text-muted">
                         <ArrowShapeTurnUpRight style={{ width: 16, height: 16 }} />
                     </button>
                 </div>

@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Card, Chip, Button, Spinner } from "@heroui/react";
+import Image from "next/image";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { Spinner } from "@heroui/react/spinner";
+
 import { Plus, Xmark, Magnifier, TrashBin } from "@gravity-ui/icons";
 import { addCollectionItem, removeCollectionItem } from "@/lib/api/social";
 import { autocompleteCards } from "@/lib/api/catalog";
 import type { AutocompleteResult } from "@/lib/types/catalog";
+import type { AddCollectionItemPayload } from "@/lib/types/social";
 
 const CONDITIONS = ["NM", "LP", "MP", "HP", "DMG"] as const;
 
@@ -99,7 +105,7 @@ export default function ProfileCollectionTab({
         setDeletingId(null);
     };
 
-    const handleAdd = async (payload: Record<string, unknown>) => {
+    const handleAdd = async (payload: AddCollectionItemPayload & Record<string, unknown>) => {
         try {
             const res = await addCollectionItem(payload, token);
             const newItem = res?.item;
@@ -214,10 +220,12 @@ export default function ProfileCollectionTab({
                                 {/* Card Image */}
                                 <div className="relative aspect-[2.5/3.5] w-full overflow-hidden bg-[var(--surface-secondary)]">
                                     {imageUrl ? (
-                                        <img
+                                        <Image
                                             src={imageUrl}
                                             alt={name}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            fill
+                                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-3xl opacity-30">🃏</div>
@@ -305,7 +313,7 @@ function AddCardModal({
     onAdd,
 }: {
     onClose: () => void;
-    onAdd: (payload: Record<string, unknown>) => Promise<void>;
+    onAdd: (payload: AddCollectionItemPayload & Record<string, unknown>) => Promise<void>;
 }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<AutocompleteResult[]>([]);
@@ -390,7 +398,7 @@ function AddCardModal({
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--default)] transition-colors text-left cursor-pointer"
                             >
                                 {card.image_url && (
-                                    <img src={card.image_url} alt="" className="w-8 h-11 object-cover rounded" />
+                                    <Image src={card.image_url} alt="" width={32} height={44} className="object-cover rounded" />
                                 )}
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-[var(--foreground)] truncate">
@@ -417,7 +425,7 @@ function AddCardModal({
                         {/* Preview */}
                         <div className="flex gap-3 items-center p-3 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
                             {selected.image_url && (
-                                <img src={selected.image_url} alt="" className="w-12 h-16 object-cover rounded" />
+                                <Image src={selected.image_url} alt="" width={48} height={64} className="object-cover rounded" />
                             )}
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">

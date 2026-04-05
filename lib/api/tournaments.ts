@@ -9,41 +9,46 @@ import type {
     UpdateTournamentRequest,
     Round,
     Match,
+    ReportMatchPayload,
+    DisputeMatchPayload,
+    ResolveDisputePayload,
+    TournamentRegistrationResponse,
 } from "@/lib/types/tournament";
 import type { Params } from "@/lib/types/api";
 
 // ── Helpers ──
 
 function normalizeTournament(t: Record<string, unknown>): Tournament {
+    const result = { ...t };
     // Flatten current_players → registered_count
-    if (t.current_players != null && t.registered_count == null) {
-        t.registered_count = t.current_players;
+    if (result.current_players != null && result.registered_count == null) {
+        result.registered_count = result.current_players;
     }
     // Map game_slug → game (API returns game_slug, frontend expects game)
-    if (!t.game && t.game_slug) {
-        t.game = t.game_slug;
+    if (!result.game && result.game_slug) {
+        result.game = result.game_slug;
     }
     // Map format_name → format (API returns format_name, frontend expects format)
-    if (!t.format && t.format_name) {
-        t.format = t.format_name;
+    if (!result.format && result.format_name) {
+        result.format = result.format_name;
     }
     // Map format_type → structure
-    if (!t.structure && t.format_type) {
-        t.structure = t.format_type;
+    if (!result.structure && result.format_type) {
+        result.structure = result.format_type;
     }
     // Fallback: use banner_url as game_logo_url if not already set
-    if (!t.game_logo_url && t.banner_url) {
-        t.game_logo_url = t.banner_url;
+    if (!result.game_logo_url && result.banner_url) {
+        result.game_logo_url = result.banner_url;
     }
     // Flatten nested tenant object
-    if (t.tenant && typeof t.tenant === "object") {
-        const tenant = t.tenant as Record<string, unknown>;
-        t.tenant_id = t.tenant_id || tenant.id;
-        t.tenant_name = t.tenant_name || tenant.name;
-        t.tenant_slug = t.tenant_slug || tenant.slug;
-        t.tenant_logo_url = t.tenant_logo_url || tenant.logo_url;
+    if (result.tenant && typeof result.tenant === "object") {
+        const tenant = result.tenant as Record<string, unknown>;
+        result.tenant_id = result.tenant_id || tenant.id;
+        result.tenant_name = result.tenant_name || tenant.name;
+        result.tenant_slug = result.tenant_slug || tenant.slug;
+        result.tenant_logo_url = result.tenant_logo_url || tenant.logo_url;
     }
-    return t as unknown as Tournament;
+    return result as unknown as Tournament;
 }
 
 // ── List / Search ──
@@ -90,7 +95,7 @@ export async function deleteTournament(id: string) {
 // ── Registration ──
 
 export async function registerForTournament(id: string, data?: TournamentRegistration) {
-    return apiPost<{ registration: Record<string, unknown> }>(`/tournaments/${encodeURIComponent(id)}/register`, data ?? {});
+    return apiPost<{ registration: TournamentRegistrationResponse }>(`/tournaments/${encodeURIComponent(id)}/register`, data ?? {});
 }
 
 export async function unregisterFromTournament(id: string) {
@@ -136,11 +141,11 @@ export async function getMyTournamentMatches(tournamentId: string) {
     return apiFetch<{ data?: Match[]; matches?: Match[] }>(`/tournaments/${encodeURIComponent(tournamentId)}/my-matches`, undefined, { cache: "no-store" });
 }
 
-export async function reportMatch(tournamentId: string, matchId: string, payload: Record<string, unknown>) {
+export async function reportMatch(tournamentId: string, matchId: string, payload: ReportMatchPayload) {
     return apiPost<{ match: Match }>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/report`, payload);
 }
 
-export async function disputeMatch(tournamentId: string, matchId: string, payload: Record<string, unknown>) {
+export async function disputeMatch(tournamentId: string, matchId: string, payload: DisputeMatchPayload) {
     return apiPost<{ match: Match }>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/dispute`, payload);
 }
 
@@ -148,7 +153,7 @@ export async function confirmMatch(tournamentId: string, matchId: string) {
     return apiPost<{ match: Match }>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/confirm`, {});
 }
 
-export async function resolveDispute(tournamentId: string, matchId: string, payload: Record<string, unknown>) {
+export async function resolveDispute(tournamentId: string, matchId: string, payload: ResolveDisputePayload) {
     return apiPost<{ match: Match }>(`/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(matchId)}/resolve-dispute`, payload);
 }
 
@@ -201,7 +206,7 @@ export async function startCheckIn(id: string) {
 // ── Registrations ──
 
 export async function getRegistrations(id: string) {
-    return apiFetch<{ data?: Record<string, unknown>[]; registrations?: Record<string, unknown>[] }>(`/tournaments/${encodeURIComponent(id)}/registrations`, undefined, { cache: "no-store" });
+    return apiFetch<{ data?: TournamentRegistrationResponse[]; registrations?: TournamentRegistrationResponse[] }>(`/tournaments/${encodeURIComponent(id)}/registrations`, undefined, { cache: "no-store" });
 }
 
 // ── Judges ──

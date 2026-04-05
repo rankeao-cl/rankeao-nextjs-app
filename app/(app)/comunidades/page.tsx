@@ -5,6 +5,9 @@ import type { Clan } from "@/lib/types/clan";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ComunidadesClient from "./ComunidadesClient";
+import PageHero from "@/components/ui/PageHero";
+import FilterPills from "@/components/ui/FilterPills";
+import type { FilterPill } from "@/components/ui/FilterPills";
 
 export const metadata: Metadata = {
   title: "Comunidades",
@@ -124,43 +127,16 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
       {/* ── Hero header ── */}
-      <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
-        <div
-          style={{
-            backgroundColor: "var(--surface-solid)",
-            border: "1px solid var(--border)",
-            borderRadius: 16,
-            padding: 18,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            minHeight: 120,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <span
-              style={{
-                display: "inline-block",
-                backgroundColor: "var(--surface)",
-                paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
-                borderRadius: 999, marginBottom: 8,
-                color: "var(--muted)", fontSize: 11, fontWeight: 600,
-              }}
-            >
-              {isTiendas ? "Directorio de tiendas" : "Equipos & Clanes"}
-            </span>
-            <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
-              {isTiendas ? "Comunidades TCG" : "Clanes"}
-            </h1>
-            <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: "18px", margin: 0 }}>
-              {isTiendas
-                ? "Encuentra tiendas y espacios de juego en Chile."
-                : "Unite a un clan, compite en grupo y representa a tu equipo."}
-            </p>
-          </div>
-          {isClanes && (
+      <PageHero
+        badge={isTiendas ? "Directorio de tiendas" : "Equipos & Clanes"}
+        title={isTiendas ? "Comunidades TCG" : "Clanes"}
+        subtitle={
+          isTiendas
+            ? "Encuentra tiendas y espacios de juego en Chile."
+            : "Unite a un clan, compite en grupo y representa a tu equipo."
+        }
+        action={
+          isClanes ? (
             <Link
               href="/clanes/new"
               style={{
@@ -175,42 +151,19 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
               </svg>
               <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Crear</span>
             </Link>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* ── Segment control ── */}
-      <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
-        <Link
-          href="/comunidades"
-          style={{
-            padding: "8px 18px",
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: "none",
-            backgroundColor: isTiendas ? "var(--foreground)" : "var(--surface-solid)",
-            color: isTiendas ? "var(--background)" : "var(--muted)",
-            border: isTiendas ? "1px solid transparent" : "1px solid var(--border)",
-          }}
-        >
-          Tiendas
-        </Link>
-        <Link
-          href="/comunidades?type=clanes"
-          style={{
-            padding: "8px 18px",
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: "none",
-            backgroundColor: isClanes ? "var(--foreground)" : "var(--surface-solid)",
-            color: isClanes ? "var(--background)" : "var(--muted)",
-            border: isClanes ? "1px solid transparent" : "1px solid var(--border)",
-          }}
-        >
-          Clanes
-        </Link>
+      <div className="mx-4 lg:mx-6 mb-3">
+        <FilterPills
+          items={[
+            { key: "tiendas", label: "Tiendas", href: "/comunidades" },
+            { key: "clanes", label: "Clanes", href: "/comunidades?type=clanes" },
+          ] satisfies FilterPill[]}
+          activeKey={activeType}
+        />
       </div>
 
       <ComunidadesClient

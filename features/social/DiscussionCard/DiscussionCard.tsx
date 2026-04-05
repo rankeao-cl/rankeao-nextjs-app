@@ -1,6 +1,9 @@
 "use client";
 
-import { Card, Chip, Avatar } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import ReactionBar from "@/features/social/ReactionBar";
 import { useState } from "react";
 

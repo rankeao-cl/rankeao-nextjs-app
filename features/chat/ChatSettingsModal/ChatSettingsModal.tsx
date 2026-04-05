@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { toast } from "@heroui/react";
+import Image from "next/image";
+import { toast } from "@heroui/react/toast";
+
 import { ArrowRightFromSquare, BellSlash, Bell } from "@gravity-ui/icons";
 import { muteChannel, unmuteChannel, leaveChannel } from "@/lib/api/chat";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -365,7 +367,7 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
                                                         overflow: "hidden",
                                                     }}>
                                                         {member.avatar_url ? (
-                                                            <img src={member.avatar_url} alt={member.username} style={{ width: 36, height: 36, objectFit: "cover" }} />
+                                                            <Image src={member.avatar_url} alt={member.username} width={36} height={36} className="object-cover" />
                                                         ) : (
                                                             <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{member.username?.slice(0, 2).toUpperCase()}</span>
                                                         )}

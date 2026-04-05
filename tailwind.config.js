@@ -4,6 +4,7 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./context/**/*.{js,ts,jsx,tsx,mdx}",
+    "./features/**/*.{js,ts,jsx,tsx,mdx}",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
@@ -15,6 +16,8 @@ module.exports = {
         surface: "var(--surface)",
         "surface-solid": "var(--surface-solid)",
         "surface-solid-secondary": "var(--surface-solid-secondary)",
+        "surface-tertiary": "var(--surface-tertiary)",
+        overlay: "var(--overlay)",
         muted: "var(--muted)",
         border: "var(--border)",
         accent: "var(--accent)",

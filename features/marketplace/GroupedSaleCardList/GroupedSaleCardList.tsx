@@ -10,74 +10,50 @@ export default function GroupedSaleCardList({ group }: { group: GroupedCard }) {
 
     return (
         <Link href={`/marketplace/${cheapest_listing_slug || cheapest_listing_id}`} className="block group">
-            <div
-                className="flex overflow-hidden"
-                style={{
-                    backgroundColor: "var(--surface-solid)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 6,
-                }}
-            >
+            <div className="flex overflow-hidden bg-surface-solid border border-border rounded-[6px]">
                 {/* Thumbnail */}
                 <div
-                    className="shrink-0 relative overflow-hidden"
-                    style={{ width: 80, aspectRatio: "63 / 88", backgroundColor: "#0a0a0a" }}
+                    className="shrink-0 relative overflow-hidden w-[80px] bg-[#0a0a0a]"
+                    style={{ aspectRatio: "63 / 88" }}
                 >
                     {imageUrl ? (
                         <Image src={imageUrl} alt={card_name} fill className="object-cover" sizes="80px" />
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <span className="text-lg opacity-20" style={{ color: "var(--muted)" }}>?</span>
+                            <span className="text-lg opacity-20 text-muted">?</span>
                         </div>
                     )}
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5" style={{ padding: 12 }}>
-                    <p
-                        className="line-clamp-2 m-0"
-                        style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 600, lineHeight: "17px" }}
-                    >
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5 p-3">
+                    <p className="line-clamp-2 m-0 text-foreground text-[13px] font-semibold leading-[17px]">
                         {card_name}
                     </p>
 
                     {/* Pills */}
                     <div className="flex flex-wrap items-center gap-1">
-                        <span
-                            className="text-xs font-bold px-2 py-0.5"
-                            style={{
-                                borderRadius: 4,
-                                color: "var(--foreground)",
-                                backgroundColor: "var(--surface-solid)",
-                                border: "1px solid var(--border)",
-                            }}
-                        >
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-[4px] text-foreground bg-surface-solid border border-border">
                             {price}
                         </span>
-                        <span
-                            className="text-[9px] font-semibold px-1.5 py-0.5"
-                            style={{ borderRadius: 4, color: "var(--muted)", backgroundColor: "var(--surface)" }}
-                        >
+                        <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-[4px] text-muted bg-surface">
                             {sellersLabel}
                         </span>
                         {rarity && (
-                            <span
-                                className="text-[9px] font-semibold px-1.5 py-0.5"
-                                style={{ borderRadius: 4, color: "var(--muted)", backgroundColor: "var(--surface)" }}
-                            >
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-[4px] text-muted bg-surface">
                                 {rarity}
                             </span>
                         )}
                         {game_name && (
                             <span
-                                className="text-[9px] font-semibold px-1.5 py-0.5"
-                                style={{ borderRadius: 4, color: "var(--accent)", backgroundColor: "rgba(59,130,246,0.08)" }}
+                                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-[4px] text-accent"
+                                style={{ backgroundColor: "rgba(59,130,246,0.08)" }}
                             >
                                 {game_name}
                             </span>
                         )}
                         {set_name && (
-                            <span className="text-[9px] truncate" style={{ color: "var(--muted)" }}>
+                            <span className="text-[9px] truncate text-muted">
                                 {set_name}
                             </span>
                         )}

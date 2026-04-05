@@ -149,7 +149,7 @@ export interface FeedPost {
     comment_count?: number;
     comments_count?: number;
     is_liked?: boolean;
-    user?: { username?: string; avatar_url?: string; [key: string]: unknown };
+    user?: { username?: string; avatar_url?: string };
     created_at: string;
     updated_at?: string;
 }
@@ -187,6 +187,20 @@ export interface UserSearchResult {
     avatar_url?: string;
 }
 
+export interface PostComment {
+    id: string;
+    post_id: string;
+    user: { id: string; username: string; avatar_url?: string; display_name?: string };
+    content: string;
+    created_at: string;
+    parent_comment_id?: string | null;
+    reply_to_username?: string | null;
+    replies_count?: number;
+    likes_count?: number;
+    is_liked?: boolean;
+    replies?: PostComment[];
+}
+
 // ── Raw Feed API response shapes ──
 
 export interface RawFeedUser {
@@ -207,6 +221,9 @@ export interface RawFeedMeta {
     best_of?: number;
     views_count?: number;
     cards?: Deck["cards"];
+    tournament_id?: string;
+    opponent_username?: string;
+    /** The API may return additional metadata fields per activity type. */
     [key: string]: unknown;
 }
 
@@ -236,4 +253,61 @@ export interface RawFeedEntry {
     comments_count?: number;
     comment_count?: number;
     created_at?: string;
+}
+
+// ── Collection & Wishlist payload types ──
+
+export interface AddCollectionItemPayload {
+    printing_id: string;
+    quantity: number;
+    condition: string;
+    language?: string;
+    is_foil?: boolean;
+    notes?: string;
+}
+
+export interface UpdateCollectionItemPayload {
+    quantity?: number;
+    condition?: string;
+    language?: string;
+    is_foil?: boolean;
+    notes?: string;
+}
+
+export interface AddWishlistItemPayload {
+    card_id?: string;
+    card_name?: string;
+    printing_id?: string;
+    image_url?: string;
+    preferred_condition?: string;
+    max_price?: number;
+    priority?: number;
+}
+
+// ── Bookmark, Badge, Rating History types ──
+
+export interface Bookmark {
+    id: string;
+    entity_type: string;
+    entity_id: string;
+    created_at?: string;
+}
+
+export interface UserBadge {
+    id?: string;
+    slug: string;
+    name: string;
+    description?: string;
+    icon_url?: string;
+    rarity?: string;
+    category?: string;
+    earned_at?: string;
+}
+
+export interface RatingHistoryEntry {
+    date: string;
+    rating: number;
+    game_id?: string;
+    game_name?: string;
+    change?: number;
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Spinner } from "@heroui/react";
+import Image from "next/image";
+import { Button } from "@heroui/react/button";
+import { Spinner } from "@heroui/react/spinner";
+
 import Link from "next/link";
 import { addWishlistItem, removeWishlistItem } from "@/lib/api/social";
 import { autocompleteCards } from "@/lib/api/catalog";
 import type { AutocompleteResult } from "@/lib/types/catalog";
-import type { WishlistItem } from "@/lib/types/social";
+import type { WishlistItem, AddWishlistItemPayload } from "@/lib/types/social";
 import {
     Plus,
     Xmark,
@@ -48,7 +51,7 @@ export default function ProfileWishlistTab({
         setDeletingId(null);
     };
 
-    const handleAdd = async (payload: Record<string, unknown>) => {
+    const handleAdd = async (payload: AddWishlistItemPayload) => {
         try {
             const res = await addWishlistItem(payload, token);
             const newItem = res?.item;
@@ -108,10 +111,12 @@ export default function ProfileWishlistTab({
                                 {/* Card Image */}
                                 <div className="relative aspect-[2.5/3.5] w-full overflow-hidden bg-[var(--surface-secondary)]">
                                     {item.image_url ? (
-                                        <img
+                                        <Image
                                             src={item.image_url}
                                             alt={item.card_name || ""}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            fill
+                                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-3xl opacity-30">
@@ -197,7 +202,7 @@ function AddWishlistModal({
     onAdd,
 }: {
     onClose: () => void;
-    onAdd: (payload: Record<string, unknown>) => Promise<void>;
+    onAdd: (payload: AddWishlistItemPayload) => Promise<void>;
 }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [results, setResults] = useState<AutocompleteResult[]>([]);
@@ -288,7 +293,7 @@ function AddWishlistModal({
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--default)] transition-colors text-left cursor-pointer"
                             >
                                 {card.image_url && (
-                                    <img src={card.image_url} alt="" className="w-8 h-11 object-cover rounded" />
+                                    <Image src={card.image_url} alt="" width={32} height={44} className="object-cover rounded" />
                                 )}
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-[var(--foreground)] truncate">
@@ -314,7 +319,7 @@ function AddWishlistModal({
                     <div className="space-y-4">
                         <div className="flex gap-3 items-center p-3 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
                             {selected.image_url && (
-                                <img src={selected.image_url} alt="" className="w-12 h-16 object-cover rounded" />
+                                <Image src={selected.image_url} alt="" width={48} height={64} className="object-cover rounded" />
                             )}
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">

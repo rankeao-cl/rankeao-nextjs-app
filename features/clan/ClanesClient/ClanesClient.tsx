@@ -80,14 +80,14 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
         <div>
             {/* Search + view toggle */}
             <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
-                <div style={{ flex: 1, display: "flex", alignItems: "center", backgroundColor: "var(--surface-solid)", borderRadius: 999, padding: "10px 14px", border: "1px solid var(--border)", gap: 8 }}>
-                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <div className="flex-1 flex items-center bg-surface-solid rounded-full px-3.5 py-2.5 border border-border gap-2">
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                         <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar clanes..."
-                        style={{ flex: 1, backgroundColor: "transparent", border: "none", outline: "none", fontSize: 14, color: "var(--foreground)", padding: 0 }} />
+                        className="flex-1 bg-transparent border-none outline-none text-[14px] text-foreground p-0" />
                     {search && (
-                        <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                        <button onClick={() => setSearch("")} className="bg-transparent border-none cursor-pointer p-0">
                             <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
                             </svg>
@@ -108,22 +108,16 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
             {/* Filter pills */}
             <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
                 <button onClick={() => { setFilterGame(""); setFilterRecruiting(false); }}
-                    style={{ padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                        backgroundColor: !hasFilters ? "var(--foreground)" : "var(--surface-solid)", color: !hasFilters ? "var(--background)" : "var(--muted)",
-                        border: !hasFilters ? "1px solid transparent" : "1px solid var(--border)", flexShrink: 0 }}>
+                    className={`py-2 px-4 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer shrink-0 ${!hasFilters ? "bg-foreground text-background border border-transparent" : "bg-surface-solid text-muted border border-border"}`}>
                     Todos
                 </button>
                 <button onClick={() => setFilterRecruiting(!filterRecruiting)}
-                    style={{ padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                        backgroundColor: filterRecruiting ? "var(--foreground)" : "var(--surface-solid)", color: filterRecruiting ? "var(--background)" : "var(--muted)",
-                        border: filterRecruiting ? "1px solid transparent" : "1px solid var(--border)", flexShrink: 0 }}>
+                    className={`py-2 px-4 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer shrink-0 ${filterRecruiting ? "bg-foreground text-background border border-transparent" : "bg-surface-solid text-muted border border-border"}`}>
                     Reclutando
                 </button>
                 {games.map((g) => (
                     <button key={g.slug} onClick={() => setFilterGame(filterGame === g.slug ? "" : g.slug)}
-                        style={{ padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                            backgroundColor: filterGame === g.slug ? "var(--foreground)" : "var(--surface-solid)", color: filterGame === g.slug ? "var(--background)" : "var(--muted)",
-                            border: filterGame === g.slug ? "1px solid transparent" : "1px solid var(--border)", flexShrink: 0 }}>
+                        className={`py-2 px-4 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer shrink-0 ${filterGame === g.slug ? "bg-foreground text-background border border-transparent" : "bg-surface-solid text-muted border border-border"}`}>
                         {g.name}
                     </button>
                 ))}
@@ -135,31 +129,30 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
             {/* Content */}
             <div className="mx-4 lg:mx-6 mb-12">
                 {searching && (
-                    <div style={{ display: "flex", justifyContent: "center", padding: "24px 0" }}>
-                        <div style={{ width: 24, height: 24, border: "3px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    <div className="flex justify-center py-6">
+                        <div className="w-6 h-6 border-[3px] border-border border-t-accent rounded-full animate-spin" />
                     </div>
                 )}
 
                 {!searching && clans.length > 0 && (
                     viewMode === "grid" ? (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">
                             {clans.map((clan) => <ClanCard key={clan.id} clan={clan} />)}
                         </div>
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div className="flex flex-col gap-2.5">
                             {clans.map((clan) => <ClanListRow key={clan.id} clan={clan} />)}
                         </div>
                     )
                 )}
 
                 {!searching && clans.length === 0 && (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 0" }}>
-                        <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "var(--surface-solid)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                            <span style={{ fontSize: 32, opacity: 0.4 }}>🛡️</span>
+                    <div className="flex flex-col items-center py-12">
+                        <div className="w-[72px] h-[72px] rounded-full bg-surface-solid flex items-center justify-center mb-4">
+                            <span className="text-[32px] opacity-40">&#128737;&#65039;</span>
                         </div>
-                        <p style={{ color: "var(--foreground)", fontSize: 15, fontWeight: 600, margin: 0, marginBottom: 4 }}>No se encontraron clanes</p>
-                        <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>{search ? "Intenta con otros terminos." : "Se el primero en crear un clan."}</p>
+                        <p className="text-foreground text-[15px] font-semibold m-0 mb-1">No se encontraron clanes</p>
+                        <p className="text-muted text-[13px] m-0">{search ? "Intenta con otros terminos." : "Se el primero en crear un clan."}</p>
                     </div>
                 )}
             </div>

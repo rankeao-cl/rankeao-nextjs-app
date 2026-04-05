@@ -1,4 +1,6 @@
-import { Card, Skeleton } from "@heroui/react";
+import { Card } from "@heroui/react/card";
+import { Skeleton } from "@heroui/react/skeleton";
+
 
 export default function FeedSkeleton({ count = 3 }: { count?: number }) {
   return (

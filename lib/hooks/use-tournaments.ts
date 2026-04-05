@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as tournamentsApi from "@/lib/api/tournaments";
-import type { TournamentFilters, CreateTournamentRequest, UpdateTournamentRequest, TournamentRegistration } from "@/lib/types/tournament";
+import type { TournamentFilters, CreateTournamentRequest, UpdateTournamentRequest, TournamentRegistration, ReportMatchPayload } from "@/lib/types/tournament";
 import type { Params } from "@/lib/types/api";
 
 // ── List ──
@@ -82,7 +82,7 @@ export function useCheckInTournament() {
 export function useReportMatch() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ tournamentId, matchId, payload }: { tournamentId: string; matchId: string; payload: Record<string, unknown> }) =>
+        mutationFn: ({ tournamentId, matchId, payload }: { tournamentId: string; matchId: string; payload: { player1_wins: number; player2_wins: number; draws?: number } }) =>
             tournamentsApi.reportMatch(tournamentId, matchId, payload),
         onSuccess: (_, { tournamentId }) => qc.invalidateQueries({ queryKey: ["tournaments", tournamentId] }),
     });

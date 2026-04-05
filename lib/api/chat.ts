@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
+import { apiFetch, apiPost, apiPatch, apiDelete, BASE_URL } from "./client";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 import type { Channel, ChatMessage, Room, SendMessagePayload, CreateChannelPayload, ReportMessagePayload, RoomListFilters } from "@/lib/types/chat";
 
@@ -68,7 +68,7 @@ export async function joinRoom(roomId: string, token?: string) {
 
 // ── WebSocket ──
 
-const WS_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1")
+const WS_BASE_URL = BASE_URL
     .replace(/^https:/, "wss:")
     .replace(/^http:/, "ws:");
 

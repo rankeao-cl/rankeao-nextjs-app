@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Input } from "@heroui/react";
+import Image from "next/image";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Input } from "@heroui/react/input";
+import { toast } from "@heroui/react/toast";
+
 import { useRouter } from "next/navigation";
 import { useBuyListing } from "@/lib/hooks/use-marketplace";
 import type { Listing } from "@/lib/types/marketplace";
-import { toast } from "@heroui/react";
+
 
 interface Props {
   listing: Listing;
@@ -71,7 +76,7 @@ export default function BuyModal({ listing, open, onClose }: Props) {
           <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--surface-secondary)" }}>
             <div className="w-12 h-16 rounded-lg overflow-hidden flex items-center justify-center" style={{ background: "var(--code-bg)" }}>
               {(listing.images?.[0]?.url || listing.card_image_url) ? (
-                <img src={listing.images?.[0]?.url || listing.card_image_url} alt="" className="w-full h-full object-contain" />
+                <Image src={listing.images?.[0]?.url || listing.card_image_url || ""} alt="" width={48} height={64} className="w-full h-full object-contain" />
               ) : (
                 <span className="text-2xl">🃏</span>
               )}

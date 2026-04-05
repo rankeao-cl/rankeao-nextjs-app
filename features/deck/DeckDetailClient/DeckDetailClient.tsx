@@ -2,8 +2,10 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Eye, ChevronLeft, Copy } from "@gravity-ui/icons";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { likeDeck, unlikeDeck } from "@/lib/api/social";
 import type { Deck, DeckCard } from "@/lib/types/social";
@@ -249,9 +251,9 @@ export default function DeckDetailClient({ deck }: { deck: Deck }) {
                       {hasImage ? (
                         <div style={{
                           width: 36, height: 50, borderRadius: 4, overflow: "hidden",
-                          flexShrink: 0, border: "1px solid var(--border)",
+                          flexShrink: 0, border: "1px solid var(--border)", position: "relative",
                         }}>
-                          <img src={card.image_url} alt={card.card_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <Image src={card.image_url!} alt={card.card_name} fill sizes="36px" className="object-cover" />
                         </div>
                       ) : (
                         <div style={{

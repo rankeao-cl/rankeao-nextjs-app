@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { Card, Avatar, Chip } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import type { Tenant } from "@/lib/types/tenant";
 
 function renderStars(rating?: number) {

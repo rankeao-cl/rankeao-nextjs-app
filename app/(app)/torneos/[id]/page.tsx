@@ -1,6 +1,7 @@
 import { getTournament } from "@/lib/api/tournaments";
 import TournamentDetailClient from "./TournamentDetailClient";
-import { Card } from "@heroui/react";
+import { Card } from "@heroui/react/card";
+
 import type { Metadata } from "next";
 
 interface Props {

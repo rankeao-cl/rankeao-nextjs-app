@@ -1,4 +1,7 @@
-import { Card, Chip, Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import {
   getCardDetail,
   getCardPrintings,
@@ -7,6 +10,7 @@ import {
 } from "@/lib/api/catalog";
 import type { Card as CatalogCard, Printing, LegalityEntry, PricePoint } from "@/lib/types/catalog";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 interface CardDetailPageProps {
@@ -105,12 +109,14 @@ export default async function CardDetailPage({ params }: CardDetailPageProps) {
         {/* Left: Card image */}
         <div className="w-full md:w-80 flex-shrink-0">
           <div className="sticky top-20">
-            <div className="rounded-2xl overflow-hidden border border-[var(--border)] bg-black/20 aspect-[2.5/3.5]">
+            <div className="rounded-2xl overflow-hidden border border-[var(--border)] bg-black/20 aspect-[2.5/3.5] relative">
               {mainImage ? (
-                <img
+                <Image
                   src={mainImage}
                   alt={card.name}
-                  className="w-full h-full object-contain"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 320px"
+                  className="object-contain"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -244,10 +250,12 @@ export default async function CardDetailPage({ params }: CardDetailPageProps) {
                     className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)]"
                   >
                     {p.image_url_small ? (
-                      <img
+                      <Image
                         src={p.image_url_small}
                         alt={`${card.name} - ${p.set_name}`}
-                        className="w-10 h-14 object-cover rounded"
+                        width={40}
+                        height={56}
+                        className="object-cover rounded"
                       />
                     ) : (
                       <div className="w-10 h-14 rounded bg-black/20 flex items-center justify-center">

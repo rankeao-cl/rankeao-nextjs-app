@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import { mapErrorMessage } from "@/lib/api/errors";
 import { acceptDuel } from "@/lib/api/duels";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -23,10 +24,10 @@ function TimeSince({ dateStr }: { dateStr: string }) {
 
     const ms = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(ms / 60_000);
-    if (mins < 1) return <span style={{ color: "var(--muted)", fontSize: 11 }}>Ahora</span>;
-    if (mins < 60) return <span style={{ color: "var(--muted)", fontSize: 11 }}>{mins}m buscando</span>;
+    if (mins < 1) return <span className="text-muted text-[11px]">Ahora</span>;
+    if (mins < 60) return <span className="text-muted text-[11px]">{mins}m buscando</span>;
     const hrs = Math.floor(mins / 60);
-    return <span style={{ color: "var(--muted)", fontSize: 11 }}>{hrs}h {mins % 60}m buscando</span>;
+    return <span className="text-muted text-[11px]">{hrs}h {mins % 60}m buscando</span>;
 }
 
 // Track which duels already notified to avoid repeat alerts
@@ -112,37 +113,29 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
 
     if (accepted) {
         return (
-            <div style={{
-                backgroundColor: "color-mix(in srgb, var(--success) 4%, transparent)",
-                borderRadius: 20,
-                border: "1px solid color-mix(in srgb, var(--success) 20%, transparent)",
-                padding: 20,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-            }}>
+            <div
+                className="rounded-[20px] p-5 flex items-center justify-center gap-2.5"
+                style={{
+                    backgroundColor: "color-mix(in srgb, var(--success) 4%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--success) 20%, transparent)",
+                }}
+            >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                <span style={{ color: "var(--success)", fontSize: 13, fontWeight: 700 }}>Duelo aceptado contra @{challenger.username}</span>
+                <span className="text-success text-[13px] font-bold">Duelo aceptado contra @{challenger.username}</span>
             </div>
         );
     }
 
     return (
-        <div style={{
-            backgroundColor: "var(--surface-solid)",
-            borderRadius: 20,
-            border: "1.5px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-            overflow: "hidden",
-            padding: 14,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            position: "relative",
-            animation: "duelPulse 2s ease-in-out infinite",
-        }}>
+        <div
+            className="bg-surface-solid rounded-[20px] overflow-hidden p-3.5 flex flex-col gap-2.5 relative"
+            style={{
+                border: "1.5px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                animation: "duelPulse 2s ease-in-out infinite",
+            }}
+        >
             <style>{`
                 @keyframes duelPulse {
                     0%, 100% {
@@ -157,83 +150,80 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
             `}</style>
 
             {/* Header: icon + badge */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{
-                    width: 36, height: 36, borderRadius: 18,
-                    backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)",
-                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
+            <div className="flex items-center gap-2.5">
+                <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
+                >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                     </svg>
                 </div>
-                <div style={{ flex: 1 }}>
-                    <span style={{ color: "var(--foreground)", fontSize: 13, fontWeight: 700, display: "block" }}>Busca oponente para duelo</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                <div className="flex-1">
+                    <span className="text-foreground text-[13px] font-bold block">Busca oponente para duelo</span>
+                    <div className="flex items-center gap-1 mt-0.5">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                         </svg>
                         <TimeSince dateStr={duel.created_at} />
                     </div>
                 </div>
-                <span style={{
-                    backgroundColor: "color-mix(in srgb, var(--warning) 10%, transparent)", padding: "3px 8px", borderRadius: 999,
-                    fontSize: 9, fontWeight: 800, color: "var(--warning)", letterSpacing: 0.5,
-                }}>
+                <span
+                    className="px-2 py-[3px] rounded-full text-[9px] font-[800] text-warning tracking-[0.5px]"
+                    style={{ backgroundColor: "color-mix(in srgb, var(--warning) 10%, transparent)" }}
+                >
                     CASUAL
                 </span>
             </div>
 
             {/* Challenger info */}
-            <div style={{
-                display: "flex", alignItems: "center", gap: 10, padding: 10,
-                backgroundColor: "color-mix(in srgb, var(--accent) 4%, transparent)", borderRadius: 10,
-                border: "1px solid color-mix(in srgb, var(--accent) 8%, transparent)",
-            }}>
+            <div
+                className="flex items-center gap-2.5 p-2.5 rounded-[10px]"
+                style={{
+                    backgroundColor: "color-mix(in srgb, var(--accent) 4%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--accent) 8%, transparent)",
+                }}
+            >
                 {challenger.avatar_url ? (
-                    <Image src={challenger.avatar_url} alt={challenger.username} width={44} height={44} style={{ borderRadius: 999, objectFit: "cover" }} />
+                    <Image src={challenger.avatar_url} alt={challenger.username} width={44} height={44} className="rounded-full object-cover" />
                 ) : (
-                    <div style={{
-                        width: 44, height: 44, borderRadius: 999,
-                        backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <span style={{ color: "var(--accent)", fontSize: 16, fontWeight: 800 }}>
+                    <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
+                    >
+                        <span className="text-accent text-[16px] font-[800]">
                             {challenger.username?.[0]?.toUpperCase()}
                         </span>
                     </div>
                 )}
-                <div style={{ flex: 1 }}>
-                    <span style={{ color: "var(--foreground)", fontSize: 14, fontWeight: 700, display: "block" }}>
+                <div className="flex-1">
+                    <span className="text-foreground text-[14px] font-bold block">
                         {challenger.display_name || challenger.username}
                     </span>
-                    <span style={{ color: "var(--muted)", fontSize: 11 }}>@{challenger.username}</span>
+                    <span className="text-muted text-[11px]">@{challenger.username}</span>
                 </div>
                 {challenger.rating != null && challenger.rating > 0 && (
-                    <div style={{
-                        display: "flex", flexDirection: "column", alignItems: "center",
-                        backgroundColor: "var(--surface)", padding: "6px 10px", borderRadius: 6,
-                    }}>
-                        <span style={{ color: "var(--foreground)", fontSize: 14, fontWeight: 800 }}>{challenger.rating}</span>
-                        <span style={{ color: "var(--muted)", fontSize: 8, fontWeight: 700, letterSpacing: 0.5 }}>ELO</span>
+                    <div className="flex flex-col items-center bg-surface px-2.5 py-1.5 rounded-[6px]">
+                        <span className="text-foreground text-[14px] font-[800]">{challenger.rating}</span>
+                        <span className="text-muted text-[8px] font-bold tracking-[0.5px]">ELO</span>
                     </div>
                 )}
             </div>
 
             {/* Game + Format + BO */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div className="flex flex-wrap gap-1.5">
                 {duel.game_name && (
-                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 10px", borderRadius: 8 }}>
+                    <span className="text-[11px] text-muted bg-surface px-2.5 py-1 rounded-lg">
                         {duel.game_name}
                     </span>
                 )}
                 {duel.format_name && (
-                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 10px", borderRadius: 8 }}>
+                    <span className="text-[11px] text-muted bg-surface px-2.5 py-1 rounded-lg">
                         {duel.format_name}
                     </span>
                 )}
                 {duel.best_of != null && duel.best_of > 0 && (
-                    <span style={{ fontSize: 11, color: "var(--muted)", backgroundColor: "var(--surface)", padding: "4px 10px", borderRadius: 8 }}>
+                    <span className="text-[11px] text-muted bg-surface px-2.5 py-1 rounded-lg">
                         Bo{duel.best_of}
                     </span>
                 )}
@@ -241,38 +231,37 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
 
             {/* Message */}
             {!!duel.message && (
-                <p style={{ color: "var(--muted)", fontSize: 13, fontStyle: "italic", lineHeight: "19px", margin: 0, paddingLeft: 4 }}>
+                <p className="text-muted text-[13px] italic leading-[19px] m-0 pl-1">
                     &ldquo;{duel.message}&rdquo;
                 </p>
             )}
 
             {/* XP note */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div className="flex items-center gap-1.5">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--warning)" stroke="none">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-                <span style={{ color: "var(--muted)", fontSize: 11 }}>Solo XP, no afecta ELO</span>
+                <span className="text-muted text-[11px]">Solo XP, no afecta ELO</span>
             </div>
 
             {/* Accept button */}
             <button
                 onClick={handleAccept}
                 disabled={accepting}
+                className="flex items-center justify-center gap-2 w-full py-[13px] rounded-[10px] border-none bg-accent transition-all duration-150"
                 style={{
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    width: "100%", padding: "13px 0", borderRadius: 10, border: "none",
-                    backgroundColor: "var(--accent)", cursor: accepting ? "not-allowed" : "pointer",
-                    opacity: accepting ? 0.6 : 1, transition: "all 0.15s",
+                    cursor: accepting ? "not-allowed" : "pointer",
+                    opacity: accepting ? 0.6 : 1,
                 }}
             >
                 {accepting ? (
-                    <div className="animate-spin" style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: 999 }} />
+                    <div className="animate-spin w-4 h-4 rounded-full" style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />
                 ) : (
                     <>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                         </svg>
-                        <span style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>Aceptar duelo</span>
+                        <span className="text-white text-[14px] font-bold">Aceptar duelo</span>
                     </>
                 )}
             </button>

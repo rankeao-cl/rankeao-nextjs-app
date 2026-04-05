@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ScrollShadow } from "@heroui/react";
+import { ScrollShadow } from "@heroui/react/scroll-shadow";
+
 import { Bell, ShoppingCart, TargetDart, Xmark, Cup } from "@gravity-ui/icons";
-import { timeAgo, stripHtml } from "@/lib/utils/format";
+import { timeAgo, stripHtml, sanitizeHref } from "@/lib/utils/format";
 import {
     getNotifications,
     getUnreadNotificationCount,
@@ -205,18 +206,18 @@ function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClos
         onClose();
     };
 
-    const href = notif.action_url
-        || (notif.variables?.username ? `/perfil/${notif.variables.username}` : null);
+    const href = sanitizeHref(notif.action_url)
+        || (notif.variables?.username ? `/perfil/${encodeURIComponent(String(notif.variables.username))}` : null);
 
     if (href) {
         return (
             <Link href={href} onClick={handleClick}
-                className="block hover:bg-white/5 transition-colors">
+                className="block hover:bg-foreground/5 transition-colors">
                 {inner}
             </Link>
         );
     }
-    return <div onClick={handleClick} className="hover:bg-white/5 transition-colors cursor-pointer">{inner}</div>;
+    return <div onClick={handleClick} className="hover:bg-foreground/5 transition-colors cursor-pointer">{inner}</div>;
 }
 
 // ── Main Component ──
@@ -231,6 +232,7 @@ export default function NotificationSidebar({
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("all");
     const [markingAll, setMarkingAll] = useState(false);
+    const panelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!isOpen || !accessToken) return;
@@ -254,8 +256,25 @@ export default function NotificationSidebar({
 
     useEffect(() => {
         if (!isOpen) return;
-        const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") { onClose(); return; }
+            if (e.key === "Tab" && panelRef.current) {
+                const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        };
         document.addEventListener("keydown", handler);
+        // Focus the close button on open
+        requestAnimationFrame(() => {
+            const closeBtn = panelRef.current?.querySelector<HTMLElement>('[aria-label="Cerrar"]');
+            closeBtn?.focus();
+        });
         return () => document.removeEventListener("keydown", handler);
     }, [isOpen, onClose]);
 
@@ -302,6 +321,10 @@ export default function NotificationSidebar({
 
             {/* Sidebar panel */}
             <div
+                ref={panelRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Notificaciones"
                 className="fixed top-0 left-0 h-full z-[60] w-[380px] max-w-[calc(100vw-48px)] flex flex-col"
                 style={{
                     background: "var(--background)",
@@ -319,7 +342,7 @@ export default function NotificationSidebar({
                         </h2>
                         {unreadCount > 0 && (
                             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                                style={{ backgroundColor: "rgba(59,130,246,0.15)", color: "#3B82F6" }}>
+                                style={{ backgroundColor: "rgba(59,130,246,0.15)", color: "var(--accent)" }}>
                                 {unreadCount}
                             </span>
                         )}
@@ -328,7 +351,7 @@ export default function NotificationSidebar({
                         {unreadCount > 0 && (
                             <button onClick={handleMarkAllRead} disabled={markingAll}
                                 className="text-[11px] font-semibold cursor-pointer transition-colors"
-                                style={{ color: "#3B82F6" }}>
+                                style={{ color: "var(--accent)" }}>
                                 {markingAll ? "Marcando..." : "Marcar leídas"}
                             </button>
                         )}
@@ -361,7 +384,7 @@ export default function NotificationSidebar({
                                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                                         style={{
                                             backgroundColor: active ? "rgba(0,0,0,0.2)" : "rgba(59,130,246,0.2)",
-                                            color: active ? "var(--background)" : "#3B82F6",
+                                            color: active ? "var(--background)" : "var(--accent)",
                                         }}>
                                         {tabCount}
                                     </span>
@@ -424,7 +447,7 @@ export default function NotificationSidebar({
                 <div className="px-4 py-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
                     <Link href="/notificaciones" onClick={onClose}
                         className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-semibold transition-colors"
-                        style={{ color: "#3B82F6" }}>
+                        style={{ color: "var(--accent)" }}>
                         Ver todas las notificaciones →
                     </Link>
                 </div>

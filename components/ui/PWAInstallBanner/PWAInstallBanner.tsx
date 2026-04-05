@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { usePWA } from "@/context/PWAContext";
 
 export default function PWAInstallBanner() {
@@ -109,14 +110,12 @@ export default function PWAInstallBanner() {
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
           style={{ background: "var(--accent)" }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/icon-192.png"
             alt="Rankeao"
+            width={40}
+            height={40}
             className="w-10 h-10 object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
           />
         </div>
 

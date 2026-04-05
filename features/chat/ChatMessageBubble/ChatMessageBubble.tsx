@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ArrowUpRightFromSquare, ShoppingCart } from "@gravity-ui/icons";
 import type { ChatMessage, MessageStatus } from "@/lib/types/chat";
 
@@ -52,17 +53,12 @@ function ImageThumbnail({ url }: { url: string }) {
                     background: "transparent",
                 }}
             >
-                <img
+                <Image
                     src={url}
                     alt="Imagen compartida"
-                    style={{
-                        width: "100%",
-                        height: "auto",
-                        maxHeight: 200,
-                        objectFit: "cover",
-                        display: "block",
-                    }}
-                    loading="lazy"
+                    width={260}
+                    height={200}
+                    className="object-cover block w-full h-auto max-h-[200px]"
                 />
             </button>
 
@@ -82,15 +78,13 @@ function ImageThumbnail({ url }: { url: string }) {
                         cursor: "pointer",
                     }}
                 >
-                    <img
+                    <Image
                         src={url}
                         alt="Imagen completa"
-                        style={{
-                            maxWidth: "90vw",
-                            maxHeight: "85vh",
-                            borderRadius: 12,
-                            objectFit: "contain",
-                        }}
+                        width={800}
+                        height={600}
+                        className="object-contain rounded-xl max-w-[90vw] max-h-[85vh]"
+                        style={{ width: "auto", height: "auto" }}
                     />
                 </div>
             )}
@@ -112,17 +106,13 @@ function ListingEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
         }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: 10 }}>
                 {metadata.image_url && (
-                    <img
+                    <Image
                         src={metadata.image_url}
                         alt={metadata.product_name || "Producto"}
-                        style={{
-                            width: 56,
-                            height: 56,
-                            borderRadius: 8,
-                            objectFit: "cover",
-                            border: "1px solid var(--border)",
-                            flexShrink: 0,
-                        }}
+                        width={56}
+                        height={56}
+                        className="object-cover rounded-lg flex-shrink-0"
+                        style={{ border: "1px solid var(--border)" }}
                     />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -393,10 +383,12 @@ export default function ChatMessageBubble({ message, isMine, showHeader, status,
                             overflow: "hidden",
                         }}>
                             {message.sender_avatar_url ? (
-                                <img
+                                <Image
                                     src={message.sender_avatar_url}
                                     alt={message.sender_username || ""}
-                                    style={{ width: 32, height: 32, borderRadius: 16, objectFit: "cover" }}
+                                    width={32}
+                                    height={32}
+                                    className="object-cover rounded-full"
                                 />
                             ) : (
                                 <span style={{ color: "var(--foreground)", fontSize: 12, fontWeight: 600 }}>

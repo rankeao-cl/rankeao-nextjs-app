@@ -1,4 +1,6 @@
-import { Card, Skeleton } from "@heroui/react";
+import { Card } from "@heroui/react/card";
+import { Skeleton } from "@heroui/react/skeleton";
+
 
 export default function MarketplaceSkeleton({ count = 8 }: { count?: number }) {
   return (

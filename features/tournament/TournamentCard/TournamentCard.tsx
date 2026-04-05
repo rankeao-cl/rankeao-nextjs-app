@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";
@@ -32,7 +33,7 @@ function fmtPrice(n: number) {
     return "$" + n.toLocaleString("es-CL");
 }
 
-export default function TournamentCard({ tournament }: { tournament: Tournament }) {
+function TournamentCard({ tournament }: { tournament: Tournament }) {
     const cfg = STATUS_CONFIG[tournament.status] ?? { label: tournament.status, accent: "#6B7280" };
     const live = isLiveStatus(tournament.status);
     const open = isOpenStatus(tournament.status);
@@ -52,13 +53,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
 
     return (
         <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <div className="relative rounded-xl overflow-hidden group" style={{ aspectRatio: "16/9", border: "1px solid var(--border)", transition: "box-shadow 0.25s, border-color 0.25s" }}>
-                <style>{`
-                    .group:hover {
-                        border-color: rgba(255,255,255,0.15) !important;
-                        box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
-                    }
-                `}</style>
+            <div className="relative rounded-xl overflow-hidden group border border-border transition-[box-shadow,border-color] duration-[250ms] hover:border-white/15 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]" style={{ aspectRatio: "16/9" }}>
 
                 {/* Imagen de fondo */}
                 {bgImage ? (
@@ -190,6 +185,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                         {/* CTA */}
                         {live ? (
                             <span
+                                aria-hidden="true"
                                 className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
                                 style={{ backgroundColor: "#EF4444", boxShadow: "0 2px 8px rgba(239,68,68,0.4)" }}
                             >
@@ -197,6 +193,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                             </span>
                         ) : open ? (
                             <span
+                                aria-hidden="true"
                                 className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold text-white"
                                 style={{ backgroundColor: "var(--accent)" }}
                             >
@@ -204,6 +201,7 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
                             </span>
                         ) : (
                             <span
+                                aria-hidden="true"
                                 className="flex items-center justify-center px-3 py-1.5 rounded-lg text-[11px] font-semibold"
                                 style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}
                             >
@@ -216,3 +214,5 @@ export default function TournamentCard({ tournament }: { tournament: Tournament 
         </Link>
     );
 }
+
+export default memo(TournamentCard);

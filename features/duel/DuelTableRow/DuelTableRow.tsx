@@ -21,13 +21,13 @@ const STATUS_LABELS: Record<string, string> = {
 
 function MiniAvatar({ player, size = 28 }: { player: Duel["challenger"]; size?: number }) {
     return (
-        <div style={{
-            width: size, height: size, borderRadius: size / 2,
-            backgroundColor: "var(--surface)", overflow: "hidden",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: size * 0.4, fontWeight: 700, color: "var(--foreground)",
-            flexShrink: 0,
-        }}>
+        <div
+            className="flex items-center justify-center bg-surface overflow-hidden shrink-0"
+            style={{
+                width: size, height: size, borderRadius: size / 2,
+                fontSize: size * 0.4, fontWeight: 700, color: "var(--foreground)",
+            }}
+        >
             {player.avatar_url ? (
                 <Image src={player.avatar_url} alt={player.username} width={size} height={size}
                     style={{ objectFit: "cover", width: size, height: size }} />
@@ -48,13 +48,8 @@ export default function DuelTableRow({ duel }: { duel: Duel }) {
 
     return (
         <tr
-            className="duel-row-hover"
+            className="duel-row-hover border-b border-border cursor-pointer transition-colors duration-150"
             onClick={() => router.push(href)}
-            style={{
-                borderBottom: "1px solid var(--border)",
-                cursor: "pointer",
-                transition: "background-color 0.15s",
-            }}
         >
             <style>{`
                 .duel-row-hover:hover { background-color: rgba(59,130,246,0.04) !important; }
@@ -62,69 +57,56 @@ export default function DuelTableRow({ duel }: { duel: Duel }) {
             `}</style>
 
             {/* Players */}
-            <td style={{ padding: "12px 16px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <td className="px-4 py-3">
+                <div className="flex items-center gap-2.5">
                     <MiniAvatar player={duel.challenger} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", maxWidth: 100 }} className="truncate">
+                    <span className="truncate text-[13px] font-semibold text-foreground max-w-[100px]">
                         {duel.challenger.display_name || duel.challenger.username}
                     </span>
-                    <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 500 }}>vs</span>
+                    <span className="text-[11px] text-muted font-medium">vs</span>
                     <MiniAvatar player={duel.opponent} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", maxWidth: 100 }} className="truncate">
+                    <span className="truncate text-[13px] font-semibold text-foreground max-w-[100px]">
                         {duel.opponent.display_name || duel.opponent.username}
                     </span>
                 </div>
             </td>
 
             {/* Score */}
-            <td style={{ padding: "12px 12px", textAlign: "center" }}>
+            <td className="px-3 py-3 text-center">
                 {hasScore ? (
-                    <span style={{
-                        fontSize: 14, fontWeight: 800, color: "var(--foreground)",
-                        letterSpacing: "-0.5px",
-                    }}>
+                    <span className="text-sm font-extrabold text-foreground tracking-tight">
                         {duel.challenger_wins} – {duel.opponent_wins}
                     </span>
                 ) : (
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>—</span>
+                    <span className="text-xs text-muted">—</span>
                 )}
             </td>
 
             {/* Game */}
-            <td style={{ padding: "12px 12px" }}>
+            <td className="px-3 py-3">
                 {duel.game_name && (
-                    <span style={{
-                        fontSize: 11, fontWeight: 600,
-                        color: "var(--accent)",
-                        backgroundColor: "rgba(59,130,246,0.08)",
-                        padding: "3px 10px", borderRadius: 999,
-                    }}>
+                    <span className="text-[11px] font-semibold text-accent rounded-full px-2.5 py-[3px]" style={{ backgroundColor: "rgba(59,130,246,0.08)" }}>
                         {duel.game_name}
                     </span>
                 )}
             </td>
 
             {/* Best of */}
-            <td style={{ padding: "12px 12px", textAlign: "center" }}>
-                <span style={{
-                    fontSize: 11, fontWeight: 600,
-                    color: "var(--muted)",
-                    backgroundColor: "var(--surface)",
-                    padding: "3px 10px", borderRadius: 999,
-                }}>
+            <td className="px-3 py-3 text-center">
+                <span className="text-[11px] font-semibold text-muted bg-surface rounded-full px-2.5 py-[3px]">
                     Bo{duel.best_of}
                 </span>
             </td>
 
             {/* Status */}
-            <td style={{ padding: "12px 12px", textAlign: "center" }}>
-                <span style={{
-                    display: "inline-flex", alignItems: "center", gap: 5,
-                    fontSize: 11, fontWeight: 600,
-                    color: sColor,
-                    backgroundColor: `color-mix(in srgb, ${sColor} 10%, transparent)`,
-                    padding: "3px 10px", borderRadius: 999,
-                }}>
+            <td className="px-3 py-3 text-center">
+                <span
+                    className="inline-flex items-center gap-[5px] text-[11px] font-semibold rounded-full px-2.5 py-[3px]"
+                    style={{
+                        color: sColor,
+                        backgroundColor: `color-mix(in srgb, ${sColor} 10%, transparent)`,
+                    }}
+                >
                     {isCompleted && (
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12" />
@@ -135,15 +117,15 @@ export default function DuelTableRow({ duel }: { duel: Duel }) {
             </td>
 
             {/* Date */}
-            <td style={{ padding: "12px 12px", textAlign: "right" }}>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>
+            <td className="px-3 py-3 text-right">
+                <span className="text-xs text-muted">
                     {timeAgo(duel.created_at, { verbose: true, fallbackDays: 7 })}
                 </span>
             </td>
 
             {/* Arrow */}
-            <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+            <td className="px-4 py-3 text-right">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
                     <polyline points="9 18 15 12 9 6" />
                 </svg>
             </td>

@@ -3,7 +3,11 @@ import { getTenant } from "@/lib/api/tenants";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Button, Chip, Tabs, Tooltip } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Chip } from "@heroui/react/chip";
+import { Tabs } from "@heroui/react/tabs";
+import { Tooltip } from "@heroui/react/tooltip";
+
 import { MapPin, Persons, Plus, Envelope, ShieldCheck } from "@gravity-ui/icons";
 // TODO: descomentar cuando el backend implemente los endpoints
 // import MemberDirectory from "./MemberDirectory";

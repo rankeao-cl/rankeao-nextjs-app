@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { toast } from "@heroui/react";
+import Image from "next/image";
+import { toast } from "@heroui/react/toast";
+
 import { Comment, Pencil, Xmark, ChevronLeft, PaperPlane, ArrowUpRightFromSquare } from "@gravity-ui/icons";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -259,14 +261,14 @@ export default function CreatePostFAB() {
 
     // ── Shared avatar helper ──
     const renderAvatar = (url: string | undefined, initials: string, size: number) => (
-        <div style={{
-            width: size, height: size, borderRadius: size / 2,
-            backgroundColor: "var(--surface-solid)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "var(--foreground)", fontSize: size * 0.3, fontWeight: 700,
-            overflow: "hidden", flexShrink: 0,
-        }}>
-            {url ? <img src={url} alt="" style={{ width: size, height: size, objectFit: "cover" }} /> : initials}
+        <div
+            className="bg-surface-solid flex items-center justify-center text-foreground font-bold overflow-hidden shrink-0"
+            style={{
+                width: size, height: size, borderRadius: size / 2,
+                fontSize: size * 0.3,
+            }}
+        >
+            {url ? <Image src={url} alt="" width={size} height={size} className="object-cover" /> : initials}
         </div>
     );
 
@@ -275,13 +277,9 @@ export default function CreatePostFAB() {
             {/* Instagram-style pill FAB */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed right-5 lg:bottom-5 z-50 hidden lg:flex"
+                className="fixed right-5 lg:bottom-5 z-50 hidden lg:flex items-center gap-3 h-[52px] rounded-full bg-surface-solid border border-border cursor-pointer px-6"
                 style={{
-                    height: 52, borderRadius: 999,
-                    backgroundColor: "var(--surface-solid)", border: "1px solid var(--border)",
                     boxShadow: "var(--shadow-popover)",
-                    cursor: "pointer", alignItems: "center", gap: 12,
-                    padding: "0 24px",
                     transition: "transform 0.15s, box-shadow 0.15s, bottom 0.2s",
                 }}
                 aria-label="Mensajes"
@@ -289,42 +287,27 @@ export default function CreatePostFAB() {
                 onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             >
                 {/* Icon with badge */}
-                <div style={{ position: "relative", flexShrink: 0 }}>
-                    <PaperPlane style={{ width: 22, height: 22, color: "var(--foreground)" }} />
+                <div className="relative shrink-0">
+                    <PaperPlane className="w-[22px] h-[22px] text-foreground" />
                     {totalUnread > 0 && (
-                        <span style={{
-                            position: "absolute", top: -6, right: -10,
-                            minWidth: 18, height: 18, borderRadius: 9,
-                            backgroundColor: "#EF4444", color: "#FFFFFF",
-                            fontSize: 10, fontWeight: 700,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            padding: "0 4px", border: "2px solid var(--surface-solid)",
-                        }}>
+                        <span className="absolute -top-1.5 -right-[10px] min-w-[18px] h-[18px] rounded-[9px] bg-[#EF4444] text-white text-[10px] font-bold flex items-center justify-center px-1 border-2 border-surface-solid">
                             {totalUnread > 99 ? "99+" : totalUnread}
                         </span>
                     )}
                 </div>
 
                 {/* Label */}
-                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)", whiteSpace: "nowrap" }}>
+                <span className="text-[15px] font-bold text-foreground whitespace-nowrap">
                     Mensajes
                 </span>
 
                 {/* Recent avatars */}
                 {recentAvatars.length > 0 && (
-                    <div style={{ display: "flex", marginLeft: 4 }}>
+                    <div className="flex ml-1">
                         {recentAvatars.map((a, i) => (
-                            <div key={i} style={{
-                                width: 30, height: 30, borderRadius: 15,
-                                backgroundColor: "var(--background)",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                overflow: "hidden", flexShrink: 0,
-                                marginLeft: i > 0 ? -8 : 0,
-                                border: "2px solid var(--surface-solid)",
-                                fontSize: 10, fontWeight: 700, color: "var(--muted)",
-                            }}>
+                            <div key={i} className="w-[30px] h-[30px] rounded-full bg-background flex items-center justify-center overflow-hidden shrink-0 border-2 border-surface-solid text-[10px] font-bold text-muted" style={{ marginLeft: i > 0 ? -8 : 0 }}>
                                 {a.url
-                                    ? <img src={a.url} alt="" style={{ width: 30, height: 30, objectFit: "cover" }} />
+                                    ? <Image src={a.url} alt="" width={30} height={30} className="object-cover" />
                                     : a.initials
                                 }
                             </div>
@@ -337,14 +320,12 @@ export default function CreatePostFAB() {
             {isOpen && (
                 <div
                     ref={panelRef}
-                    className="fixed right-5 lg:bottom-[4.5rem] z-[49] hidden lg:flex"
+                    className="fixed right-5 lg:bottom-[4.5rem] z-[49] hidden lg:flex flex-col rounded-2xl border border-border overflow-hidden"
                     style={{
                         width: "calc(100vw - 32px)", maxWidth: 360,
                         height: "65vh",
                         backgroundColor: "var(--background)",
-                        borderRadius: 16, border: "1px solid var(--border)",
                         boxShadow: "var(--shadow-popover)",
-                        flexDirection: "column", overflow: "hidden",
                         animation: "chatPanelIn 0.2s ease-out",
                     }}
                 >
@@ -357,71 +338,46 @@ export default function CreatePostFAB() {
                     {/* ═══════ LIST VIEW ═══════ */}
                     {view === "list" && (
                         <>
-                            <div style={{
-                                display: "flex", alignItems: "center", justifyContent: "space-between",
-                                padding: "14px 16px", borderBottom: "1px solid var(--border)",
-                            }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ fontSize: 17, fontWeight: 800, color: "var(--foreground)" }}>Mensajes</span>
+                            <div className="flex items-center justify-between px-4 py-[14px] border-b border-border">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[17px] font-extrabold text-foreground">Mensajes</span>
                                     {totalUnread > 0 && (
-                                        <span style={{
-                                            minWidth: 20, height: 20, borderRadius: 10,
-                                            backgroundColor: "#EF4444", color: "#FFF",
-                                            fontSize: 11, fontWeight: 700,
-                                            display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px",
-                                        }}>
+                                        <span className="min-w-[20px] h-5 rounded-[10px] bg-[#EF4444] text-white text-[11px] font-bold flex items-center justify-center px-[5px]">
                                             {totalUnread > 99 ? "99+" : totalUnread}
                                         </span>
                                     )}
-                                    <button onClick={() => setView("newchat")} style={{
-                                        width: 32, height: 32, borderRadius: 16,
-                                        backgroundColor: "var(--surface-solid)", border: "none",
-                                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                                    }} aria-label="Nuevo mensaje">
-                                        <Pencil style={{ width: 15, height: 15, color: "var(--foreground)" }} />
+                                    <button onClick={() => setView("newchat")} className="w-8 h-8 rounded-full bg-surface-solid border-none cursor-pointer flex items-center justify-center" aria-label="Nuevo mensaje">
+                                        <Pencil className="w-[15px] h-[15px] text-foreground" />
                                     </button>
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                    <Link href="/chat" onClick={() => setIsOpen(false)} style={{
-                                        width: 32, height: 32, borderRadius: 16,
-                                        backgroundColor: "var(--surface-solid)", border: "none",
-                                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                                        textDecoration: "none",
-                                    }} aria-label="Abrir chat completo">
-                                        <ArrowUpRightFromSquare style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+                                <div className="flex items-center gap-1">
+                                    <Link href="/chat" onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full bg-surface-solid border-none cursor-pointer flex items-center justify-center no-underline" aria-label="Abrir chat completo">
+                                        <ArrowUpRightFromSquare className="w-3.5 h-3.5 text-foreground" />
                                     </Link>
-                                    <button onClick={() => setIsOpen(false)} style={{
-                                        width: 32, height: 32, borderRadius: 16,
-                                        backgroundColor: "var(--surface-solid)", border: "none",
-                                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                                    }} aria-label="Cerrar">
-                                        <Xmark style={{ width: 15, height: 15, color: "var(--foreground)" }} />
+                                    <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full bg-surface-solid border-none cursor-pointer flex items-center justify-center" aria-label="Cerrar">
+                                        <Xmark className="w-[15px] h-[15px] text-foreground" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+                            <div className="flex-1 overflow-y-auto min-h-0">
                                 {loading ? (
-                                    <div style={{ padding: 16 }}>
+                                    <div className="p-4">
                                         {[0,1,2,3].map(i => (
-                                            <div key={i} style={{ display: "flex", gap: 10, padding: "10px 0", alignItems: "center" }}>
-                                                <div style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "var(--surface-solid)", flexShrink: 0, animation: "pulse 1.5s ease-in-out infinite" }} />
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ height: 12, width: "65%", borderRadius: 6, backgroundColor: "var(--surface-solid)", marginBottom: 6, animation: "pulse 1.5s ease-in-out infinite" }} />
-                                                    <div style={{ height: 10, width: "40%", borderRadius: 5, backgroundColor: "var(--surface-solid)", animation: "pulse 1.5s ease-in-out infinite" }} />
+                                            <div key={i} className="flex gap-[10px] py-[10px] items-center">
+                                                <div className="w-[44px] h-[44px] rounded-[22px] bg-surface-solid shrink-0" style={{ animation: "pulse 1.5s ease-in-out infinite" }} />
+                                                <div className="flex-1">
+                                                    <div className="h-3 w-[65%] rounded-[6px] bg-surface-solid mb-1.5" style={{ animation: "pulse 1.5s ease-in-out infinite" }} />
+                                                    <div className="h-[10px] w-[40%] rounded-[5px] bg-surface-solid" style={{ animation: "pulse 1.5s ease-in-out infinite" }} />
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : channels.length === 0 ? (
-                                    <div style={{ padding: "40px 16px", textAlign: "center" }}>
-                                        <Comment style={{ width: 28, height: 28, color: "var(--muted)", opacity: 0.4, marginBottom: 8 }} />
-                                        <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>No tienes conversaciones</p>
-                                        <button onClick={() => setView("newchat")} style={{
-                                            marginTop: 12, backgroundColor: "var(--accent)", color: "#FFF",
-                                            border: "none", borderRadius: 999, padding: "8px 16px",
-                                            fontSize: 13, fontWeight: 600, cursor: "pointer",
-                                        }}>
+                                    <div className="px-4 py-10 text-center">
+                                        <Comment className="w-7 h-7 text-muted opacity-40 mb-2" />
+                                        <p className="text-[13px] text-muted m-0">No tienes conversaciones</p>
+                                        <button onClick={() => setView("newchat")} className="mt-3 bg-accent text-white border-none rounded-full px-4 py-2 text-[13px] font-semibold cursor-pointer">
                                             Iniciar chat
                                         </button>
                                     </div>
@@ -433,20 +389,13 @@ export default function CreatePostFAB() {
                                             <button
                                                 key={channel.id}
                                                 onClick={() => handleOpenChat(channel)}
-                                                style={{
-                                                    width: "100%", display: "flex", alignItems: "center", gap: 10,
-                                                    padding: "10px 16px", background: "transparent", border: "none",
-                                                    cursor: "pointer", textAlign: "left", transition: "background 0.15s",
-                                                }}
+                                                className="w-full flex items-center gap-[10px] px-4 py-[10px] bg-transparent border-none cursor-pointer text-left transition-colors duration-150"
                                                 onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-solid)"; }}
                                                 onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                                             >
-                                                <div style={{ position: "relative", flexShrink: 0, width: 44, height: 44 }}>
+                                                <div className="relative shrink-0 w-[44px] h-[44px]">
                                                     {info.isGroup ? (
-                                                        <div style={{
-                                                            width: 44, height: 44, borderRadius: 22, backgroundColor: "var(--surface-solid)",
-                                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                                        }}>
+                                                        <div className="w-[44px] h-[44px] rounded-[22px] bg-surface-solid flex items-center justify-center">
                                                             <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                                                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
                                                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
@@ -454,36 +403,28 @@ export default function CreatePostFAB() {
                                                         </div>
                                                     ) : renderAvatar(info.avatarUrl, info.initials, 44)}
                                                     {channel.type === "DM" && (
-                                                        <span style={{
-                                                            position: "absolute", bottom: 0, right: 0,
-                                                            width: 12, height: 12, borderRadius: 6,
-                                                            backgroundColor: info.isOnline ? "var(--success)" : "var(--muted)",
-                                                            border: "2px solid var(--background)",
-                                                        }} />
+                                                        <span
+                                                            className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background"
+                                                            style={{ backgroundColor: info.isOnline ? "var(--success)" : "var(--muted)" }}
+                                                        />
                                                     )}
                                                 </div>
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-                                                        <span style={{
-                                                            fontSize: 14, fontWeight: hasUnread ? 700 : 500, color: "var(--foreground)",
-                                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                                        }}>{info.displayName}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-1.5">
+                                                        <span className="text-sm text-foreground truncate" style={{ fontWeight: hasUnread ? 700 : 500 }}>{info.displayName}</span>
                                                         {channel.last_message?.created_at && (
-                                                            <span style={{
-                                                                fontSize: 11, flexShrink: 0,
+                                                            <span className="text-[11px] shrink-0" style={{
                                                                 color: hasUnread ? "var(--accent)" : "var(--muted)",
                                                                 fontWeight: hasUnread ? 600 : 400,
                                                             }}>{timeAgo(channel.last_message.created_at, { fallbackDays: 7 })}</span>
                                                         )}
                                                     </div>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                        <span style={{
-                                                            fontSize: 12,
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-xs truncate flex-1" style={{
                                                             color: hasUnread ? "var(--foreground)" : "var(--muted)",
                                                             fontWeight: hasUnread ? 500 : 400,
-                                                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1,
                                                         }}>{info.lastMsg}</span>
-                                                        {hasUnread && <span style={{ minWidth: 8, height: 8, borderRadius: 4, backgroundColor: "var(--accent)", flexShrink: 0 }} />}
+                                                        {hasUnread && <span className="min-w-[8px] h-2 rounded-full bg-accent shrink-0" />}
                                                     </div>
                                                 </div>
                                             </button>
@@ -497,72 +438,52 @@ export default function CreatePostFAB() {
                     {/* ═══════ CHAT VIEW ═══════ */}
                     {view === "chat" && activeChannel && (
                         <>
-                            <div style={{
-                                display: "flex", alignItems: "center", gap: 10,
-                                padding: "10px 12px", borderBottom: "1px solid var(--border)",
-                            }}>
-                                <button onClick={() => { setView("list"); setActiveChannel(null); setMessages([]); }} style={{
-                                    width: 32, height: 32, borderRadius: 16,
-                                    background: "none", border: "none", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                                }} aria-label="Volver">
-                                    <ChevronLeft style={{ width: 20, height: 20, color: "var(--foreground)" }} />
+                            <div className="flex items-center gap-[10px] px-3 py-[10px] border-b border-border">
+                                <button onClick={() => { setView("list"); setActiveChannel(null); setMessages([]); }} className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer flex items-center justify-center shrink-0" aria-label="Volver">
+                                    <ChevronLeft className="w-5 h-5 text-foreground" />
                                 </button>
                                 {renderAvatar(activeInfo?.avatarUrl, activeInfo?.initials || "CH", 32)}
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{
-                                        fontSize: 14, fontWeight: 700, color: "var(--foreground)",
-                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                    }}>{activeInfo?.displayName}</div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-bold text-foreground truncate">{activeInfo?.displayName}</div>
                                     {activeInfo?.isOnline && (
-                                        <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 500 }}>Activo/a ahora</div>
+                                        <div className="text-[11px] text-success font-medium">Activo/a ahora</div>
                                     )}
                                 </div>
-                                <button onClick={() => setIsOpen(false)} style={{
-                                    width: 32, height: 32, borderRadius: 16,
-                                    background: "none", border: "none", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                                }} aria-label="Cerrar">
-                                    <Xmark style={{ width: 16, height: 16, color: "var(--muted)" }} />
+                                <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer flex items-center justify-center shrink-0" aria-label="Cerrar">
+                                    <Xmark className="w-4 h-4 text-muted" />
                                 </button>
                             </div>
 
-                            <div style={{ flex: 1, overflowY: "auto", minHeight: 0, padding: "12px 12px 4px" }}>
+                            <div className="flex-1 overflow-y-auto min-h-0 px-3 pt-3 pb-1">
                                 {loadingMessages ? (
-                                    <div style={{ display: "flex", justifyContent: "center", padding: 20 }}>
-                                        <div style={{
-                                            width: 24, height: 24, borderRadius: 12,
-                                            border: "2px solid var(--border)", borderTopColor: "var(--accent)",
-                                            animation: "spin 0.6s linear infinite",
-                                        }} />
+                                    <div className="flex justify-center p-5">
+                                        <div className="w-6 h-6 rounded-full border-2 border-border" style={{ borderTopColor: "var(--accent)", animation: "spin 0.6s linear infinite" }} />
                                     </div>
                                 ) : messages.length === 0 ? (
-                                    <div style={{ textAlign: "center", padding: "24px 0" }}>
-                                        <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>Envía el primer mensaje</p>
+                                    <div className="text-center py-6">
+                                        <p className="text-[13px] text-muted m-0">Envía el primer mensaje</p>
                                     </div>
                                 ) : (
                                     messages.map((msg) => {
                                         const isMine = msg.sender_username === myUsername || msg.sender?.username === myUsername;
                                         return (
-                                            <div key={msg.id} style={{ display: "flex", justifyContent: isMine ? "flex-end" : "flex-start", marginBottom: 6 }}>
-                                                <div style={{
-                                                    maxWidth: "80%", padding: "8px 12px", borderRadius: 16,
-                                                    borderBottomRightRadius: isMine ? 4 : 16,
-                                                    borderBottomLeftRadius: isMine ? 16 : 4,
-                                                    backgroundColor: isMine ? "var(--accent)" : "var(--surface-solid)",
-                                                    color: isMine ? "#FFFFFF" : "var(--foreground)",
-                                                }}>
+                                            <div key={msg.id} className="flex mb-1.5" style={{ justifyContent: isMine ? "flex-end" : "flex-start" }}>
+                                                <div
+                                                    className="max-w-[80%] px-3 py-2 rounded-2xl"
+                                                    style={{
+                                                        borderBottomRightRadius: isMine ? 4 : 16,
+                                                        borderBottomLeftRadius: isMine ? 16 : 4,
+                                                        backgroundColor: isMine ? "var(--accent)" : "var(--surface-solid)",
+                                                        color: isMine ? "#FFFFFF" : "var(--foreground)",
+                                                    }}
+                                                >
                                                     {msg.image_url && (
-                                                        <img src={msg.image_url} alt="" style={{
-                                                            maxWidth: "100%", borderRadius: 10,
-                                                            marginBottom: msg.content ? 6 : 0, display: "block",
-                                                        }} />
+                                                        <Image src={msg.image_url} alt="" width={260} height={180} className="object-cover block rounded-[10px] max-w-full" style={{ marginBottom: msg.content ? 6 : 0 }} />
                                                     )}
                                                     {msg.content && (
-                                                        <span style={{ fontSize: 13, lineHeight: "18px", wordBreak: "break-word" }}>{msg.content}</span>
+                                                        <span className="text-[13px] leading-[18px] break-words">{msg.content}</span>
                                                     )}
-                                                    <div style={{
-                                                        fontSize: 10, marginTop: 2, textAlign: "right",
+                                                    <div className="text-[10px] mt-0.5 text-right" style={{
                                                         color: isMine ? "rgba(255,255,255,0.6)" : "var(--muted)",
                                                     }}>{timeAgo(msg.created_at, { fallbackDays: 7 })}</div>
                                                 </div>
@@ -573,29 +494,19 @@ export default function CreatePostFAB() {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            <div style={{ padding: "8px 12px 12px", borderTop: "1px solid var(--border)" }}>
-                                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} style={{
-                                    display: "flex", alignItems: "center", gap: 8,
-                                    backgroundColor: "var(--surface-solid)", borderRadius: 999,
-                                    padding: "6px 6px 6px 14px", border: "1px solid var(--border)",
-                                }}>
+                            <div className="px-3 pb-3 pt-2 border-t border-border">
+                                <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2 bg-surface-solid rounded-full border border-border" style={{ padding: "6px 6px 6px 14px" }}>
                                     <input
                                         ref={inputRef}
                                         value={messageInput}
                                         onChange={(e) => setMessageInput(e.target.value)}
                                         placeholder="Envía un mensaje..."
                                         autoComplete="off"
-                                        style={{
-                                            flex: 1, background: "transparent", border: "none",
-                                            fontSize: 13, color: "var(--foreground)", outline: "none", minWidth: 0,
-                                        }}
+                                        className="flex-1 bg-transparent border-none text-[13px] text-foreground outline-none min-w-0"
                                     />
-                                    <button type="submit" disabled={!messageInput.trim() || sending} style={{
-                                        width: 32, height: 32, borderRadius: 16,
+                                    <button type="submit" disabled={!messageInput.trim() || sending} className="w-8 h-8 rounded-full border-none flex items-center justify-center shrink-0 transition-colors duration-150" style={{
                                         backgroundColor: messageInput.trim() ? "var(--accent)" : "transparent",
-                                        border: "none", cursor: messageInput.trim() ? "pointer" : "default",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        flexShrink: 0, transition: "background 0.15s",
+                                        cursor: messageInput.trim() ? "pointer" : "default",
                                     }}>
                                         <PaperPlane style={{ width: 15, height: 15, color: messageInput.trim() ? "#FFF" : "var(--muted)" }} />
                                     </button>
@@ -608,49 +519,26 @@ export default function CreatePostFAB() {
                     {view === "newchat" && (
                         <>
                             {/* Header */}
-                            <div style={{
-                                display: "flex", alignItems: "center", justifyContent: "space-between",
-                                padding: "14px 12px", borderBottom: "1px solid var(--border)",
-                            }}>
-                                <button onClick={() => { setView("list"); setNewChatSearch(""); setNewChatSuggestions([]); setNewChatSelected(null); }} style={{
-                                    width: 32, height: 32, borderRadius: 16,
-                                    background: "none", border: "none", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                }} aria-label="Volver">
-                                    <ChevronLeft style={{ width: 20, height: 20, color: "var(--foreground)" }} />
+                            <div className="flex items-center justify-between px-3 py-[14px] border-b border-border">
+                                <button onClick={() => { setView("list"); setNewChatSearch(""); setNewChatSuggestions([]); setNewChatSelected(null); }} className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer flex items-center justify-center" aria-label="Volver">
+                                    <ChevronLeft className="w-5 h-5 text-foreground" />
                                 </button>
-                                <span style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)" }}>
+                                <span className="text-base font-bold text-foreground">
                                     Nuevo mensaje
                                 </span>
-                                <button onClick={() => setIsOpen(false)} style={{
-                                    width: 32, height: 32, borderRadius: 16,
-                                    background: "none", border: "none", cursor: "pointer",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                }} aria-label="Cerrar">
-                                    <Xmark style={{ width: 18, height: 18, color: "var(--foreground)" }} />
+                                <button onClick={() => setIsOpen(false)} className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer flex items-center justify-center" aria-label="Cerrar">
+                                    <Xmark className="w-[18px] h-[18px] text-foreground" />
                                 </button>
                             </div>
 
                             {/* "Para:" search */}
-                            <div style={{
-                                display: "flex", alignItems: "center", gap: 8,
-                                padding: "12px 16px", borderBottom: "1px solid var(--border)",
-                            }}>
-                                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", flexShrink: 0 }}>Para:</span>
+                            <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+                                <span className="text-sm font-semibold text-foreground shrink-0">Para:</span>
                                 {newChatSelected && (
-                                    <span style={{
-                                        display: "inline-flex", alignItems: "center", gap: 4,
-                                        paddingLeft: 8, paddingRight: 4, paddingTop: 3, paddingBottom: 3,
-                                        borderRadius: 999, background: "rgba(59,130,246,0.15)",
-                                        fontSize: 13, fontWeight: 600, color: "var(--accent)", flexShrink: 0,
-                                    }}>
+                                    <span className="inline-flex items-center gap-1 pl-2 pr-1 py-[3px] rounded-full text-[13px] font-semibold text-accent shrink-0" style={{ background: "rgba(59,130,246,0.15)" }}>
                                         {newChatSelected.username}
-                                        <button onClick={() => setNewChatSelected(null)} style={{
-                                            width: 16, height: 16, borderRadius: 999, border: "none",
-                                            background: "rgba(59,130,246,0.25)", cursor: "pointer",
-                                            display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
-                                        }}>
-                                            <Xmark style={{ width: 9, height: 9, color: "var(--accent)" }} />
+                                        <button onClick={() => setNewChatSelected(null)} className="w-4 h-4 rounded-full border-none cursor-pointer flex items-center justify-center p-0" style={{ background: "rgba(59,130,246,0.25)" }}>
+                                            <Xmark className="w-[9px] h-[9px] text-accent" />
                                         </button>
                                     </span>
                                 )}
@@ -660,27 +548,20 @@ export default function CreatePostFAB() {
                                     value={newChatSearch}
                                     onChange={(e) => setNewChatSearch(e.target.value)}
                                     autoComplete="off"
-                                    style={{
-                                        flex: 1, background: "transparent", border: "none",
-                                        fontSize: 14, color: "var(--foreground)", outline: "none", minWidth: 0,
-                                    }}
+                                    className="flex-1 bg-transparent border-none text-sm text-foreground outline-none min-w-0"
                                 />
                                 {newChatLoading && (
-                                    <div style={{
-                                        width: 16, height: 16, borderRadius: 8,
-                                        border: "2px solid var(--border)", borderTopColor: "var(--accent)",
-                                        animation: "spin 0.6s linear infinite", flexShrink: 0,
-                                    }} />
+                                    <div className="w-4 h-4 rounded-full border-2 border-border shrink-0" style={{ borderTopColor: "var(--accent)", animation: "spin 0.6s linear infinite" }} />
                                 )}
                             </div>
 
                             {/* Section header */}
-                            <div style={{ padding: "12px 16px 6px", fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>
+                            <div className="px-4 pt-3 pb-1.5 text-[13px] font-bold text-foreground">
                                 Sugerencias
                             </div>
 
                             {/* User results */}
-                            <div style={{ flex: 1, overflowY: "auto", minHeight: 0, padding: "0 8px" }}>
+                            <div className="flex-1 overflow-y-auto min-h-0 px-2">
                                 {newChatSuggestions.length > 0 ? (
                                     newChatSuggestions.map((user) => {
                                         const isSelected = newChatSelected?.id === user.id;
@@ -692,33 +573,22 @@ export default function CreatePostFAB() {
                                                     setNewChatSearch("");
                                                     setNewChatSuggestions([]);
                                                 }}
-                                                style={{
-                                                    display: "flex", alignItems: "center", gap: 12,
-                                                    padding: "10px 8px", borderRadius: 12, width: "100%",
-                                                    background: "transparent", border: "none",
-                                                    cursor: "pointer", textAlign: "left", transition: "background 0.15s",
-                                                }}
+                                                className="flex items-center gap-3 px-2 py-[10px] rounded-xl w-full bg-transparent border-none cursor-pointer text-left transition-colors duration-150"
                                                 onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-solid)"; }}
                                                 onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                                             >
                                                 {renderAvatar(user.avatar_url, user.username?.slice(0, 2).toUpperCase() || "??", 48)}
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div style={{
-                                                        fontSize: 14, fontWeight: 600, color: "var(--foreground)",
-                                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                                    }}>{user.name || user.username}</div>
-                                                    <div style={{
-                                                        fontSize: 13, color: "var(--muted)",
-                                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                                    }}>{user.username}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-semibold text-foreground truncate">{user.name || user.username}</div>
+                                                    <div className="text-[13px] text-muted truncate">{user.username}</div>
                                                 </div>
-                                                <div style={{
-                                                    width: 24, height: 24, borderRadius: 12, flexShrink: 0,
-                                                    border: isSelected ? "none" : "2px solid var(--muted)",
-                                                    background: isSelected ? "var(--accent)" : "transparent",
-                                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                                    transition: "all 0.15s",
-                                                }}>
+                                                <div
+                                                    className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center transition-all duration-150"
+                                                    style={{
+                                                        border: isSelected ? "none" : "2px solid var(--muted)",
+                                                        background: isSelected ? "var(--accent)" : "transparent",
+                                                    }}
+                                                >
                                                     {isSelected && (
                                                         <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
                                                             <polyline points="20 6 9 17 4 12" />
@@ -729,8 +599,8 @@ export default function CreatePostFAB() {
                                         );
                                     })
                                 ) : (
-                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 0" }}>
-                                        <div style={{ fontSize: 13, color: "var(--muted)" }}>
+                                    <div className="flex flex-col items-center justify-center py-8">
+                                        <div className="text-[13px] text-muted">
                                             {newChatSearch.length < 2 ? "Escribe para buscar usuarios..." : "No se encontraron usuarios"}
                                         </div>
                                     </div>
@@ -738,15 +608,15 @@ export default function CreatePostFAB() {
                             </div>
 
                             {/* Chat button */}
-                            <div style={{ padding: "12px 16px 16px" }}>
+                            <div className="px-4 pt-3 pb-4">
                                 <button
                                     onClick={handleCreateChat}
                                     disabled={!newChatSelected || newChatCreating}
+                                    className="w-full rounded-[10px] border-none text-white text-sm font-bold transition-colors duration-200"
                                     style={{
-                                        width: "100%", padding: "13px 0", borderRadius: 10, border: "none",
+                                        padding: "13px 0",
                                         cursor: !newChatSelected || newChatCreating ? "not-allowed" : "pointer",
                                         background: !newChatSelected || newChatCreating ? "rgba(59,130,246,0.35)" : "var(--accent)",
-                                        color: "#FFFFFF", fontSize: 14, fontWeight: 700, transition: "background 0.2s",
                                     }}
                                 >
                                     {newChatCreating ? "Creando..." : "Chat"}

@@ -7,7 +7,7 @@ import { timeAgo } from "@/lib/utils/format";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { usePostComments, useAddComment, useLikeComment } from "@/lib/hooks/use-social";
 import { getCommentReplies } from "@/lib/api/social";
-import type { PostComment } from "@/lib/api/social";
+import type { PostComment } from "@/lib/types/social";
 
 interface CommentSectionProps {
     postId: string;
@@ -100,6 +100,7 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                             <button
                                 type="button"
                                 onClick={handleCancelReply}
+                                aria-label="Cancelar respuesta"
                                 style={{
                                     background: "none", border: "none", cursor: "pointer",
                                     color: "var(--muted)", fontSize: 14, fontWeight: 600,
@@ -197,6 +198,8 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                     <button
                                         type="button"
                                         onClick={() => toggleLikeComment(c.id, isLiked)}
+                                        aria-label={isLiked ? "Quitar Me gusta" : "Me gusta"}
+                                        aria-pressed={isLiked}
                                         style={{
                                             background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
                                             padding: "4px 0 0", flexShrink: 0, display: "flex", flexDirection: "column",
@@ -297,6 +300,8 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                                     <button
                                                         type="button"
                                                         onClick={() => toggleLikeComment(r.id, rLiked)}
+                                                        aria-label={rLiked ? "Quitar Me gusta" : "Me gusta"}
+                                                        aria-pressed={rLiked}
                                                         style={{
                                                             background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
                                                             padding: "4px 0 0", flexShrink: 0, opacity: isAuth ? 1 : 0.5,

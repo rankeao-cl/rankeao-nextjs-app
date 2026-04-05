@@ -1,4 +1,5 @@
-import { Skeleton } from "@heroui/react";
+import { Skeleton } from "@heroui/react/skeleton";
+
 
 export default function LeaderboardSkeleton({ rows = 10 }: { rows?: number }) {
   return (

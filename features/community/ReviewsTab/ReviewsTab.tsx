@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { timeAgo } from "@/lib/utils/format";
 import { useTenantReviews, useCreateTenantReview } from "@/lib/hooks/use-tenants";
-import { Avatar, Button, Modal } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Button } from "@heroui/react/button";
+import { Modal } from "@heroui/react/modal";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import StarRating from "@/components/ui/StarRating";
 import RatingBar from "@/components/ui/RatingBar";

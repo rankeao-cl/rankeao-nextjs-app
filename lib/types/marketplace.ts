@@ -339,3 +339,71 @@ export interface Payout {
     created_at?: string;
     processed_at?: string;
 }
+
+// ── Payload types ──
+
+export interface CreateReviewPayload {
+    overall_rating: number;
+    condition_accuracy?: number;
+    shipping_speed?: number;
+    communication?: number;
+    packaging?: number;
+    comment?: string;
+}
+
+export interface AddDisputeEvidencePayload {
+    type: string;
+    url: string;
+    description?: string;
+}
+
+export interface RespondToDisputePayload {
+    response: string;
+    evidence_url?: string;
+}
+
+export interface UpdatePriceAlertPayload {
+    target_price?: number;
+    condition?: string;
+    is_active?: boolean;
+}
+
+export interface SetupSellerProfilePayload {
+    store_name: string;
+    bio?: string;
+    city?: string;
+    region?: string;
+    accept_terms?: boolean;
+    accepts_shipping?: boolean;
+    accepts_in_person?: boolean;
+}
+
+export interface UpdateSellerProfilePayload {
+    display_name?: string;
+    bio?: string;
+    city?: string;
+    region?: string;
+    accepts_shipping?: boolean;
+    accepts_in_person?: boolean;
+    avatar_url?: string;
+}
+
+export interface AddBankAccountPayload {
+    bank_name: string;
+    account_type: string;
+    account_number: string;
+    holder_name: string;
+    holder_rut?: string;
+}
+
+export interface UploadMarketplaceFilePayload {
+    url: string;
+    filename?: string;
+    content_type?: string;
+}
+
+export interface CheckoutListingPayload {
+    quantity: number;
+    delivery_method: string;
+    shipping_address?: string;
+}

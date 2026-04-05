@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card } from "@heroui/react";
+import { Card } from "@heroui/react/card";
+
 import { getRankForElo } from "@/lib/rankSystem";
 import type { RatingHistoryPoint } from "@/lib/types/rating";
 import type { RawFormatStat, RawGameStat } from "@/lib/types/gamification";

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { toast } from "@heroui/react";
+import Image from "next/image";
+import { toast } from "@heroui/react/toast";
+
 import { Xmark, ChevronLeft } from "@gravity-ui/icons";
 import { autocompleteUsers } from "@/lib/api/social";
 import { createChannel } from "@/lib/api/chat";
@@ -396,10 +398,12 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
                                         overflow: "hidden",
                                     }}>
                                         {user.avatar_url ? (
-                                            <img
+                                            <Image
                                                 src={user.avatar_url}
                                                 alt={user.username}
-                                                style={{ width: 48, height: 48, objectFit: "cover" }}
+                                                width={48}
+                                                height={48}
+                                                className="object-cover"
                                             />
                                         ) : (
                                             <span style={{ fontSize: 15, fontWeight: 700, color: C.muted }}>

@@ -1,4 +1,7 @@
-import { Card, Chip, Avatar } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import { Cup, Persons, Link as LinkIcon } from "@gravity-ui/icons";
 
 export interface FeedTournamentResult {

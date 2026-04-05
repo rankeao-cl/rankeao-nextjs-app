@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { memo, useState, useEffect } from "react";
 import { timeAgo } from "@/lib/utils/format";
 import { Heart, Comment, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
 import MarkdownRenderer from "@/features/social/MarkdownRenderer";
 import CommentSection from "@/features/social/CommentSection";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useLikePost } from "@/lib/hooks/use-social";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
 
 export interface FeedPost {
     id: string;
@@ -29,7 +29,7 @@ export interface FeedPost {
     created_at: string;
 }
 
-export default function PostCard({ post }: { post: FeedPost }) {
+function PostCard({ post }: { post: FeedPost }) {
     const relativeTime = timeAgo(post.created_at);
 
     const authorUsername = post.author?.username || post.username || "Usuario";
@@ -86,38 +86,17 @@ export default function PostCard({ post }: { post: FeedPost }) {
 
     return (
         <article
-            className="feed-card-hover"
-            style={{
-                background: "var(--surface-solid)",
-                borderRadius: 16,
-                border: "1px solid var(--border)",
-                padding: 14,
-                display: "flex",
-                flexDirection: "column",
-                gap: 12,
-                transition: "box-shadow 0.25s, border-color 0.25s",
-            }}
+            className="feed-card-hover bg-surface-solid rounded-2xl border border-border p-[14px] flex flex-col gap-3 transition-[box-shadow,border-color] duration-[0.25s]"
         >
             {/* Author header */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="flex items-center gap-2.5">
                 {/* Avatar with accent ring */}
-                <Link href={`/perfil/${authorUsername}`} style={{ flexShrink: 0, textDecoration: "none" }}>
-                    <div style={{
-                        width: 40, height: 40, borderRadius: 20,
-                        background: "var(--accent)",
-                        padding: 2,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                        <div style={{
-                            width: 36, height: 36, borderRadius: 18,
-                            backgroundColor: "var(--background)",
-                            overflow: "hidden",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 14, fontWeight: 700, color: "var(--foreground)",
-                        }}>
+                <Link href={`/perfil/${authorUsername}`} className="shrink-0 no-underline">
+                    <div className="w-10 h-10 rounded-full bg-accent p-0.5 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-full bg-background overflow-hidden flex items-center justify-center text-sm font-bold text-foreground">
                             {authorAvatar ? (
                                 <Image src={authorAvatar} alt={authorUsername} width={36} height={36}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                    className="w-full h-full object-cover" />
                             ) : (
                                 authorUsername[0]?.toUpperCase()
                             )}
@@ -125,53 +104,44 @@ export default function PostCard({ post }: { post: FeedPost }) {
                     </div>
                 </Link>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Link href={`/perfil/${authorUsername}`} style={{ textDecoration: "none" }}>
-                            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <Link href={`/perfil/${authorUsername}`} className="no-underline">
+                            <span className="text-sm font-bold text-foreground">
                                 {authorUsername}
                             </span>
                         </Link>
                         {authorRankBadge && (
-                            <span style={{
-                                fontSize: 10, fontWeight: 600, color: "var(--yellow)",
-                                background: "rgba(234,179,8,0.15)",
-                                padding: "2px 6px", borderRadius: 6,
-                            }}>
+                            <span className="text-[10px] font-semibold text-yellow rounded-[6px] px-1.5 py-0.5"
+                                style={{ background: "rgba(234,179,8,0.15)" }}>
                                 {authorRankBadge}
                             </span>
                         )}
                         {post.game && (
-                            <span style={{
-                                fontSize: 10, fontWeight: 600, color: "var(--accent)",
-                                background: "rgba(59,130,246,0.12)",
-                                padding: "2px 6px", borderRadius: 6,
-                            }}>
+                            <span className="text-[10px] font-semibold text-accent rounded-[6px] px-1.5 py-0.5"
+                                style={{ background: "rgba(59,130,246,0.12)" }}>
                                 {post.game}
                             </span>
                         )}
                     </div>
-                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{relativeTime}</span>
+                    <span className="text-[11px] text-muted">{relativeTime}</span>
                 </div>
             </div>
 
             {/* Text content */}
             {postText && (
-                <div style={{ fontSize: 14, lineHeight: "21px" }}>
+                <div className="text-sm leading-[21px]">
                     <MarkdownRenderer content={postText} />
                 </div>
             )}
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <div className="flex flex-wrap gap-1.5">
                     {post.tags.map((tag) => (
                         <span
                             key={tag}
-                            style={{
-                                fontSize: 12, fontWeight: 500,
-                                color: "var(--accent)",
-                            }}
+                            className="text-xs font-medium text-accent"
                         >
                             #{tag}
                         </span>
@@ -182,20 +152,14 @@ export default function PostCard({ post }: { post: FeedPost }) {
             {/* Image gallery */}
             {post.images && post.images.length > 0 && (
                 post.images.length === 1 ? (
-                    <div style={{
-                        position: "relative", height: 380, borderRadius: 12,
-                        overflow: "hidden", background: "var(--background)",
-                    }}>
-                        <Image src={post.images[0]} alt="" fill style={{ objectFit: "cover" }} sizes="(max-width: 768px) 100vw, 50vw" />
+                    <div className="relative h-[380px] rounded-xl overflow-hidden bg-background">
+                        <Image src={post.images[0]} alt={`Imagen publicada por ${post.author?.username || "usuario"}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
                     </div>
                 ) : (
-                    <div style={{
-                        display: "grid", gridTemplateColumns: "1fr 1fr",
-                        gap: 4, borderRadius: 12, overflow: "hidden",
-                    }}>
+                    <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
                         {post.images.slice(0, 4).map((src, i) => (
-                            <div key={i} style={{ position: "relative", aspectRatio: "1 / 1", background: "var(--background)" }}>
-                                <Image src={src} alt="" fill style={{ objectFit: "cover" }} sizes="25vw" />
+                            <div key={i} className="relative aspect-square bg-background">
+                                <Image src={src} alt={`Imagen ${i + 1} publicada por ${post.author?.username || "usuario"}`} fill className="object-cover" sizes="25vw" />
                             </div>
                         ))}
                     </div>
@@ -203,43 +167,33 @@ export default function PostCard({ post }: { post: FeedPost }) {
             )}
 
             {/* Reaction bar */}
-            <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                paddingTop: 8, borderTop: "1px solid var(--border)",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+                <div className="flex items-center gap-1">
                     {/* Like */}
-                    <button type="button" onClick={handleLike} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: "none", border: "none", cursor: isAuth ? "pointer" : "default",
-                        color: liked ? "#EF4444" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                        transition: "transform 0.15s",
-                        transform: liked ? "scale(1.05)" : "scale(1)",
-                        opacity: likeMutation.isPending ? 0.6 : 1,
-                    }}>
+                    <button type="button" onClick={handleLike} aria-label={liked ? `Quitar Me gusta, ${likesCount}` : `Me gusta, ${likesCount}`} aria-pressed={liked}
+                        className={`flex items-center gap-[5px] bg-transparent border-none px-2 py-1 rounded-full text-xs font-semibold transition-transform duration-150 ${isAuth ? "cursor-pointer" : "cursor-default"}`}
+                        style={{
+                            color: liked ? "#EF4444" : "var(--muted)",
+                            transform: liked ? "scale(1.05)" : "scale(1)",
+                            opacity: likeMutation.isPending ? 0.6 : 1,
+                        }}>
                         <Heart style={{ width: 18, height: 18 }} />
                         <span>{likesCount}</span>
                     </button>
 
                     {/* Comment */}
-                    <button type="button" onClick={() => setShowComments((v) => !v)} style={{
-                        display: "flex", alignItems: "center", gap: 5,
-                        background: "none", border: "none", cursor: "pointer",
-                        color: showComments ? "var(--accent)" : "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600,
-                    }}>
+                    <button type="button" onClick={() => setShowComments((v) => !v)} aria-label={`Comentarios, ${post.comments_count ?? 0}`} aria-expanded={showComments}
+                        className="flex items-center gap-[5px] bg-transparent border-none cursor-pointer px-2 py-1 rounded-full text-xs font-semibold"
+                        style={{
+                            color: showComments ? "var(--accent)" : "var(--muted)",
+                        }}>
                         <Comment style={{ width: 18, height: 18 }} />
                         <span>{post.comments_count ?? 0}</span>
                     </button>
 
                     {/* Share */}
-                    <button type="button" onClick={handleShare} style={{
-                        display: "flex", alignItems: "center",
-                        background: "none", border: "none", cursor: "pointer",
-                        color: "var(--muted)",
-                        padding: "4px 8px", borderRadius: 999,
-                    }}>
+                    <button type="button" onClick={handleShare} aria-label="Compartir"
+                        className="flex items-center bg-transparent border-none cursor-pointer px-2 py-1 rounded-full text-muted">
                         <ArrowShapeTurnUpRight style={{ width: 18, height: 18 }} />
                     </button>
                 </div>
@@ -250,3 +204,5 @@ export default function PostCard({ post }: { post: FeedPost }) {
         </article>
     );
 }
+
+export default memo(PostCard);

@@ -1,18 +1,21 @@
-import { toast } from "@heroui/react";
 import type { FetchOptions } from "@/lib/types/api";
 import { ApiError, mapErrorMessage, parseErrorResponse } from "./errors";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 // ── Configuration ──
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
 
 // ── Helpers ──
 
+async function showToast(title: string, description: string) {
+    if (typeof window === "undefined") return;
+    const { toast } = await import("@heroui/react");
+    toast.danger(title, { description });
+}
+
 export function showErrorToast(err: unknown) {
-    if (typeof window !== "undefined") {
-        toast.danger("Error", { description: mapErrorMessage(err) });
-    }
+    showToast("Error", mapErrorMessage(err));
 }
 
 export function getAuthHeaders(): Record<string, string> {
@@ -46,13 +49,15 @@ function buildMutationHeaders(token?: string): Record<string, string> {
 }
 
 // ── 401 handler: refresh token or redirect to login ──
+// Uses a shared promise so concurrent 401s wait for the same refresh
+// instead of racing and triggering premature logouts.
 
-let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
 
 function forceLogout() {
     if (typeof window === "undefined") return;
     useAuthStore.getState().logout();
-    toast.danger("Error", { description: "Tu sesion ha expirado. Inicia sesion nuevamente." });
+    showToast("Error", "Tu sesion ha expirado. Inicia sesion nuevamente.");
     window.location.href = "/login";
 }
 
@@ -93,18 +98,24 @@ async function tryRefreshToken(): Promise<string | null> {
 }
 
 async function handle401(): Promise<string | null> {
-    if (isRefreshing) return null;
-    isRefreshing = true;
-    try {
-        const newToken = await tryRefreshToken();
-        if (!newToken) {
-            forceLogout();
-            return null;
+    // If a refresh is already in flight, all concurrent callers
+    // share the same promise and wait for its result.
+    if (refreshPromise) return refreshPromise;
+
+    refreshPromise = (async () => {
+        try {
+            const newToken = await tryRefreshToken();
+            if (!newToken) {
+                forceLogout();
+                return null;
+            }
+            return newToken;
+        } finally {
+            refreshPromise = null;
         }
-        return newToken;
-    } finally {
-        isRefreshing = false;
-    }
+    })();
+
+    return refreshPromise;
 }
 
 async function handleError(res: Response, endpoint: string): Promise<never> {
@@ -130,6 +141,14 @@ export async function apiFetch<T>(
     options: FetchOptions = {}
 ): Promise<T> {
     const { revalidate = 60, cache, token } = options;
+
+    // Extract token from params BEFORE adding to URL to prevent token leaking into query string
+    let finalToken = token;
+    if (params && params.token && typeof params.token === "string") {
+        finalToken = params.token as string;
+        delete params.token;
+    }
+
     const url = new URL(`${BASE_URL}${endpoint}`);
 
     if (params) {
@@ -138,12 +157,6 @@ export async function apiFetch<T>(
                 url.searchParams.set(key, String(value));
             }
         });
-    }
-
-    let finalToken = token;
-    if (params && params.token && typeof params.token === "string") {
-        finalToken = params.token as string;
-        delete params.token;
     }
 
     const headers = buildHeaders(finalToken);
@@ -182,9 +195,7 @@ async function mutationWithRetry<T>(
     body: unknown | undefined,
     options?: { token?: string }
 ): Promise<T> {
-    const headers = method === "DELETE"
-        ? buildMutationHeaders(options?.token)
-        : buildMutationHeaders(options?.token);
+    const headers = buildMutationHeaders(options?.token);
 
     const fetchOpts: RequestInit = {
         method,

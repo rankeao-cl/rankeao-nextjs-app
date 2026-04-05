@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getUserFollowing, browseDecks } from "@/lib/api/social";
 import type { UserProfile, Deck } from "@/lib/types/social";
-import DeckFanModal from "@/features/deck/DeckFanModal";
+import dynamic from "next/dynamic";
+const DeckFanModal = dynamic(() => import("@/features/deck/DeckFanModal"), { ssr: false });
 
 type FeedItem =
   | { kind: "user"; date: string; data: UserProfile }
@@ -127,7 +129,7 @@ export default function FeedClient() {
       {/* Scrollable row */}
       <div
         ref={scrollRef}
-        className="feed-stories-scroll"
+        className="feed-stories-scroll no-scrollbar"
         style={{
           display: "flex",
           gap: ITEM_GAP,
@@ -201,7 +203,7 @@ export default function FeedClient() {
                     overflow: "hidden",
                   }}>
                     {user.avatar_url ? (
-                      <img src={user.avatar_url} alt={user.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <Image src={user.avatar_url} alt={user.username} width={74} height={74} className="object-cover" />
                     ) : (
                       <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>
                         {user.username.slice(0, 2).toUpperCase()}
@@ -238,12 +240,12 @@ export default function FeedClient() {
                   padding: 2.5, display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <div style={{
-                    width: "100%", height: "100%", borderRadius: 13,
+                    position: "relative", width: "100%", height: "100%", borderRadius: 13,
                     backgroundColor: "var(--surface-solid)", overflow: "hidden",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     {coverImg ? (
-                      <img src={coverImg} alt={deck.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <Image src={coverImg} alt={deck.name} fill sizes="75px" className="object-cover" />
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: 6, textAlign: "center" }}>
                         <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -270,7 +272,7 @@ export default function FeedClient() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     {deckAvatar ? (
-                      <img src={deckAvatar} alt={deckOwner} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 11 }} />
+                      <Image src={deckAvatar} alt={deckOwner} width={22} height={22} className="object-cover rounded-[11px]" />
                     ) : (
                       <span style={{ fontSize: 9, fontWeight: 800, color: "var(--background)", lineHeight: 1 }}>
                         {deckOwner[0].toUpperCase()}
@@ -295,11 +297,6 @@ export default function FeedClient() {
           </div>
         ))}
       </div>
-
-      <style>{`
-        .feed-stories-scroll::-webkit-scrollbar { display: none; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-      `}</style>
 
       {activeDeckId && (
         <DeckFanModal deckId={activeDeckId} onClose={() => setActiveDeckId(null)} />

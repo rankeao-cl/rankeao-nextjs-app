@@ -7,8 +7,10 @@ import { timeAgo } from "@/lib/utils/format";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useLikeDeck } from "@/lib/hooks/use-social";
 import { Heart, Eye, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
-import { toast } from "@heroui/react";
-import DeckFanModal from "@/features/deck/DeckFanModal";
+import { toast } from "@heroui/react/toast";
+
+import dynamic from "next/dynamic";
+const DeckFanModal = dynamic(() => import("@/features/deck/DeckFanModal"), { ssr: false });
 import type { Deck, DeckCard as DeckCardType } from "@/lib/types/social";
 
 export interface FeedDeck {
@@ -189,13 +191,12 @@ function DeckCardInner({ deck }: DeckCardProps) {
                                 }}
                             >
                                 {card.image_url && (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
+                                    <Image
                                         src={card.image_url}
                                         alt=""
-                                        loading="lazy"
-                                        decoding="async"
-                                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                                        fill
+                                        sizes="64px"
+                                        className="object-cover"
                                     />
                                 )}
                                 {card.quantity > 1 && !isLastWithOverflow && (

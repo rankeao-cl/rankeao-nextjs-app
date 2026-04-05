@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { toast } from "@heroui/react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { createPost } from "@/lib/api/social";
@@ -20,6 +21,7 @@ export default function CreatePostModal() {
     const [tab, setTab] = useState<Tab>("write");
     const [posting, setPosting] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const dialogRef = useRef<HTMLDivElement>(null);
 
     // Reset on close
     useEffect(() => {
@@ -36,6 +38,20 @@ export default function CreatePostModal() {
             requestAnimationFrame(() => textareaRef.current?.focus());
         }
     }, [isOpen, tab]);
+
+    // Focus trap
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === "Escape") { closeCreatePost(); return; }
+        if (e.key !== "Tab" || !dialogRef.current) return;
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }, [closeCreatePost]);
 
     if (!isOpen) return null;
 
@@ -54,8 +70,10 @@ export default function CreatePostModal() {
     };
 
     return (
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
         <div
             onClick={(e) => { if (e.target === e.currentTarget) closeCreatePost(); }}
+            onKeyDown={handleKeyDown}
             style={{
                 position: "fixed",
                 inset: 0,
@@ -69,6 +87,10 @@ export default function CreatePostModal() {
             }}
         >
             <div
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-post-title"
                 style={{
                     width: "100%",
                     maxWidth: 560,
@@ -89,7 +111,7 @@ export default function CreatePostModal() {
                     padding: "14px 16px",
                     borderBottom: "1px solid var(--surface)",
                 }}>
-                    <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Crear Post</h2>
+                    <h2 id="create-post-title" style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Crear Post</h2>
                     <button
                         onClick={closeCreatePost}
                         style={{

@@ -3,7 +3,10 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { Envelope, CircleCheck, ArrowLeft } from "@gravity-ui/icons";
-import { Button, Form, Input } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Form } from "@heroui/react/form";
+import { Input } from "@heroui/react/input";
+
 import { forgotPassword } from "@/lib/api/auth";
 import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
 import { useTheme } from "next-themes";

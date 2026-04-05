@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, Chip } from "@heroui/react";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import { Clock } from "@gravity-ui/icons";
 import Link from "next/link";
 import type { UserTournamentHistoryEntry } from "@/lib/types/rating";

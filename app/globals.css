@@ -119,7 +119,7 @@
   --default-foreground: #F2F2F2;
   --field-background: rgba(255, 255, 255, 0.06);
   --field-foreground: #F0F0F0;
-  --field-placeholder: #555560;
+  --field-placeholder: #78787f;
   --focus: #3B82F6;
   --overlay: rgba(255, 255, 255, 0.08);
   --overlay-foreground: #F2F2F2;
@@ -533,7 +533,23 @@ button[data-variant="primary"]:active,
   transform: scale(0.95);
   transition: transform 0.15s ease-out;
 }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 @keyframes deck-skeleton-pulse {
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 0.75; }
+}
+
+/* ── Reduced motion override ── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

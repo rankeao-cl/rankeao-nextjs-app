@@ -4,7 +4,10 @@ import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Person, Envelope, Lock, Eye, EyeSlash } from "@gravity-ui/icons";
-import { Button, Form, Input } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Form } from "@heroui/react/form";
+import { Input } from "@heroui/react/input";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
 import { useTheme } from "next-themes";
@@ -69,6 +72,7 @@ export default function RegisterForm() {
             <div className="relative w-full">
               <Person className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
               <Input
+                aria-label="Nombre de usuario"
                 placeholder="Nombre de usuario"
                 className="w-full h-12 pl-10"
                 value={username}
@@ -80,6 +84,7 @@ export default function RegisterForm() {
             <div className="relative w-full">
               <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
               <Input
+                aria-label="Correo electronico"
                 placeholder="correo@rankeao.cl"
                 type="email"
                 className="w-full h-12 pl-10"
@@ -92,6 +97,7 @@ export default function RegisterForm() {
             <div className="relative w-full">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
               <Input
+                aria-label="Contrasena"
                 placeholder="Contraseña"
                 type={showPassword ? "text" : "password"}
                 className="w-full h-12 pl-10 pr-10"
@@ -101,6 +107,7 @@ export default function RegisterForm() {
               />
               <button
                 type="button"
+                aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors z-10 cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)}
               >
@@ -111,6 +118,7 @@ export default function RegisterForm() {
             <div className="relative w-full">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[var(--muted)] pointer-events-none z-10" />
               <Input
+                aria-label="Confirmar contrasena"
                 placeholder="Confirmar contraseña"
                 type={showPassword ? "text" : "password"}
                 className="w-full h-12 pl-10"
@@ -121,7 +129,7 @@ export default function RegisterForm() {
             </div>
 
             {error && (
-              <div className="w-full px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
+              <div role="alert" className="w-full px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
                 <p className="text-sm text-red-500">{error}</p>
               </div>
             )}

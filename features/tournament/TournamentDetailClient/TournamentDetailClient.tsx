@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Card, Chip, Button, Tabs, toast } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+import { Tabs } from "@heroui/react/tabs";
+import { toast } from "@heroui/react/toast";
+
 import Image from "next/image";
 import { Clock, MapPin, Persons, Cup, Person, ShieldCheck } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";

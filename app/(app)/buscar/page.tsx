@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/react/spinner";
+
 import { Magnifier, Person, Cup, Persons, ShoppingCart, Shield, SquareDashed } from "@gravity-ui/icons";
 import Link from "next/link";
 import Image from "next/image";

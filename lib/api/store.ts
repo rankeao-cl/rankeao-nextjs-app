@@ -1,5 +1,5 @@
 import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
-import type { ProductsResponse, Product, Cart, StoreOrder, StoreCheckoutRequest, ProductCategory } from "@/lib/types/store";
+import type { ProductsResponse, Product, Cart, StoreOrder, StoreCheckoutRequest, ProductCategory, StoreReviewPayload, StorePayCheckoutPayload } from "@/lib/types/store";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 
 // ── Products ──
@@ -85,7 +85,7 @@ export async function confirmOrderDelivery(orderId: string) {
     return apiPost<ApiResponse<ApiMessage>>(`/store/orders/${encodeURIComponent(orderId)}/confirm-delivery`, {});
 }
 
-export async function reviewOrder(orderId: string, payload: Record<string, unknown>) {
+export async function reviewOrder(orderId: string, payload: StoreReviewPayload) {
     return apiPost<ApiResponse<ApiMessage>>(`/store/orders/${encodeURIComponent(orderId)}/review`, payload);
 }
 
@@ -94,6 +94,6 @@ export async function reviewOrder(orderId: string, payload: Record<string, unkno
  * Store checkout is handled by POST /store/{tenant_slug}/checkout which creates the order directly.
  * This may be an internal/undocumented endpoint.
  */
-export async function payCheckout(checkoutId: string, payload: Record<string, unknown>) {
+export async function payCheckout(checkoutId: string, payload: StorePayCheckoutPayload) {
     return apiPost<ApiResponse<ApiMessage>>(`/store/checkouts/${encodeURIComponent(checkoutId)}/pay`, payload);
 }

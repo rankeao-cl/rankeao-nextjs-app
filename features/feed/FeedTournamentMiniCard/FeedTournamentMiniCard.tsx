@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Persons } from "@gravity-ui/icons";
 import type { Tournament } from "@/lib/types/tournament";
 import { getGameBrand, getGameBannerStyle } from "@/lib/gameLogos";
@@ -45,9 +46,9 @@ export default function FeedTournamentMiniCard({ tournament: t, style }: { tourn
       }}>
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: gameBrand.color, opacity: 0.7 }} />
         {gameBrand.logo && (
-          <img src={gameBrand.logo} alt="" style={{
+          <Image src={gameBrand.logo} alt="" width={22} height={22} style={{
             position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-            height: 22, opacity: 0.18, filter: "brightness(2)",
+            height: 22, width: "auto", opacity: 0.18, filter: "brightness(2)",
           }} />
         )}
         <span style={{

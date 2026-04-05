@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Chip } from "@heroui/react";
+import { Chip } from "@heroui/react/chip";
+
 import { ArrowChevronLeft, ArrowChevronRight, Clock, MapPin, Persons } from "@gravity-ui/icons";
 import Link from "next/link";
 import type { Tournament } from "@/lib/types/tournament";

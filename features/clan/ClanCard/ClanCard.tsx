@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { getClan } from "@/lib/api/clans";
 import type { Clan } from "@/lib/types/clan";
@@ -25,48 +26,49 @@ export default function ClanCard({ clan }: { clan: Clan }) {
     const hasRating = clanRating != null && clanRating > 0;
 
     return (
-        <Link href={`/clanes/${clan.slug || clan.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
-            <div style={{
-                backgroundColor: "var(--surface-solid)",
-                borderRadius: 20,
-                border: "1px solid var(--border)",
-                overflow: "hidden",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-            }}>
+        <Link href={`/clanes/${clan.slug || clan.id}`} className="no-underline block h-full">
+            <div className="bg-surface-solid rounded-[20px] border border-border overflow-hidden h-full flex flex-col">
                 {/* Banner — large, immersive */}
-                <div style={{ height: 110, position: "relative", overflow: "hidden" }}>
+                <div className="h-[110px] relative overflow-hidden">
                     {bannerUrl ? (
-                        <img src={bannerUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                        <Image src={bannerUrl} alt="" fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" />
                     ) : logoUrl ? (
-                        <img src={logoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.25 }} />
+                        <Image src={logoUrl} alt="" fill sizes="400px" className="object-cover scale-[3] blur-[24px] opacity-25" />
                     ) : (
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, var(--surface-solid), var(--surface-solid-secondary))" }} />
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, var(--surface-solid), var(--surface-solid-secondary))" }} />
                     )}
                     {/* Dark overlay */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
+                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
 
                     {/* Badges floating on banner */}
-                    <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex justify-between items-start">
                         {/* Left: location */}
                         <div>
                             {clan.city && (
-                                <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.85)", backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", padding: "3px 8px", borderRadius: 999, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                <span
+                                    className="text-[10px] font-semibold rounded-full inline-flex items-center gap-[3px] px-2 py-[3px]"
+                                    style={{ color: "rgba(255,255,255,0.85)", backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
+                                >
                                     <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                                     {clan.city}
                                 </span>
                             )}
                         </div>
                         {/* Right: tags */}
-                        <div style={{ display: "flex", gap: 4 }}>
+                        <div className="flex gap-1">
                             {clan.is_recruiting && (
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--success)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                <span
+                                    className="text-[10px] font-bold text-success rounded-full px-2.5 py-[3px]"
+                                    style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+                                >
                                     Reclutando
                                 </span>
                             )}
                             {clan.game_name && (
-                                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)", backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "3px 10px", borderRadius: 999 }}>
+                                <span
+                                    className="text-[10px] font-semibold text-foreground rounded-full px-2.5 py-[3px]"
+                                    style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}
+                                >
                                     {clan.game_name}
                                 </span>
                             )}
@@ -74,28 +76,31 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                     </div>
 
                     {/* Logo + Name overlaid on banner bottom */}
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 14px 12px", display: "flex", alignItems: "flex-end", gap: 12 }}>
-                        <div style={{
-                            width: 52, height: 52, borderRadius: 14,
-                            border: "3px solid var(--surface-solid)",
-                            backgroundColor: "var(--surface-solid)", overflow: "hidden",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            flexShrink: 0, boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
-                        }}>
+                    <div className="absolute bottom-0 left-0 right-0 px-3.5 pb-3 flex items-end gap-3">
+                        <div
+                            className="w-[52px] h-[52px] rounded-[14px] border-[3px] border-surface-solid bg-surface-solid overflow-hidden flex items-center justify-center shrink-0"
+                            style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
+                        >
                             {logoUrl ? (
-                                <img src={logoUrl} alt={clan.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                <Image src={logoUrl} alt={clan.name} width={52} height={52} className="object-cover" />
                             ) : (
-                                <span style={{ fontSize: 20, fontWeight: 900, color: "var(--accent)" }}>
+                                <span className="text-[20px] font-black text-accent">
                                     {clan.name?.charAt(0)?.toUpperCase()}
                                 </span>
                             )}
                         </div>
-                        <div style={{ flex: 1, minWidth: 0, marginBottom: 2 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <h3 style={{ fontSize: 16, fontWeight: 800, color: "#FFFFFF", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
+                        <div className="flex-1 min-w-0 mb-0.5">
+                            <div className="flex items-center gap-1.5">
+                                <h3
+                                    className="text-[16px] font-extrabold text-white m-0 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
+                                >
                                     {clan.name}
                                 </h3>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", backgroundColor: "color-mix(in srgb, var(--accent) 20%, transparent)", padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>
+                                <span
+                                    className="text-[10px] font-bold text-accent shrink-0 py-px px-1.5 rounded-[4px]"
+                                    style={{ backgroundColor: "color-mix(in srgb, var(--accent) 20%, transparent)" }}
+                                >
                                     {clan.tag}
                                 </span>
                             </div>
@@ -104,40 +109,35 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                 </div>
 
                 {/* Content */}
-                <div style={{ padding: "10px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div className="px-3.5 pt-2.5 pb-3.5 flex-1 flex flex-col">
                     {/* Description */}
                     {clan.description ? (
-                        <p className="line-clamp-2" style={{ fontSize: 12, color: "var(--muted)", margin: 0, marginBottom: 10, lineHeight: "17px" }}>
+                        <p className="line-clamp-2 text-[12px] text-muted m-0 mb-2.5 leading-[17px]">
                             {clan.description}
                         </p>
                     ) : (
-                        <div style={{ flex: 1 }} />
+                        <div className="flex-1" />
                     )}
 
                     {/* Stats row — gaming style */}
-                    <div style={{
-                        display: "flex", alignItems: "center",
-                        backgroundColor: "var(--surface)",
-                        borderRadius: 10, padding: "8px 10px",
-                        gap: 4,
-                    }}>
-                        <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{memberCount}</p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Miembros</p>
+                    <div className="flex items-center bg-surface rounded-[10px] px-2.5 py-2 gap-1">
+                        <div className="flex-1 text-center">
+                            <p className="text-[14px] font-extrabold text-foreground m-0">{memberCount}</p>
+                            <p className="text-[9px] font-semibold text-muted m-0 uppercase tracking-[0.5px]">Miembros</p>
                         </div>
-                        <div style={{ width: 0.5, height: 24, backgroundColor: "var(--border)" }} />
-                        <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
-                                {hasRating ? clanRating : "—"}
+                        <div className="w-px h-6 bg-border" />
+                        <div className="flex-1 text-center">
+                            <p className="text-[14px] font-extrabold text-foreground m-0">
+                                {hasRating ? clanRating : "\u2014"}
                             </p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
+                            <p className="text-[9px] font-semibold text-muted m-0 uppercase tracking-[0.5px]">Rating</p>
                         </div>
-                        <div style={{ width: 0.5, height: 24, backgroundColor: "var(--border)" }} />
-                        <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
-                                {clan.recruit_min_elo ?? "—"}
+                        <div className="w-px h-6 bg-border" />
+                        <div className="flex-1 text-center">
+                            <p className="text-[14px] font-extrabold text-foreground m-0">
+                                {clan.recruit_min_elo ?? "\u2014"}
                             </p>
-                            <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>ELO Min</p>
+                            <p className="text-[9px] font-semibold text-muted m-0 uppercase tracking-[0.5px]">ELO Min</p>
                         </div>
                     </div>
 

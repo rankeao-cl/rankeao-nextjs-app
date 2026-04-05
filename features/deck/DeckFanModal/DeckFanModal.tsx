@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useMemo, Fragment, useCallback } from "react";
 import Link from "next/link";
-import { toast } from "@heroui/react";
+import Image from "next/image";
+import { toast } from "@heroui/react/toast";
+
 import { Heart, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useDeck, useLikeDeck } from "@/lib/hooks/use-social";
@@ -262,7 +264,7 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                 fontSize: 12, fontWeight: 700, color: "var(--foreground)",
                             }}>
                                 {ownerAvatar
-                                    ? <img src={ownerAvatar} alt={ownerUsername} style={{ width: 28, height: 28, borderRadius: 14, objectFit: "cover" }} />
+                                    ? <Image src={ownerAvatar} alt={ownerUsername} width={28} height={28} className="object-cover rounded-full" />
                                     : ownerUsername[0].toUpperCase()
                                 }
                             </div>
@@ -362,9 +364,9 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, animation: "card-zoom-in 0.2s ease-out" }}>
-                        <div style={{ width: "min(380px, 85dvw)", aspectRatio: `1 / ${CARD_RATIO}`, borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 72px rgba(0,0,0,0.75)", border: "2px solid rgba(255,255,255,0.22)" }}>
+                        <div style={{ width: "min(380px, 85dvw)", aspectRatio: `1 / ${CARD_RATIO}`, borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 72px rgba(0,0,0,0.75)", border: "2px solid rgba(255,255,255,0.22)", position: "relative" }}>
                             {selectedCard.image_url
-                                ? <img src={selectedCard.image_url} alt={selectedCard.card_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                ? <Image src={selectedCard.image_url} alt={selectedCard.card_name} fill sizes="min(380px, 85vw)" className="object-cover" />
                                 : <CardBack w={340} h={Math.round(340 * CARD_RATIO)} />
                             }
                         </div>
@@ -420,9 +422,9 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                     }}
                                 >
                                     {card.image_url ? (
-                                        <img src={card.image_url} alt={card.card_name}
-                                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                                            loading="lazy" />
+                                        <Image src={card.image_url} alt={card.card_name}
+                                            fill sizes="(max-width: 768px) 33vw, 120px"
+                                            className="object-cover block" />
                                     ) : (
                                         <CardBack w={120} h={168} />
                                     )}
@@ -532,6 +534,7 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                             transition: "transform 0.18s, filter 0.18s",
                                             transformOrigin: "center center",
                                             pointerEvents: "auto",
+                                            position: "relative",
                                         }}
                                         onMouseEnter={(e) => {
                                             if (!card || isLoading) return;
@@ -550,7 +553,7 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                         {isLoading ? (
                                             <div style={{ width: "100%", height: "100%", background: "rgba(255,255,255,0.08)", animation: "deck-skeleton-pulse 1.4s ease-in-out infinite" }} />
                                         ) : card?.image_url ? (
-                                            <img src={card.image_url} alt={card.card_name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+                                            <Image src={card.image_url} alt={card.card_name} fill sizes={`${cardW}px`} className="object-cover block" />
                                         ) : (
                                             <CardBack w={cardW} h={cardH} />
                                         )}

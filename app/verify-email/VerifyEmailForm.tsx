@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Button, Card } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+
 import { verifyEmail, resendVerification } from "@/lib/api/auth";
 import { useAuth } from "@/lib/hooks/use-auth";
 

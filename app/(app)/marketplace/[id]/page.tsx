@@ -1,4 +1,5 @@
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+
 import Link from "next/link";
 import { getListingDetail, getListings, getCardListings } from "@/lib/api/marketplace";
 import ListingDetailClient from "./ListingDetailClient";

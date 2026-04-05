@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import { mapErrorMessage } from "@/lib/api/errors";
 import { autocompleteUsers, getFriends } from "@/lib/api/social";
 import { createDuel, broadcastDuelSearch } from "@/lib/api/duels";

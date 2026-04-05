@@ -8,7 +8,8 @@ import type { Duel } from "@/lib/types/duel";
 import type { CatalogGame } from "@/lib/types/catalog";
 import DuelCard from "@/features/duel/DuelCard";
 import DuelTableRow from "@/features/duel/DuelTableRow";
-import NewDuelModal from "@/features/duel/NewDuelModal";
+import dynamic from "next/dynamic";
+const NewDuelModal = dynamic(() => import("@/features/duel/NewDuelModal"), { ssr: false });
 
 
 // ── Tabs config — matches Expo ──

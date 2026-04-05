@@ -59,41 +59,54 @@ export default function Sidebar() {
     };
 
     // Sondeo de duelos pendientes (invitaciones recibidas)
+    // Uses per_page: 1 since we only need the total count from meta, not full duel data.
+    // Polls every 60s to reduce API load (badge count is not time-critical).
     useEffect(() => {
         if (!isAuth || !session?.accessToken || !session?.username) return;
         const token = session.accessToken;
 
         const poll = () => {
-            getDuels({ per_page: 50, status: "PENDING", role: "challenged" }, token)
-                .then(({ duels }) => setPendingDuels(duels.length))
+            getDuels({ per_page: 1, status: "PENDING", role: "challenged" }, token)
+                .then(({ duels, meta }) => {
+                    setPendingDuels(meta?.total ?? duels.length);
+                })
                 .catch(() => {});
         };
 
         poll();
-        const interval = setInterval(poll, 30_000);
+        const interval = setInterval(poll, 60_000);
         return () => clearInterval(interval);
     }, [isAuth, session?.accessToken, session?.username]);
 
-    // Cierra el dropdown al hacer click fuera
+    // Cierra el dropdown al hacer click fuera o presionar Escape
     useEffect(() => {
         if (!createOpen) return;
-        const handler = (e: MouseEvent) => {
+        const handleMouse = (e: MouseEvent) => {
             if (createRef.current && !createRef.current.contains(e.target as Node)) {
                 setCreateOpen(false);
             }
         };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setCreateOpen(false);
+        };
+        document.addEventListener("mousedown", handleMouse);
+        document.addEventListener("keydown", handleKey);
+        return () => {
+            document.removeEventListener("mousedown", handleMouse);
+            document.removeEventListener("keydown", handleKey);
+        };
     }, [createOpen]);
 
     const visibleItems = navItems.filter(item => !item.authRequired || isAuth);
 
     return (
         <aside
-            className={`hidden lg:flex flex-col border-r transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
-            style={{ borderColor: "var(--border)", background: "var(--background)", position: "fixed", top: "4rem", left: 0, zIndex: 40, height: "calc(100vh - 4rem)" }}
+            aria-label="Menu principal"
+            className={`hidden lg:flex flex-col border-r border-border bg-background fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] transition-[width] duration-300 ease-in-out ${expanded ? "w-[220px]" : "w-[72px]"}`}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            onFocus={() => setHovered(true)}
+            onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setHovered(false); }}
         >
             <nav className="flex-1 flex flex-col p-3 pt-4 overflow-y-auto overflow-x-hidden">
                 {/* Botón Crear */}
@@ -101,13 +114,7 @@ export default function Sidebar() {
                     <div className="relative mb-3" ref={createRef}>
                         <button
                             onClick={() => setCreateOpen(v => !v)}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold overflow-hidden w-full"
-                            style={{
-                                backgroundColor: "var(--accent)",
-                                color: "#fff",
-                                border: "none",
-                                cursor: "pointer",
-                            }}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold overflow-hidden w-full bg-accent text-white border-none cursor-pointer"
                             aria-label="Crear"
                             aria-expanded={createOpen}
                         >
@@ -118,19 +125,14 @@ export default function Sidebar() {
                         {/* Dropdown opciones */}
                         {createOpen && expanded && (
                             <div
-                                className="absolute left-0 top-full mt-1.5 w-full z-50 rounded-xl overflow-hidden shadow-xl"
-                                style={{
-                                    background: "var(--background)",
-                                    border: "1px solid var(--border)",
-                                }}
+                                className="absolute left-0 top-full mt-1.5 w-full z-50 rounded-xl overflow-hidden shadow-xl bg-background border border-border"
                             >
                                 <button
                                     onClick={() => { openCreatePost(); setCreateOpen(false); }}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors cursor-pointer text-left"
-                                    style={{ background: "none", border: "none" }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors cursor-pointer text-left bg-transparent border-none"
                                 >
                                     <Pencil className="size-[15px] text-blue-500 shrink-0" />
-                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                    <span className="text-sm font-semibold text-foreground">
                                         Crear Post
                                     </span>
                                 </button>
@@ -140,7 +142,7 @@ export default function Sidebar() {
                                     className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
                                 >
                                     <SquareDashed className="size-[15px] text-purple-500 shrink-0" />
-                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                    <span className="text-sm font-semibold text-foreground">
                                         Publicar Mazo
                                     </span>
                                 </Link>
@@ -150,7 +152,7 @@ export default function Sidebar() {
                                     className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
                                 >
                                     <ShoppingCart className="size-[15px] text-orange-500 shrink-0" />
-                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                    <span className="text-sm font-semibold text-foreground">
                                         Vender Carta
                                     </span>
                                 </Link>
@@ -160,7 +162,7 @@ export default function Sidebar() {
                                     className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
                                 >
                                     <Cup className="size-[15px] text-emerald-500 shrink-0" />
-                                    <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                                    <span className="text-sm font-semibold text-foreground">
                                         Crear Torneo
                                     </span>
                                 </Link>
@@ -180,25 +182,14 @@ export default function Sidebar() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${active ? "text-foreground" : "text-muted hover:text-foreground"}`}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${active ? "text-foreground bg-surface-solid" : "text-muted hover:text-foreground"}`}
                                 aria-label={item.label}
-                                style={active ? { backgroundColor: "var(--surface-solid)" } : {}}
                             >
                                 <span className="relative shrink-0">
                                     <Icon className="size-[22px]" />
                                     {badgeCount > 0 && (
                                         <span
-                                            className="absolute flex items-center justify-center rounded-full text-white font-extrabold leading-none"
-                                            style={{
-                                                bottom: "-7px",
-                                                right: "-7px",
-                                                minWidth: "16px",
-                                                height: "16px",
-                                                fontSize: "9px",
-                                                padding: "0 3px",
-                                                background: "#7c3aed",
-                                                border: "2px solid var(--background)",
-                                            }}
+                                            className="absolute -bottom-[7px] -right-[7px] min-w-[16px] h-[16px] text-[9px] px-[3px] py-0 flex items-center justify-center rounded-full text-white font-extrabold leading-none bg-purple border-2 border-background"
                                         >
                                             {badgeCount > 9 ? "9+" : badgeCount}
                                         </span>
@@ -215,8 +206,7 @@ export default function Sidebar() {
             {/* Perfil y ajustes al fondo */}
             {isAuth && (
                 <div
-                    className="p-3 pt-0 border-t shrink-0 flex flex-col gap-0.5"
-                    style={{ borderColor: "var(--border)" }}
+                    className="p-3 pt-0 border-t border-border shrink-0 flex flex-col gap-0.5"
                 >
                     <Link
                         href="/perfil/me"

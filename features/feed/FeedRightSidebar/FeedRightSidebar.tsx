@@ -25,17 +25,17 @@ export default function FeedRightSidebar({ tournaments }: { tournaments: Tournam
   const upcomingTournaments = tournaments.slice(0, 5);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* Duelos */}
       {isAuth && duels.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <TargetDart style={{ width: 16, height: 16, color: "var(--foreground)" }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Duelos</span>
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <TargetDart className="w-4 h-4 text-foreground" />
+              <span className="text-[14px] font-bold text-foreground">Duelos</span>
             </div>
-            <Link href="/duelos" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>
-              Ver todos <ChevronRight style={{ width: 12, height: 12 }} />
+            <Link href="/duelos" className="text-[12px] font-semibold text-accent no-underline flex items-center gap-0.5">
+              Ver todos <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           {duels.slice(0, 5).map((d) => (
@@ -46,14 +46,14 @@ export default function FeedRightSidebar({ tournaments }: { tournaments: Tournam
 
       {/* Torneos */}
       {upcomingTournaments.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 4px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Cup style={{ width: 16, height: 16, color: "var(--foreground)" }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Torneos</span>
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <Cup className="w-4 h-4 text-foreground" />
+              <span className="text-[14px] font-bold text-foreground">Torneos</span>
             </div>
-            <Link href="/torneos" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 2 }}>
-              Ver todos <ChevronRight style={{ width: 12, height: 12 }} />
+            <Link href="/torneos" className="text-[12px] font-semibold text-accent no-underline flex items-center gap-0.5">
+              Ver todos <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           {upcomingTournaments.map((t) => (

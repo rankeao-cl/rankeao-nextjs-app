@@ -3,7 +3,11 @@
 import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Button, Card, Form, Input } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Form } from "@heroui/react/form";
+import { Input } from "@heroui/react/input";
+
 import { Eye, EyeSlash } from "@gravity-ui/icons";
 import { resetPassword } from "@/lib/api/auth";
 

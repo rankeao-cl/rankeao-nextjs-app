@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as marketplaceApi from "@/lib/api/marketplace";
-import type { ListingFilters, CreateListingRequest, CreateOfferRequest, Favorite } from "@/lib/types/marketplace";
+import type { ListingFilters, CreateListingRequest, CreateOfferRequest, Favorite, UpdatePriceAlertPayload } from "@/lib/types/marketplace";
 import type { Params } from "@/lib/types/api";
 
 // ── Listings ──
@@ -221,7 +221,7 @@ export function useDispute(id: string) {
 export function useAddDisputeEvidence() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ disputeId, payload }: { disputeId: string; payload: Record<string, unknown> }) =>
+        mutationFn: ({ disputeId, payload }: { disputeId: string; payload: { type: string; url: string; description?: string } }) =>
             marketplaceApi.addDisputeEvidence(disputeId, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "disputes"] }),
     });
@@ -256,7 +256,7 @@ export function useCreatePriceAlert() {
 export function useUpdatePriceAlert() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
+        mutationFn: ({ id, payload }: { id: string; payload: UpdatePriceAlertPayload }) =>
             marketplaceApi.updatePriceAlert(id, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "price-alerts"] }),
     });

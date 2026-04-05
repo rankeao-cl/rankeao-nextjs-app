@@ -2,7 +2,8 @@
 
 import { useListings } from "@/lib/hooks/use-marketplace";
 import SaleCard from "@/features/marketplace/SaleCard";
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+
 import Link from "next/link";
 
 interface Props {

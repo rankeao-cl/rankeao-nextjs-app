@@ -1,10 +1,12 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { timeAgo } from "@/lib/utils/format";
 import { ArrowShapeTurnUpRight, MapPin } from "@gravity-ui/icons";
-import { toast } from "@heroui/react";
+import { toast } from "@heroui/react/toast";
+
 import type { Listing } from "@/lib/types/marketplace";
 
 const CONDITION_COLORS: Record<string, string> = {
@@ -20,7 +22,7 @@ function fmtPrice(n: number) {
     return n.toLocaleString("es-CL");
 }
 
-export default function FeedListingCard({ listing }: { listing: Listing }) {
+function FeedListingCard({ listing }: { listing: Listing }) {
     const imageUrl = listing.images?.[0]?.thumbnail_url || listing.images?.[0]?.url || listing.card_image_url;
     const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
     const isStore = !!listing.tenant_name || listing.is_verified_store || listing.is_verified_seller;
@@ -35,24 +37,14 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
     };
 
     return (
-        <Link href={`/marketplace/${listing.slug || listing.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <article style={{
-                background: "var(--surface-solid)",
-                borderRadius: 16,
-                border: "1px solid var(--border)",
-                overflow: "hidden",
-            }}>
+        <Link href={`/marketplace/${listing.slug || listing.id}`} className="no-underline block">
+            <article className="bg-surface-solid rounded-2xl border border-border overflow-hidden">
                 {/* Layout: imagen izq + info der en todos los tamaños */}
-                <div style={{ display: "flex", minHeight: 140 }}>
+                <div className="flex min-h-[140px]">
                     {/* Imagen */}
-                    <div style={{
-                        flexShrink: 0, width: 120,
-                        background: "var(--background)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        padding: 10, position: "relative",
-                    }}>
+                    <div className="shrink-0 w-[120px] bg-background flex items-center justify-center p-2.5 relative">
                         {imageUrl ? (
-                            <div style={{ position: "relative", width: "100%", aspectRatio: "63 / 88" }}>
+                            <div className="relative w-full" style={{ aspectRatio: "63 / 88" }}>
                                 <Image
                                     src={imageUrl}
                                     alt={listing.title}
@@ -62,20 +54,20 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 />
                             </div>
                         ) : (
-                            <span style={{ fontSize: 11, color: "var(--muted)" }}>Sin imagen</span>
+                            <span className="text-[11px] text-muted">Sin imagen</span>
                         )}
 
                         {/* Condition badge */}
                         {listing.card_condition && (
-                            <span style={{
-                                position: "absolute", top: 6, left: 6,
-                                fontSize: 9, fontWeight: 800, letterSpacing: "0.5px",
-                                color: condColor,
-                                backgroundColor: "rgba(0,0,0,0.65)",
-                                backdropFilter: "blur(6px)",
-                                padding: "2px 6px", borderRadius: 5,
-                                border: `1px solid ${condColor}44`,
-                            }}>
+                            <span
+                                className="absolute top-1.5 left-1.5 text-[9px] font-[800] tracking-[0.5px] px-1.5 py-[2px] rounded-[5px]"
+                                style={{
+                                    color: condColor,
+                                    backgroundColor: "rgba(0,0,0,0.65)",
+                                    backdropFilter: "blur(6px)",
+                                    border: `1px solid ${condColor}44`,
+                                }}
+                            >
                                 {listing.card_condition}
                                 {listing.is_foil && <span style={{ color: "#eab308", marginLeft: 3 }}>&#10022;</span>}
                             </span>
@@ -83,40 +75,28 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                     </div>
 
                     {/* Info */}
-                    <div style={{
-                        flex: 1, minWidth: 0, padding: "12px 14px",
-                        display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 4,
-                        borderLeft: "1px solid var(--border)",
-                    }}>
+                    <div className="flex-1 min-w-0 px-3.5 py-3 flex flex-col justify-between gap-1 border-l border-border">
                         {/* Title + time */}
                         <div>
-                            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                                <p style={{
-                                    margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)",
-                                    lineHeight: 1.3,
-                                    display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
-                                }}>
+                            <div className="flex items-baseline gap-1.5">
+                                <p className="m-0 text-[15px] font-bold text-foreground leading-[1.3] line-clamp-1">
                                     {listing.title}
                                 </p>
-                                <span style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                                <span className="text-[11px] text-muted whitespace-nowrap shrink-0">
                                     {timeAgo(listing.created_at, { verbose: true })}
                                 </span>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4, flexWrap: "wrap" }}>
+                            <div className="flex items-center gap-[5px] mt-1 flex-wrap">
                                 {listing.set_name && (
-                                    <span style={{ fontSize: 11, color: "var(--muted)" }}>{listing.set_name}</span>
+                                    <span className="text-[11px] text-muted">{listing.set_name}</span>
                                 )}
                                 {listing.rarity && (
-                                    <span style={{
-                                        fontSize: 9, fontWeight: 700, color: "var(--muted)",
-                                        background: "var(--surface)", padding: "1px 5px", borderRadius: 4,
-                                        border: "1px solid var(--border)", textTransform: "uppercase",
-                                    }}>
+                                    <span className="text-[9px] font-bold text-muted bg-surface px-[5px] py-[1px] rounded-[4px] border border-border uppercase">
                                         {listing.rarity}
                                     </span>
                                 )}
                                 {listing.game_name && (
-                                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)" }}>
+                                    <span className="text-[10px] font-semibold text-accent">
                                         {listing.game_name}
                                     </span>
                                 )}
@@ -124,52 +104,38 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                         </div>
 
                         {/* Seller */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <div style={{
-                                width: 22, height: 22, borderRadius: 11, flexShrink: 0,
-                                backgroundColor: "var(--surface)", overflow: "hidden",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 9, fontWeight: 700, color: "var(--foreground)",
-                            }}>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-[22px] h-[22px] rounded-full shrink-0 bg-surface overflow-hidden flex items-center justify-center text-[9px] font-bold text-foreground">
                                 {listing.seller_avatar_url ? (
                                     <Image src={listing.seller_avatar_url} alt={sellerName} width={22} height={22}
-                                        style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        className="w-full h-full object-cover" />
                                 ) : sellerName[0]?.toUpperCase()}
                             </div>
-                            <span className="truncate" style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>
+                            <span className="truncate text-[14px] font-semibold text-foreground">
                                 {sellerName}
                             </span>
-                            {isStore && <span style={{ fontSize: 9, color: "var(--success)", fontWeight: 700 }}>&#10003;</span>}
+                            {isStore && <span className="text-[9px] text-success font-bold">&#10003;</span>}
                         </div>
                     </div>
 
                     {/* Right column: city+share top, price+CTA bottom */}
-                    <div style={{
-                        flexShrink: 0,
-                        display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between",
-                        padding: "12px 16px",
-                    }}>
+                    <div className="shrink-0 flex flex-col items-end justify-between px-4 py-3">
                         {/* City + share — top right */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <div className="flex items-center gap-1.5">
                             {listing.city && (
-                                <span style={{ fontSize: 11, color: "var(--muted)", display: "inline-flex", alignItems: "center", gap: 3 }}>
-                                    <MapPin style={{ width: 11, height: 11 }} />{listing.city}
+                                <span className="text-[11px] text-muted inline-flex items-center gap-[3px]">
+                                    <MapPin className="w-[11px] h-[11px]" />{listing.city}
                                 </span>
                             )}
-                            <button onClick={handleShare} style={{
-                                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                                background: "var(--surface)", border: "1px solid var(--border)",
-                                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                                color: "var(--muted)",
-                            }}>
-                                <ArrowShapeTurnUpRight style={{ width: 13, height: 13 }} />
+                            <button onClick={handleShare} className="w-7 h-7 rounded-lg shrink-0 bg-surface border border-border cursor-pointer flex items-center justify-center text-muted">
+                                <ArrowShapeTurnUpRight className="w-[13px] h-[13px]" />
                             </button>
                         </div>
 
                         {/* Price + CTA — bottom right */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10 }}>
+                        <div className="flex flex-col items-end gap-2.5">
                             {listing.price != null && (
-                                <div style={{ display: "flex", alignItems: "flex-end", gap: 4, whiteSpace: "nowrap" }}>
+                                <div className="flex items-end gap-1 whitespace-nowrap">
                                     <span style={{
                                         fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.28)",
                                         fontFamily: "Georgia, 'Times New Roman', serif",
@@ -186,13 +152,10 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                             )}
                             <span style={{
                                 fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)",
-                                whiteSpace: "nowrap",
-                                display: "inline-flex", alignItems: "center", gap: 4,
                                 background: "rgba(255,255,255,0.08)",
                                 border: "1px solid rgba(255,255,255,0.15)",
                                 backdropFilter: "blur(8px)",
-                                padding: "6px 16px", borderRadius: 999,
-                            }}>
+                            }} className="whitespace-nowrap inline-flex items-center gap-1 px-4 py-1.5 rounded-full">
                                 Ver oferta &rsaquo;
                             </span>
                         </div>
@@ -202,3 +165,5 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
         </Link>
     );
 }
+
+export default memo(FeedListingCard);

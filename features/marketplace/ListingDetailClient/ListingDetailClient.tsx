@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Chip, Avatar, Button } from "@heroui/react";
+import { Avatar } from "@heroui/react/avatar";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Chip } from "@heroui/react/chip";
+
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Heart, HeartFill } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useToggleFavorite, useMyFavorites } from "@/lib/hooks/use-marketplace";
 import ContactSellerButton from "@/features/marketplace/ContactSellerButton";
-import BuyModal from "@/features/marketplace/BuyModal";
-import OfferModal from "@/features/marketplace/OfferModal";
+import dynamic from "next/dynamic";
+const BuyModal = dynamic(() => import("@/features/marketplace/BuyModal"), { ssr: false });
+const OfferModal = dynamic(() => import("@/features/marketplace/OfferModal"), { ssr: false });
 import type { Listing, ListingDetail, Favorite } from "@/lib/types/marketplace";
 
 const conditionLabels: Record<string, string> = {
@@ -250,7 +255,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {item.seller_avatar_url ? (
-                          <img src={item.seller_avatar_url} alt="" style={{ width: 18, height: 18, borderRadius: 9 }} />
+                          <Image src={item.seller_avatar_url} alt="" width={18} height={18} className="rounded-full object-cover" />
                         ) : (
                           <div className="flex items-center justify-center" style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "var(--surface)" }}>
                             <span style={{ fontSize: 9, color: "var(--muted)" }}>{itemSeller[0]?.toUpperCase()}</span>

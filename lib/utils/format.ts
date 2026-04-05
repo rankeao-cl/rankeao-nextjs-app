@@ -51,3 +51,14 @@ export function stripHtml(html: string): string {
 export function toCardSlug(name: string): string {
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
+
+/** Sanitize a backend-supplied URL: only allow relative paths and same-origin HTTPS URLs. */
+export function sanitizeHref(url: string | undefined | null): string | null {
+    if (!url) return null;
+    if (url.startsWith("/")) return url;
+    try {
+        const parsed = new URL(url);
+        if (parsed.origin === "https://rankeao.cl" || parsed.origin === "https://www.rankeao.cl") return url;
+    } catch { /* invalid URL */ }
+    return null;
+}

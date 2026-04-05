@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, toast } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { createChannel } from "@/lib/api/chat";
 import { autocompleteUsers } from "@/lib/api/social";

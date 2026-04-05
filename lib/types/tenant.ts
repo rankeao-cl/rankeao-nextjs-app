@@ -149,3 +149,21 @@ export interface CreateTenantReviewRequest {
     comment?: string;
     is_anonymous?: boolean;
 }
+
+// ── Staff & Members ──
+
+export interface TenantStaffMembership {
+    tenant_id: string;
+    tenant_name?: string;
+    tenant_slug?: string;
+    role: string;
+    joined_at?: string;
+}
+
+export interface TenantMember {
+    user_id: string;
+    username: string;
+    avatar_url?: string;
+    role?: string;
+    joined_at?: string;
+}

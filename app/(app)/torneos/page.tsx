@@ -10,6 +10,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import type { CatalogGame } from "@/lib/types/catalog";
 import type { Tournament } from "@/lib/types/tournament";
+import PageHero from "@/components/ui/PageHero";
+import FilterPills from "@/components/ui/FilterPills";
+import type { FilterPill } from "@/components/ui/FilterPills";
+import Link from "next/link";
 
 interface Props {
   searchParams: Promise<{
@@ -181,67 +185,12 @@ export default async function TorneosPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
-      {/* Hero header — matches Expo layout */}
-      <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
-        <div
-          style={{
-            backgroundColor: "var(--surface-solid)",
-            border: "1px solid var(--border)",
-            borderRadius: 16,
-            padding: 18,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            minHeight: 120,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            {/* Badge */}
-            <span
-              style={{
-                display: "inline-block",
-                backgroundColor: "var(--border)",
-                alignSelf: "flex-start",
-                paddingLeft: 10,
-                paddingRight: 10,
-                paddingTop: 4,
-                paddingBottom: 4,
-                borderRadius: 999,
-                marginBottom: 8,
-                color: "var(--muted)",
-                fontSize: 11,
-                fontWeight: 600,
-              }}
-            >
-              Agenda competitiva
-            </span>
-            <h1
-              style={{
-                color: "var(--foreground)",
-                fontSize: 22,
-                fontWeight: 800,
-                margin: 0,
-                marginBottom: 4,
-              }}
-            >
-              Torneos TCG
-            </h1>
-            <p
-              style={{
-                color: "var(--muted)",
-                fontSize: 13,
-                lineHeight: "18px",
-                margin: 0,
-              }}
-            >
-              Busca y participa en torneos activos, proximos y pasados.
-            </p>
-          </div>
-
-        </div>
-      </section>
+      {/* Hero header -- matches Expo layout */}
+      <PageHero
+        badge="Agenda competitiva"
+        title="Torneos TCG"
+        subtitle="Busca y participa en torneos activos, proximos y pasados."
+      />
 
       {/* Search bar + view toggle */}
       <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
@@ -263,13 +212,13 @@ export default async function TorneosPage({ searchParams }: Props) {
             className="flex-1 bg-transparent text-sm text-foreground placeholder-muted outline-none"
           />
           {params.q && (
-            <a href={`/torneos?tab=${tab}${params.view ? `&view=${params.view}` : ""}${params.game ? `&game=${params.game}` : ""}`} className="shrink-0">
+            <Link href={`/torneos?tab=${tab}${params.view ? `&view=${params.view}` : ""}${params.game ? `&game=${params.game}` : ""}`} className="shrink-0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="15" y1="9" x2="9" y2="15" />
                 <line x1="9" y1="9" x2="15" y2="15" />
               </svg>
-            </a>
+            </Link>
           )}
         </form>
         <ViewToggle currentView={currentView} options={[
@@ -278,23 +227,16 @@ export default async function TorneosPage({ searchParams }: Props) {
                         ]} defaultView="list" />
       </div>
 
-      {/* Tabs — matches Expo pill style */}
+      {/* Tabs -- matches Expo pill style */}
       <div className="mx-4 lg:mx-6 mb-3">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {Object.entries(tabConfig).map(([key, cfg]) => (
-            <a
-              key={key}
-              href={`?tab=${key}${params.view ? `&view=${params.view}` : ""}${params.game ? `&game=${params.game}` : ""}`}
-              className={`px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap transition-colors ${
-                tab === key
-                  ? "bg-foreground text-background border border-transparent"
-                  : "bg-surface-solid border border-border text-muted hover:text-foreground"
-              }`}
-            >
-              {cfg.title}
-            </a>
-          ))}
-        </div>
+        <FilterPills
+          items={Object.entries(tabConfig).map(([key, cfg]) => ({
+            key,
+            label: cfg.title,
+            href: `?tab=${key}${params.view ? `&view=${params.view}` : ""}${params.game ? `&game=${params.game}` : ""}`,
+          } satisfies FilterPill))}
+          activeKey={tab}
+        />
       </div>
 
       {/* Main Grid Layout */}
@@ -311,7 +253,7 @@ export default async function TorneosPage({ searchParams }: Props) {
         </aside>
 
         {/* Content */}
-        <main className="flex-1 min-w-0">
+        <section className="flex-1 min-w-0">
           {currentView === "calendar" ? (
             <Suspense key="calendar" fallback={<TournamentsSkeleton />}>
               <CalendarTournaments />
@@ -321,7 +263,7 @@ export default async function TorneosPage({ searchParams }: Props) {
               <TournamentsList params={params} tab={tab} />
             </Suspense>
           )}
-        </main>
+        </section>
       </div>
     </div>
   );

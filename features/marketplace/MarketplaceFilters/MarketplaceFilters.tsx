@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Input, Button, Slider, Accordion } from "@heroui/react";
+import { Accordion } from "@heroui/react/accordion";
+import { Button } from "@heroui/react/button";
+import { Input } from "@heroui/react/input";
+import { Slider } from "@heroui/react/slider";
+
 import { useFilterParams } from "@/lib/hooks/use-filter-params";
 import type { CatalogGame } from "@/lib/types/catalog";
 

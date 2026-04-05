@@ -5,6 +5,9 @@ import type { CatalogFormat, CatalogGame } from "@/lib/types/catalog";
 import type { LeaderboardEntry } from "@/lib/types/gamification";
 import RankingTabs from "./RankingTabs";
 import type { Metadata } from "next";
+import PageHero from "@/components/ui/PageHero";
+import FilterPills from "@/components/ui/FilterPills";
+import type { FilterPill } from "@/components/ui/FilterPills";
 
 export const metadata: Metadata = {
   title: "Ranking",
@@ -157,42 +160,11 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
       {/* Hero header */}
-      <section className="mx-4 lg:mx-6 mb-[14px] mt-3">
-        <div
-          style={{
-            backgroundColor: "var(--surface-solid)",
-            border: "1px solid var(--border)",
-            borderRadius: 16,
-            padding: 18,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            minHeight: 120,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <span
-              style={{
-                display: "inline-block",
-                backgroundColor: "var(--surface)",
-                paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
-                borderRadius: 999, marginBottom: 8,
-                color: "var(--muted)", fontSize: 11, fontWeight: 600,
-              }}
-            >
-              Clasificacion
-            </span>
-            <h1 style={{ color: "var(--foreground)", fontSize: 22, fontWeight: 800, margin: 0, marginBottom: 4 }}>
-              Ranking
-            </h1>
-            <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: "18px", margin: 0 }}>
-              Compite y sube en el ranking de jugadores.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        badge="Clasificacion"
+        title="Ranking"
+        subtitle="Compite y sube en el ranking de jugadores."
+      />
 
       {/* ── Main content (sidebar + leaderboard) ── */}
       <div className="flex flex-col lg:flex-row gap-6 mx-4 lg:mx-6 mb-12">
@@ -321,31 +293,27 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
 
         {/* Mobile filter pills */}
         <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {tabs.map((t) => (
-            <a key={t.key} href={buildUrl({ tab: t.key })} style={{
-              padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", textDecoration: "none",
-              border: selectedTab === t.key ? "1px solid transparent" : "1px solid var(--border)",
-              backgroundColor: selectedTab === t.key ? "var(--foreground)" : "var(--surface-solid)",
-              color: selectedTab === t.key ? "var(--background)" : "var(--muted)",
-            }}>
-              {t.label}
-            </a>
-          ))}
+          <FilterPills
+            items={tabs.map((t) => ({
+              key: t.key,
+              label: t.label,
+              href: buildUrl({ tab: t.key }),
+            } satisfies FilterPill))}
+            activeKey={selectedTab}
+          />
           <span style={{ width: 1, height: 24, backgroundColor: "var(--border)", flexShrink: 0 }} />
-          {periods.map((p) => (
-            <a key={p.key} href={buildUrl({ period: p.key })} style={{
-              padding: "8px 16px", borderRadius: 999, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", textDecoration: "none",
-              border: period === p.key ? "1px solid transparent" : "1px solid var(--border)",
-              backgroundColor: period === p.key ? "var(--foreground)" : "var(--surface-solid)",
-              color: period === p.key ? "var(--background)" : "var(--muted)",
-            }}>
-              {p.label}
-            </a>
-          ))}
+          <FilterPills
+            items={periods.map((p) => ({
+              key: p.key,
+              label: p.label,
+              href: buildUrl({ period: p.key }),
+            } satisfies FilterPill))}
+            activeKey={period}
+          />
         </div>
 
         {/* Leaderboard content */}
-        <main className="flex-1 min-w-0">
+        <section className="flex-1 min-w-0">
           <RankingTabs
             xpEntries={xpEntries}
             ratingEntries={ratingEntries}
@@ -355,7 +323,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
             selectedFormatSlug={selectedFormat?.slug}
             selectedTab={selectedTab}
           />
-        </main>
+        </section>
       </div>
     </div>
   );

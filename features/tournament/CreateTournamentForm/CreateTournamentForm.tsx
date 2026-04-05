@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Switch, toast } from "@heroui/react";
+import Image from "next/image";
+import { Button } from "@heroui/react/button";
+import { Card } from "@heroui/react/card";
+import { Input } from "@heroui/react/input";
+import { Switch } from "@heroui/react/switch";
+import { toast } from "@heroui/react/toast";
+
 import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getGames, getGameFormats } from "@/lib/api/catalog";
@@ -254,11 +260,12 @@ export default function CreateTournamentForm() {
                     {(bannerUrl.trim() || selectedGame) && (
                         <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9", border: "1px solid var(--border)" }}>
                             {bannerUrl.trim() ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
+                                <Image
                                     src={bannerUrl.trim()}
                                     alt="Preview"
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 600px"
+                                    className="object-cover"
                                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                                 />
                             ) : selectedGame ? (
