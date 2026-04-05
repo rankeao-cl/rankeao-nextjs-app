@@ -71,7 +71,9 @@ function SearchContent() {
             // Users
             if (usersRes.status === "fulfilled") {
                 const val = usersRes.value;
-                const users = val?.users || val?.data || (Array.isArray(val) ? val : []);
+                const rawUsers = val?.data;
+                const userList = Array.isArray(rawUsers) ? rawUsers : (rawUsers as unknown as Record<string, unknown>)?.users;
+                const users = Array.isArray(userList) ? userList : Array.isArray(val?.users) ? val.users : [];
                 for (const u of users) {
                     items.push({
                         id: u.id || u.username, type: "user",
