@@ -79,7 +79,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 const val = await autocompleteUsers(q);
                 const raw = val?.data;
                 const users: UserSearchResult[] = Array.isArray(raw) ? raw : (raw as unknown as Record<string, unknown>)?.users as UserSearchResult[] ?? val?.users ?? [];
-                const filtered = users.filter((u: UserSearchResult) => u.username !== session.username);
+                const filtered = users.filter((u: UserSearchResult) => u.username !== session?.username);
                 setSuggestions(filtered);
                 setShowSuggestions(filtered.length > 0);
                 setNoResults(filtered.length === 0);
