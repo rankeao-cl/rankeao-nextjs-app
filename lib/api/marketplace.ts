@@ -55,7 +55,7 @@ export async function getListings(
     const raw = await apiFetch<Record<string, unknown>>(
         "/marketplace/listings",
         filters as Params,
-        { revalidate: 60 }
+        { cache: "no-store" }
     );
 
     const data = (raw?.data ?? {}) as Record<string, unknown>;
@@ -77,7 +77,7 @@ export async function getGroupedCards(
     const raw = await apiFetch<Record<string, unknown>>(
         "/marketplace/cards",
         filters as Params,
-        { revalidate: 60 }
+        { cache: "no-store" }
     );
 
     const data = (raw?.data ?? {}) as Record<string, unknown>;
@@ -97,7 +97,7 @@ export async function getCardListings(
     const raw = await apiFetch<Record<string, unknown>>(
         `/marketplace/cards/${cardId}/listings`,
         filters as Params,
-        { revalidate: 60 }
+        { cache: "no-store" }
     );
 
     const data = (raw?.data ?? {}) as Record<string, unknown>;
