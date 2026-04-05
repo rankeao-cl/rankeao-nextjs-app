@@ -27,11 +27,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' https: data: blob:",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://api.rankeao.cl wss://api.rankeao.cl",
+              "connect-src 'self' https://api.rankeao.cl wss://api.rankeao.cl https://vercel.live wss://ws-us3.pusher.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
