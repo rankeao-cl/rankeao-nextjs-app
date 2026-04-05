@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' https: data: blob:",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://api.rankeao.cl wss://api.rankeao.cl https://vercel.live wss://ws-us3.pusher.com",
+              "connect-src 'self' https: wss:",
               "frame-src https://vercel.live",
               "frame-ancestors 'none'",
               "base-uri 'self'",
