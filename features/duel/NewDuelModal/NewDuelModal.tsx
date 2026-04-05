@@ -71,14 +71,14 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
             setNoResults(false);
             return;
         }
-        if (!session?.accessToken) return;
         setLoadingSuggestions(true);
         setNoResults(false);
 
         const delay = setTimeout(async () => {
             try {
-                const val = await autocompleteUsers(q, session.accessToken);
-                const users: UserSearchResult[] = val?.data ?? val?.users ?? [];
+                const val = await autocompleteUsers(q);
+                const raw = val?.data;
+                const users: UserSearchResult[] = Array.isArray(raw) ? raw : (raw as Record<string, unknown>)?.users as UserSearchResult[] ?? val?.users ?? [];
                 const filtered = users.filter((u: UserSearchResult) => u.username !== session.username);
                 setSuggestions(filtered);
                 setShowSuggestions(filtered.length > 0);

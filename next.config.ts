@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' https://api.rankeao.cl https://*.rankeao.cl https://cards.scryfall.io https://images.pokemontcg.io https://images.ygoprodeck.com https://product-images.tcgplayer.com data: blob:",
+              "img-src 'self' https: data: blob:",
               "font-src 'self' https://fonts.gstatic.com",
               "connect-src 'self' https://api.rankeao.cl wss://api.rankeao.cl",
               "frame-ancestors 'none'",

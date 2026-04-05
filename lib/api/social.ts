@@ -121,7 +121,7 @@ export async function searchUsers(params?: Params, token?: string) {
 }
 
 export async function autocompleteUsers(q: string, token?: string) {
-    return apiFetch<{ data?: UserSearchResult[]; users?: UserSearchResult[] }>("/social/users/autocomplete", { q }, { token });
+    return apiFetch<{ data?: UserSearchResult[]; users?: UserSearchResult[] }>("/social/users/autocomplete", { q }, { token, cache: "no-store" });
 }
 
 export async function getUserProfile(username: string) {
