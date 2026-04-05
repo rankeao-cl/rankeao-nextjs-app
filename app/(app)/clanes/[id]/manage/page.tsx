@@ -109,7 +109,7 @@ export default function ManageClanPage() {
       setEditLogoUrl(c.logo_url ?? "");
       setEditBannerUrl(c.banner_url ?? "");
       setEditRecruitMinElo(String(c.recruit_min_elo ?? ""));
-      setEditMaxMembers(String((c as any).max_members ?? ""));
+      setEditMaxMembers(String((c as { max_members?: number }).max_members ?? ""));
       setEditRecruiting(c.is_recruiting ?? true);
     } catch {
       // silent
@@ -144,7 +144,7 @@ export default function ManageClanPage() {
   // Check membership — try my_membership, fallback to matching in members list
   const myMembership = clan?.my_membership
     ?? (clan?.members ?? []).find(
-      (m: any) => m.username === session?.username || m.user_id === (session as any)?.user_id
+      (m) => m.username === session?.username
     );
   const isLeader = myMembership?.role === "LEADER";
 

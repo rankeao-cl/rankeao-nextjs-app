@@ -139,11 +139,11 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const fetchMessages = async (channelId: string, isInitial = false) => {
         if (!session?.accessToken) return;
         try {
-            const val = await getChatMessages(channelId, { limit: 50 }, session.accessToken) as any;
+            const val = await getChatMessages(channelId, { limit: 50 }, session.accessToken);
             const rawMessages = val?.data?.messages || val?.messages || (Array.isArray(val) ? val : []);
 
             if (Array.isArray(rawMessages)) {
-                const formattedMessages = [...rawMessages].map((msg: any) => ({
+                const formattedMessages = [...rawMessages].map((msg: ChatMessage) => ({
                     ...msg,
                     sender_id: msg.sender?.id || msg.sender_id,
                     sender_username: msg.sender?.username || msg.sender_username,
@@ -168,7 +168,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 setMessages(formattedMessages);
                 messagesRef.current = formattedMessages;
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error obteniendo mensajes:", err);
         }
     };
@@ -308,7 +308,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
             }
 
             setTimeout(scrollToBottom, 50);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error al enviar", err);
             toast.danger("Error al enviar mensaje", {
                 description: mapErrorMessage(err),

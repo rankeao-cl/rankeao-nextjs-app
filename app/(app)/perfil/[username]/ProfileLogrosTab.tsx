@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, Chip } from "@heroui/react";
 import { Cup, Medal, ChartColumn, StarFill } from "@gravity-ui/icons";
 import Image from "next/image";
-import Link from "next/link";
 import type { Badge } from "@/lib/types/gamification";
 
 const rarityColors: Record<string, string> = {
@@ -15,19 +13,14 @@ const rarityColors: Record<string, string> = {
     legendary: "text-[#FFD700]",
 };
 
-export default function ProfileLogrosTab({
-    earnedBadges,
-    allBadges,
-    badgesCount,
-    gamiStats,
-    isOwnProfile,
-}: {
-    earnedBadges: any[];
+export default function ProfileLogrosTab(props: {
+    earnedBadges: Badge[];
     allBadges: Badge[];
     badgesCount: number;
-    gamiStats?: any;
+    gamiStats?: Record<string, unknown>;
     isOwnProfile?: boolean;
 }) {
+    const { earnedBadges, allBadges, badgesCount, gamiStats } = props;
     const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
     // Build a set of earned badge IDs/slugs for quick lookup
@@ -110,10 +103,10 @@ export default function ProfileLogrosTab({
         );
     }
 
-    const level = gamiStats?.level ?? 1;
-    const totalXp = gamiStats?.xp ?? gamiStats?.total_xp ?? 0;
-    const currentLevelXp = gamiStats?.xp_this_level ?? gamiStats?.current_level_xp ?? 0;
-    const xpToNext = gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 100;
+    const level = Number(gamiStats?.level ?? 1);
+    const totalXp = Number(gamiStats?.xp ?? gamiStats?.total_xp ?? 0);
+    const currentLevelXp = Number(gamiStats?.xp_this_level ?? gamiStats?.current_level_xp ?? 0);
+    const xpToNext = Number(gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 100);
     const xpProgress = xpToNext > 0 ? Math.min((currentLevelXp / xpToNext) * 100, 100) : 0;
 
     return (
@@ -154,17 +147,17 @@ export default function ProfileLogrosTab({
                         </div>
                         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
                             <Cup className="size-4 text-yellow-500" />
-                            <p className="text-lg font-extrabold text-[var(--foreground)]">{gamiStats.tournaments_played ?? 0}</p>
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{Number(gamiStats.tournaments_played ?? 0)}</p>
                             <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Torneos</p>
                         </div>
                         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
                             <ChartColumn className="size-4 text-emerald-500" />
-                            <p className="text-lg font-extrabold text-[var(--foreground)]">{gamiStats.total_matches ?? 0}</p>
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{Number(gamiStats.total_matches ?? 0)}</p>
                             <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Partidas</p>
                         </div>
                         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] flex flex-col items-center gap-1.5 text-center">
                             <StarFill className="size-4 text-purple-500" />
-                            <p className="text-lg font-extrabold text-[var(--foreground)]">{Math.round(gamiStats.win_rate ?? 0)}%</p>
+                            <p className="text-lg font-extrabold text-[var(--foreground)]">{Math.round(Number(gamiStats.win_rate ?? 0))}%</p>
                             <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Winrate</p>
                         </div>
                     </div>

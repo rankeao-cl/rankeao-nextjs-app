@@ -3,7 +3,7 @@ import type {
     Listing, ListingsResponse, ListingFilters, CreateListingRequest,
     ListingDetail, Offer, MarketplaceCheckout, MarketplaceOrder, MarketplaceReview,
     Dispute, Favorite, PriceAlert, SavedSearch, SellerProfile, BankAccount, Payout,
-    ListingImage,
+    ListingImage, GroupedCard, GroupedCardsResponse,
 } from "@/lib/types/marketplace";
 import type { Params, PaginationMeta } from "@/lib/types/api";
 
@@ -59,6 +59,59 @@ export async function getListings(
         facets: (raw?.facets ?? data?.facets) as Record<string, unknown> | undefined,
     };
 }
+
+// ── Grouped Cards ──
+
+export async function getGroupedCards(
+    filters: ListingFilters = {}
+): Promise<GroupedCardsResponse> {
+    const raw = await apiFetch<Record<string, unknown>>(
+        "/marketplace/cards",
+        filters as Params,
+        { cache: "no-store" }
+    );
+
+    const data = (raw?.data ?? {}) as Record<string, unknown>;
+    const cards = (data?.cards ?? raw?.cards ?? []) as GroupedCard[];
+    const rawMeta = (raw?.meta ?? data?.meta) as Record<string, unknown> | undefined;
+
+    return {
+        cards,
+        meta: rawMeta ? {
+            page: (rawMeta.page as number) ?? 1,
+            per_page: (rawMeta.per_page as number) ?? (rawMeta.page_size as number) ?? 20,
+            total: (rawMeta.total as number) ?? cards.length,
+            total_pages: (rawMeta.total_pages as number) ?? 1,
+        } : undefined,
+    };
+}
+
+export async function getCardListings(
+    cardId: number,
+    filters: ListingFilters = {}
+): Promise<ListingsResponse> {
+    const raw = await apiFetch<Record<string, unknown>>(
+        `/marketplace/cards/${cardId}/listings`,
+        filters as Params,
+        { cache: "no-store" }
+    );
+
+    const data = (raw?.data ?? {}) as Record<string, unknown>;
+    const items = (data?.listings ?? raw?.listings ?? []) as Record<string, unknown>[];
+    const rawMeta = (raw?.meta ?? data?.meta) as Record<string, unknown> | undefined;
+
+    return {
+        listings: items.map(normalizeListing),
+        meta: rawMeta ? {
+            page: (rawMeta.page as number) ?? 1,
+            per_page: (rawMeta.per_page as number) ?? (rawMeta.page_size as number) ?? 20,
+            total: (rawMeta.total as number) ?? items.length,
+            total_pages: (rawMeta.total_pages as number) ?? 1,
+        } : undefined,
+    };
+}
+
+// ── Listing Detail ──
 
 export async function getListingDetail(id: string) {
     const raw = await apiFetch<{ data?: ListingDetail; listing?: ListingDetail } & Record<string, unknown>>(`/marketplace/listings/${encodeURIComponent(id)}`);

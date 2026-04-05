@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as marketplaceApi from "@/lib/api/marketplace";
 import type { ListingFilters, CreateListingRequest, CreateOfferRequest, Favorite } from "@/lib/types/marketplace";
+import type { Params } from "@/lib/types/api";
 
 // ── Listings ──
 
@@ -31,10 +32,10 @@ export function useCreateListing() {
 
 // ── Offers ──
 
-export function useMyOffers(params?: Record<string, any>) {
+export function useMyOffers(params?: Params) {
     return useQuery({
         queryKey: ["marketplace", "offers", params],
-        queryFn: () => marketplaceApi.getMyOffers(params as any),
+        queryFn: () => marketplaceApi.getMyOffers(params),
     });
 }
 
@@ -70,10 +71,10 @@ export function useToggleFavorite() {
 
 // ── Orders ──
 
-export function useMarketplaceOrders(params?: Record<string, any>) {
+export function useMarketplaceOrders(params?: Params) {
     return useQuery({
         queryKey: ["marketplace", "orders", params],
-        queryFn: () => marketplaceApi.getMarketplaceOrders(params as any),
+        queryFn: () => marketplaceApi.getMarketplaceOrders(params),
     });
 }
 
@@ -82,7 +83,7 @@ export function useMarketplaceOrders(params?: Record<string, any>) {
 export function useBuyListing() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ listingId, payload }: { listingId: string; payload: { quantity: number; delivery_method: string; shipping_address?: any; notes?: string } }) =>
+        mutationFn: ({ listingId, payload }: { listingId: string; payload: { quantity: number; delivery_method: string; shipping_address?: string; notes?: string } }) =>
             marketplaceApi.buyListing(listingId, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace"] }),
     });
@@ -151,10 +152,10 @@ export function useAcceptCounterOffer() {
 
 // ── My Listings (seller) ──
 
-export function useMyListings(params?: Record<string, any>) {
+export function useMyListings(params?: Params) {
     return useQuery({
         queryKey: ["marketplace", "my-listings", params],
-        queryFn: () => marketplaceApi.getMyListings(params as any),
+        queryFn: () => marketplaceApi.getMyListings(params),
     });
 }
 
@@ -192,10 +193,10 @@ export function useDeleteListing() {
 
 // ── Payouts ──
 
-export function usePayouts(params?: Record<string, any>) {
+export function usePayouts(params?: Params) {
     return useQuery({
         queryKey: ["marketplace", "payouts", params],
-        queryFn: () => marketplaceApi.getPayouts(params as any),
+        queryFn: () => marketplaceApi.getPayouts(params),
     });
 }
 
@@ -220,7 +221,7 @@ export function useDispute(id: string) {
 export function useAddDisputeEvidence() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ disputeId, payload }: { disputeId: string; payload: any }) =>
+        mutationFn: ({ disputeId, payload }: { disputeId: string; payload: Record<string, unknown> }) =>
             marketplaceApi.addDisputeEvidence(disputeId, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "disputes"] }),
     });
@@ -237,17 +238,17 @@ export function useSendDisputeMessage() {
 
 // ── Price Alerts ──
 
-export function usePriceAlerts(params?: Record<string, any>) {
+export function usePriceAlerts(params?: Params) {
     return useQuery({
         queryKey: ["marketplace", "price-alerts", params],
-        queryFn: () => marketplaceApi.getMyPriceAlerts(params as any),
+        queryFn: () => marketplaceApi.getMyPriceAlerts(params),
     });
 }
 
 export function useCreatePriceAlert() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: (payload: any) => marketplaceApi.createPriceAlert(payload),
+        mutationFn: (payload: { card_id?: string; printing_id?: string; target_price: number; condition?: string }) => marketplaceApi.createPriceAlert(payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "price-alerts"] }),
     });
 }
@@ -255,7 +256,7 @@ export function useCreatePriceAlert() {
 export function useUpdatePriceAlert() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, payload }: { id: string; payload: any }) =>
+        mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) =>
             marketplaceApi.updatePriceAlert(id, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "price-alerts"] }),
     });
@@ -281,7 +282,7 @@ export function useSavedSearches() {
 export function useCreateSavedSearch() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: (payload: any) => marketplaceApi.createSavedSearch(payload),
+        mutationFn: (payload: { name?: string; query: string; filters?: Record<string, unknown>; notify?: boolean }) => marketplaceApi.createSavedSearch(payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "saved-searches"] }),
     });
 }

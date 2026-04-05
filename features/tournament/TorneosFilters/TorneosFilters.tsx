@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox, Button, Select, ListBox, Input, Accordion } from "@heroui/react";
+import { Checkbox, Button, Input, Accordion } from "@heroui/react";
 import { useFilterParams } from "@/lib/hooks/use-filter-params";
 import type { CatalogGame } from "@/lib/types/catalog";
 

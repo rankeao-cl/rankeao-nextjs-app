@@ -20,7 +20,7 @@ export default function TerminosPage() {
         <section>
           <h2>1. Identificación del prestador</h2>
           <p>
-            La plataforma <strong>Rankeao.cl</strong> (en adelante, "la Plataforma") es operada y administrada en el territorio de la República de Chile. Para consultas legales o comerciales, puedes contactarnos a través de <a href="mailto:contacto@rankeao.cl">contacto@rankeao.cl</a>.
+            La plataforma <strong>Rankeao.cl</strong> (en adelante, &quot;la Plataforma&quot;) es operada y administrada en el territorio de la República de Chile. Para consultas legales o comerciales, puedes contactarnos a través de <a href="mailto:contacto@rankeao.cl">contacto@rankeao.cl</a>.
           </p>
         </section>
 
@@ -127,7 +127,7 @@ export default function TerminosPage() {
         <section>
           <h2>9. Limitación de responsabilidad</h2>
           <p>
-            La Plataforma se proporciona "tal cual" y "según disponibilidad". No garantizamos la disponibilidad ininterrumpida del servicio ni la ausencia de errores. En la máxima medida permitida por la ley chilena:
+            La Plataforma se proporciona &quot;tal cual&quot; y &quot;según disponibilidad&quot;. No garantizamos la disponibilidad ininterrumpida del servicio ni la ausencia de errores. En la máxima medida permitida por la ley chilena:
           </p>
           <ul>
             <li>No somos responsables por las transacciones entre usuarios.</li>

@@ -36,6 +36,10 @@ import { useRouter } from "next/navigation";
 import { getRankForElo } from "@/lib/rankSystem";
 import type { Duel } from "@/lib/types/duel";
 import type { Clan } from "@/lib/types/clan";
+import type { UserProfile, Deck, CollectionItem, WishlistItem, RawFeedEntry, RawFeedUser } from "@/lib/types/social";
+import type { Badge, RawGameStat } from "@/lib/types/gamification";
+import type { Listing } from "@/lib/types/marketplace";
+import type { RatingHistoryPoint, UserTournamentHistoryEntry } from "@/lib/types/rating";
 
 type ProfileTab =
     | "actividad"
@@ -49,10 +53,10 @@ type ProfileTab =
 function toArray<T>(value: unknown): T[] {
     if (!value) return [];
     if (Array.isArray(value)) return value;
-    const v = value as any;
+    const v = value as Record<string, unknown>;
     if (Array.isArray(v.data)) return v.data;
     if (v.data && typeof v.data === "object") {
-        const inner = v.data as any;
+        const inner = v.data as Record<string, unknown>;
         if (Array.isArray(inner.activity)) return inner.activity;
         if (Array.isArray(inner.items)) return inner.items;
         if (Array.isArray(inner.collection)) return inner.collection;
@@ -65,6 +69,7 @@ function toArray<T>(value: unknown): T[] {
         if (Array.isArray(inner.following)) return inner.following;
         if (Array.isArray(inner.wishlist)) return inner.wishlist;
         if (Array.isArray(inner.history)) return inner.history;
+        if (Array.isArray(inner.rating_history)) return inner.rating_history;
         if (Array.isArray(inner.tournaments)) return inner.tournaments;
     }
     if (Array.isArray(v.items)) return v.items;
@@ -115,20 +120,20 @@ export default function PublicProfilePage({
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
-    const [profile, setProfile] = useState<any>(null);
-    const [activity, setActivity] = useState<any[]>([]);
-    const [decks, setDecks] = useState<any[]>([]);
-    const [collection, setCollection] = useState<any[]>([]);
-    const [badges, setBadges] = useState<any[]>([]);
-    const [allBadges, setAllBadges] = useState<any[]>([]);
-    const [friends, setFriends] = useState<any[]>([]);
-    const [followers, setFollowers] = useState<any[]>([]);
-    const [following, setFollowing] = useState<any[]>([]);
-    const [wishlist, setWishlist] = useState<any[]>([]);
-    const [listings, setListings] = useState<any[]>([]);
-    const [ratingHistory, setRatingHistory] = useState<any[]>([]);
-    const [gamiStats, setGamiStats] = useState<any>(null);
-    const [tournamentHistory, setTournamentHistory] = useState<any>(null);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [activity, setActivity] = useState<RawFeedEntry[]>([]);
+    const [decks, setDecks] = useState<Deck[]>([]);
+    const [collection, setCollection] = useState<CollectionItem[]>([]);
+    const [badges, setBadges] = useState<Badge[]>([]);
+    const [allBadges, setAllBadges] = useState<Badge[]>([]);
+    const [friends, setFriends] = useState<UserProfile[]>([]);
+    const [followers, setFollowers] = useState<UserProfile[]>([]);
+    const [following, setFollowing] = useState<UserProfile[]>([]);
+    const [, setWishlist] = useState<WishlistItem[]>([]);
+    const [listings, setListings] = useState<Listing[]>([]);
+    const [ratingHistory, setRatingHistory] = useState<RatingHistoryPoint[]>([]);
+    const [gamiStats, setGamiStats] = useState<Record<string, unknown> | null>(null);
+    const [tournamentHistory, setTournamentHistory] = useState<Record<string, unknown> | null>(null);
     const [userClan, setUserClan] = useState<Clan | null>(null);
     const [recentDuels, setRecentDuels] = useState<Duel[]>([]);
 
@@ -150,12 +155,13 @@ export default function PublicProfilePage({
 
         const fetchData = async () => {
             try {
-                const extractUser = (json: any): any => {
+                const extractUser = (json: Record<string, unknown>): UserProfile | null => {
                     if (!json) return null;
-                    if (json.data?.user) return json.data.user;
-                    if (json.user) return json.user;
-                    if (json.data?.id) return json.data;
-                    if (json.id) return json;
+                    const data = json.data as Record<string, unknown> | undefined;
+                    if (data && typeof data === "object" && "user" in data) return data.user as UserProfile;
+                    if (json.user) return json.user as UserProfile;
+                    if (data && typeof data === "object" && "id" in data) return data as unknown as UserProfile;
+                    if (json.id) return json as unknown as UserProfile;
                     return null;
                 };
 
@@ -168,7 +174,7 @@ export default function PublicProfilePage({
                         const json = await searchRes.json();
                         const users = json.users || json.data?.users || json.data || [];
                         const match = (Array.isArray(users) ? users : []).find(
-                            (u: any) => u.username?.toLowerCase() === usernameParam.toLowerCase()
+                            (u: { username?: string }) => u.username?.toLowerCase() === usernameParam.toLowerCase()
                         );
                         if (match?.username) {
                             resolvedUsername = match.username;
@@ -176,10 +182,10 @@ export default function PublicProfilePage({
                     }
                 } catch { /* search failed */ }
 
-                let profile: any = null;
+                let profile: UserProfile | null = null;
                 try {
                     const raw = await getUserProfile(resolvedUsername);
-                    profile = extractUser(raw);
+                    profile = extractUser(raw as unknown as Record<string, unknown>);
                 } catch { /* profile fetch failed */ }
 
                 if (!profile) {
@@ -227,8 +233,8 @@ export default function PublicProfilePage({
                 setFollowing(toArray(followingRes));
                 setWishlist(toArray(wishlistRes));
                 setRatingHistory(toArray(historyRes));
-                setGamiStats(gamiRes?.data || gamiRes);
-                setTournamentHistory(tourneyRes);
+                setGamiStats((gamiRes?.data ?? gamiRes) as Record<string, unknown> | null);
+                setTournamentHistory(tourneyRes as Record<string, unknown> | null);
 
                 // Clan del usuario (campo en perfil si viene de la API)
                 const clanData = profile?.clan || profile?.user_clan;
@@ -239,8 +245,11 @@ export default function PublicProfilePage({
                 // Marketplace listings y duelos — solo para perfil propio
                 const isOwn = session?.username?.toLowerCase() === username.toLowerCase();
                 if (userUUID && isOwn) {
-                    getListings({ seller_id: userUUID } as any)
-                        .then(res => setListings(res.listings || []))
+                    getListings({})
+                        .then(res => {
+                            const all = res.listings || [];
+                            setListings(all.filter(l => l.seller_id === userUUID || l.seller_username === username));
+                        })
                         .catch(() => setListings([]));
 
                     getDuels({ user_id: userUUID, per_page: 5, status: "COMPLETED" })
@@ -266,7 +275,7 @@ export default function PublicProfilePage({
             if (isFollowing) {
                 await unfollowUser(userId, session.accessToken);
                 setIsFollowing(false);
-                setFollowers((prev) => prev.filter((f: any) => f.user_id !== (session as any)?.user_id));
+                setFollowers((prev) => prev.filter((f) => f.username !== session?.username));
             } else {
                 await followUser(userId, session.accessToken);
                 setIsFollowing(true);
@@ -340,22 +349,23 @@ export default function PublicProfilePage({
     }
 
     // ── Derived from profile + gamification, fallback 0 ──
+    const gs = gamiStats as Record<string, number | string | unknown[] | Record<string, unknown> | null | undefined> | null;
     const name = profile?.display_name || profile?.name || profile?.username || usernameParam;
     const bio = profile?.bio || "";
-    const level = gamiStats?.level ?? profile?.level ?? 0;
-    const totalXp = gamiStats?.xp ?? gamiStats?.total_xp ?? profile?.total_xp ?? 0;
-    const xpToNextLevel = gamiStats?.xp_next_level ?? gamiStats?.xp_to_next_level ?? 0;
-    const currentLevelXp = Math.max(0, gamiStats?.xp_this_level ?? gamiStats?.current_level_xp ?? 0);
-    const rating = gamiStats?.peak_rating ?? gamiStats?.rating ?? profile?.rating ?? 0;
-    const winRate = gamiStats?.win_rate ?? profile?.win_rate ?? 0;
-    const tournamentsPlayed = gamiStats?.tournaments_played ?? profile?.tournaments_count ?? 0;
-    const tournamentsWon = gamiStats?.tournaments_won ?? 0;
-    const totalMatches = gamiStats?.total_matches ?? 0;
-    const currentStreak = gamiStats?.current_streak ?? 0;
-    const bestStreak = gamiStats?.best_streak ?? 0;
-    const peakRating = gamiStats?.peak_rating ?? 0;
-    const badgesCount = gamiStats?.badges_earned ?? profile?.badges_count ?? badges.length;
-    const xpRank = gamiStats?.xp_rank ?? 0;
+    const level = (gs?.level ?? profile?.level ?? 0) as number;
+    const totalXp = (gs?.xp ?? gs?.total_xp ?? profile?.total_xp ?? 0) as number;
+    const xpToNextLevel = (gs?.xp_next_level ?? gs?.xp_to_next_level ?? 0) as number;
+    const currentLevelXp = Math.max(0, (gs?.xp_this_level ?? gs?.current_level_xp ?? 0) as number);
+    const rating = (gs?.peak_rating ?? gs?.rating ?? profile?.rating ?? 0) as number;
+    const winRate = (gs?.win_rate ?? profile?.win_rate ?? 0) as number;
+    const tournamentsPlayed = (gs?.tournaments_played ?? profile?.tournaments_count ?? 0) as number;
+    const tournamentsWon = (gs?.tournaments_won ?? 0) as number;
+    const totalMatches = (gs?.total_matches ?? 0) as number;
+    const currentStreak = (gs?.current_streak ?? 0) as number;
+    const bestStreak = (gs?.best_streak ?? 0) as number;
+    const peakRating = (gs?.peak_rating ?? 0) as number;
+    const badgesCount = (gs?.badges_earned ?? profile?.badges_count ?? badges.length) as number;
+    const xpRank = (gs?.xp_rank ?? 0) as number;
 
     const followersCount = profile?.follower_count ?? profile?.followers_count ?? followers.length;
     const followingCount = profile?.following_count ?? following.length;
@@ -365,17 +375,16 @@ export default function PublicProfilePage({
     const isOwnProfile = session?.username === usernameParam;
 
     const location = [profile?.city, profile?.country].filter(Boolean).join(", ");
-    const rawTitle = gamiStats?.current_title ?? profile?.title ?? "";
-    const equippedTitle = typeof rawTitle === "object" && rawTitle !== null ? (rawTitle as any).name ?? "" : rawTitle;
+    const rawTitle = gs?.current_title ?? profile?.title ?? "";
+    const equippedTitle = typeof rawTitle === "object" && rawTitle !== null ? (rawTitle as { name?: string }).name ?? "" : String(rawTitle);
 
     const gamesList: string[] = profile?.games
-        ? profile.games.map((g: any) => typeof g === "string" ? g : g.name)
+        ? profile.games.map((g) => typeof g === "string" ? g : g.name ?? "")
         : [];
 
     const xpProgress = xpToNextLevel > 0 ? Math.min(100, Math.round((currentLevelXp / xpToNextLevel) * 100)) : 0;
 
-    // Borde de avatar según nivel
-    const levelBorderColor = level >= 50 ? "var(--purple)" : level >= 25 ? "var(--warning)" : level >= 10 ? "var(--accent)" : "";
+    // Borde de avatar según nivel (reserved for future use)
 
     // User type badges
     const isVerified = profile?.is_verified || profile?.verified;
@@ -384,8 +393,9 @@ export default function PublicProfilePage({
     const isModerator = profile?.role === "moderator" || profile?.is_moderator;
 
     // Tournament history data
-    const tournamentEntries = toArray(tournamentHistory) as any[];
-    const tournamentStats = tournamentHistory?.stats;
+    const tournamentEntries = toArray<UserTournamentHistoryEntry>(tournamentHistory);
+    const thData = (tournamentHistory as Record<string, unknown>)?.data as Record<string, unknown> | undefined;
+    const tournamentStats = (thData?.stats ?? (tournamentHistory as Record<string, unknown>)?.stats) as { total_tournaments?: number; total_wins?: number; top4_finishes?: number; win_rate?: number } | undefined;
 
     // Rank
     const rank = getRankForElo(rating || 1000);
@@ -403,8 +413,8 @@ export default function PublicProfilePage({
         return "var(--danger)";
     })();
 
-    const handleProfileUpdated = (updatedProfile: any) => {
-        setProfile((prev: any) => ({ ...prev, ...updatedProfile }));
+    const handleProfileUpdated = (updatedProfile: Partial<UserProfile>) => {
+        setProfile((prev) => prev ? { ...prev, ...updatedProfile } : prev);
         setShowEditModal(false);
     };
 
@@ -494,8 +504,8 @@ export default function PublicProfilePage({
         <div>
             {activeTab === "actividad" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                    {activity.length > 0 ? activity.map((item: any, i: number) => {
-                        const user = item.user ?? {};
+                    {activity.length > 0 ? activity.map((item, i) => {
+                        const user: Partial<RawFeedUser> = item.user ?? {};
                         const itemType = (item.type ?? "").toUpperCase();
                         if (itemType === "POST") {
                             const post: FeedPost = {
@@ -540,18 +550,18 @@ export default function PublicProfilePage({
                             {decks.map((deck, i) => {
                                 const normalized = {
                                     id: deck.id,
-                                    user_id: deck.user_id || deck.owner?.id || "",
-                                    name: deck.name || deck.deck_name || "",
+                                    user_id: deck.user_id || "",
+                                    name: deck.name || "",
                                     is_public: deck.is_public ?? true,
                                     author: {
                                         username: deck.owner?.username || deck.username || profile?.username || "",
                                         avatar_url: deck.owner?.avatar_url,
                                     },
-                                    deck_name: deck.name || deck.deck_name || "",
+                                    deck_name: deck.name || "",
                                     game: deck.game_name || deck.game || "",
                                     format: deck.format_name || deck.format || "",
                                     card_count: deck.card_count ?? deck.cards?.length ?? 0,
-                                    preview_images: deck.cards?.slice(0, 4).map((c: any) => c.image_url).filter(Boolean),
+                                    preview_images: deck.cards?.slice(0, 4).map((c) => c.image_url).filter(Boolean),
                                     created_at: deck.created_at || "",
                                 };
                                 return <DeckCard key={deck.id || i} deck={normalized} />;
@@ -574,7 +584,7 @@ export default function PublicProfilePage({
                     rating={rating} peakRating={peakRating} winRate={winRate}
                     totalMatches={totalMatches} tournamentsPlayed={tournamentsPlayed}
                     tournamentsWon={tournamentsWon} currentStreak={currentStreak}
-                    bestStreak={bestStreak} ratingHistory={ratingHistory} gamiStats={gamiStats}
+                    bestStreak={bestStreak} ratingHistory={ratingHistory} gamiStats={gamiStats ?? {}}
                 />
             )}
             {activeTab === "marketplace" && (
@@ -583,7 +593,7 @@ export default function PublicProfilePage({
             {activeTab === "logros" && (
                 <ProfileLogrosTab
                     earnedBadges={badges} allBadges={allBadges}
-                    badgesCount={badgesCount} gamiStats={gamiStats} isOwnProfile={isOwnProfile}
+                    badgesCount={badgesCount} gamiStats={gamiStats ?? undefined} isOwnProfile={isOwnProfile}
                 />
             )}
         </div>
@@ -961,7 +971,7 @@ export default function PublicProfilePage({
                             )}
 
                             {/* ELO por juego */}
-                            {Array.isArray(gamiStats?.game_stats) && gamiStats.game_stats.length > 0 && (
+                            {Array.isArray(gs?.game_stats) && (gs.game_stats as RawGameStat[]).length > 0 && (
                                 <div style={{
                                     backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 14,
                                     border: "1px solid var(--border)", padding: 14,
@@ -970,9 +980,11 @@ export default function PublicProfilePage({
                                         Rating por juego
                                     </p>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
-                                        {(gamiStats.game_stats as any[]).map((gs: any, i: number) => {
-                                            const gameName: string = gs.game || gs.name || "Juego";
-                                            const gameRating: number = gs.rating ?? gs.elo ?? gs.current_rating ?? 0;
+                                        {(gs!.game_stats as RawGameStat[]).map((gameStat, i) => {
+                                            const gameValue = gameStat.game;
+                                            const gameName: string = (typeof gameValue === "string" ? gameValue : gameValue?.name) || gameStat.name || "Juego";
+                                            const gameStatRecord = gameStat as Record<string, unknown>;
+                                            const gameRating: number = (gameStatRecord.rating ?? gameStatRecord.elo ?? gameStatRecord.current_rating ?? 0) as number;
                                             const gameRank = getRankForElo(gameRating);
                                             return (
                                                 <div key={gameName + i} style={{
@@ -1003,7 +1015,7 @@ export default function PublicProfilePage({
                                         Insignias ({badgesCount})
                                     </p>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-                                        {badges.slice(0, 6).map((badge: any, i: number) => (
+                                        {badges.slice(0, 6).map((badge, i) => (
                                             <div key={badge.id || badge.slug || i} style={{
                                                 display: "flex", flexDirection: "column", alignItems: "center",
                                                 gap: 4, width: 64,
@@ -1032,7 +1044,7 @@ export default function PublicProfilePage({
                                         Amigos ({friends.length})
                                     </p>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 10 }}>
-                                        {friends.slice(0, 5).map((friend: any, i: number) => (
+                                        {friends.slice(0, 5).map((friend, i) => (
                                             <a
                                                 key={friend.user_id || friend.id || i}
                                                 href={`/perfil/${friend.username}`}
@@ -1088,10 +1100,10 @@ function EditProfileModal({
     onClose,
     onSaved,
 }: {
-    profile: any;
+    profile: UserProfile;
     token?: string;
     onClose: () => void;
-    onSaved: (updated: any) => void;
+    onSaved: (updated: Partial<UserProfile>) => void;
 }) {
     const [bio, setBio] = useState(profile?.bio || "");
     const [city, setCity] = useState(profile?.city || "");
@@ -1122,8 +1134,8 @@ function EditProfileModal({
 
             await updateProfile(payload, token);
             onSaved({ ...profile, ...payload });
-        } catch (err: any) {
-            console.error(err?.message || "Error al actualizar perfil");
+        } catch (err: unknown) {
+            console.error(err instanceof Error ? err.message : "Error al actualizar perfil");
         } finally {
             setSaving(false);
         }

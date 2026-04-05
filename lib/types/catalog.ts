@@ -95,7 +95,10 @@ export interface LegalityEntry {
 
 export interface AutocompleteResult {
     id: string;
+    card_id?: string;
+    printing_id?: string;
     name: string;
+    card_name?: string;
     set_code?: string;
     collector_number?: string;
     image_url?: string;
@@ -112,3 +115,55 @@ export interface GamesResponse {
     data?: CatalogGame[];
     games?: CatalogGame[];
 }
+
+// ── Raw card detail API response shapes ──
+
+export interface BackendCardData {
+    source?: string;
+    card: {
+        name: string;
+        type_line?: string;
+        oracle_text?: string;
+        flavor_text?: string;
+        metadata?: Record<string, unknown>;
+        printings?: Printing[];
+        legality?: { format_slug: string; format_name: string; legality: string }[];
+    };
+    scryfall_card?: undefined;
+}
+
+export interface ScryfallCardFace {
+    type_line?: string;
+    oracle_text?: string;
+    colors?: string[];
+    image_uris?: Record<string, string>;
+}
+
+export interface ScryfallCardData {
+    source?: string;
+    card?: undefined;
+    scryfall_card: {
+        name: string;
+        type_line?: string;
+        oracle_text?: string;
+        flavor_text?: string;
+        mana_cost?: string;
+        cmc?: number;
+        colors?: string[];
+        image_uris?: Record<string, string>;
+        card_faces?: ScryfallCardFace[];
+        rarity?: string;
+        set_name?: string;
+        set?: string;
+        artist?: string;
+        prices?: Record<string, string>;
+        finishes?: string[];
+        legalities?: Record<string, string>;
+        power?: string;
+        toughness?: string;
+        loyalty?: string;
+        keywords?: string[];
+    };
+}
+
+export type CardData = BackendCardData | ScryfallCardData;

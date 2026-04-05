@@ -3,6 +3,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import * as gamificationApi from "@/lib/api/gamification";
 import type { XpPeriod } from "@/lib/types/gamification";
+import type { Params } from "@/lib/types/api";
 
 // ── XP Leaderboard ──
 
@@ -31,17 +32,17 @@ export function useBadgeCategories() {
 
 // ── Cosmetics / Titles ──
 
-export function useCosmetics(params?: Record<string, any>) {
+export function useCosmetics(params?: Params) {
     return useQuery({
         queryKey: ["gamification", "cosmetics", params],
-        queryFn: () => gamificationApi.getCosmetics(params as any),
+        queryFn: () => gamificationApi.getCosmetics(params),
     });
 }
 
-export function useTitles(params?: Record<string, any>) {
+export function useTitles(params?: Params) {
     return useQuery({
         queryKey: ["gamification", "titles", params],
-        queryFn: () => gamificationApi.getTitles(params as any),
+        queryFn: () => gamificationApi.getTitles(params),
     });
 }
 
@@ -64,10 +65,10 @@ export function useGamificationSeasons() {
     });
 }
 
-export function useSeasonLeaderboard(seasonId: string, params?: Record<string, any>) {
+export function useSeasonLeaderboard(seasonId: string, params?: Params) {
     return useQuery({
         queryKey: ["gamification", "seasons", seasonId, "leaderboard", params],
-        queryFn: () => gamificationApi.getSeasonLeaderboard(seasonId, params as any),
+        queryFn: () => gamificationApi.getSeasonLeaderboard(seasonId, params),
         enabled: !!seasonId,
     });
 }

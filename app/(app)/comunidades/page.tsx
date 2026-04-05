@@ -3,6 +3,7 @@ import { getClans } from "@/lib/api/clans";
 import type { Tenant } from "@/lib/types/tenant";
 import type { Clan } from "@/lib/types/clan";
 import type { Metadata } from "next";
+import Link from "next/link";
 import ComunidadesClient from "./ComunidadesClient";
 
 export const metadata: Metadata = {
@@ -39,7 +40,7 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
         search: params.q,
         per_page: 30,
       }).catch(() => null);
-      const raw = (data as any)?.data?.clans ?? (data as any)?.clans ?? (data as any)?.data;
+      const raw = data?.data?.clans ?? data?.clans ?? data?.data;
       clans = Array.isArray(raw) ? raw : [];
     } catch {
       // silent
@@ -160,7 +161,7 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
             </p>
           </div>
           {isClanes && (
-            <a
+            <Link
               href="/clanes/new"
               style={{
                 display: "flex", flexDirection: "row", alignItems: "center", gap: 4,
@@ -173,14 +174,14 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
               </svg>
               <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Crear</span>
-            </a>
+            </Link>
           )}
         </div>
       </div>
 
       {/* ── Segment control ── */}
       <div className="mx-4 lg:mx-6 mb-3 flex items-center gap-2">
-        <a
+        <Link
           href="/comunidades"
           style={{
             padding: "8px 18px",
@@ -194,8 +195,8 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
           }}
         >
           Tiendas
-        </a>
-        <a
+        </Link>
+        <Link
           href="/comunidades?type=clanes"
           style={{
             padding: "8px 18px",
@@ -209,7 +210,7 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
           }}
         >
           Clanes
-        </a>
+        </Link>
       </div>
 
       <ComunidadesClient

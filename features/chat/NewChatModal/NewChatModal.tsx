@@ -77,8 +77,8 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             if (!session?.accessToken) return;
             setIsLoading(true);
             try {
-                const val = await autocompleteUsers(search, session.accessToken) as any;
-                const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
+                const val = await autocompleteUsers(search, session.accessToken);
+                const users = val?.data || val?.users || [];
                 const filtered = users.filter((u: UserSuggestion) => u.username !== session.username);
                 setSuggestions(filtered);
             } catch (error) {
@@ -129,10 +129,10 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             const channel = res?.data?.channel ?? res?.channel;
             if (channel) onChannelCreated(channel);
             onOpenChange(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error al crear chat:", error);
             toast.danger(mode === "dm" ? "Error al iniciar el chat" : "Error al crear el grupo", {
-                description: error.message || "No se pudo crear la conversacion."
+                description: error instanceof Error ? error.message : "No se pudo crear la conversacion."
             });
         } finally {
             setIsCreating(false);

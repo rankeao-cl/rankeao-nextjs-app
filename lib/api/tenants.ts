@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiDelete } from "./client";
+import { apiFetch, apiPost } from "./client";
 import type { TenantsResponse, TenantFilters, Tenant, TenantEvent, TenantReviewsResponse, CreateTenantReviewRequest, CreateTenantRequest } from "@/lib/types/tenant";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 

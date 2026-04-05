@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { RatingLeaderboardResponse, Season, SeasonsResponse, SeasonSnapshotsResponse, UserTournamentHistoryResponse } from "@/lib/types/rating";
+import type { RatingLeaderboardResponse, SeasonsResponse, SeasonSnapshotsResponse, UserTournamentHistoryResponse } from "@/lib/types/rating";
 import type { RatingProfile } from "@/lib/types/rating";
 import type { Params } from "@/lib/types/api";
 

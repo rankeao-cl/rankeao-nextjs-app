@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollShadow } from "@heroui/react";
-import { Bell, Person, ShoppingCart, TargetDart, Xmark, Cup } from "@gravity-ui/icons";
+import { Bell, ShoppingCart, TargetDart, Xmark, Cup } from "@gravity-ui/icons";
 import { timeAgo, stripHtml } from "@/lib/utils/format";
 import {
     getNotifications,
@@ -200,7 +200,7 @@ function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClos
 
     const handleClick = () => {
         if (!notif.is_read && accessToken) {
-            markNotificationRead(notif.id, accessToken).catch(() => {});
+            markNotificationRead(String(notif.id), accessToken).catch(() => {});
         }
         onClose();
     };

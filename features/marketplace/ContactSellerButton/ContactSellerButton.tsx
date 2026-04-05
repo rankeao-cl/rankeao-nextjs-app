@@ -13,7 +13,7 @@ interface Props {
     listingId: string;
 }
 
-export default function ContactSellerButton({ sellerUsername, listingTitle, listingId }: Props) {
+export default function ContactSellerButton({ sellerUsername, listingId }: Props) {
     const router = useRouter();
     const { session, status } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -32,9 +32,10 @@ export default function ContactSellerButton({ sellerUsername, listingTitle, list
         setLoading(true);
         try {
             // Resolve the seller's user_id from their username
-            const usersRes = await autocompleteUsers(sellerUsername, session.accessToken) as any;
-            const users = usersRes?.data?.users || usersRes?.users || (Array.isArray(usersRes) ? usersRes : []);
-            const seller = users.find((u: any) => u.username === sellerUsername);
+            const usersRes = await autocompleteUsers(sellerUsername, session.accessToken) as
+                { data?: { users?: { id: string; username: string }[] }; users?: { id: string; username: string }[] };
+            const users = usersRes?.data?.users || usersRes?.users || [];
+            const seller = users.find((u) => u.username === sellerUsername);
 
             if (!seller?.id) {
                 toast.danger("No se encontro al vendedor.");

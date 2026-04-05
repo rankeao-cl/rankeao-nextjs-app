@@ -140,9 +140,9 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
   );
 }
 
-async function CalendarTournaments({ params }: { params: Record<string, string | undefined> }) {
+async function CalendarTournaments() {
   // Fetch upcoming + live tournaments for the calendar view
-  let allTournaments: Tournament[] = [];
+  const allTournaments: Tournament[] = [];
   try {
     const [upcoming, live, past] = await Promise.all([
       getTournaments({ status: "OPEN", sort: "upcoming", per_page: 50 }).catch(() => null),
@@ -314,7 +314,7 @@ export default async function TorneosPage({ searchParams }: Props) {
         <main className="flex-1 min-w-0">
           {currentView === "calendar" ? (
             <Suspense key="calendar" fallback={<TournamentsSkeleton />}>
-              <CalendarTournaments params={params} />
+              <CalendarTournaments />
             </Suspense>
           ) : (
             <Suspense key={JSON.stringify(params)} fallback={<TournamentsSkeleton />}>

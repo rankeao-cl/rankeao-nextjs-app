@@ -83,8 +83,8 @@ export interface SeasonSnapshotsResponse {
 export interface UserTournamentHistoryEntry {
     tournament_id: string;
     tournament_name: string;
-    game: string;
-    format: string;
+    game: string | { name?: string };
+    format: string | { name?: string };
     status: string;
     position?: number;
     wins?: number;

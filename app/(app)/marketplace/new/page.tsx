@@ -77,7 +77,7 @@ export default function NewListingPage() {
         const timer = setTimeout(() => {
             autocompleteCards(cardSearch, gameId || undefined)
                 .then((res) => {
-                    const results = res?.results ?? (res as any)?.data ?? [];
+                    const results = res?.results ?? [];
                     if (Array.isArray(results)) setCardResults(results);
                 })
                 .catch(() => setCardResults([]));
@@ -147,7 +147,7 @@ export default function NewListingPage() {
             });
             toast.success("Publicacion creada exitosamente");
             router.push("/marketplace");
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.danger(mapErrorMessage(err));
         } finally {
             setLoading(false);

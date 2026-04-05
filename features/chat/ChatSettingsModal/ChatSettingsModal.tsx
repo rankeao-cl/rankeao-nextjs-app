@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { toast } from "@heroui/react";
-import { Persons, ArrowRightFromSquare, BellSlash, Bell, Person } from "@gravity-ui/icons";
+import { ArrowRightFromSquare, BellSlash, Bell } from "@gravity-ui/icons";
 import { muteChannel, unmuteChannel, leaveChannel } from "@/lib/api/chat";
 import { useAuth } from "@/lib/hooks/use-auth";
 import type { Channel } from "@/lib/types/chat";
@@ -163,15 +163,6 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
     const isCommunity = channel.type === "CLAN" || channel.type === "TOURNAMENT";
     const members = channel.members ?? [];
     const myUsername = session?.username;
-
-    let otherUser = null;
-    if (channel.type === "DM" && myUsername) {
-        otherUser = members.find(m => m.username !== myUsername) ?? null;
-    }
-
-    const displayName = channel.type === "DM" && otherUser
-        ? otherUser.username
-        : channel.name || "Canal";
 
     const handleToggleMute = async () => {
         if (!token || !channel) return;

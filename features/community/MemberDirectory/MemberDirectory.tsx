@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Select, ListBox, Input } from "@heroui/react";
+import { Select, ListBox, Input } from "@heroui/react";
 import { Magnifier } from "@gravity-ui/icons";
 import MemberCard from "@/features/clan/MemberCard";
+import type { ClanMemberCard } from "@/lib/types/clan";
 
 interface MemberProps {
-    members: any[]; // Adjust this later with correct types
+    members: ClanMemberCard[];
 }
 
 export default function MemberDirectory({ members }: MemberProps) {

@@ -23,7 +23,7 @@ interface SavedSearch {
   id: string;
   name: string;
   search_type: string;
-  filters: any;
+  filters: Record<string, unknown>;
   notify: boolean;
   last_checked_at: string;
   created_at: string;
@@ -56,7 +56,7 @@ const FILTER_LABELS: Record<string, string> = {
   game: "Juego",
 };
 
-function buildFiltersSummary(filters: any): string {
+function buildFiltersSummary(filters: Record<string, unknown>): string {
   if (!filters || typeof filters !== "object") return "Sin filtros";
   const parts: string[] = [];
   for (const [key, value] of Object.entries(filters)) {
@@ -71,7 +71,7 @@ function buildFiltersSummary(filters: any): string {
   return parts.length > 0 ? parts.join(" · ") : "Sin filtros";
 }
 
-function buildQueryParams(filters: any): string {
+function buildQueryParams(filters: Record<string, unknown>): string {
   if (!filters || typeof filters !== "object") return "";
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
@@ -162,7 +162,7 @@ function SearchCard({
 // ── Main Page ──
 
 export default function SavedSearchesPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
   const router = useRouter();
 
@@ -173,7 +173,7 @@ export default function SavedSearchesPage() {
 
   const searches: SavedSearch[] = (() => {
     if (!data) return [];
-    const raw = (data as any)?.data ?? (data as any)?.saved_searches ?? (data as any)?.searches ?? data;
+    const raw = (data as { data?: SavedSearch[]; saved_searches?: SavedSearch[] })?.data ?? (data as { saved_searches?: SavedSearch[] })?.saved_searches ?? data;
     return Array.isArray(raw) ? raw : [];
   })();
 
@@ -183,8 +183,8 @@ export default function SavedSearchesPage() {
       await deleteSearch.mutateAsync(id);
       toast.success("Busqueda eliminada");
       refetch();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al eliminar busqueda");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al eliminar busqueda");
     } finally {
       setDeletingId(null);
     }

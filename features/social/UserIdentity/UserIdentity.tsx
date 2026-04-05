@@ -69,21 +69,19 @@ export function UserDisplayName({ user, className = "", showBadges = true }: Pro
     );
 }
 
-export function getUserRoleData(apiUser: any): UserRoleData {
+export function getUserRoleData(apiUser: Record<string, unknown> | null | undefined): UserRoleData {
     if (!apiUser) return { name: "Usuario" };
 
-    // Simulate reading roles from API user object. 
-    // Usually apiUser might have an array of roles or specific flags.
-    // For MVP we map them if they exist, or default to some strings for showcase.
-    const name = apiUser.display_name || apiUser.name || apiUser.username || "Usuario";
+    const name = (apiUser.display_name || apiUser.name || apiUser.username || "Usuario") as string;
+    const roles = Array.isArray(apiUser.roles) ? apiUser.roles as string[] : [];
 
     return {
         name,
         isVerified: apiUser.verified === true || apiUser.is_verified === true,
-        isPremium: apiUser.premium === true || (apiUser.roles && apiUser.roles.includes("premium")),
+        isPremium: apiUser.premium === true || roles.includes("premium"),
         isStore: apiUser.type === "store" || apiUser.is_store === true,
-        isStoreStaff: apiUser.roles && apiUser.roles.includes("store_staff"),
-        isModerator: apiUser.roles && apiUser.roles.includes("moderator"),
-        isSupporter: apiUser.roles && apiUser.roles.includes("supporter"),
+        isStoreStaff: roles.includes("store_staff"),
+        isModerator: roles.includes("moderator"),
+        isSupporter: roles.includes("supporter"),
     };
 }

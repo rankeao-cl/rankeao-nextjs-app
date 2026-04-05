@@ -94,7 +94,7 @@ export default function FeedListingCard({ listing }: { listing: Listing }) {
                                 <p style={{
                                     margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)",
                                     lineHeight: 1.3,
-                                    display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as any, overflow: "hidden",
+                                    display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
                                 }}>
                                     {listing.title}
                                 </p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Chip } from "@heroui/react";
-import { Cup, Clock } from "@gravity-ui/icons";
+import { Clock } from "@gravity-ui/icons";
 import Link from "next/link";
 import type { UserTournamentHistoryEntry } from "@/lib/types/rating";
 
@@ -20,7 +20,7 @@ export default function ProfileTournamentsTab({
     tournamentsPlayed,
     tournamentsWon,
 }: {
-    tournaments: any[];
+    tournaments: UserTournamentHistoryEntry[];
     stats?: TournamentStats;
     tournamentsPlayed: number;
     tournamentsWon: number;

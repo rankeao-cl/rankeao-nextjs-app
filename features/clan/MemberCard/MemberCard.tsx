@@ -1,6 +1,7 @@
 import Image from "next/image";
+import type { ClanMemberCard } from "@/lib/types/clan";
 
-export default function MemberCard({ member }: { member: any }) {
+export default function MemberCard({ member }: { member: ClanMemberCard }) {
     return (
         <div className="flex items-center gap-3 p-3 bg-[var(--surface-secondary)] border border-[var(--border)] rounded-xl hover:bg-[var(--surface-sunken)] transition-colors">
             <div className="w-10 h-10 rounded-full bg-[var(--surface-tertiary)] border border-[var(--border)] flex-shrink-0 flex items-center justify-center overflow-hidden">

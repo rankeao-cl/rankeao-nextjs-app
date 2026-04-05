@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let name = "Clan";
   try {
     const data = await getClan(id).catch(() => null);
-    const clan = (data as any)?.data?.clan ?? (data as any)?.clan ?? (data as any)?.data ?? data;
+    const clan = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null | undefined;
     if (clan?.name) name = clan.name;
   } catch {}
   return { title: name, description: `Clan ${name} en Rankeao.` };
@@ -25,7 +25,7 @@ export default async function ClanDetailPage({ params }: Props) {
 
   try {
     const data = await getClan(id).catch(() => null);
-    clan = ((data as any)?.data?.clan ?? (data as any)?.clan ?? (data as any)?.data ?? data) as ClanDetail | null;
+    clan = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null;
   } catch {}
 
   if (!clan) {
@@ -46,7 +46,8 @@ export default async function ClanDetailPage({ params }: Props) {
   const officers = members.filter((m) => m.role === "OFFICER");
   const regularMembers = members.filter((m) => m.role === "MEMBER");
   const memberCount = clan.member_count ?? members.length;
-  const hasRating = clan.rating != null && clan.rating > 0;
+  const clanRating = clan.clan_rating ?? clan.rating;
+  const hasRating = clanRating != null && clanRating > 0;
 
   return (
     <div className="max-w-3xl mx-auto" style={{ paddingBottom: 48 }}>
@@ -129,7 +130,7 @@ export default async function ClanDetailPage({ params }: Props) {
             </span>
           )}
           {hasRating && (
-            <span><span style={{ color: "var(--warning)" }}>★</span> {clan.rating!.toFixed(1)}</span>
+            <span><span style={{ color: "var(--warning)" }}>★</span> {clanRating}</span>
           )}
         </div>
 
@@ -198,7 +199,7 @@ function MemberRow({
   roleLabel,
   roleColor,
 }: {
-  member: { user_id: string; username: string; avatar_url?: string; role: string; rating?: number };
+  member: { user_id: string; username: string; display_name?: string; avatar_url?: string; role: string; rating?: number };
   roleLabel?: string;
   roleColor?: string;
 }) {
@@ -221,7 +222,7 @@ function MemberRow({
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {member.username}
+            {member.display_name || member.username}
           </p>
           {roleLabel && (
             <p style={{ fontSize: 10, fontWeight: 700, color: roleColor || "var(--muted)", margin: 0, marginTop: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>

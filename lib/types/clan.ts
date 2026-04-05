@@ -12,12 +12,20 @@ export interface Clan {
     banner_url?: string;
     is_recruiting?: boolean;
     recruit_min_elo?: number;
+    max_members?: number;
     city?: string;
     country_code?: string;
     game_id?: string;
     game_name?: string;
+    game_slug?: string;
     member_count?: number;
+    clan_rating?: number;
     rating?: number;
+    wins?: number;
+    losses?: number;
+    leader_id?: string;
+    leader_name?: string;
+    metadata?: Record<string, unknown>;
     created_at?: string;
     updated_at?: string;
 }
@@ -31,10 +39,19 @@ export interface ClanDetail extends Clan {
 export interface ClanMember {
     user_id: string;
     username: string;
+    display_name?: string;
     avatar_url?: string;
     role: ClanRole;
     joined_at: string;
     rating?: number;
+}
+
+/** Simplified member shape used by card/directory UI components. */
+export interface ClanMemberCard {
+    id: string;
+    username: string;
+    avatar_url?: string;
+    role?: string;
 }
 
 export interface ClanStats {

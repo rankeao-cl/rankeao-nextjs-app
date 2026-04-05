@@ -7,13 +7,13 @@ export interface Tournament {
     slug?: string;
     name: string;
     status: string;
-    game: string;
+    game?: string;
     game_id?: string;
     game_name?: string;
     game_logo_url?: string;
     banner_url?: string;
     logo_url?: string;
-    format: string;
+    format?: string;
     format_id?: string;
     format_name?: string;
     structure?: string; // SWISS | SINGLE_ELIMINATION | DOUBLE_ELIMINATION | ROUND_ROBIN
@@ -47,8 +47,14 @@ export interface Tournament {
     tenant_name?: string;
     tenant_slug?: string;
     tenant_logo_url?: string;
+    origin?: string;
+    is_qualifier?: boolean;
+    currency?: string;
+    game_slug?: string;
+    format_type?: string;
     organizer_id?: string;
     organizer_username?: string;
+    organizer_name?: string;
     inscription_url?: string;
     stream_url?: string;
     venue_name?: string;
@@ -56,14 +62,26 @@ export interface Tournament {
 }
 
 export interface TournamentDetail extends Tournament {
+    region?: string;
+    format_slug?: string;
+    min_players?: number;
+    allow_self_report?: boolean;
+    platform_fee_pct?: number;
+    finished_at?: string;
+    user_role?: string;
+    is_following?: boolean;
+    followers_count?: number;
     rounds?: Round[];
     standings?: Standing[];
     judges?: TournamentJudge[];
     prizes?: TournamentPrize[];
+    qualifier_tournaments?: unknown[];
+    parent_tournaments?: unknown[];
     my_registration?: {
         status: string;
         registered_at?: string;
         checked_in?: boolean;
+        checked_in_at?: string;
         deck_id?: string;
     };
 }
@@ -77,20 +95,31 @@ export interface Round {
     matches?: Match[];
 }
 
+export interface MatchPlayer {
+    user_id: string;
+    username: string;
+}
+
 export interface Match {
     id: string;
     round_number?: number;
     table_number?: number;
     status: string;
-    player1_id: string;
+    player1_id?: string;
     player1_username?: string;
     player2_id?: string;
     player2_username?: string;
+    player1?: MatchPlayer;
+    player2?: MatchPlayer;
     player1_wins?: number;
     player2_wins?: number;
     draws?: number;
     winner_id?: string;
     reported_by?: string;
+    reported_at?: string;
+    confirmed_at?: string;
+    disputed_by?: string;
+    disputed_at?: string;
     is_bye?: boolean;
     started_at?: string;
     ended_at?: string;
@@ -116,6 +145,7 @@ export interface TournamentJudge {
     user_id: string;
     username: string;
     role: string;
+    is_head_judge?: boolean;
 }
 
 export interface TournamentPrize {

@@ -6,6 +6,7 @@ export interface UserProfile {
     id: string;
     username: string;
     display_name?: string;
+    name?: string;
     avatar_url?: string;
     banner_url?: string;
     bio?: string;
@@ -26,10 +27,25 @@ export interface UserProfile {
     friend_request_id?: string;
     // Stats
     friends_count?: number;
+    follower_count?: number;
     followers_count?: number;
     following_count?: number;
     badges_count?: number;
     tournaments_count?: number;
+    // Extended profile fields
+    user_id?: string;
+    rating?: number;
+    win_rate?: number;
+    games?: (string | { name?: string })[];
+    role?: string;
+    is_verified?: boolean;
+    verified?: boolean;
+    is_premium?: boolean;
+    premium?: boolean;
+    is_admin?: boolean;
+    is_moderator?: boolean;
+    clan?: { id: string; name: string; tag: string; logo_url?: string };
+    user_clan?: { id: string; name: string; tag: string; logo_url?: string };
     created_at?: string;
 }
 
@@ -72,7 +88,12 @@ export interface Deck {
     is_public: boolean;
     tags?: string[];
     like_count?: number;
+    likes_count?: number;
     view_count?: number;
+    is_liked?: boolean;
+    card_count?: number;
+    avatar_url?: string;
+    owner?: { username?: string; avatar_url?: string };
     cards?: DeckCard[];
     created_at?: string;
     updated_at?: string;
@@ -118,10 +139,17 @@ export interface FeedPost {
     user_id?: string;
     username?: string;
     avatar_url?: string;
-    content: string;
+    content?: string;
+    description?: string;
+    text?: string;
     image_url?: string;
+    images?: string[];
     like_count?: number;
+    likes_count?: number;
     comment_count?: number;
+    comments_count?: number;
+    is_liked?: boolean;
+    user?: { username?: string; avatar_url?: string; [key: string]: unknown };
     created_at: string;
     updated_at?: string;
 }
@@ -157,4 +185,55 @@ export interface UserSearchResult {
     id: string;
     username: string;
     avatar_url?: string;
+}
+
+// ── Raw Feed API response shapes ──
+
+export interface RawFeedUser {
+    id?: string;
+    username?: string;
+    display_name?: string;
+    avatar_url?: string;
+    rating?: number;
+    rank_badge?: string;
+}
+
+export interface RawFeedMeta {
+    duel_id?: string;
+    deck_id?: string;
+    deck_name?: string;
+    game_name?: string;
+    format_name?: string;
+    best_of?: number;
+    views_count?: number;
+    cards?: Deck["cards"];
+    [key: string]: unknown;
+}
+
+export interface RawFeedEntry {
+    id: string;
+    type?: string;
+    item_type?: string;
+    user?: RawFeedUser;
+    user_id?: string;
+    username?: string;
+    avatar_url?: string;
+    entity_id?: string;
+    entity_type?: string;
+    title?: string;
+    description?: string;
+    text?: string;
+    content?: string;
+    image_url?: string;
+    images?: string[];
+    tags?: string[];
+    game?: string;
+    game_name?: string;
+    metadata?: RawFeedMeta;
+    likes_count?: number;
+    like_count?: number;
+    is_liked?: boolean;
+    comments_count?: number;
+    comment_count?: number;
+    created_at?: string;
 }

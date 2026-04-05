@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Chip, Button, Spinner, Input, toast } from "@heroui/react";
+import { Card, Chip, Button, Spinner, toast } from "@heroui/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -15,7 +15,6 @@ import {
   TriangleExclamation,
   CircleCheck,
   Clock,
-  Magnifier,
   Comment,
   FileText,
   ArrowShapeRight,
@@ -266,7 +265,7 @@ export default function DisputeDetailPage() {
 
   const dispute: Dispute | null = (() => {
     if (!data) return null;
-    const raw = (data as any)?.data ?? (data as any)?.dispute ?? data;
+    const raw = data?.data ?? data?.dispute ?? data;
     return raw as Dispute;
   })();
 
@@ -278,8 +277,8 @@ export default function DisputeDetailPage() {
       });
       toast.success("Evidencia agregada");
       refetch();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al agregar evidencia");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al agregar evidencia");
     }
   }
 
@@ -291,8 +290,8 @@ export default function DisputeDetailPage() {
       });
       toast.success("Mensaje enviado");
       refetch();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al enviar mensaje");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al enviar mensaje");
     }
   }
 

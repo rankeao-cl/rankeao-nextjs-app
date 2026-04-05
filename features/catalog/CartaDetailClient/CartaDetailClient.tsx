@@ -6,22 +6,7 @@ import Link from "next/link";
 import { ChevronLeft } from "@gravity-ui/icons";
 import { scryfallCardByName } from "@/lib/api/catalog";
 import RankeaoSpinner from "@/components/ui/RankeaoSpinner";
-
-interface Printing {
-    id?: string;
-    set_code?: string;
-    set_name?: string;
-    collector_number?: string;
-    rarity?: string;
-    image_url?: string;
-    image_url_small?: string;
-    image_url_art?: string;
-    is_foil_available?: boolean;
-    is_nonfoil_available?: boolean;
-    artist?: string;
-    price_usd?: string;
-    price_clp?: number;
-}
+import type { Printing, CardData } from "@/lib/types/catalog";
 
 interface CardView {
     name: string;
@@ -67,25 +52,25 @@ const legalityColor: Record<string, string> = {
     not_legal: "var(--muted)",
 };
 
-function normalizeCard(data: any): CardView | null {
+function normalizeCard(data: CardData | null | undefined): CardView | null {
     if (!data) return null;
     const source = data.source || "unknown";
 
     if (data.card && data.card.name) {
         const c = data.card;
-        const meta = c.metadata || {};
+        const meta = (c.metadata || {}) as Record<string, string | number | string[] | undefined>;
         const p0 = c.printings?.[0];
         return {
             name: c.name, type_line: c.type_line || "", oracle_text: c.oracle_text || "",
-            flavor_text: c.flavor_text || "", mana_cost: meta.mana_cost || "", cmc: meta.cmc || 0,
-            colors: meta.colors || [],
+            flavor_text: c.flavor_text || "", mana_cost: (meta.mana_cost as string) || "", cmc: (meta.cmc as number) || 0,
+            colors: (meta.colors as string[]) || [],
             image_url: p0?.image_url || p0?.image_url_small || "",
             image_url_small: p0?.image_url_small || p0?.image_url || "",
             rarity: p0?.rarity || "", set_name: p0?.set_name || "", set_code: p0?.set_code || "",
             artist: p0?.artist || "", price_usd: p0?.price_usd,
             is_foil: p0?.is_foil_available || false, printings: c.printings || [],
             legality: c.legality || [], source,
-            power: meta.power, toughness: meta.toughness, loyalty: meta.loyalty, keywords: meta.keywords,
+            power: meta.power as string | undefined, toughness: meta.toughness as string | undefined, loyalty: meta.loyalty as string | undefined, keywords: meta.keywords as string[] | undefined,
         };
     }
 
@@ -95,7 +80,7 @@ function normalizeCard(data: any): CardView | null {
         return {
             name: sc.name,
             type_line: sc.type_line || sc.card_faces?.[0]?.type_line || "",
-            oracle_text: sc.oracle_text || sc.card_faces?.map((f: any) => f.oracle_text).filter(Boolean).join(" // ") || "",
+            oracle_text: sc.oracle_text || sc.card_faces?.map((f) => f.oracle_text).filter(Boolean).join(" // ") || "",
             flavor_text: sc.flavor_text || "", mana_cost: sc.mana_cost || "", cmc: sc.cmc || 0,
             colors: sc.colors || sc.card_faces?.[0]?.colors || [],
             image_url: imgs.normal || imgs.large || "",
@@ -106,7 +91,7 @@ function normalizeCard(data: any): CardView | null {
             legality: Object.entries(sc.legalities || {}).map(([slug, status]) => ({
                 format_slug: slug,
                 format_name: slug.charAt(0).toUpperCase() + slug.slice(1),
-                legality: status as string,
+                legality: status,
             })),
             source,
             power: sc.power, toughness: sc.toughness, loyalty: sc.loyalty, keywords: sc.keywords,
@@ -126,8 +111,8 @@ export default function CartaDetailClient({ cardName }: { cardName: string }) {
         setLoading(true);
         setError("");
         scryfallCardByName(cardName)
-            .then((res: any) => {
-                const normalized = normalizeCard(res?.data);
+            .then((res) => {
+                const normalized = normalizeCard(res?.data as CardData | undefined);
                 if (normalized) setCard(normalized);
                 else setError("Carta no encontrada");
             })

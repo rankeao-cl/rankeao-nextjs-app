@@ -5,7 +5,8 @@ import { Card, Chip, Button, Spinner } from "@heroui/react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { usePayouts, usePayoutDetail } from "@/lib/hooks/use-marketplace";
-import { ArrowLeft, CircleCheck, Clock, CircleXmark } from "@gravity-ui/icons";
+import type { Payout } from "@/lib/types/marketplace";
+import { ArrowLeft } from "@gravity-ui/icons";
 
 type ChipColor = "warning" | "success" | "danger" | "default" | "accent";
 
@@ -27,21 +28,21 @@ function PayoutDetailInline({ payoutId }: { payoutId: string }) {
   if (isLoading) return <Spinner size="sm" />;
   if (!data) return <p className="text-xs text-[var(--muted)]">Sin detalles</p>;
 
-  const payout = (data as any)?.data ?? data;
+  const payout = (data?.data ?? data) as Payout | undefined;
   const items = payout?.items || [];
 
   return (
     <div className="mt-3 space-y-2">
-      {payout.bank_reference && (
+      {payout?.bank_reference && (
         <p className="text-xs text-[var(--muted)]">Referencia: <span className="text-[var(--foreground)]">{payout.bank_reference}</span></p>
       )}
-      {payout.failure_reason && (
+      {payout?.failure_reason && (
         <p className="text-xs text-[var(--danger)]">{payout.failure_reason}</p>
       )}
       {items.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-[var(--muted)] mb-1">Ordenes incluidas:</p>
-          {items.map((item: any, i: number) => (
+          {items.map((item: { order_id?: string; amount?: number }, i: number) => (
             <div key={i} className="flex items-center justify-between text-xs py-1 border-t border-[var(--border)]">
               <span className="text-[var(--muted)]">Orden {item.order_id?.slice(-8)}</span>
               <span className="text-[var(--foreground)] font-semibold">${(item.amount ?? 0).toLocaleString("es-CL")}</span>
@@ -54,7 +55,7 @@ function PayoutDetailInline({ payoutId }: { payoutId: string }) {
 }
 
 export default function PayoutsPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
   const { data, isLoading, isError } = usePayouts();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -72,7 +73,7 @@ export default function PayoutsPage() {
     );
   }
 
-  const payouts = Array.isArray(data) ? data : (data as any)?.payouts ?? (data as any)?.data ?? [];
+  const payouts = Array.isArray(data) ? data : (data as { payouts?: Payout[] })?.payouts ?? data?.data ?? [];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -112,7 +113,7 @@ export default function PayoutsPage() {
         </Card>
       )}
 
-      {payouts.map((payout: any) => {
+      {payouts.map((payout: Payout) => {
         const st = PAYOUT_STATUS[payout.status?.toUpperCase()] ?? PAYOUT_STATUS.PENDING;
         const isExpanded = expandedId === payout.id;
 
@@ -129,7 +130,7 @@ export default function PayoutsPage() {
                     ${(payout.amount ?? 0).toLocaleString("es-CL")}
                     <span className="text-xs font-normal text-[var(--muted)] ml-1">{payout.currency || "CLP"}</span>
                   </p>
-                  {payout.order_count > 0 && (
+                  {(payout.order_count ?? 0) > 0 && (
                     <p className="text-xs text-[var(--muted)]">{payout.order_count} {payout.order_count === 1 ? "orden" : "ordenes"}</p>
                   )}
                 </div>

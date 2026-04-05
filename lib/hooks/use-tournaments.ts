@@ -2,7 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as tournamentsApi from "@/lib/api/tournaments";
-import type { TournamentFilters, CreateTournamentRequest, UpdateTournamentRequest } from "@/lib/types/tournament";
+import type { TournamentFilters, CreateTournamentRequest, UpdateTournamentRequest, TournamentRegistration } from "@/lib/types/tournament";
+import type { Params } from "@/lib/types/api";
 
 // ── List ──
 
@@ -29,18 +30,18 @@ export function useTournamentStandings(id: string) {
     });
 }
 
-export function useTournamentMatches(id: string, params?: Record<string, any>) {
+export function useTournamentMatches(id: string, params?: Params) {
     return useQuery({
         queryKey: ["tournaments", id, "matches", params],
-        queryFn: () => tournamentsApi.getTournamentMatches(id, params as any),
+        queryFn: () => tournamentsApi.getTournamentMatches(id, params),
         enabled: !!id,
     });
 }
 
-export function useMyTournamentHistory(params?: Record<string, any>) {
+export function useMyTournamentHistory(params?: Params) {
     return useQuery({
         queryKey: ["tournaments", "history", params],
-        queryFn: () => tournamentsApi.getMyTournamentHistory(params as any),
+        queryFn: () => tournamentsApi.getMyTournamentHistory(params),
     });
 }
 
@@ -66,7 +67,7 @@ export function useUpdateTournament() {
 export function useRegisterForTournament() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, data }: { id: string; data?: any }) =>
+        mutationFn: ({ id, data }: { id: string; data?: TournamentRegistration }) =>
             tournamentsApi.registerForTournament(id, data),
         onSuccess: (_, { id }) => qc.invalidateQueries({ queryKey: ["tournaments", id] }),
     });
@@ -81,7 +82,7 @@ export function useCheckInTournament() {
 export function useReportMatch() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ tournamentId, matchId, payload }: { tournamentId: string; matchId: string; payload: any }) =>
+        mutationFn: ({ tournamentId, matchId, payload }: { tournamentId: string; matchId: string; payload: Record<string, unknown> }) =>
             tournamentsApi.reportMatch(tournamentId, matchId, payload),
         onSuccess: (_, { tournamentId }) => qc.invalidateQueries({ queryKey: ["tournaments", tournamentId] }),
     });

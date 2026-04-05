@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Card } from "@heroui/react";
 import { getRankForElo } from "@/lib/rankSystem";
 import type { RatingHistoryPoint } from "@/lib/types/rating";
+import type { RawFormatStat, RawGameStat } from "@/lib/types/gamification";
 
 interface ProfileStatsProps {
     rating: number;
@@ -15,7 +16,7 @@ interface ProfileStatsProps {
     currentStreak: number;
     bestStreak: number;
     ratingHistory: RatingHistoryPoint[];
-    gamiStats: any;
+    gamiStats: Record<string, unknown>;
 }
 
 function EloChart({ history }: { history: RatingHistoryPoint[] }) {
@@ -191,17 +192,17 @@ export default function ProfileStatsTab({
 }: ProfileStatsProps) {
     const rank = getRankForElo(rating);
 
-    const wins = gamiStats?.wins ?? (totalMatches > 0 ? Math.round((winRate / 100) * totalMatches) : 0);
-    const losses = gamiStats?.losses ?? totalMatches - wins;
+    const wins = Number(gamiStats?.wins ?? (totalMatches > 0 ? Math.round((winRate / 100) * totalMatches) : 0));
+    const losses = Number(gamiStats?.losses ?? totalMatches - wins);
     const winBarWidth = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
 
     // Most played formats from gamiStats
     const formats: { name: string; count: number }[] = useMemo(() => {
         const raw = gamiStats?.formats_played || gamiStats?.most_played_formats || [];
         if (Array.isArray(raw)) {
-            return raw.map((f: any) => ({
+            return raw.map((f: RawFormatStat | string) => ({
                 name: typeof f === "string" ? f : f.name || f.format || "Desconocido",
-                count: f.count || f.matches || 0,
+                count: typeof f === "string" ? 0 : f.count || f.matches || 0,
             }));
         }
         return [];
@@ -211,8 +212,8 @@ export default function ProfileStatsTab({
     const gameStats: { game: string; winRate: number; matches: number }[] = useMemo(() => {
         const raw = gamiStats?.game_stats || gamiStats?.winrate_by_game || [];
         if (Array.isArray(raw)) {
-            return raw.map((g: any) => ({
-                game: g.game || g.name || "Desconocido",
+            return raw.map((g: RawGameStat) => ({
+                game: (typeof g.game === "object" ? g.game?.name : g.game) || g.name || "Desconocido",
                 winRate: g.win_rate ?? g.winRate ?? 0,
                 matches: g.matches ?? g.total_matches ?? 0,
             }));
@@ -348,7 +349,7 @@ export default function ProfileStatsTab({
                         {gameStats.map((g, i) => (
                             <div key={g.game + i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-secondary)] border border-[var(--border)]">
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-[var(--foreground)] truncate">{typeof g.game === "object" ? (g.game as any)?.name ?? "" : g.game}</p>
+                                    <p className="text-sm font-semibold text-[var(--foreground)] truncate">{g.game}</p>
                                     <p className="text-[10px] text-[var(--muted)]">{g.matches} partidas</p>
                                 </div>
                                 <div className="text-right">

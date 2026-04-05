@@ -23,6 +23,14 @@ function normalizeTournament(t: Record<string, unknown>): Tournament {
     if (!t.game && t.game_slug) {
         t.game = t.game_slug;
     }
+    // Map format_name → format (API returns format_name, frontend expects format)
+    if (!t.format && t.format_name) {
+        t.format = t.format_name;
+    }
+    // Map format_type → structure
+    if (!t.structure && t.format_type) {
+        t.structure = t.format_type;
+    }
     // Fallback: use banner_url as game_logo_url if not already set
     if (!t.game_logo_url && t.banner_url) {
         t.game_logo_url = t.banner_url;

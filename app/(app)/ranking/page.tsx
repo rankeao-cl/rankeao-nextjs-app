@@ -95,35 +95,36 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
     }
   }
 
-  const xpAny = xpData as any;
-  const rawXp = xpAny?.data;
-  const rawXpEntries = Array.isArray(rawXp) ? rawXp : (rawXp?.leaderboard ?? rawXp?.entries ?? xpData?.leaderboard ?? xpData?.entries);
-  const xpEntries: LeaderboardEntry[] = Array.isArray(rawXpEntries)
-    ? rawXpEntries.map((e: any) => ({
-        rank: e.rank,
-        user_id: e.user_id ?? e.user?.id ?? e.user?.username ?? "",
-        username: e.username ?? e.user?.username ?? "",
-        avatar_url: e.avatar_url ?? e.user?.avatar_url ?? undefined,
-        total_xp: e.total_xp ?? e.xp ?? 0,
-        level: e.level,
-        title: e.title ?? e.user?.current_title ?? undefined,
-      }))
-    : [];
-  const ratingAny = ratingData as any;
-  const rawRating = ratingAny?.data;
-  const rawRatingEntries = Array.isArray(rawRating) ? rawRating : (rawRating?.leaderboard ?? ratingData?.leaderboard);
-  const ratingEntries: LeaderboardEntry[] = Array.isArray(rawRatingEntries)
-    ? rawRatingEntries.map((e: any) => ({
-        rank: e.rank,
-        user_id: e.user_id ?? e.user?.id ?? e.user?.username ?? "",
-        username: e.username ?? e.user?.username ?? "",
-        avatar_url: e.avatar_url ?? e.user?.avatar_url ?? undefined,
-        rating: e.rating ?? e.elo ?? 0,
-        games_played: e.games_played,
-        wins: e.wins,
-        losses: e.losses,
-      }))
-    : [];
+  // API returns { data: [...], meta, success } — data is a flat array of raw entries
+  const xpRaw = xpData as unknown as Record<string, unknown> | null;
+  const rawXpArr = [xpRaw?.data, xpRaw?.leaderboard, xpRaw?.entries, xpData?.leaderboard, xpData?.entries].find(Array.isArray) ?? [];
+  const xpEntries: LeaderboardEntry[] = rawXpArr.map((e: Record<string, unknown>, i: number) => {
+      const user = (e.user ?? {}) as Record<string, unknown>;
+      return {
+        rank: (e.rank as number) ?? i + 1,
+        user_id: (e.user_id ?? user.id ?? user.username ?? "") as string,
+        username: (e.username ?? user.username ?? "") as string,
+        avatar_url: (e.avatar_url ?? user.avatar_url ?? undefined) as string | undefined,
+        total_xp: (e.total_xp ?? e.xp ?? 0) as number,
+        level: e.level as number | undefined,
+        title: (e.title ?? user.current_title ?? undefined) as string | undefined,
+      };
+    });
+  const ratingRaw = ratingData as unknown as Record<string, unknown> | null;
+  const rawRatingArr = [ratingRaw?.data, ratingRaw?.leaderboard, ratingRaw?.entries, ratingData?.leaderboard].find(Array.isArray) ?? [];
+  const ratingEntries: LeaderboardEntry[] = rawRatingArr.map((e: Record<string, unknown>, i: number) => {
+      const user = (e.user ?? {}) as Record<string, unknown>;
+      return {
+        rank: (e.rank as number) ?? i + 1,
+        user_id: (e.user_id ?? user.id ?? user.username ?? "") as string,
+        username: (e.username ?? user.username ?? "") as string,
+        avatar_url: (e.avatar_url ?? user.avatar_url ?? undefined) as string | undefined,
+        rating: (e.rating ?? e.elo ?? 0) as number,
+        games_played: e.games_played as number | undefined,
+        wins: e.wins as number | undefined,
+        losses: e.losses as number | undefined,
+      };
+    });
 
   const periods = [
     { key: "all_time", label: "Todo" },

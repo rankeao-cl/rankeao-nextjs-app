@@ -8,14 +8,18 @@ export interface Channel {
     name?: string;
     members?: ChannelMember[];
     last_message?: ChatMessage;
+    last_message_at?: string;
+    message_count?: number;
     unread_count?: number;
+    is_readonly?: boolean;
     is_muted?: boolean;
     created_at?: string;
     updated_at?: string;
 }
 
 export interface ChannelMember {
-    user_id: string;
+    id?: string;
+    user_id?: string;
     username: string;
     avatar_url?: string;
     role?: string;
@@ -46,8 +50,9 @@ export interface ChatMessage {
         username: string;
         avatar_url?: string;
     };
-    sender_id: string;
+    sender_id?: string;
     sender_username?: string;
+    username?: string;
     sender_avatar_url?: string;
     content: string;
     image_url?: string;

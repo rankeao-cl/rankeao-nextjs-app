@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as notificationsApi from "@/lib/api/notifications";
 import type { Params } from "@/lib/types/api";
+import type { NotificationPreferences } from "@/lib/types/notification";
 
 export function useNotifications(params?: Params, token?: string) {
     return useQuery({
@@ -42,7 +43,7 @@ export function useNotificationPreferences(token?: string) {
 export function useUpdateNotificationPreferences() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: (prefs: Record<string, boolean>) => notificationsApi.updateNotificationPreferences(prefs as any),
+        mutationFn: (prefs: Partial<NotificationPreferences>) => notificationsApi.updateNotificationPreferences(prefs),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", "preferences"] }),
     });
 }

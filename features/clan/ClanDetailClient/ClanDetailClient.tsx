@@ -32,7 +32,7 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
     // First try: match from server members list
     if (serverMembers && serverMembers.length > 0) {
       const match = serverMembers.find(
-        (m) => m.username === session.username || m.user_id === (session as any)?.user_id
+        (m) => m.username === session.username
       );
       if (match) {
         setMyMembership(match);
@@ -43,13 +43,13 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
 
     // Second try: fetch clan with token to get my_membership
     getClan(clanId, session?.accessToken)
-      .then((res: any) => {
-        const clan = res?.data ?? res?.clan ?? res;
+      .then((res) => {
+        const clan = res?.data?.clan ?? res?.clan;
         if (clan?.my_membership) {
           setMyMembership(clan.my_membership);
         } else if (clan?.members) {
           const match = clan.members.find(
-            (m: any) => m.username === session.username || m.user_id === (session as any)?.user_id
+            (m) => m.username === session.username
           );
           if (match) setMyMembership(match);
         }

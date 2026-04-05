@@ -33,12 +33,12 @@ export default function BuyModal({ listing, open, onClose }: Props) {
 
   async function handleBuy() {
     try {
-      const payload: any = {
+      const payload: { quantity: number; delivery_method: string; shipping_address?: string; notes?: string } = {
         quantity,
         delivery_method: delivery,
       };
       if (delivery === "SHIPPING") {
-        payload.shipping_address = {
+        (payload as Record<string, unknown>).shipping_address = {
           full_name: address.name,
           address_line_1: address.address_line_1,
           city: address.city,
@@ -47,7 +47,8 @@ export default function BuyModal({ listing, open, onClose }: Props) {
         };
       }
       const result = await buy.mutateAsync({ listingId: listing.id, payload });
-      const checkoutId = (result as any)?.checkout?.id || (result as any)?.id || (result as any)?.checkout_id;
+      const checkoutResult = result as { checkout?: { id?: string }; id?: string; checkout_id?: string };
+      const checkoutId = checkoutResult.checkout?.id || checkoutResult.id || checkoutResult.checkout_id;
       toast.success("Compra iniciada");
       onClose();
       if (checkoutId) {
@@ -55,8 +56,8 @@ export default function BuyModal({ listing, open, onClose }: Props) {
       } else {
         router.push("/marketplace/orders");
       }
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al comprar");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al comprar");
     }
   }
 

@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Button, Select, ListBox } from "@heroui/react";
 import { Plus } from "@gravity-ui/icons";
 import PostCard from "@/features/social/PostCard";
+import type { FeedItem } from "@/lib/types/social";
 
 interface FeedProps {
-    posts: any[];
+    posts: FeedItem[];
 }
 
 const POST_TYPES = [

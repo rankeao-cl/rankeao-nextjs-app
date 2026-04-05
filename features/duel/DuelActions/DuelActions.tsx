@@ -42,7 +42,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner, challen
             await fn();
             toast.success("Listo", { description: `Accion "${label}" realizada` });
             router.refresh();
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);
@@ -72,7 +72,7 @@ export default function DuelActions({ duelId, status, bestOf, hasWinner, challen
             toast.success("Resultado reportado");
             setShowReportForm(false);
             router.refresh();
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setLoading(null);

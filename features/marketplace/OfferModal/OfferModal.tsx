@@ -34,8 +34,8 @@ export default function OfferModal({ listing, open, onClose }: Props) {
       setAmount("");
       setMessage("");
       onClose();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al enviar oferta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al enviar oferta");
     }
   }
 

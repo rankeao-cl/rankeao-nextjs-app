@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import * as catalogApi from "@/lib/api/catalog";
+import type { Params } from "@/lib/types/api";
 
 // ── Games ──
 
@@ -36,10 +37,10 @@ export function useGameSets(gameSlug: string) {
     });
 }
 
-export function useCards(params?: Record<string, any>) {
+export function useCards(params?: Params) {
     return useQuery({
         queryKey: ["catalog", "cards", params],
-        queryFn: () => catalogApi.getCards(params as any),
+        queryFn: () => catalogApi.getCards(params),
     });
 }
 

@@ -6,7 +6,6 @@ import { Compass, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useFeed, useFeedDiscover } from "@/lib/hooks/use-social";
 import { browseDecks, getDeck } from "@/lib/api/social";
-import FeedTournamentCard from "@/features/feed/FeedTournamentCard";
 import FeedListingCard from "@/features/feed/FeedListingCard";
 import PostCard from "@/features/social/PostCard";
 import type { FeedPost } from "@/features/social/PostCard";
@@ -14,7 +13,7 @@ import FeedDuelSearchCard from "@/features/feed/FeedDuelSearchCard";
 import FeedActivityCard from "@/features/feed/FeedActivityCard";
 import type { ActivityData } from "@/features/feed/FeedActivityCard";
 import DeckCard from "@/features/deck/DeckCard";
-import type { Deck } from "@/lib/types/social";
+import type { Deck, RawFeedEntry } from "@/lib/types/social";
 import type { Tournament } from "@/lib/types/tournament";
 import type { Listing } from "@/lib/types/marketplace";
 import type { Duel } from "@/lib/types/duel";
@@ -51,15 +50,16 @@ export default function FeedContent({
   const [feedDecks, setFeedDecks] = useState<Deck[]>([]);
   useEffect(() => {
     browseDecks({ per_page: 6, sort: "newest" })
-      .then(async (val: any) => {
-        const list: Deck[] = val?.data?.decks || val?.data || val?.decks || [];
+      .then(async (val: Record<string, unknown>) => {
+        const data = val?.data as Record<string, unknown> | undefined;
+        const list: Deck[] = (data?.decks as Deck[] | undefined) || (data as Deck[] | undefined) || (val?.decks as Deck[] | undefined) || [];
         if (!Array.isArray(list) || list.length === 0) return;
         // Fetch details (with cards) for up to 4 random decks
         const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 4);
         const detailed = await Promise.all(
           shuffled.map((dk) =>
             getDeck(dk.id)
-              .then((res: any) => res?.data?.deck || res?.deck || res?.data || null)
+              .then((res: Record<string, unknown>) => (res?.data as Record<string, unknown>)?.deck as Deck | undefined || (res?.deck as Deck | undefined) || (res?.data as Deck | undefined) || null)
               .catch(() => null)
           )
         );
@@ -69,8 +69,9 @@ export default function FeedContent({
   }, []);
 
   // Personal feed resolved with 0 items or errored → fall back to discover
-  const personalFeedData: any = personalFeedQ.data;
-  const personalFeedArray: any[] = personalFeedData?.data?.feed ?? personalFeedData?.feed ?? personalFeedData?.data?.items ?? personalFeedData?.items ?? [];
+  const personalFeedData = personalFeedQ.data as Record<string, unknown> | undefined;
+  const pfd = personalFeedData?.data as Record<string, unknown> | undefined;
+  const personalFeedArray: unknown[] = (pfd?.feed ?? personalFeedData?.feed ?? pfd?.items ?? personalFeedData?.items ?? []) as unknown[];
   const personalFeedDone = personalFeedQ.status !== "pending";
   const personalFeedEmpty = isAuth && personalFeedDone && personalFeedArray.length === 0;
 
@@ -78,8 +79,6 @@ export default function FeedContent({
 
   const feedItems = useMemo<FeedItemType[]>(() => {
     const items: FeedItemType[] = [];
-
-    const now = Date.now();
 
     if (feedFilter !== "torneos" && feedFilter !== "posts" && feedFilter !== "actividad") {
       for (const l of listings) {
@@ -93,13 +92,14 @@ export default function FeedContent({
     }
 
     if (feedFilter !== "torneos" && feedFilter !== "ventas") {
-      const socialData: any = socialQ.data;
-      const feedArray: any[] =
-        socialData?.data?.feed ??
+      const socialData = socialQ.data as Record<string, unknown> | undefined;
+      const sd = socialData?.data as Record<string, unknown> | undefined;
+      const feedArray: RawFeedEntry[] =
+        (sd?.feed ??
         socialData?.feed ??
-        socialData?.data?.items ??
+        sd?.items ??
         socialData?.items ??
-        (Array.isArray(socialData) ? socialData : []);
+        (Array.isArray(socialData) ? socialData : [])) as RawFeedEntry[];
       for (const s of feedArray) {
         const user = s.user ?? {};
         const itemType = (s.type ?? s.item_type ?? "").toUpperCase();

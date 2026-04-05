@@ -50,10 +50,10 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
     useEffect(() => {
         if (!open || !session?.accessToken) return;
         getFriends({ per_page: 20 }, session.accessToken)
-            .then((raw: any) => {
-                const list = raw?.data?.friends ?? raw?.friends ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
+            .then((raw) => {
+                const list = raw?.data ?? raw?.friends ?? (Array.isArray(raw) ? raw : []);
                 const mapped: FriendItem[] = list
-                    .map((f: any) => ({ id: f.id || f.user_id, username: f.username, avatar_url: f.avatar_url }))
+                    .map((f: { id?: string; user_id?: string; username: string; avatar_url?: string }) => ({ id: f.id || f.user_id || "", username: f.username, avatar_url: f.avatar_url }))
                     .filter((f: FriendItem) => f.username !== session.username);
                 setFriends(mapped);
             })
@@ -76,8 +76,8 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
 
         const delay = setTimeout(async () => {
             try {
-                const val = await autocompleteUsers(q, session.accessToken) as any;
-                const users: UserSearchResult[] = val?.data?.users || val?.users || val?.data || (Array.isArray(val) ? val : []);
+                const val = await autocompleteUsers(q, session.accessToken);
+                const users: UserSearchResult[] = val?.data ?? val?.users ?? [];
                 const filtered = users.filter((u: UserSearchResult) => u.username !== session.username);
                 setSuggestions(filtered);
                 setShowSuggestions(filtered.length > 0);
@@ -151,7 +151,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 toast.success("Buscando oponente", { description: "Se notificara a jugadores cercanos, amigos y seguidores." });
                 onClose();
                 router.refresh();
-            } catch (err: any) {
+            } catch (err: unknown) {
                 toast.danger("Error", { description: mapErrorMessage(err) });
             } finally {
                 setSending(false);
@@ -175,7 +175,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                 } else {
                     router.refresh();
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 toast.danger("Error", { description: mapErrorMessage(err) });
             } finally {
                 setSending(false);
@@ -439,7 +439,7 @@ export default function NewDuelModal({ open, onClose, games }: NewDuelModalProps
                                             {friends.map((f) => (
                                                 <button
                                                     key={f.id}
-                                                    onClick={() => handleSelectOpponent(f as any)}
+                                                    onClick={() => handleSelectOpponent(f)}
                                                     style={{
                                                         display: "flex",
                                                         flexDirection: "column",

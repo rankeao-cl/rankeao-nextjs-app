@@ -95,7 +95,7 @@ export default function MarketplaceFavorites() {
   const isAuth = authStatus === "authenticated";
   const { data, isLoading, refetch } = useMyFavorites();
 
-  const rawFavorites = (data as any)?.favorites ?? (data as any)?.data ?? data;
+  const rawFavorites = (data as { favorites?: Favorite[] })?.favorites ?? data?.data ?? data;
   const favorites: Favorite[] = Array.isArray(rawFavorites) ? rawFavorites : [];
 
   if (!isAuth) {

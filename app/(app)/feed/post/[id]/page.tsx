@@ -19,8 +19,8 @@ export default function PostDetailPage() {
     useEffect(() => {
         if (!id) return;
         setLoading(true);
-        getPost(id, { token: session?.accessToken } as any)
-            .then((res: any) => {
+        getPost(id)
+            .then((res) => {
                 const item = res?.data?.post ?? res?.post;
                 if (!item) {
                     setError(true);

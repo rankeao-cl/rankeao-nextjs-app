@@ -18,7 +18,9 @@ export interface Listing {
     game_id?: string;
     game_name?: string;
     set_name?: string;
+    set_code?: string;
     rarity?: string;
+    is_first_edition?: boolean;
     accepts_offers?: boolean;
     accepts_shipping?: boolean;
     accepts_in_person?: boolean;
@@ -36,6 +38,7 @@ export interface Listing {
     lat?: number;
     lng?: number;
     card_image_url?: string;
+    image_url?: string;
     is_verified_seller?: boolean;
     images?: ListingImage[];
     status?: string;
@@ -54,26 +57,40 @@ export interface ListingImage {
 
 export interface ListingDetail extends Listing {
     description?: string;
+    is_favorited?: boolean;
+    offers_count?: number;
+    quantity_sold?: number;
     price_context?: {
         min_price?: number;
         max_price?: number;
         avg_price?: number;
+        total_count?: number;
         listings_count?: number;
     };
+    similar?: Listing[];
     similar_listings?: Listing[];
 }
 
 export interface GroupedCard {
-    group_key: string;
-    representative: Listing;
-    min_price: number;
-    seller_count: number;
-    listing_count: number;
+    card_id: number;
     card_name: string;
     card_image_url?: string;
+    game_id: number;
     game_name?: string;
     set_name?: string;
     rarity?: string;
+    min_price: number;
+    max_price: number;
+    avg_price: number;
+    seller_count: number;
+    listing_count: number;
+    cheapest_listing_slug?: string;
+    cheapest_listing_id: string;
+}
+
+export interface GroupedCardsResponse {
+    cards: GroupedCard[];
+    meta?: PaginationMeta;
 }
 
 export interface ListingsResponse {
@@ -94,6 +111,7 @@ export interface ListingFilters {
     game?: string;
     city?: string;
     seller_type?: string;
+    seller_id?: string;
     category?: string;
     lat?: number;
     lng?: number;
@@ -145,6 +163,13 @@ export interface MarketplaceCheckout {
     delivery_method: "SHIPPING" | "PICKUP" | "IN_PERSON";
     status: string;
     total: number;
+    subtotal?: number;
+    shipping_cost?: number;
+    platform_fee?: number;
+    quantity?: number;
+    item_summary?: string;
+    item_name?: string;
+    order_number?: string;
     shipping_address?: ShippingAddress;
     payment_url?: string;
     created_at?: string;
@@ -307,6 +332,10 @@ export interface Payout {
     currency: string;
     status: string;
     bank_account_id: string;
+    order_count?: number;
+    items?: { order_id?: string; amount?: number }[];
+    bank_reference?: string;
+    failure_reason?: string;
     created_at?: string;
     processed_at?: string;
 }

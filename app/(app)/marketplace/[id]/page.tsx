@@ -1,7 +1,8 @@
 import { Button } from "@heroui/react";
 import Link from "next/link";
-import { getListingDetail, getListings } from "@/lib/api/marketplace";
+import { getListingDetail, getListings, getCardListings } from "@/lib/api/marketplace";
 import ListingDetailClient from "./ListingDetailClient";
+import type { Listing, ListingDetail } from "@/lib/types/marketplace";
 import type { Metadata } from "next";
 
 interface Props {
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     let title = "Detalle de publicacion";
     try {
         const listing = await getListingDetail(id);
-        if (listing?.title && !(listing as any)?.error) title = listing.title;
+        if (listing?.title && !("error" in listing)) title = listing.title;
     } catch { /* fallback */ }
     if (title === "Detalle de publicacion") {
         try {
@@ -28,24 +29,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ListingDetailPage({ params }: Props) {
     const { id } = await params;
 
-    let listing: any = null;
+    let listing: (ListingDetail & Record<string, unknown>) | null = null;
     try {
-        listing = await getListingDetail(id);
+        listing = await getListingDetail(id) as ListingDetail & Record<string, unknown>;
     } catch {
         // Detail endpoint failed — fallback: search in listings list
     }
 
     // Fallback: find the listing from the list endpoint
-    if (!listing || listing.error) {
+    if (!listing || "error" in listing) {
         try {
             const listRes = await getListings({ per_page: 100 });
-            listing = listRes.listings.find((l) => l.id === id) ?? null;
+            const found = listRes.listings.find((l) => l.id === id) ?? null;
+            listing = found as ListingDetail & Record<string, unknown>;
         } catch {
             // both failed
         }
     }
 
-    if (!listing || listing.error) {
+    if (!listing || "error" in listing) {
         return (
             <div className="max-w-2xl mx-auto px-4 py-20 text-center">
                 <p className="text-4xl mb-4">😕</p>
@@ -58,21 +60,18 @@ export default async function ListingDetailPage({ params }: Props) {
         );
     }
 
-    // Fetch other sellers for the same card
-    const cardName = listing.card_name || listing.title;
-    let otherSellers: any[] = [];
-    if (cardName) {
+    // Fetch other sellers for the same card via backend endpoint
+    const cardId = listing.card_id;
+    if (cardId && typeof cardId === "number") {
         try {
-            const res = await getListings({ q: cardName, per_page: 20 });
-            otherSellers = (res.listings || []).filter((l: any) => l.id !== listing.id);
+            const res = await getCardListings(cardId, { per_page: 20, sort: "price" });
+            const otherSellers = (res.listings || []).filter((l: Listing) => l.id !== listing!.id);
+            if (otherSellers.length > 0) {
+                listing.similar_listings = otherSellers;
+            }
         } catch {
-            // silent
+            // silent — fall back to API's similar_listings
         }
-    }
-
-    // Merge: prefer server-fetched sellers over API's similar_listings
-    if (otherSellers.length > 0) {
-        listing.similar_listings = otherSellers;
     }
 
     return <ListingDetailClient listing={listing} id={id} />;

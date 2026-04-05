@@ -226,7 +226,7 @@ function PostEmbed({ metadata }: { metadata: ChatMessage["metadata"] }) {
     );
 }
 
-export default function ChatMessageBubble({ message, isMine, showHeader, status, isGroup, fontSize = 15, showTimestamps = true, showAvatars = true, bubbleBg, compactMode = false }: ChatMessageBubbleProps) {
+export default function ChatMessageBubble({ message, isMine, showHeader, status, fontSize = 15, showTimestamps = true, showAvatars = true, bubbleBg, compactMode = false }: ChatMessageBubbleProps) {
     // Detect image URLs in content
     const imageUrls: string[] = [];
     const textContent = message.content.replace(IMAGE_URL_REGEX, (url) => {

@@ -62,7 +62,6 @@ export default function Sidebar() {
     useEffect(() => {
         if (!isAuth || !session?.accessToken || !session?.username) return;
         const token = session.accessToken;
-        const username = session.username;
 
         const poll = () => {
             getDuels({ per_page: 50, status: "PENDING", role: "challenged" }, token)

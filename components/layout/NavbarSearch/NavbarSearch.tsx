@@ -11,6 +11,12 @@ import { getTournaments } from "@/lib/api/tournaments";
 import { getTenants } from "@/lib/api/tenants";
 import { getListings } from "@/lib/api/marketplace";
 import { scryfallSearch } from "@/lib/api/catalog";
+import type { ApiResponse } from "@/lib/types/api";
+import type { UserProfile } from "@/lib/types/social";
+import type { Tournament } from "@/lib/types/tournament";
+import type { Tenant } from "@/lib/types/tenant";
+import type { Listing } from "@/lib/types/marketplace";
+import type { ScryfallSearchResult } from "@/lib/api/catalog";
 
 type SearchResult = {
   id: string;
@@ -92,9 +98,9 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Users
       if (usersRes.status === "fulfilled") {
-        const val = usersRes.value as any;
+        const val = usersRes.value as ApiResponse<{ users?: UserProfile[] }>;
         const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
-        users.slice(0, 4).forEach((u: any) => {
+        users.slice(0, 4).forEach((u: UserProfile) => {
           items.push({
             id: u.id || u.username,
             type: "user",
@@ -108,9 +114,9 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Tournaments
       if (tournamentsRes.status === "fulfilled") {
-        const val = tournamentsRes.value as any;
+        const val = tournamentsRes.value as ApiResponse<{ tournaments?: Tournament[] }>;
         const tournaments = val?.data?.tournaments || val?.tournaments || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-        tournaments.slice(0, 4).forEach((t: any) => {
+        tournaments.slice(0, 4).forEach((t: Tournament) => {
           items.push({
             id: t.id,
             type: "tournament",
@@ -123,9 +129,9 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Communities / Tenants
       if (tenantsRes.status === "fulfilled") {
-        const val = tenantsRes.value as any;
+        const val = tenantsRes.value as ApiResponse<{ tenants?: Tenant[] }>;
         const tenants = val?.data?.tenants || val?.tenants || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-        tenants.slice(0, 4).forEach((t: any) => {
+        tenants.slice(0, 4).forEach((t: Tenant) => {
           items.push({
             id: t.id || t.slug,
             type: "community",
@@ -139,15 +145,15 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Listings
       if (listingsRes.status === "fulfilled") {
-        const val = listingsRes.value as any;
+        const val = listingsRes.value as ApiResponse<{ listings?: Listing[] }>;
         const listings = val?.data?.listings || val?.listings || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-        listings.slice(0, 4).forEach((l: any) => {
+        listings.slice(0, 4).forEach((l: Listing) => {
           items.push({
             id: l.id,
             type: "listing",
             title: l.title || l.card_name || "Producto",
             subtitle: l.price ? `$${Number(l.price).toLocaleString("es-CL")}` : undefined,
-            image: l.images?.[0] || l.image_url,
+            image: (l.images?.[0] as unknown as string) || l.image_url,
             href: `/marketplace/${l.id}`,
           });
         });
@@ -155,7 +161,7 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
 
       // Cards (Scryfall)
       if (cardsRes.status === "fulfilled") {
-        const val = cardsRes.value as any;
+        const val = cardsRes.value as ApiResponse<{ cards?: ScryfallSearchResult[] }>;
         const cards = val?.data?.cards || [];
         const seen = new Set<string>();
         for (const c of cards) {

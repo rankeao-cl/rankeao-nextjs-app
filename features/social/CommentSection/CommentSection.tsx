@@ -69,7 +69,7 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
         setLoadingReplies((prev) => ({ ...prev, [commentId]: true }));
         try {
             const res = await getCommentReplies(commentId);
-            const replies: PostComment[] = (res as any)?.data?.comments ?? (res as any)?.comments ?? (res as any)?.data?.replies ?? (res as any)?.replies ?? [];
+            const replies: PostComment[] = res?.data?.comments ?? res?.comments ?? [];
             setExpandedReplies((prev) => ({ ...prev, [commentId]: replies }));
         } catch {
             // silent

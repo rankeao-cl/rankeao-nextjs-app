@@ -6,7 +6,6 @@ import { toast } from "@heroui/react";
 import RankeaoSpinner from "@/components/ui/RankeaoSpinner";
 import { useGameState } from "@/lib/hooks/use-game-state";
 import { updateLife, declareEvent, endGame, passTurn, getInteractions, respondEvent } from "@/lib/api/game";
-import { surrenderDuel } from "@/lib/api/duels";
 import { mapErrorMessage } from "@/lib/api/errors";
 import type { GameStateSnapshot, GameInteraction } from "@/lib/types/game";
 
@@ -23,9 +22,6 @@ interface GameTrackerProps {
     initialSnapshot?: GameStateSnapshot | null;
     onGameEnd?: (winnerID: number) => void;
 }
-
-const HEAL_AMOUNTS = [1, 3, 5];
-const DAMAGE_AMOUNTS = [1, 3, 5];
 
 export default function GameTracker({
     duelID, myPlayerID, opponentPlayerID, myUsername, opponentUsername,
@@ -145,7 +141,7 @@ export default function GameTracker({
     const fetchInteractions = useCallback(() => {
         if (!token) return;
         getInteractions(duelID, gameNumber, token)
-            .then((res: any) => {
+            .then((res) => {
                 const list = res?.data?.interactions ?? res?.interactions ?? [];
                 setInteractions(list);
             })
@@ -387,12 +383,13 @@ export default function GameTracker({
                     </div>
                     <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-px" style={{ scrollbarWidth: "thin" }}>
                         {[...interactions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((item, i) => {
-                            const p = item.payload as Record<string, any>;
+                            const p = item.payload;
                             const isMine = Number(item.player_id) === myPlayerID;
                             const who = isMine ? myUsername : opponentUsername;
                             const desc = formatInteraction(item.type, p, isMine, opponentUsername);
-                            const isHeal = item.type === "life_updated" && (p?.delta ?? 0) > 0;
-                            const isDamage = item.type === "event_declared" || (item.type === "life_updated" && (p?.delta ?? 0) < 0);
+                            const delta = typeof p?.delta === "number" ? p.delta : 0;
+                            const isHeal = item.type === "life_updated" && delta > 0;
+                            const isDamage = item.type === "event_declared" || (item.type === "life_updated" && delta < 0);
                             const accentColor = isHeal ? "rgba(74,222,128,0.06)" : isDamage ? "rgba(248,113,113,0.06)" : "rgba(168,85,247,0.06)";
                             const dotColor = isHeal ? "#4ade80" : isDamage ? "#f87171" : "#a78bfa";
                             const time = new Date(item.created_at);
@@ -614,14 +611,14 @@ export default function GameTracker({
                 </div>
                 <div className="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-px" style={{ scrollbarWidth: "thin" }}>
                     {[...interactions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((item, i) => {
-                        const p = item.payload as Record<string, any>;
+                        const p = item.payload;
                         const isMine = Number(item.player_id) === myPlayerID;
                         const who = isMine ? myUsername : opponentUsername;
                         const desc = formatInteraction(item.type, p, isMine, opponentUsername);
-                        const isHeal = item.type === "life_updated" && (p?.delta ?? 0) > 0;
-                        const isDamage = item.type === "event_declared" || (item.type === "life_updated" && (p?.delta ?? 0) < 0);
+                        const delta = typeof p?.delta === "number" ? p.delta : 0;
+                        const isHeal = item.type === "life_updated" && delta > 0;
+                        const isDamage = item.type === "event_declared" || (item.type === "life_updated" && delta < 0);
                         const accentColor = isHeal ? "rgba(74,222,128,0.06)" : isDamage ? "rgba(248,113,113,0.06)" : "rgba(168,85,247,0.06)";
-                        const dotColor = isHeal ? "#4ade80" : isDamage ? "#f87171" : "#a78bfa";
                         const time = new Date(item.created_at);
                         const hh = String(time.getHours()).padStart(2, "0");
                         const mm = String(time.getMinutes()).padStart(2, "0");
@@ -695,12 +692,14 @@ function PendingEventActions({ duelID, gameNumber, eventID, token, deadline }: {
     );
 }
 
-function formatInteraction(type: string, p: Record<string, any>, isMine: boolean, oppName: string): string {
+function formatInteraction(type: string, p: Record<string, unknown>, isMine: boolean, oppName: string): string {
+    const delta = typeof p?.delta === "number" ? p.delta : 0;
+    const amount = typeof p?.amount === "number" ? p.amount : "";
     switch (type) {
         case "game_started": return "inicio la partida";
         case "game_ended": return "termino la partida";
-        case "life_updated": return `${p?.delta > 0 ? "+" : ""}${p?.delta ?? 0} vida`;
-        case "event_declared": return `${p?.amount ?? ""} daño a ${isMine ? oppName : "ti"}`;
+        case "life_updated": return `${delta > 0 ? "+" : ""}${delta} vida`;
+        case "event_declared": return `${amount} daño a ${isMine ? oppName : "ti"}`;
         case "turn_passed": return "paso turno";
         case "event_passed": return "acepto efecto";
         case "event_countered": return "contrahechizo";

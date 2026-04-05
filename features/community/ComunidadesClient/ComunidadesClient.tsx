@@ -29,16 +29,6 @@ interface Props {
   clans?: Clan[];
 }
 
-function renderStars(rating: number) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  return (
-    <span style={{ color: "var(--warning)", fontSize: 12, letterSpacing: 1 }}>
-      {"★".repeat(full)}{half ? "☆" : ""}
-    </span>
-  );
-}
-
 export default function ComunidadesClient({
   tenants,
   sortLinks,
@@ -243,7 +233,9 @@ export default function ComunidadesClient({
 
 /* ── Tenant Grid Card (epic, like clanes) ── */
 function TenantCard({ tenant }: { tenant: Tenant }) {
-  const hasRating = tenant.rating != null && tenant.rating > 0;
+  const tenantRating = tenant.avg_rating ?? tenant.rating;
+  const hasRating = tenantRating != null && tenantRating > 0;
+  const ratingColor = !hasRating ? "var(--muted)" : tenantRating! >= 4 ? "var(--success)" : tenantRating! >= 3 ? "var(--warning)" : "var(--danger)";
 
   return (
     <Link href={`/comunidades/${tenant.slug || tenant.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
@@ -347,8 +339,8 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             }}
           >
             <div style={{ flex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--foreground)", margin: 0 }}>
-                {hasRating ? tenant.rating!.toFixed(1) : "—"}
+              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? ratingColor : "var(--foreground)", margin: 0 }}>
+                {hasRating ? tenantRating!.toFixed(1) : "—"}
               </p>
               <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
             </div>
@@ -375,7 +367,9 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
 
 /* ── Tenant List Row (epic, like clanes) ── */
 function TenantListRow({ tenant }: { tenant: Tenant }) {
-  const hasRating = tenant.rating != null && tenant.rating > 0;
+  const tenantRating = tenant.avg_rating ?? tenant.rating;
+  const hasRating = tenantRating != null && tenantRating > 0;
+  const ratingColor = !hasRating ? "var(--muted)" : tenantRating! >= 4 ? "var(--success)" : tenantRating! >= 3 ? "var(--warning)" : "var(--danger)";
 
   return (
     <Link href={`/comunidades/${tenant.slug || tenant.id}`} style={{ textDecoration: "none", display: "block" }}>
@@ -445,7 +439,7 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
             <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--muted)" }}>
               {hasRating && (
                 <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                  <span style={{ color: "var(--warning)" }}>★</span> {tenant.rating!.toFixed(1)}
+                  <span style={{ color: ratingColor }}>★</span> {tenantRating!.toFixed(1)}
                 </span>
               )}
               <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -465,8 +459,8 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
           {/* Stats mini on desktop */}
           <div className="hidden sm:flex" style={{ gap: 2, flexShrink: 0 }}>
             <div style={{ textAlign: "center", padding: "4px 10px" }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--muted)", margin: 0 }}>
-                {hasRating ? tenant.rating!.toFixed(1) : "—"}
+              <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? ratingColor : "var(--muted)", margin: 0 }}>
+                {hasRating ? tenantRating!.toFixed(1) : "—"}
               </p>
               <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
             </div>

@@ -5,6 +5,7 @@ import { Button, Spinner } from "@heroui/react";
 import Link from "next/link";
 import { addWishlistItem, removeWishlistItem } from "@/lib/api/social";
 import { autocompleteCards } from "@/lib/api/catalog";
+import type { AutocompleteResult } from "@/lib/types/catalog";
 import type { WishlistItem } from "@/lib/types/social";
 import {
     Plus,
@@ -50,7 +51,7 @@ export default function ProfileWishlistTab({
     const handleAdd = async (payload: Record<string, unknown>) => {
         try {
             const res = await addWishlistItem(payload, token);
-            const newItem = (res as any)?.item ?? (res as any)?.data;
+            const newItem = res?.item;
             if (newItem) setItems((prev) => [newItem, ...prev]);
             setShowAddModal(false);
         } catch {
@@ -199,9 +200,9 @@ function AddWishlistModal({
     onAdd: (payload: Record<string, unknown>) => Promise<void>;
 }) {
     const [searchQuery, setSearchQuery] = useState("");
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<AutocompleteResult[]>([]);
     const [searching, setSearching] = useState(false);
-    const [selected, setSelected] = useState<any>(null);
+    const [selected, setSelected] = useState<AutocompleteResult | null>(null);
     const [condition, setCondition] = useState<string>("NM");
     const [priority, setPriority] = useState(2);
     const [maxPrice, setMaxPrice] = useState("");
@@ -216,7 +217,7 @@ function AddWishlistModal({
             setSearching(true);
             try {
                 const res = await autocompleteCards(searchQuery);
-                const raw = (res as any)?.data ?? (res as any)?.cards ?? (res as any)?.results ?? [];
+                const raw = res?.results ?? [];
                 setResults(Array.isArray(raw) ? raw : []);
             } catch {
                 setResults([]);
@@ -277,7 +278,7 @@ function AddWishlistModal({
                 {/* Results */}
                 {!selected && results.length > 0 && (
                     <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] p-1">
-                        {results.map((card: any, idx: number) => (
+                        {results.map((card, idx) => (
                             <button
                                 key={card.id || idx}
                                 onClick={() => {

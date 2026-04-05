@@ -21,7 +21,7 @@ export function useGameState(
 ) {
     const wsRef = useRef<WebSocket | null>(null);
     const [gameState, setGameState] = useState<GameStateSnapshot | null>(initialState ?? null);
-    const [interactions, setInteractions] = useState<GameInteraction[]>([]);
+    const [interactions] = useState<GameInteraction[]>([]);
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -233,7 +233,7 @@ export function useGameState(
             ws.onerror = () => {
                 // onclose will fire after onerror
             };
-        } catch (err) {
+        } catch {
             setError("Error al conectar al servidor en tiempo real.");
         }
     }, [duelID, gameNumber, token, handleMessage, clearReconnectTimer]);

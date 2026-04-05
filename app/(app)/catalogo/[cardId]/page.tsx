@@ -71,7 +71,6 @@ export default async function CardDetailPage({ params }: CardDetailPageProps) {
 
   // Price stats
   const clpPrices = prices.map((p) => p.price_clp).filter((p): p is number => p != null);
-  const usdPrices = prices.map((p) => Number(p.price_usd)).filter((p) => !isNaN(p));
   const maxCLP = clpPrices.length > 0 ? Math.max(...clpPrices) : 0;
 
   const legalityColor: Record<string, string> = {

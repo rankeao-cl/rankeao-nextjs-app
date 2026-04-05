@@ -86,7 +86,7 @@ export default function NewClanPage() {
     try {
       const res = await createClan(payload, session.accessToken);
       toast.success("Clan creado exitosamente");
-      const clanId = (res as any)?.data?.clan?.id ?? (res as any)?.clan?.id ?? (res as any)?.data?.id ?? (res as any)?.id;
+      const clanId = res?.data?.clan?.id ?? res?.clan?.id;
       if (clanId) {
         router.push(`/clanes/${clanId}`);
       } else {

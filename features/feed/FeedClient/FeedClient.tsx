@@ -32,8 +32,8 @@ export default function FeedClient() {
   useEffect(() => {
     if (!isAuth || !session?.username) return;
     getUserFollowing(session.username, { per_page: 20 })
-      .then((val: any) => {
-        const users = val?.data?.following || val?.data || val?.following || [];
+      .then((val: Record<string, unknown>) => {
+        const users = (val?.data as Record<string, unknown>)?.following as UserProfile[] | undefined || val?.data as UserProfile[] | undefined || val?.following as UserProfile[] | undefined || [];
         setFollowing(Array.isArray(users) ? users : []);
       })
       .catch(() => {});
@@ -41,8 +41,8 @@ export default function FeedClient() {
 
   useEffect(() => {
     browseDecks({ per_page: 15, sort: "newest" })
-      .then((val: any) => {
-        const d = val?.data?.decks || val?.data || val?.decks || [];
+      .then((val: Record<string, unknown>) => {
+        const d = (val?.data as Record<string, unknown>)?.decks as Deck[] | undefined || val?.data as Deck[] | undefined || val?.decks as Deck[] | undefined || [];
         setDecks(Array.isArray(d) ? d : []);
       })
       .catch(() => {});
@@ -219,8 +219,8 @@ export default function FeedClient() {
           const deck = item.data;
           const hasCards = deck.cards && deck.cards.length > 0;
           const coverImg = hasCards ? deck.cards![0].image_url : undefined;
-          const deckOwner = (deck as any).username ?? (deck as any).owner?.username ?? "";
-          const deckAvatar = (deck as any).avatar_url ?? (deck as any).owner?.avatar_url ?? "";
+          const deckOwner = deck.username ?? deck.owner?.username ?? "";
+          const deckAvatar = deck.avatar_url ?? deck.owner?.avatar_url ?? "";
 
           return (
             <button

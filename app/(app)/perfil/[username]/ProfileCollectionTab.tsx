@@ -5,16 +5,9 @@ import { Card, Chip, Button, Spinner } from "@heroui/react";
 import { Plus, Xmark, Magnifier, TrashBin } from "@gravity-ui/icons";
 import { addCollectionItem, removeCollectionItem } from "@/lib/api/social";
 import { autocompleteCards } from "@/lib/api/catalog";
+import type { AutocompleteResult } from "@/lib/types/catalog";
 
 const CONDITIONS = ["NM", "LP", "MP", "HP", "DMG"] as const;
-
-const CONDITION_COLORS: Record<string, string> = {
-    NM: "bg-emerald-500/15 text-emerald-500",
-    LP: "bg-blue-500/15 text-blue-500",
-    MP: "bg-yellow-500/15 text-yellow-500",
-    HP: "bg-orange-500/15 text-orange-500",
-    DMG: "bg-red-500/15 text-red-500",
-};
 
 const conditionColors: Record<string, string> = {
     mint: "text-[var(--success)]",
@@ -62,7 +55,7 @@ export default function ProfileCollectionTab({
     const [gameFilter, setGameFilter] = useState<string>("all");
     const [setFilter, setSetFilter] = useState<string>("all");
     const [showAddModal, setShowAddModal] = useState(false);
-    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [, setDeletingId] = useState<string | null>(null);
 
     const games = useMemo(() => {
         const g = new Set<string>();
@@ -109,7 +102,7 @@ export default function ProfileCollectionTab({
     const handleAdd = async (payload: Record<string, unknown>) => {
         try {
             const res = await addCollectionItem(payload, token);
-            const newItem = (res as any)?.item ?? (res as any)?.data;
+            const newItem = res?.item;
             if (newItem) setCollection((prev) => [newItem, ...prev]);
             setShowAddModal(false);
         } catch {
@@ -315,9 +308,9 @@ function AddCardModal({
     onAdd: (payload: Record<string, unknown>) => Promise<void>;
 }) {
     const [searchQuery, setSearchQuery] = useState("");
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<AutocompleteResult[]>([]);
     const [searching, setSearching] = useState(false);
-    const [selected, setSelected] = useState<any>(null);
+    const [selected, setSelected] = useState<AutocompleteResult | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [condition, setCondition] = useState<string>("NM");
     const [isFoil, setIsFoil] = useState(false);
@@ -333,7 +326,7 @@ function AddCardModal({
             setSearching(true);
             try {
                 const res = await autocompleteCards(searchQuery);
-                const raw = (res as any)?.data ?? (res as any)?.cards ?? (res as any)?.results ?? [];
+                const raw = res?.results ?? [];
                 setResults(Array.isArray(raw) ? raw : []);
             } catch {
                 setResults([]);
@@ -390,7 +383,7 @@ function AddCardModal({
                 {/* Search results */}
                 {!selected && results.length > 0 && (
                     <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] p-1">
-                        {results.map((card: any, idx: number) => (
+                        {results.map((card, idx) => (
                             <button
                                 key={card.id || idx}
                                 onClick={() => { setSelected(card); setResults([]); }}

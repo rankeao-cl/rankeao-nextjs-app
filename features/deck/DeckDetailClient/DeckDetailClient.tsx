@@ -20,17 +20,20 @@ export default function DeckDetailClient({ deck }: { deck: Deck }) {
   const { session, status } = useAuth();
   const isAuth = status === "authenticated";
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState((deck as any).likes_count ?? deck.like_count ?? 0);
+  const [likeCount, setLikeCount] = useState(deck.likes_count ?? deck.like_count ?? 0);
 
   const cards = useMemo(() => {
     const raw = deck.cards ?? [];
     // Normalize: API may return objects with different shapes
-    return raw.map((c: any) => ({
-      card_name: c.card_name ?? c.name ?? "Carta",
-      quantity: c.quantity ?? c.qty ?? 1,
-      board: (c.board ?? "MAIN") as Board,
-      image_url: c.image_url ?? c.img ?? undefined,
-    }));
+    return raw.map((c) => {
+      const ext = c as DeckCard & Record<string, unknown>;
+      return {
+        card_name: ext.card_name ?? (ext.name as string) ?? "Carta",
+        quantity: ext.quantity ?? (ext.qty as number) ?? 1,
+        board: (ext.board ?? "MAIN") as Board,
+        image_url: ext.image_url ?? (ext.img as string) ?? undefined,
+      };
+    });
   }, [deck.cards]);
 
   const boards = useMemo(() => {
@@ -45,13 +48,13 @@ export default function DeckDetailClient({ deck }: { deck: Deck }) {
 
   const totalCards = useMemo(() => {
     const fromCards = cards.reduce((sum, c) => sum + c.quantity, 0);
-    return fromCards || (deck as any).card_count || 0;
+    return fromCards || deck.card_count || 0;
   }, [cards, deck]);
 
   const gameName = deck.game_name || deck.game || "";
   const formatName = deck.format_name || deck.format || "";
-  const ownerUsername = deck.username || (deck as any).owner?.username || "";
-  const viewCount = (deck as any).views_count ?? deck.view_count ?? 0;
+  const ownerUsername = deck.username || deck.owner?.username || "";
+  const viewCount = deck.view_count ?? 0;
 
   const handleLike = async () => {
     if (!isAuth || !session?.accessToken) return;

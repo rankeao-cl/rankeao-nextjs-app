@@ -64,7 +64,7 @@ export async function getPostComments(postId: string | number, params?: Params) 
 }
 
 export async function addPostComment(postId: string | number, content: string, token?: string, parentCommentId?: string, replyToUsername?: string) {
-    const body: any = { content };
+    const body: { content: string; parent_comment_id?: number; reply_to_username?: string } = { content };
     if (parentCommentId) body.parent_comment_id = Number(parentCommentId);
     if (replyToUsername) body.reply_to_username = replyToUsername;
     return apiPost<{ comment: PostComment }>(`/social/feed/posts/${postId}/comments`, body, { token });
@@ -95,7 +95,7 @@ export async function deleteBookmark(entityType: string, entityId: string, token
 export async function listBookmarks(entityType?: string, params?: Params, token?: string) {
     const p: Record<string, string> = { ...params as Record<string, string> };
     if (entityType) p.entity_type = entityType;
-    return apiFetch<{ data?: { bookmarks: any[] }; bookmarks?: any[] }>("/social/bookmarks", p, { token });
+    return apiFetch<{ data?: { bookmarks: Record<string, unknown>[] }; bookmarks?: Record<string, unknown>[] }>("/social/bookmarks", p, { token });
 }
 
 // ── Friends ──

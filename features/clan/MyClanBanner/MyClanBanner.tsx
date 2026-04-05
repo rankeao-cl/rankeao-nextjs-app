@@ -12,8 +12,8 @@ export default function MyClanBanner({ clan }: { clan: Clan }) {
     useEffect(() => {
         if (bannerUrl && logoUrl) return;
         getClan(clan.id)
-            .then((res: any) => {
-                const detail = res?.data?.clan ?? res?.data ?? res?.clan ?? res;
+            .then((res) => {
+                const detail = res?.data?.clan ?? res?.clan;
                 if (detail?.banner_url && !bannerUrl) setBannerUrl(detail.banner_url);
                 if (detail?.logo_url && !logoUrl) setLogoUrl(detail.logo_url);
             })

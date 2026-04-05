@@ -35,7 +35,7 @@ export interface Badge {
     description?: string;
     icon_url?: string;
     rarity?: string;
-    category?: string;
+    category?: string | { name?: string; id?: string };
     earner_count?: number;
     criteria?: string;
     created_at?: string;
@@ -123,6 +123,39 @@ export interface UserStats {
     current_streak?: number;
     best_streak?: number;
     peak_rating?: number;
+}
+
+export interface RawLeaderboardEntry {
+    rank?: number;
+    user_id?: string;
+    username?: string;
+    avatar_url?: string;
+    total_xp?: number;
+    xp?: number;
+    level?: number;
+    rating?: number;
+    elo?: number;
+    games_played?: number;
+    wins?: number;
+    losses?: number;
+    title?: string;
+    user?: { id?: string; username?: string; avatar_url?: string; current_title?: string };
+}
+
+export interface RawFormatStat {
+    name?: string;
+    format?: string;
+    count?: number;
+    matches?: number;
+}
+
+export interface RawGameStat {
+    game?: string | { name?: string };
+    name?: string;
+    win_rate?: number;
+    winRate?: number;
+    matches?: number;
+    total_matches?: number;
 }
 
 export interface XpEvent {

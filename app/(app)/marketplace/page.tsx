@@ -1,8 +1,7 @@
 import GroupedSaleCard from "@/features/marketplace/GroupedSaleCard";
 import GroupedSaleCardList from "@/features/marketplace/GroupedSaleCardList";
-import { getListings } from "@/lib/api/marketplace";
+import { getGroupedCards } from "@/lib/api/marketplace";
 import { getGames } from "@/lib/api/catalog";
-import { groupListings } from "@/lib/utils/group-listings";
 import type { CatalogGame } from "@/lib/types/catalog";
 import MarketplaceFilters from "./MarketplaceFilters";
 import MarketplaceSearch from "./MarketplaceSearch";
@@ -50,7 +49,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
     condition: params.condition,
     min_price: params.min_price ? Number(params.min_price) : undefined,
     max_price: params.max_price ? Number(params.max_price) : undefined,
-    sort: params.sort || "newest",
+    sort: params.sort || "price",
     page,
     per_page: 30,
     game: params.game,
@@ -59,20 +58,19 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
     category: params.category,
   };
 
-  let listingsData;
+  let cardsData;
   let gamesData;
   try {
-    [listingsData, gamesData] = await Promise.all([
-      getListings(filters).catch(() => null),
+    [cardsData, gamesData] = await Promise.all([
+      getGroupedCards(filters).catch(() => null),
       getGames().catch(() => null),
     ]);
   } catch {
     // silent
   }
 
-  const listings = listingsData?.listings ?? [];
-  const groupedCards = groupListings(listings);
-  const meta = listingsData?.meta;
+  const groupedCards = cardsData?.cards ?? [];
+  const meta = cardsData?.meta;
   const totalPages = meta?.total_pages ?? 1;
   const rawGames = gamesData?.data ?? gamesData?.games;
   const games: CatalogGame[] = Array.isArray(rawGames) ? rawGames : [];
@@ -258,7 +256,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
               {viewMode === "list" ? (
                 <div className="flex flex-col gap-3">
                   {groupedCards.map((group) => (
-                    <GroupedSaleCardList key={group.group_key} group={group} />
+                    <GroupedSaleCardList key={group.card_id} group={group} />
                   ))}
                 </div>
               ) : (
@@ -269,7 +267,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                   }}
                 >
                   {groupedCards.map((group) => (
-                    <GroupedSaleCard key={group.group_key} group={group} />
+                    <GroupedSaleCard key={group.card_id} group={group} />
                   ))}
                 </div>
               )}

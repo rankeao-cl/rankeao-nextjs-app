@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, Chip, Button, Tabs, toast } from "@heroui/react";
 import Image from "next/image";
-import Link from "next/link";
-import { Clock, MapPin, Persons, Cup, Person, ShieldCheck, ArrowRight } from "@gravity-ui/icons";
+import { Clock, MapPin, Persons, Cup, Person, ShieldCheck } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getGameBrand } from "@/lib/gameLogos";
-import type { Tournament, Round, Standing, Match } from "@/lib/types/tournament";
+import type { Tournament, TournamentDetail, TournamentJudge, TournamentPrize, Round, Standing, Match } from "@/lib/types/tournament";
 import TournamentBracket from "@/features/tournament/TournamentBracket";
 import FollowTournamentButton from "@/features/tournament/FollowTournamentButton";
 import {
@@ -27,18 +26,6 @@ import {
     disputeMatch,
     resolveDispute,
 } from "@/lib/api/tournaments";
-
-// ── Types ──
-
-interface ApiPlayer { user_id: string; username: string; }
-interface ApiMatch {
-    id: string; round_number: number; table_number?: number;
-    player1: ApiPlayer; player2?: ApiPlayer;
-    player1_wins: number; player2_wins: number; draws: number;
-    winner_id?: string; status: string; is_bye: boolean;
-    reported_by?: string; reported_at?: string; confirmed_at?: string;
-    disputed_by?: string; disputed_at?: string;
-}
 
 const statusConfig: Record<string, { color: "success" | "warning" | "danger" | "default" | "accent"; label: string }> = {
     DRAFT: { color: "default", label: "Borrador" },
@@ -59,13 +46,6 @@ const matchStatusLabels: Record<string, string> = {
 
 // ── Helpers ──
 
-function formatDate(iso?: string) {
-    if (!iso) return null;
-    return new Date(iso).toLocaleDateString("es-CL", {
-        weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
-    });
-}
-
 function getUsernameFromToken(accessToken?: string): string | undefined {
     if (!accessToken) return undefined;
     try {
@@ -78,10 +58,10 @@ function getUsernameFromToken(accessToken?: string): string | undefined {
     } catch { return undefined; }
 }
 
-function getUserRole(tournament: any, username?: string): "organizer" | "judge" | "player" | "spectator" {
+function getUserRole(tournament: TournamentDetail, username?: string): "organizer" | "judge" | "player" | "spectator" {
     if (!username) return "spectator";
     if (tournament.organizer_name === username) return "organizer";
-    if (tournament.judges?.some((j: any) => j.username === username)) return "judge";
+    if (tournament.judges?.some((j: TournamentJudge) => j.username === username)) return "judge";
     if (tournament.my_registration) return "player";
     return "spectator";
 }
@@ -102,7 +82,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         [session?.username, session?.accessToken]
     );
 
-    const detail = tournament as any;
+    const detail = tournament as TournamentDetail;
     const st = statusConfig[tournament.status] || statusConfig.DRAFT;
 
     const role = useMemo(() => {
@@ -125,8 +105,9 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         setLoading(true);
         try {
             const res = await getTournamentRounds(tournament.id);
-            const data = (res as any).data || res;
-            setRounds(Array.isArray(data.rounds) ? data.rounds : Array.isArray(data) ? data : []);
+            const data = (res as { data?: Round[] | { rounds?: Round[] } }).data || res;
+            const list = (data as { rounds?: Round[] }).rounds;
+            setRounds(Array.isArray(list) ? list : Array.isArray(data) ? data as Round[] : []);
         } catch { /* silent */ }
         setLoading(false);
     }, [tournament.id]);
@@ -135,8 +116,9 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         setLoading(true);
         try {
             const res = await getTournamentStandings(tournament.id);
-            const data = (res as any).data || res;
-            setStandings(Array.isArray(data.standings) ? data.standings : Array.isArray(data) ? data : []);
+            const data = (res as { data?: Standing[] | { standings?: Standing[] }; standings?: Standing[] }).data || res;
+            const list = (data as { standings?: Standing[] }).standings;
+            setStandings(Array.isArray(list) ? list : Array.isArray(data) ? data as Standing[] : []);
         } catch { /* silent */ }
         setLoading(false);
     }, [tournament.id]);
@@ -147,13 +129,13 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         loadStandings();
     }, [loadRounds, loadStandings]);
 
-    async function handleAction(action: () => Promise<any>, successMsg: string) {
+    async function handleAction(action: () => Promise<unknown>, successMsg: string) {
         setActionLoading(true);
         try {
             await action();
             toast.success(successMsg);
             window.location.reload();
-        } catch (e: any) {
+        } catch (e: unknown) {
             toast.danger(mapErrorMessage(e));
         }
         setActionLoading(false);
@@ -169,9 +151,6 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
         }
         return result;
     }, [rounds]);
-
-    const isSingleElimination = tournament.structure === "SINGLE_ELIMINATION" ||
-        (detail.format_type || "").toUpperCase().includes("ELIMINATION");
 
     // Default tab based on tournament status
     const defaultTab = isLive ? "rounds" : isFinished ? "standings" : "info";
@@ -393,9 +372,9 @@ function ActionButtons({
     tournament, role, isAuthenticated, loading, onAction,
 }: {
     tournament: Tournament; role: string; isAuthenticated: boolean; loading: boolean;
-    onAction: (action: () => Promise<any>, msg: string) => void;
+    onAction: (action: () => Promise<unknown>, msg: string) => void;
 }) {
-    const detail = tournament as any;
+    const detail = tournament as TournamentDetail & { my_registration?: TournamentDetail["my_registration"] & { checked_in_at?: string } };
     const isOpen = tournament.status === "OPEN";
     const isCheckIn = tournament.status === "CHECK_IN";
     const isLive = ["STARTED", "ROUND_IN_PROGRESS", "ROUND_COMPLETE"].includes(tournament.status);
@@ -458,7 +437,7 @@ function ActionButtons({
 // ── Info Tab ──
 
 function InfoTab({ tournament }: { tournament: Tournament }) {
-    const detail = tournament as any;
+    const detail = tournament as TournamentDetail;
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {tournament.description && (
@@ -496,10 +475,10 @@ function InfoTab({ tournament }: { tournament: Tournament }) {
                 {tournament.is_online && <p className="text-sm text-[var(--accent)] font-medium">Torneo online</p>}
             </div>
 
-            {detail.judges?.length > 0 && (
+            {(detail.judges?.length ?? 0) > 0 && (
                 <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] space-y-3">
                     <h3 className="font-bold text-sm text-[var(--foreground)]">Jueces</h3>
-                    {detail.judges.map((j: any) => (
+                    {detail.judges!.map((j: TournamentJudge) => (
                         <div key={j.user_id} className="flex items-center gap-2">
                             <ShieldCheck className="size-4 text-[var(--warning)]" />
                             <span className="text-sm text-[var(--foreground)]">{j.username}</span>
@@ -509,10 +488,10 @@ function InfoTab({ tournament }: { tournament: Tournament }) {
                 </div>
             )}
 
-            {detail.prizes?.length > 0 && (
+            {(detail.prizes?.length ?? 0) > 0 && (
                 <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] space-y-3">
                     <h3 className="font-bold text-sm text-[var(--foreground)]">Premios</h3>
-                    {detail.prizes.map((p: any, i: number) => (
+                    {detail.prizes!.map((p: TournamentPrize, i: number) => (
                         <div key={i} className="flex items-center justify-between">
                             <span className="text-sm text-[var(--foreground)]">
                                 {p.position === 1 ? "1er" : p.position === 2 ? "2do" : p.position === 3 ? "3er" : `${p.position}to`} lugar
@@ -538,11 +517,11 @@ function DetailRow({ label, value }: { label: string; value?: string }) {
 
 // ── Rounds Tab ──
 
-function RoundsTab({ tournament, rounds, loading, role, currentUsername, onRefresh }: {
+function RoundsTab({ tournament, rounds, loading, role, currentUsername }: {
     tournament: Tournament; rounds: Round[]; loading: boolean; role: string; currentUsername?: string; onRefresh: () => void;
 }) {
     const [selectedRound, setSelectedRound] = useState<number | null>(null);
-    const [matches, setMatches] = useState<ApiMatch[]>([]);
+    const [matches, setMatches] = useState<Match[]>([]);
     const [matchesLoading, setMatchesLoading] = useState(false);
 
     useEffect(() => {
@@ -624,7 +603,7 @@ function RoundsTab({ tournament, rounds, loading, role, currentUsername, onRefre
 // ── Match Card ──
 
 function MatchCard({ match, tournamentId, role, currentUsername, onUpdate }: {
-    match: ApiMatch; tournamentId: string; role: string; currentUsername?: string; onUpdate: () => void;
+    match: Match; tournamentId: string; role: string; currentUsername?: string; onUpdate: () => void;
 }) {
     const [showReport, setShowReport] = useState(false);
     const [p1Wins, setP1Wins] = useState(match.player1_wins ?? 0);
@@ -650,28 +629,28 @@ function MatchCard({ match, tournamentId, role, currentUsername, onUpdate }: {
             await reportMatch(tournamentId, match.id, { player1_wins: p1Wins, player2_wins: p2Wins, draws });
             toast.success(asJudge ? "Resultado registrado por juez" : "Resultado reportado");
             setShowReport(false); onUpdate();
-        } catch (e: any) { toast.danger(mapErrorMessage(e)); }
+        } catch (e: unknown) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 
     async function handleConfirm() {
         setSubmitting(true);
         try { await confirmMatch(tournamentId, match.id); toast.success("Resultado confirmado"); onUpdate(); }
-        catch (e: any) { toast.danger(mapErrorMessage(e)); }
+        catch (e: unknown) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 
     async function handleDispute() {
         setSubmitting(true);
         try { await disputeMatch(tournamentId, match.id, { reason: "Resultado incorrecto" }); toast.warning("Resultado disputado"); onUpdate(); }
-        catch (e: any) { toast.danger(mapErrorMessage(e)); }
+        catch (e: unknown) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 
     async function handleResolve() {
         setSubmitting(true);
         try { await resolveDispute(tournamentId, match.id, { player1_wins: p1Wins, player2_wins: p2Wins, draws }); toast.success("Disputa resuelta"); setShowReport(false); onUpdate(); }
-        catch (e: any) { toast.danger(mapErrorMessage(e)); }
+        catch (e: unknown) { toast.danger(mapErrorMessage(e)); }
         setSubmitting(false);
     }
 

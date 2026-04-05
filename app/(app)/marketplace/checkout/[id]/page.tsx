@@ -112,8 +112,8 @@ export default function CheckoutPage() {
 
   // Normalize the checkout data — API may nest under .data or .checkout
   const checkout: MarketplaceCheckout | null =
-    (rawCheckout as any)?.data ??
-    (rawCheckout as any)?.checkout ??
+    rawCheckout?.data ??
+    rawCheckout?.checkout ??
     (rawCheckout as MarketplaceCheckout) ??
     null;
 
@@ -128,9 +128,9 @@ export default function CheckoutPage() {
         payload: { provider },
       });
       const paymentUrl =
-        (result as any)?.payment_url ??
-        (result as any)?.checkout?.payment_url ??
-        (result as any)?.data?.payment_url;
+        (result as { payment_url?: string })?.payment_url ??
+        (result as { checkout?: { payment_url?: string } })?.checkout?.payment_url ??
+        (result as { data?: { payment_url?: string } })?.data?.payment_url;
       if (paymentUrl) {
         window.location.href = paymentUrl;
       }
@@ -183,14 +183,13 @@ export default function CheckoutPage() {
     status === "COMPLETED";
 
   // Extract financial details — the API may provide these or we fall back to total
-  const ck = checkout as any;
-  const subtotal = ck.subtotal ?? checkout.total ?? 0;
-  const shippingCost = ck.shipping_cost ?? 0;
-  const platformFee = ck.platform_fee ?? 0;
+  const subtotal = checkout.subtotal ?? checkout.total ?? 0;
+  const shippingCost = checkout.shipping_cost ?? 0;
+  const platformFee = checkout.platform_fee ?? 0;
   const total = checkout.total ?? 0;
-  const itemName = ck.item_summary ?? ck.item_name ?? `Listing #${checkout.listing_id?.slice(-8) ?? ""}`;
-  const quantity = ck.quantity ?? 1;
-  const orderNumber = ck.order_number ?? checkout.id.slice(-8).toUpperCase();
+  const itemName = checkout.item_summary ?? checkout.item_name ?? `Listing #${checkout.listing_id?.slice(-8) ?? ""}`;
+  const quantity = checkout.quantity ?? 1;
+  const orderNumber = checkout.order_number ?? checkout.id.slice(-8).toUpperCase();
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col pt-4 pb-12">
@@ -368,7 +367,7 @@ export default function CheckoutPage() {
             <Chip color={cfg.chipColor} variant="soft" size="sm">
               {cfg.label}
             </Chip>
-            {(ck.payment_status || checkout.payment_method) && (
+            {(checkout.status || checkout.payment_method) && (
               <span className="text-xs text-[var(--muted)]">
                 {checkout.payment_method
                   ? `via ${checkout.payment_method}`

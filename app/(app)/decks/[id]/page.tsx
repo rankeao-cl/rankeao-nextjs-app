@@ -1,5 +1,5 @@
 import { getDeck } from "@/lib/api/social";
-import type { Deck, DeckCard } from "@/lib/types/social";
+import type { Deck } from "@/lib/types/social";
 import DeckDetailClient from "./DeckDetailClient";
 
 export default async function DeckPage({ params }: { params: Promise<{ id: string }> }) {
@@ -7,8 +7,8 @@ export default async function DeckPage({ params }: { params: Promise<{ id: strin
 
   let deck: Deck | null = null;
   try {
-    const res = await getDeck(id) as any;
-    deck = res?.data?.deck ?? res?.data ?? res?.deck ?? res ?? null;
+    const res = await getDeck(id);
+    deck = res?.data ?? res?.deck ?? null;
   } catch {}
 
   if (!deck) {

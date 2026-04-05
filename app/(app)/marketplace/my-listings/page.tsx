@@ -259,7 +259,7 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
 // ── Main Page ──
 
 export default function MyListingsPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
 
   const [tab, setTab] = useState<Tab>("all");
@@ -267,7 +267,7 @@ export default function MyListingsPage() {
   const queryParams = tab === "all" ? undefined : { status: tab };
   const { data, isLoading, refetch } = useMyListings(queryParams);
 
-  const rawListings = (data as any)?.listings ?? (data as any)?.data ?? data;
+  const rawListings = (data as { listings?: Listing[]; data?: Listing[] })?.listings ?? (data as { data?: Listing[] })?.data ?? data;
   const listings: Listing[] = Array.isArray(rawListings) ? rawListings : [];
 
   // ── Auth guard ──

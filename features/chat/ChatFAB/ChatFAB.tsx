@@ -51,7 +51,7 @@ export default function CreatePostFAB() {
         if (!session?.accessToken) return;
         setLoading(true);
         getChatChannels(undefined, session.accessToken)
-            .then((val: any) => {
+            .then((val) => {
                 const ch = val?.data?.channels || val?.channels || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
                 setChannels(ch);
             })
@@ -70,7 +70,7 @@ export default function CreatePostFAB() {
         if (!activeChannel || !session?.accessToken) return;
         setLoadingMessages(true);
         getChatMessages(activeChannel.id, undefined, session.accessToken)
-            .then((val: any) => {
+            .then((val) => {
                 const msgs = val?.data?.messages || val?.messages || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
                 setMessages(msgs);
             })
@@ -99,8 +99,8 @@ export default function CreatePostFAB() {
             if (!session?.accessToken) return;
             setNewChatLoading(true);
             try {
-                const val = await autocompleteUsers(newChatSearch, session.accessToken) as any;
-                const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
+                const val = await autocompleteUsers(newChatSearch, session.accessToken);
+                const users = val?.data || val?.users || [];
                 setNewChatSuggestions(users.filter((u: UserSuggestion) => u.username !== session.username));
             } catch {
             } finally {
@@ -230,8 +230,8 @@ export default function CreatePostFAB() {
                 toast.success("Chat creado");
                 handleOpenChat(channel);
             }
-        } catch (error: any) {
-            toast.danger("Error al crear el chat", { description: error.message || "" });
+        } catch (error: unknown) {
+            toast.danger("Error al crear el chat", { description: error instanceof Error ? error.message : "" });
         } finally {
             setNewChatCreating(false);
             setNewChatSearch("");

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, CSSProperties, useCallback } from "react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { changePassword } from "@/lib/api/auth";
-import { getNotificationPreferences, updateNotificationPreferences } from "@/lib/api/notifications";
+import { getNotificationPreferences, batchUpdateNotificationPreferences } from "@/lib/api/notifications";
 import type { NotificationPreferences } from "@/lib/types/notification";
 import { getUserProfile, updateProfile } from "@/lib/api/social";
 import { uploadMarketplaceImage } from "@/lib/api/marketplace";
@@ -528,6 +528,17 @@ export default function ConfigPage() {
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
   // ── Notification prefs ──
+  // Map flat UI keys → API category/channel
+  const NOTIF_MAP: Record<keyof NotificationPreferences, { category: string; channel: string }> = {
+    tournament_updates: { category: "tournament", channel: "IN_APP" },
+    match_reminders: { category: "tournament", channel: "PUSH" },
+    social_interactions: { category: "social", channel: "IN_APP" },
+    clan_activity: { category: "social", channel: "PUSH" },
+    marketplace_offers: { category: "marketplace", channel: "IN_APP" },
+    price_alerts: { category: "marketplace", channel: "PUSH" },
+    system_announcements: { category: "system", channel: "IN_APP" },
+  };
+
   const [localNotifPrefs, setLocalNotifPrefs] = useState<NotificationPreferences>({
     tournament_updates: true,
     match_reminders: true,
@@ -577,16 +588,27 @@ export default function ConfigPage() {
   });
 
   const updatePrefsMutation = useMutation({
-    mutationFn: (newPrefs: Partial<NotificationPreferences>) => updateNotificationPreferences(newPrefs, token!),
+    mutationFn: (entry: { category: string; channel: string; enabled: boolean }) =>
+      batchUpdateNotificationPreferences([entry], token!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notificationPreferences"] });
     },
   });
 
+  // Map API category/channel matrix → flat UI booleans
   useEffect(() => {
-    if (notifPrefs?.preferences) {
-      setLocalNotifPrefs(notifPrefs.preferences);
+    if (!notifPrefs) return;
+    const raw = (notifPrefs as Record<string, unknown>)?.data ?? (notifPrefs as Record<string, unknown>)?.preferences ?? notifPrefs;
+    const matrix = raw as Record<string, Record<string, boolean>>;
+    if (!matrix || typeof matrix !== "object") return;
+    const mapped: Partial<NotificationPreferences> = {};
+    for (const [key, mapping] of Object.entries(NOTIF_MAP)) {
+      const cat = matrix[mapping.category];
+      if (cat && typeof cat === "object") {
+        mapped[key as keyof NotificationPreferences] = cat[mapping.channel] ?? true;
+      }
     }
+    setLocalNotifPrefs((prev) => ({ ...prev, ...mapped }));
   }, [notifPrefs]);
 
   useEffect(() => {
@@ -606,7 +628,8 @@ export default function ConfigPage() {
 
   const handleToggleNotif = (key: keyof NotificationPreferences, val: boolean) => {
     setLocalNotifPrefs((prev) => ({ ...prev, [key]: val }));
-    updatePrefsMutation.mutate({ [key]: val });
+    const mapping = NOTIF_MAP[key];
+    updatePrefsMutation.mutate({ category: mapping.category, channel: mapping.channel, enabled: val });
     showToast("Preferencia guardada");
   };
 

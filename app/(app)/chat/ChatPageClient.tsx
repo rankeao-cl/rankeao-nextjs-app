@@ -24,7 +24,7 @@ export default function ChatPageClient() {
 
     setLoadingChannels(true);
     getChatChannels(undefined, token)
-      .then(async (val: any) => {
+      .then(async (val) => {
         const chList: Channel[] = val?.data?.channels || val?.channels || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
         setChannels(chList);
 
@@ -32,7 +32,7 @@ export default function ChatPageClient() {
         if (targetUser) {
           // Check if DM already exists
           const existing = chList.find(
-            (c) => c.type === "DM" && c.members?.some((m: any) => m.username === targetUser)
+            (c) => c.type === "DM" && c.members?.some((m) => m.username === targetUser)
           );
           if (existing) {
             setSelectedChannel(existing);
@@ -41,9 +41,9 @@ export default function ChatPageClient() {
             try {
               const res = await autocompleteUsers(targetUser, token);
               const users = res?.data || res?.users || [];
-              const user = users.find((u: any) => u.username === targetUser);
+              const user = users.find((u) => u.username === targetUser);
               if (user) {
-                const dmRes: any = await createChannel({ type: "DM", user_ids: [user.id] }, token);
+                const dmRes = await createChannel({ type: "DM", user_ids: [user.id] }, token);
                 const newChannel = dmRes?.data?.channel || dmRes?.channel;
                 if (newChannel) {
                   setChannels((prev) => [newChannel, ...prev.filter((c) => c.id !== newChannel.id)]);
@@ -56,7 +56,7 @@ export default function ChatPageClient() {
           }
         }
       })
-      .catch((err: any) => {
+      .catch((err: unknown) => {
         console.error("Error obteniendo canales:", err);
       })
       .finally(() => setLoadingChannels(false));

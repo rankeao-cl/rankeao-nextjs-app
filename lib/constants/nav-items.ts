@@ -6,7 +6,6 @@ import {
     ShoppingCart,
     Persons,
     Medal,
-    Comment,
 } from "@gravity-ui/icons";
 
 export interface NavItem {

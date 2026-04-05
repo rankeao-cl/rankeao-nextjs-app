@@ -69,8 +69,8 @@ function SearchContent() {
 
             // Users
             if (usersRes.status === "fulfilled") {
-                const val = usersRes.value as any;
-                const users = val?.data?.users || val?.users || (Array.isArray(val) ? val : []);
+                const val = usersRes.value;
+                const users = val?.users || val?.data || (Array.isArray(val) ? val : []);
                 for (const u of users) {
                     items.push({
                         id: u.id || u.username, type: "user",
@@ -85,13 +85,13 @@ function SearchContent() {
 
             // Tournaments
             if (tournamentsRes.status === "fulfilled") {
-                const val = tournamentsRes.value as any;
-                const tournaments = val?.data?.tournaments || val?.tournaments || [];
+                const val = tournamentsRes.value;
+                const tournaments = val?.tournaments || [];
                 for (const t of tournaments) {
                     items.push({
                         id: t.id, type: "tournament",
                         title: t.name,
-                        subtitle: [t.game, t.format_type, t.status].filter(Boolean).join(" · "),
+                        subtitle: [t.game, t.format, t.status].filter(Boolean).join(" · "),
                         href: `/torneos/${t.slug ?? t.id}`,
                         meta: { status: t.status, game: t.game, registered_count: t.registered_count },
                     });
@@ -100,7 +100,7 @@ function SearchContent() {
 
             // Clans
             if (clansRes.status === "fulfilled") {
-                const val = clansRes.value as any;
+                const val = clansRes.value;
                 const clans = val?.data?.clans || val?.clans || (Array.isArray(val?.data) ? val.data : []);
                 for (const c of clans) {
                     items.push({
@@ -116,7 +116,7 @@ function SearchContent() {
 
             // Cards (Scryfall)
             if (cardsRes.status === "fulfilled") {
-                const val = cardsRes.value as any;
+                const val = cardsRes.value;
                 const cards = val?.data?.cards || [];
                 const seen = new Set<string>();
                 if (Array.isArray(cards)) {
@@ -138,8 +138,8 @@ function SearchContent() {
 
             // Communities
             if (tenantsRes.status === "fulfilled") {
-                const val = tenantsRes.value as any;
-                const tenants = val?.data?.tenants || val?.tenants || [];
+                const val = tenantsRes.value;
+                const tenants = val?.tenants || [];
                 for (const t of tenants) {
                     items.push({
                         id: t.id || t.slug, type: "community",
@@ -147,15 +147,15 @@ function SearchContent() {
                         subtitle: t.city ? `${t.city}${t.region ? `, ${t.region}` : ""}` : undefined,
                         image: t.logo_url,
                         href: `/comunidades/${t.slug}`,
-                        meta: { rating: t.average_rating },
+                        meta: { rating: t.rating },
                     });
                 }
             }
 
             // Listings
             if (listingsRes.status === "fulfilled") {
-                const val = listingsRes.value as any;
-                const listings = val?.data?.listings || val?.listings || [];
+                const val = listingsRes.value;
+                const listings = val?.listings || [];
                 for (const l of listings) {
                     items.push({
                         id: l.id, type: "listing",

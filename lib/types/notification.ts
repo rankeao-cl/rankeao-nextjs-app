@@ -3,17 +3,20 @@ import type { PaginationMeta } from "./api";
 // ── Notification types ──
 
 export interface Notification {
-    id: string;
-    user_id: string;
-    type: string;
-    category?: string; // TOURNAMENT | MARKETPLACE | SOCIAL | SYSTEM
-    channel?: string;  // API may return "channel" instead of "category"
+    id: string | number;
+    user_id?: string;
+    type?: string;
+    category?: string;
+    channel?: string;
     title: string;
     body?: string;
-    priority?: "low" | "normal" | "high";
-    is_read: boolean;
-    read_at?: string | null; // API returns read_at (nullable timestamp)
+    priority?: string;
+    is_read?: boolean;
+    read_at?: string | null;
+    sent_at?: string;
     action_url?: string;
+    entity_type?: string;
+    entity_id?: string | number;
     metadata?: Record<string, unknown>;
     variables?: Record<string, string>;
     created_at: string;

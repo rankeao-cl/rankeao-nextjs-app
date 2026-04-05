@@ -15,7 +15,7 @@ export default function FollowTournamentButton({
     tournamentId,
     isFollowing: initialFollowing = false,
 }: FollowTournamentButtonProps) {
-    const { status, session } = useAuth();
+    const { status } = useAuth();
     const isAuth = status === "authenticated";
     const [following, setFollowing] = useState(initialFollowing);
     const [loading, setLoading] = useState(false);

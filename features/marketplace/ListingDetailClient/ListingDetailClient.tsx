@@ -10,7 +10,7 @@ import { useToggleFavorite, useMyFavorites } from "@/lib/hooks/use-marketplace";
 import ContactSellerButton from "@/features/marketplace/ContactSellerButton";
 import BuyModal from "@/features/marketplace/BuyModal";
 import OfferModal from "@/features/marketplace/OfferModal";
-import type { Listing, ListingDetail } from "@/lib/types/marketplace";
+import type { Listing, ListingDetail, Favorite } from "@/lib/types/marketplace";
 
 const conditionLabels: Record<string, string> = {
   NM: "Near Mint", LP: "Lightly Played", MP: "Moderately Played",
@@ -22,7 +22,7 @@ const conditionColors: Record<string, "success" | "warning" | "danger" | "defaul
 };
 
 interface Props {
-  listing: ListingDetail & Record<string, any>;
+  listing: ListingDetail & Record<string, unknown>;
   id: string;
 }
 
@@ -36,15 +36,17 @@ export default function ListingDetailClient({ listing, id }: Props) {
   const toggleFav = useToggleFavorite();
   const { data: favorites } = useMyFavorites();
 
-  const favList = Array.isArray(favorites) ? favorites : (favorites as any)?.favorites || [];
-  const isFav = favList.some((f: any) => f.listing_id === listing.id || f.listing?.id === listing.id);
+  const favList: Favorite[] = Array.isArray(favorites)
+    ? favorites
+    : (favorites as { favorites?: Favorite[] } | undefined)?.favorites || [];
+  const isFav = favList.some((f: Favorite) => f.listing_id === listing.id || f.listing?.id === listing.id);
 
   const imageUrl = listing.images?.[0]?.url || listing.card_image_url;
   const condition = listing.card_condition || "";
   const sellerName = listing.seller_username || listing.tenant_name || "Vendedor";
 
-  const priceCtx = (listing as any).price_context;
-  const similar = (listing as any).similar_listings;
+  const priceCtx = listing.price_context;
+  const similar = listing.similar ?? listing.similar_listings;
 
   function handleFavToggle() {
     if (!isLoggedIn) return;
@@ -119,7 +121,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
           </div>
 
           {/* Price context */}
-          {priceCtx && priceCtx.listings_count > 0 && (
+          {priceCtx && (priceCtx.total_count ?? priceCtx.listings_count ?? 0) > 0 && (
             <Card className="surface-card rounded-xl">
               <Card.Content className="p-4">
                 <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">Precio de referencia</p>
@@ -137,7 +139,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
                     <p className="text-sm font-bold text-[var(--foreground)]">${priceCtx.max_price?.toLocaleString("es-CL")}</p>
                   </div>
                 </div>
-                <p className="text-[10px] text-[var(--muted)] text-center mt-2">Basado en {priceCtx.listings_count} publicaciones</p>
+                <p className="text-[10px] text-[var(--muted)] text-center mt-2">Basado en {priceCtx.total_count ?? priceCtx.listings_count} publicaciones</p>
               </Card.Content>
             </Card>
           )}
@@ -223,7 +225,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
         <div>
           <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">Vendedores de esta carta ({allSellers.length})</h2>
           <div className="flex flex-col gap-2">
-            {allSellers.slice(0, 10).map((item: any) => {
+            {allSellers.slice(0, 10).map((item: Listing) => {
               const itemSeller = item.seller_username || item.tenant_name || "Vendedor";
               const itemCondition = item.card_condition;
               const itemImage = item.images?.[0]?.url || item.card_image_url;

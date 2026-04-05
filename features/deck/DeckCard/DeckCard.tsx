@@ -35,8 +35,8 @@ function DeckCardInner({ deck }: DeckCardProps) {
     const { status } = useAuth();
     const isAuth = status === "authenticated";
 
-    const [liked, setLiked] = useState((deck as any).is_liked ?? false);
-    const [likesCount, setLikesCount] = useState(deck.like_count ?? (deck as any).likes_count ?? 0);
+    const [liked, setLiked] = useState(deck.is_liked ?? false);
+    const [likesCount, setLikesCount] = useState(deck.like_count ?? deck.likes_count ?? 0);
     const likeMutation = useLikeDeck();
 
     const handleLike = useCallback((e: React.MouseEvent) => {
@@ -52,7 +52,7 @@ function DeckCardInner({ deck }: DeckCardProps) {
 
     const handleShare = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        const url = `https://rankeao.cl/decks/${(deck as any).slug || deck.id}`;
+        const url = `https://rankeao.cl/decks/${deck.slug || deck.id}`;
         if (navigator.share) navigator.share({ title: deck.name, url }).catch(() => {});
         else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
     }, [deck.id, deck.name]);
@@ -75,10 +75,10 @@ function DeckCardInner({ deck }: DeckCardProps) {
         };
     }, [deck.cards]);
 
-    const username = deck.username || (deck as any).owner?.username || "";
+    const username = deck.username || deck.owner?.username || "";
     const gameName = deck.game_name ?? deck.game ?? "";
     const formatName = deck.format_name ?? deck.format ?? "";
-    const avatarUrl = (deck as any).avatar_url || (deck as any).owner?.avatar_url || "";
+    const avatarUrl = deck.avatar_url || deck.owner?.avatar_url || "";
 
     return (
         <>

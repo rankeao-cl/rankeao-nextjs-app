@@ -3,13 +3,13 @@ import Image from "next/image";
 import type { GroupedCard } from "@/lib/types/marketplace";
 
 export default function GroupedSaleCardList({ group }: { group: GroupedCard }) {
-    const { representative, card_name, card_image_url, min_price, seller_count, game_name, set_name, rarity } = group;
+    const { card_name, card_image_url, min_price, seller_count, game_name, set_name, rarity, cheapest_listing_slug, cheapest_listing_id } = group;
     const imageUrl = card_image_url;
     const price = min_price > 0 ? `Desde $${min_price.toLocaleString("es-CL")}` : "Consultar";
     const sellersLabel = seller_count === 1 ? "1 vendedor" : `${seller_count} vendedores`;
 
     return (
-        <Link href={`/marketplace/${representative.slug || representative.id}`} className="block group">
+        <Link href={`/marketplace/${cheapest_listing_slug || cheapest_listing_id}`} className="block group">
             <div
                 className="flex overflow-hidden"
                 style={{

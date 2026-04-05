@@ -7,11 +7,11 @@ import {
     House,
     Medal,
     ShoppingCart,
-    Comment,
     TargetDart,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getUserProfile } from "@/lib/api/social";
+import type { UserProfile } from "@/lib/types/social";
 
 const tabs = [
     { href: "/", label: "Feed", icon: House },
@@ -33,8 +33,8 @@ export default function BottomNav() {
     useEffect(() => {
         if (!isAuth || !session?.username) return;
         getUserProfile(session.username)
-            .then((res: any) => {
-                const profile = res?.data?.user ?? res?.data ?? res;
+            .then((res) => {
+                const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
                 if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
             })
             .catch(() => {});

@@ -43,7 +43,7 @@ function notifyNewDuel(duelId: string) {
 
     // TCG duel alert — retro game card draw sound
     try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
         const t = ctx.currentTime;
 
         const tone = (freq: number, start: number, dur: number, vol: number, type: OscillatorType = "square") => {
@@ -103,7 +103,7 @@ export default function FeedDuelSearchCard({ duel, onAccepted }: FeedDuelSearchC
             setAccepted(true);
             onAccepted?.();
             setTimeout(() => router.push(`/duelos/${duel.slug ?? duel.id}`), 600);
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.danger("Error", { description: mapErrorMessage(err) });
         } finally {
             setAccepting(false);

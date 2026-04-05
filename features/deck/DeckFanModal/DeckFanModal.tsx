@@ -118,11 +118,11 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
     const [entered, setEntered] = useState(false);
 
     // Interactions
-    const { status: authStatus, session } = useAuth();
+    const { status: authStatus } = useAuth();
     const isAuth = authStatus === "authenticated";
     const likeMutation = useLikeDeck();
-    const [liked, setLiked] = useState(initialLiked ?? (deck as any)?.is_liked ?? false);
-    const [likesCount, setLikesCount] = useState(initialLikesCount ?? (deck as any)?.like_count ?? (deck as any)?.likes_count ?? 0);
+    const [liked, setLiked] = useState(initialLiked ?? false);
+    const [likesCount, setLikesCount] = useState(initialLikesCount ?? 0);
 
     useEffect(() => {
         const onResize = () => setWindowWidth(window.innerWidth);

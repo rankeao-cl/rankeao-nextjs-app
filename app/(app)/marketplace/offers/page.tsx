@@ -326,7 +326,7 @@ function OfferCard({
 // ── Main Page ──
 
 export default function OffersPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
 
   const [tab, setTab] = useState<Tab>("received");
@@ -355,8 +355,8 @@ export default function OffersPage() {
     try {
       await acceptOffer.mutateAsync(offerId);
       toast.success("Oferta aceptada");
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al aceptar oferta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al aceptar oferta");
     } finally {
       setLoadingAction(null);
     }
@@ -367,8 +367,8 @@ export default function OffersPage() {
     try {
       await rejectOffer.mutateAsync(offerId);
       toast.success("Oferta rechazada");
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al rechazar oferta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al rechazar oferta");
     } finally {
       setLoadingAction(null);
     }
@@ -382,8 +382,8 @@ export default function OffersPage() {
         payload: { amount, message },
       });
       toast.success("Contraoferta enviada");
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al enviar contraoferta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al enviar contraoferta");
     } finally {
       setLoadingAction(null);
     }
@@ -394,8 +394,8 @@ export default function OffersPage() {
     try {
       await withdrawOffer.mutateAsync(offerId);
       toast.success("Oferta retirada");
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al retirar oferta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al retirar oferta");
     } finally {
       setLoadingAction(null);
     }
@@ -406,8 +406,8 @@ export default function OffersPage() {
     try {
       await acceptCounterOffer.mutateAsync(offerId);
       toast.success("Contraoferta aceptada");
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al aceptar contraoferta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al aceptar contraoferta");
     } finally {
       setLoadingAction(null);
     }

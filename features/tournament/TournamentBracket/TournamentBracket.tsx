@@ -55,7 +55,7 @@ export default function TournamentBracket({ rounds, matches }: TournamentBracket
                 player1Score: m.player1_wins ?? null,
                 player2Score: m.player2_wins ?? null,
                 winnerId: m.winner_id || null,
-                player1Id: m.player1_id,
+                player1Id: m.player1_id ?? "",
                 player2Id: m.player2_id || null,
                 status: m.status,
                 isBye: m.is_bye || false,
@@ -129,9 +129,6 @@ export default function TournamentBracket({ rounds, matches }: TournamentBracket
                                 }}
                             >
                                 {round.matches.map((match, matchIdx) => {
-                                    const isLive =
-                                        match.status === "IN_PROGRESS" ||
-                                        match.status === "PENDING";
                                     const isActive = match.status === "IN_PROGRESS";
 
                                     return (
@@ -221,7 +218,6 @@ function PlayerSlot({
     isWinner,
     isTBD,
     isBye,
-    position,
 }: {
     name: string;
     score: number | null;

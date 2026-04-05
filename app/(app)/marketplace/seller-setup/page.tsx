@@ -52,7 +52,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 // ── Main Page ──
 
 export default function SellerSetupPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
   const router = useRouter();
 
@@ -391,7 +391,7 @@ export default function SellerSetupPage() {
                         setBankSaving(true);
                         try {
                           const res = await addBankAccount(bankForm);
-                          const newAcc = (res as any)?.data ?? (res as any)?.bank_account ?? res;
+                          const newAcc = res?.bank_account ?? res;
                           setBankAccounts((prev) => [...prev, newAcc]);
                           setBankForm({ bank_name: "", account_type: "CORRIENTE", account_number: "", holder_name: "", holder_rut: "" });
                           setShowBankForm(false);

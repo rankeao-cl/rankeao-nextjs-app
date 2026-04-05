@@ -17,7 +17,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
         let mounted = true;
         setLoading(true);
         getTournamentStandings(tournament.id)
-            .then((res: any) => {
+            .then((res: { data?: { standings?: Standing[] }; standings?: Standing[] }) => {
                 const raw = res?.data?.standings ?? res?.standings ?? [];
                 if (mounted && Array.isArray(raw)) setStandings(raw.slice(0, 3));
             })
@@ -99,7 +99,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                             {tournament.name}
                         </p>
                         <p className="text-[11px] text-white/50 truncate">
-                            {tournament.tenant_name || "Torneo finalizado"}
+                            {tournament.tenant_name || tournament.organizer_name || "Torneo finalizado"}
                         </p>
                     </div>
                 </div>
@@ -160,7 +160,7 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                                         }}
                                     >
                                         <span style={{ fontSize: 16, width: 24, textAlign: "center" }}>
-                                            {PLACE_EMOJI[p.rank] || `#${p.rank}`}
+                                            {PLACE_EMOJI[p.rank] || (p.rank != null ? `#${p.rank}` : "—")}
                                         </span>
                                         <div style={{
                                             width: 26, height: 26, borderRadius: 13,

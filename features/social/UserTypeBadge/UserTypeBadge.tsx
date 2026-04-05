@@ -56,7 +56,6 @@ const BADGE_CONFIG: Record<UserBadgeType, {
 export function UserTypeBadge({ type, size = "sm" }: Props) {
     const config = BADGE_CONFIG[type];
     const iconSize = size === "sm" ? "size-3.5" : "size-4";
-    const textSize = size === "sm" ? "text-[10px]" : "text-xs";
 
     const renderIcon = () => {
         switch (type) {

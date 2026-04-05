@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import * as ratingsApi from "@/lib/api/ratings";
+import type { Params } from "@/lib/types/api";
 
 export function useRatingLeaderboard(params: { game: string; format: string; season?: string; country?: string; city?: string; page?: number }) {
     return useQuery({
@@ -26,10 +27,10 @@ export function useSeasons() {
     });
 }
 
-export function useUserTournamentHistory(userId: string, params?: Record<string, any>) {
+export function useUserTournamentHistory(userId: string, params?: Params) {
     return useQuery({
         queryKey: ["ratings", "history", userId, params],
-        queryFn: () => ratingsApi.getUserTournamentHistory(userId, params as any),
+        queryFn: () => ratingsApi.getUserTournamentHistory(userId, params),
         enabled: !!userId,
     });
 }

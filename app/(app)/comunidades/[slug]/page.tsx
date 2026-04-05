@@ -1,13 +1,13 @@
 
-import { getTenant, getTenantMembers } from "@/lib/api/tenants";
-import { getFeed } from "@/lib/api/social";
+import { getTenant } from "@/lib/api/tenants";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button, Chip, Tabs, Tooltip } from "@heroui/react";
 import { MapPin, Persons, Plus, Envelope, ShieldCheck } from "@gravity-ui/icons";
-import MemberDirectory from "./MemberDirectory";
-import InternalFeed from "./InternalFeed";
+// TODO: descomentar cuando el backend implemente los endpoints
+// import MemberDirectory from "./MemberDirectory";
+// import InternalFeed from "./InternalFeed";
 import RulesModal from "./RulesModal";
 import ProductsTab from "./ProductsTab";
 import TournamentsTab from "./TournamentsTab";
@@ -109,19 +109,13 @@ export default async function StorePage({ params }: PageProps) {
     }
     const tenant: ExtendedTenant = tenantData.tenant;
 
-    const [membersData, feedData] = await Promise.all([
-        getTenantMembers(storeSlug).catch(() => null),
-        getFeed({ tenant_id: tenant.id }).catch(() => null),
-    ]);
-
-    const members = membersData?.members || [];
-    const posts = feedData?.items || [];
+    // TODO: members y posts cuando el backend implemente los endpoints
 
     // Temporary placeholder for 'type' since API currently doesn't return it
     const tenantType = tenant.type || "store";
 
     // Format rating
-    const rating = tenant.rating ? tenant.rating.toFixed(1) : "N/A";
+    const rating = (tenant.avg_rating ?? tenant.rating) ? (tenant.avg_rating ?? tenant.rating)!.toFixed(1) : "N/A";
     const reviewCount = tenant.review_count || 0;
 
     return (
@@ -321,14 +315,16 @@ export default async function StorePage({ params }: PageProps) {
                                     <div className="flex items-center gap-2">⚔️ <span>Torneos</span></div>
                                     <Tabs.Indicator className="bg-[var(--accent)]" />
                                 </Tabs.Tab>
-                                <Tabs.Tab id="members">
+                                {/* TODO: Habilitar cuando el backend implemente GET /tenants/:slug/members */}
+                                {/* <Tabs.Tab id="members">
                                     <div className="flex items-center gap-2">👥 <span>Miembros</span></div>
                                     <Tabs.Indicator className="bg-[var(--accent)]" />
-                                </Tabs.Tab>
-                                <Tabs.Tab id="posts">
+                                </Tabs.Tab> */}
+                                {/* TODO: Habilitar cuando el backend implemente GET /tenants/:slug/feed o /social/feed?tenant_id */}
+                                {/* <Tabs.Tab id="posts">
                                     <div className="flex items-center gap-2">📰 <span>Publicaciones</span></div>
                                     <Tabs.Indicator className="bg-[var(--accent)]" />
-                                </Tabs.Tab>
+                                </Tabs.Tab> */}
                                 {tenantType === 'store' && (
                                     <Tabs.Tab id="reviews">
                                         <div className="flex items-center gap-2">⭐ <span>Reseñas</span></div>
@@ -348,13 +344,14 @@ export default async function StorePage({ params }: PageProps) {
                             <TournamentsTab tenantSlug={storeSlug} />
                         </Tabs.Panel>
 
-                        <Tabs.Panel id="members">
+                        {/* TODO: Habilitar cuando el backend implemente los endpoints */}
+                        {/* <Tabs.Panel id="members">
                             <MemberDirectory members={members} />
                         </Tabs.Panel>
 
                         <Tabs.Panel id="posts">
                             <InternalFeed posts={posts} />
-                        </Tabs.Panel>
+                        </Tabs.Panel> */}
 
                         {tenantType === 'store' && (
                             <Tabs.Panel id="reviews">

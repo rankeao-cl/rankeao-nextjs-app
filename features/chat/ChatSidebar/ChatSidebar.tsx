@@ -48,7 +48,7 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
     // Fetch public rooms
     useEffect(() => {
         getChatRooms(undefined, session?.accessToken)
-            .then((val: any) => {
+            .then((val) => {
                 const r = val?.data?.rooms || val?.rooms || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
                 setRooms(r);
             })

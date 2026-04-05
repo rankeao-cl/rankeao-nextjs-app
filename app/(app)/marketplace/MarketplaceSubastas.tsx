@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 export default function MarketplaceSubastas() {
   return (
     <div className="mx-4 lg:mx-6 mb-12">

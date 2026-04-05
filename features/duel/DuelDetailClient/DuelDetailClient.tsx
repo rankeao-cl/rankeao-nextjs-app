@@ -146,8 +146,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const fetchComments = useCallback(async () => {
         if (!token) return;
         try {
-            const raw = await getDuelComments(duelId, token) as any;
-            const list: DuelComment[] = raw?.data?.comments ?? raw?.comments ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
+            const raw = await getDuelComments(duelId, token);
+            const list: DuelComment[] = raw?.data?.comments ?? raw?.comments ?? [];
             setComments(list);
         } catch (err) { console.error("[DuelDetail] Error fetching comments:", err); }
     }, [duelId, token]);
@@ -183,8 +183,9 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             await startGame(duelId, { game_rules_slug: duel.game_slug ?? "" }, token);
             toast.success("Partida iniciada");
             setTimeout(() => fetchActiveGame(), 500);
-        } catch (err: any) {
-            if (err?.status === 409 || err?.code === "ACTIVE_GAME_EXISTS") {
+        } catch (err: unknown) {
+            const apiErr = err as { status?: number; code?: string };
+            if (apiErr?.status === 409 || apiErr?.code === "ACTIVE_GAME_EXISTS") {
                 await fetchActiveGame();
             } else {
                 toast.danger("Error", { description: mapErrorMessage(err) });
@@ -355,7 +356,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             await fn();
             toast.success("Listo", { description: `Acción "${label}" realizada` });
             await refreshDuel();
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.danger("Error", { description: mapErrorMessage(err) });
         } finally { setLoading(null); }
     };
@@ -367,7 +368,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             await createDuelComment(duelId, { content: commentText.trim() }, token);
             setCommentText("");
             await fetchComments();
-        } catch (err: any) { toast.danger("Error", { description: mapErrorMessage(err) }); }
+        } catch (err: unknown) { toast.danger("Error", { description: mapErrorMessage(err) }); }
         finally { setSendingComment(false); }
     };
 
@@ -379,7 +380,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             toast.success("Reporte enviado");
             setShowReportUser(false);
             setReportReason("");
-        } catch (err: any) { toast.danger("Error", { description: mapErrorMessage(err) }); }
+        } catch (err: unknown) { toast.danger("Error", { description: mapErrorMessage(err) }); }
         finally { setLoading(null); }
     };
 

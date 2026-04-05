@@ -29,6 +29,7 @@ import { useTheme } from "next-themes";
 import { getUnreadNotificationCount } from "@/lib/api/notifications";
 import { getUserProfile } from "@/lib/api/social";
 import NotificationSidebar from "@/components/layout/NotificationSidebar";
+import type { UserProfile } from "@/lib/types/social";
 
 const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
 
@@ -38,7 +39,7 @@ export default function Navbar() {
   const openCreatePost = useUIStore((s) => s.openCreatePost);
   const isAuthenticated = status === "authenticated" && Boolean(session?.email);
 
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
@@ -69,8 +70,8 @@ export default function Navbar() {
 
     // Fetch user avatar once
     if (session.username) {
-      getUserProfile(session.username).then((res: any) => {
-        const profile = res?.data?.user ?? res?.data ?? res;
+      getUserProfile(session.username).then((res) => {
+        const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
         if (profile?.avatar_url) setUserAvatarUrl(profile.avatar_url);
       }).catch(() => {});
     }

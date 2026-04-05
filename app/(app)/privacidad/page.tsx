@@ -19,7 +19,7 @@ export default function PrivacidadPage() {
 
         <section>
           <p className="text-[var(--muted)]">
-            En <strong>Rankeao.cl</strong> (en adelante, "la Plataforma") nos comprometemos a proteger tu privacidad y tus datos personales conforme a la <strong>Ley 19.628 sobre Protección de la Vida Privada</strong>, la <strong>Ley 21.719 sobre Protección de Datos Personales</strong> y demás normativa aplicable de la República de Chile.
+            En <strong>Rankeao.cl</strong> (en adelante, &quot;la Plataforma&quot;) nos comprometemos a proteger tu privacidad y tus datos personales conforme a la <strong>Ley 19.628 sobre Protección de la Vida Privada</strong>, la <strong>Ley 21.719 sobre Protección de Datos Personales</strong> y demás normativa aplicable de la República de Chile.
           </p>
           <p className="text-[var(--muted)]">
             Esta Política explica qué datos recopilamos, cómo los usamos, con quién los compartimos y cómo puedes ejercer tus derechos.

@@ -29,7 +29,7 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
         if (!isAuth || !session?.accessToken) return;
         getMyClan(session.accessToken)
             .then((res) => {
-                const clan = (res as any)?.data?.clan ?? (res as any)?.data ?? (res as any)?.clan ?? res;
+                const clan = res?.data?.clan ?? res?.clan;
                 if (clan?.id) setMyClan(clan);
             })
             .catch((err) => console.error("[Clanes] Error fetching my clan:", err));
@@ -52,18 +52,18 @@ export default function ClanesClient({ initialClans, initialQuery }: { initialCl
         setSearching(true);
         const timer = setTimeout(async () => {
             try {
-                const params: Record<string, any> = { per_page: 30 };
+                const params: Record<string, string | number | boolean | undefined> = { per_page: 30 };
                 if (search.trim()) params.search = search.trim();
                 if (filterGame) params.game_id = filterGame;
                 if (filterRecruiting) params.is_recruiting = true;
 
                 const data = await getClans(params);
-                const raw = (data as any)?.data?.clans ?? (data as any)?.clans ?? (data as any)?.data;
+                const raw = data?.data?.clans ?? data?.clans;
                 let result = Array.isArray(raw) ? raw : [];
 
                 // Client-side fallback filters (in case API doesn't support them)
                 if (filterRecruiting) result = result.filter((c: Clan) => c.is_recruiting);
-                if (filterGame) result = result.filter((c: Clan) => c.game_id === filterGame || c.game_name?.toLowerCase().includes(filterGame.toLowerCase()));
+                if (filterGame) result = result.filter((c: Clan) => c.game_slug === filterGame || c.game_id === filterGame || c.game_name?.toLowerCase().includes(filterGame.toLowerCase()));
 
                 setClans(result);
             } catch (err) { console.error("[Clanes] Error searching clans:", err);

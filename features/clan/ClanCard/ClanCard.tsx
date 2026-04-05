@@ -12,8 +12,8 @@ export default function ClanCard({ clan }: { clan: Clan }) {
     useEffect(() => {
         if (bannerUrl && logoUrl) return;
         getClan(clan.id)
-            .then((res: any) => {
-                const detail = res?.data?.clan ?? res?.data ?? res?.clan ?? res;
+            .then((res) => {
+                const detail = res?.data?.clan ?? res?.clan;
                 if (detail?.banner_url && !bannerUrl) setBannerUrl(detail.banner_url);
                 if (detail?.logo_url && !logoUrl) setLogoUrl(detail.logo_url);
             })
@@ -21,7 +21,8 @@ export default function ClanCard({ clan }: { clan: Clan }) {
     }, [clan.id]);
 
     const memberCount = clan.member_count ?? 0;
-    const hasRating = clan.rating != null && clan.rating > 0;
+    const clanRating = clan.clan_rating ?? clan.rating;
+    const hasRating = clanRating != null && clanRating > 0;
 
     return (
         <Link href={`/clanes/${clan.slug || clan.id}`} style={{ textDecoration: "none", display: "block", height: "100%" }}>
@@ -126,8 +127,8 @@ export default function ClanCard({ clan }: { clan: Clan }) {
                         </div>
                         <div style={{ width: 0.5, height: 24, backgroundColor: "var(--border)" }} />
                         <div style={{ flex: 1, textAlign: "center" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--foreground)", margin: 0 }}>
-                                {hasRating ? clan.rating!.toFixed(1) : "—"}
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
+                                {hasRating ? clanRating : "—"}
                             </p>
                             <p style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
                         </div>

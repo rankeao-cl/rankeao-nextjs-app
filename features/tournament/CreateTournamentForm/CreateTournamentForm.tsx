@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Switch, Chip, toast } from "@heroui/react";
+import { Card, Button, Input, Switch, toast } from "@heroui/react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getGames, getGameFormats } from "@/lib/api/catalog";
 import { createTournament } from "@/lib/api/tournaments";
-import Image from "next/image";
 import { getGameBrand } from "@/lib/gameLogos";
 import type { CatalogGame, CatalogFormat } from "@/lib/types/catalog";
+import type { CreateTournamentRequest, Tournament } from "@/lib/types/tournament";
 
 const structures = [
     { value: "SWISS", label: "Suizo" },
@@ -79,7 +79,7 @@ export default function CreateTournamentForm() {
     useEffect(() => {
         getGames()
             .then((res) => {
-                const list = res.data || (res as any).games || [];
+                const list = res.data || (res as { data?: CatalogGame[]; games?: CatalogGame[] }).games || [];
                 setGames(Array.isArray(list) ? list : []);
             })
             .catch(() => {});
@@ -94,7 +94,7 @@ export default function CreateTournamentForm() {
         }
         getGameFormats(selectedGame.slug)
             .then((res) => {
-                const data = (res as any).data || res;
+                const data = res as { formats?: CatalogFormat[]; data?: CatalogFormat[] };
                 const list = data.formats || data.data || [];
                 setFormats(Array.isArray(list) ? list : []);
                 setSelectedFormat(null);
@@ -112,7 +112,7 @@ export default function CreateTournamentForm() {
 
         setSubmitting(true);
         try {
-            const payload: Record<string, any> = {
+            const payload: Record<string, string | number | boolean | undefined> = {
                 name: name.trim(),
                 game_id: selectedGame.id,
                 format_id: selectedFormat.id,
@@ -138,13 +138,13 @@ export default function CreateTournamentForm() {
             if (region.trim()) payload.region = region.trim();
             if (bannerUrl.trim()) payload.banner_url = bannerUrl.trim();
 
-            const res = await createTournament(payload as any);
-            const data = (res as any).data || res;
-            const tournament = data.tournament || data;
+            const res = await createTournament(payload as unknown as CreateTournamentRequest);
+            const outer = res as { tournament?: Tournament; data?: { tournament?: Tournament } };
+            const created = outer.tournament || outer.data?.tournament || (res as unknown as Tournament);
 
             toast.success("Torneo creado exitosamente");
-            router.push(`/torneos/${tournament.id || tournament.public_id}`);
-        } catch (e: any) {
+            router.push(`/torneos/${created.id || (created as Tournament & { public_id?: string }).public_id}`);
+        } catch (e: unknown) {
             toast.danger(mapErrorMessage(e));
         }
         setSubmitting(false);

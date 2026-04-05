@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Chip, Button, Spinner, Input, toast } from "@heroui/react";
+import { Card, Chip, Button, Spinner, toast } from "@heroui/react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import {
@@ -297,7 +297,7 @@ function AlertCard({
 // ── Main Page ──
 
 export default function PriceAlertsPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
 
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -311,18 +311,18 @@ export default function PriceAlertsPage() {
 
   const alerts: PriceAlert[] = (() => {
     if (!data) return [];
-    const raw = (data as any)?.data ?? (data as any)?.price_alerts ?? (data as any)?.alerts ?? data;
+    const raw = (data as { data?: PriceAlert[]; price_alerts?: PriceAlert[] })?.data ?? (data as { price_alerts?: PriceAlert[] })?.price_alerts ?? data;
     return Array.isArray(raw) ? raw : [];
   })();
 
   async function handleCreate(payload: { card_name: string; max_price: number; condition: string; language: string }) {
     try {
-      await createAlert.mutateAsync(payload);
+      await createAlert.mutateAsync({ target_price: payload.max_price, condition: payload.condition });
       toast.success("Alerta creada");
       setShowCreateForm(false);
       refetch();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al crear alerta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al crear alerta");
     }
   }
 
@@ -332,8 +332,8 @@ export default function PriceAlertsPage() {
       await updateAlert.mutateAsync({ id, payload: { is_active: isActive } });
       toast.success(isActive ? "Alerta activada" : "Alerta desactivada");
       refetch();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al actualizar alerta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al actualizar alerta");
     } finally {
       setTogglingId(null);
     }
@@ -345,8 +345,8 @@ export default function PriceAlertsPage() {
       await deleteAlert.mutateAsync(id);
       toast.success("Alerta eliminada");
       refetch();
-    } catch (e: any) {
-      toast.danger(e?.message || "Error al eliminar alerta");
+    } catch (e: unknown) {
+      toast.danger(e instanceof Error ? e.message : "Error al eliminar alerta");
     } finally {
       setDeletingId(null);
     }

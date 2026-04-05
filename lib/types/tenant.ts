@@ -11,19 +11,35 @@ export interface Tenant {
     region?: string;
     country?: string;
     country_code?: string;
+    address?: string;
+    postal_code?: string;
     logo_url?: string;
     banner_url?: string;
     is_public?: boolean;
     description?: string;
+    short_description?: string;
     rules?: string;
     email?: string;
     phone?: string;
     website?: string;
+    plan?: string;
+    timezone?: string;
+    currency?: string;
     rating?: number;
+    avg_rating?: number;
     review_count?: number;
+    follower_count?: number;
+    staff_count?: number;
+    product_count?: number;
+    order_count?: number;
+    tournament_count?: number;
     is_open?: boolean;
+    is_open_now?: boolean;
+    is_verified?: boolean;
+    verified_at?: string;
     social_links?: TenantSocialLink[];
     schedules?: TenantSchedule[];
+    recent_reviews?: TenantReview[];
     tags?: string[];
     lat?: number;
     lng?: number;
@@ -36,6 +52,8 @@ export interface Tenant {
 export interface TenantSocialLink {
     platform: string;
     url: string;
+    sort_order?: number;
+    is_active?: boolean;
 }
 
 export interface TenantSchedule {
@@ -79,8 +97,9 @@ export interface TenantEvent {
 
 export interface TenantReview {
     id: string;
-    user_id: string;
+    user_id?: string;
     username?: string;
+    reviewer_username?: string;
     avatar_url?: string;
     overall_rating: number;
     product_quality?: number;
@@ -89,12 +108,15 @@ export interface TenantReview {
     value_for_money?: number;
     comment?: string;
     is_anonymous?: boolean;
+    is_visible?: boolean;
     created_at?: string;
 }
 
 export interface ReviewStats {
-    average_rating: number;
-    total_count: number;
+    average_rating?: number;
+    avg_rating?: number;
+    total_count?: number;
+    total_reviews?: number;
     distribution: Record<string, number>; // "1": 5, "2": 3, ...
 }
 

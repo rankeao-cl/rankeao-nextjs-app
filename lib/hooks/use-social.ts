@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as socialApi from "@/lib/api/social";
 import type { Params } from "@/lib/types/api";
+import { ApiError } from "@/lib/api/errors";
 
 // ── Feed ──
 
@@ -125,14 +126,14 @@ export function useLikePost() {
             try {
                 if (like) {
                     const res = await socialApi.likePost(postId, token);
-                    return (res as any)?.data ?? null;
+                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
                 } else {
                     const res = await socialApi.unlikePost(postId, token);
-                    return (res as any)?.data ?? null;
+                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 // 409 = already in the desired state — keep optimistic update, don't revert
-                if (err?.status === 409) return null;
+                if (err instanceof ApiError && err.status === 409) return null;
                 throw err;
             }
         },
@@ -147,14 +148,14 @@ export function useFirePost() {
             try {
                 if (fire) {
                     const res = await socialApi.firePost(postId, token);
-                    return (res as any)?.data ?? null;
+                    return (res as { data?: { fired: boolean; fires_count: number } })?.data ?? null;
                 } else {
                     const res = await socialApi.unfirePost(postId, token);
-                    return (res as any)?.data ?? null;
+                    return (res as { data?: { fired: boolean; fires_count: number } })?.data ?? null;
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 // 409 = already in the desired state — keep optimistic update, don't revert
-                if (err?.status === 409) return null;
+                if (err instanceof ApiError && err.status === 409) return null;
                 throw err;
             }
         },
@@ -189,13 +190,13 @@ export function useLikeComment() {
             try {
                 if (like) {
                     const res = await socialApi.likeComment(commentId, token);
-                    return (res as any)?.data ?? null;
+                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
                 } else {
                     const res = await socialApi.unlikeComment(commentId, token);
-                    return (res as any)?.data ?? null;
+                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
                 }
-            } catch (err: any) {
-                if (err?.status === 409) return null;
+            } catch (err: unknown) {
+                if (err instanceof ApiError && err.status === 409) return null;
                 throw err;
             }
         },

@@ -156,7 +156,7 @@ function OrderCard({ order }: { order: MarketplaceOrder }) {
 // ── Main Page ──
 
 export default function OrdersPage() {
-  const { session, status: authStatus } = useAuth();
+  const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
 
   const [orders, setOrders] = useState<MarketplaceOrder[]>([]);

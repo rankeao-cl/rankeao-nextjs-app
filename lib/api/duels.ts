@@ -1,6 +1,6 @@
 import { apiFetch, apiPost } from "./client";
 import type { ApiResponse, ApiMessage } from "@/lib/types/api";
-import type { Duel, DuelInfoRaw, DuelComment, CreateDuelRequest, ReportDuelResultRequest } from "@/lib/types/duel";
+import type { DuelInfoRaw, DuelComment, CreateDuelRequest, ReportDuelResultRequest } from "@/lib/types/duel";
 import { mapDuel } from "@/lib/types/duel";
 
 // ── List ──

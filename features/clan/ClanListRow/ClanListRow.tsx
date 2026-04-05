@@ -13,15 +13,16 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
     useEffect(() => {
         if (bannerUrl && logoUrl) return;
         getClan(clan.id)
-            .then((res: any) => {
-                const detail = res?.data?.clan ?? res?.data ?? res?.clan ?? res;
+            .then((res) => {
+                const detail = res?.data?.clan ?? res?.clan;
                 if (detail?.banner_url && !bannerUrl) setBannerUrl(detail.banner_url);
                 if (detail?.logo_url && !logoUrl) setLogoUrl(detail.logo_url);
             })
             .catch(() => {});
     }, [clan.id]);
 
-    const hasRating = clan.rating != null && clan.rating > 0;
+    const clanRating = clan.clan_rating ?? clan.rating;
+    const hasRating = clanRating != null && clanRating > 0;
     const memberCount = clan.member_count ?? 0;
 
     return (
@@ -87,7 +88,7 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                                 <span style={{ backgroundColor: "var(--surface)", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{clan.game_name}</span>
                             )}
                             {hasRating && (
-                                <span><span style={{ color: "var(--warning)" }}>★</span> {clan.rating!.toFixed(1)}</span>
+                                <span><span style={{ color: "var(--foreground)" }}>★</span> {clanRating}</span>
                             )}
                             {clan.city && (
                                 <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -106,7 +107,7 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                         </div>
                         <div style={{ width: 0.5, height: 28, backgroundColor: "var(--overlay)", alignSelf: "center" }} />
                         <div style={{ textAlign: "center", padding: "4px 10px" }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: hasRating ? "var(--warning)" : "var(--muted)", margin: 0 }}>{hasRating ? clan.rating!.toFixed(1) : "—"}</p>
+                            <p style={{ fontSize: 14, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>{hasRating ? clanRating : "—"}</p>
                             <p style={{ fontSize: 8, fontWeight: 600, color: "var(--muted)", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Rating</p>
                         </div>
                         <div style={{ width: 0.5, height: 28, backgroundColor: "var(--overlay)", alignSelf: "center" }} />
