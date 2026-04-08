@@ -1,7 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+const BACKGROUNDS = [
+  "/login-bg-1.webp", // Liliana Eldritch Moon (playmat edit)
+  "/login-bg-2.webp", // Liliana Defiant Necromancer
+  "/login-bg-3.webp", // Anguished Unmaking (Innistrad)
+  "/login-bg-4.webp", // Chandra in the Mountain
+  "/login-bg-5.webp", // Demon
+];
 
 const EMBER_COUNT = 18;
 
@@ -17,14 +25,18 @@ const embers = Array.from({ length: EMBER_COUNT }, (_, i) => ({
 
 export default function LoginBackground() {
   const [imgError, setImgError] = useState(false);
+  const bg = useMemo(
+    () => BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)],
+    [],
+  );
 
   return (
     <div className="login-bg" aria-hidden="true">
-      {/* Static background image */}
+      {/* Static background image — random on each load */}
       <div className="login-bg__image">
         {!imgError && (
           <Image
-            src="/login-bg.webp"
+            src={bg}
             alt=""
             fill
             priority
