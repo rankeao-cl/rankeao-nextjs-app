@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const BACKGROUNDS = [
   "/login-bg-1.webp", // Liliana Eldritch Moon (playmat edit)
@@ -13,28 +13,34 @@ const BACKGROUNDS = [
 
 const EMBER_COUNT = 18;
 
-const embers = Array.from({ length: EMBER_COUNT }, (_, i) => ({
-  id: i,
-  size: 2 + Math.random() * 4,
-  left: 10 + Math.random() * 80,
-  delay: Math.random() * 12,
-  duration: 5 + Math.random() * 8,
-  drift: -40 + Math.random() * 80,
-  glow: 0.4 + Math.random() * 0.6,
-}));
+function generateEmbers() {
+  return Array.from({ length: EMBER_COUNT }, (_, i) => ({
+    id: i,
+    size: 2 + Math.random() * 4,
+    left: 10 + Math.random() * 80,
+    delay: Math.random() * 12,
+    duration: 5 + Math.random() * 8,
+    drift: -40 + Math.random() * 80,
+    glow: 0.4 + Math.random() * 0.6,
+  }));
+}
 
 export default function LoginBackground() {
   const [imgError, setImgError] = useState(false);
-  const bg = useMemo(
-    () => BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)],
-    [],
-  );
+  const [bg, setBg] = useState<string | null>(null);
+  const [embers, setEmbers] = useState<ReturnType<typeof generateEmbers>>([]);
+
+  // Run only on client to avoid SSR mismatch
+  useEffect(() => {
+    setBg(BACKGROUNDS[Math.floor(Math.random() * BACKGROUNDS.length)]);
+    setEmbers(generateEmbers());
+  }, []);
 
   return (
     <div className="login-bg" aria-hidden="true">
       {/* Static background image — random on each load */}
       <div className="login-bg__image">
-        {!imgError && (
+        {bg && !imgError && (
           <Image
             src={bg}
             alt=""
