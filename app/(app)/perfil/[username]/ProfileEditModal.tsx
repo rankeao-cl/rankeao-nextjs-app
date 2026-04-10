@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { Xmark } from "@gravity-ui/icons";
+import { Camera, Xmark } from "@gravity-ui/icons";
 import { updateProfile } from "@/lib/api/social";
+import { uploadImage } from "@/lib/api/images";
 import type { UserProfile } from "@/lib/types/social";
 
 interface ProfileEditModalProps {
@@ -32,8 +33,43 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
     const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
     const [bannerUrl, setBannerUrl] = useState(profile?.banner_url || "");
     const [saving, setSaving] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+    const bannerInputRef = useRef<HTMLInputElement>(null);
 
     const initial = (profile?.display_name || profile?.name || profile?.username || "?")[0]?.toUpperCase();
+
+    const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !token) return;
+        setUploadingAvatar(true);
+        try {
+            const img = await uploadImage(file, "user_profile", token);
+            setAvatarUrl(img.public_url);
+        } catch (err) {
+            console.error("Error subiendo avatar:", err);
+        } finally {
+            setUploadingAvatar(false);
+            e.target.value = "";
+        }
+    };
+
+    const handleBannerFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !token) return;
+        setUploadingBanner(true);
+        try {
+            const img = await uploadImage(file, "user_cover", token);
+            setBannerUrl(img.public_url);
+        } catch (err) {
+            console.error("Error subiendo banner:", err);
+        } finally {
+            setUploadingBanner(false);
+            e.target.value = "";
+        }
+    };
 
     const handleSave = async () => {
         if (!token) return;
@@ -90,36 +126,54 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                     <span className="text-[17px] font-bold" style={{ color: "var(--foreground)" }}>Perfil</span>
                     <button
                         onClick={handleSave}
-                        disabled={saving}
+                        disabled={saving || uploadingAvatar || uploadingBanner}
                         className="rounded-[20px] px-[18px] py-2 text-[13px] font-bold border-none text-white"
                         style={{
                             backgroundColor: "var(--accent)",
-                            cursor: saving ? "not-allowed" : "pointer",
-                            opacity: saving ? 0.6 : 1,
+                            cursor: (saving || uploadingAvatar || uploadingBanner) ? "not-allowed" : "pointer",
+                            opacity: (saving || uploadingAvatar || uploadingBanner) ? 0.6 : 1,
                         }}
                     >
                         {saving ? "..." : "Guardar"}
                     </button>
                 </div>
 
-                {/* Banner preview */}
-                <div className="h-[140px] overflow-hidden relative">
-                    {profile?.banner_url ? (
-                        <Image src={profile.banner_url} alt="" fill sizes="480px" className="object-cover" />
+                {/* Banner — clickable para subir imagen */}
+                <input ref={bannerInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleBannerFile} />
+                <button
+                    type="button"
+                    className="h-[140px] overflow-hidden relative w-full border-none p-0 cursor-pointer group"
+                    onClick={() => bannerInputRef.current?.click()}
+                    disabled={uploadingBanner}
+                >
+                    {bannerUrl ? (
+                        <Image src={bannerUrl} alt="" fill sizes="480px" className="object-cover" />
                     ) : (
                         <div className="w-full h-full relative">
                             <div className="absolute inset-0 h-1/2" style={{ backgroundColor: "var(--surface-solid)" }} />
                             <div className="absolute inset-x-0 top-1/2 h-1/2" style={{ backgroundColor: "var(--surface-solid-secondary)" }} />
                         </div>
                     )}
-                </div>
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        {uploadingBanner
+                            ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            : <Camera width={28} height={28} color="white" />
+                        }
+                    </div>
+                </button>
 
-                {/* Avatar overlapping banner */}
+                {/* Avatar — clickable, overlapping banner */}
+                <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleAvatarFile} />
                 <div className="-mt-10 pl-4 mb-3">
-                    <div className="relative w-20 h-20">
-                        {profile?.avatar_url ? (
+                    <button
+                        type="button"
+                        className="relative w-20 h-20 rounded-full border-none p-0 cursor-pointer group"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                    >
+                        {avatarUrl ? (
                             <Image
-                                src={profile.avatar_url}
+                                src={avatarUrl}
                                 alt=""
                                 width={80}
                                 height={80}
@@ -129,15 +183,18 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                         ) : (
                             <div
                                 className="w-20 h-20 rounded-full flex items-center justify-center"
-                                style={{
-                                    backgroundColor: "var(--surface-solid)",
-                                    border: "4px solid var(--background)",
-                                }}
+                                style={{ backgroundColor: "var(--surface-solid)", border: "4px solid var(--background)" }}
                             >
                                 <span className="text-[28px] font-extrabold text-white">{initial}</span>
                             </div>
                         )}
-                    </div>
+                        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            {uploadingAvatar
+                                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                : <Camera width={20} height={20} color="white" />
+                            }
+                        </div>
+                    </button>
                 </div>
 
                 {/* Form fields */}
@@ -202,29 +259,6 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                         </div>
                     </div>
 
-                    {/* Avatar URL */}
-                    <p className="text-[11px] font-bold tracking-wide mb-2 ml-1" style={{ color: "var(--muted)" }}>URL AVATAR</p>
-                    <div className="rounded-xl overflow-hidden mb-5" style={{ backgroundColor: "var(--surface-solid)" }}>
-                        <input
-                            value={avatarUrl}
-                            onChange={(e) => setAvatarUrl(e.target.value)}
-                            placeholder="https://..."
-                            className={INPUT_CLASSES}
-                            style={{ color: "var(--foreground)" }}
-                        />
-                    </div>
-
-                    {/* Banner URL */}
-                    <p className="text-[11px] font-bold tracking-wide mb-2 ml-1" style={{ color: "var(--muted)" }}>URL BANNER</p>
-                    <div className="rounded-xl overflow-hidden mb-5" style={{ backgroundColor: "var(--surface-solid)" }}>
-                        <input
-                            value={bannerUrl}
-                            onChange={(e) => setBannerUrl(e.target.value)}
-                            placeholder="https://..."
-                            className={INPUT_CLASSES}
-                            style={{ color: "var(--foreground)" }}
-                        />
-                    </div>
                 </div>
             </div>
         </div>
