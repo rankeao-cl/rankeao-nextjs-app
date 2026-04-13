@@ -32,7 +32,7 @@ interface NavItem {
 // Orden: 1-Feed 2-Partidas 3-Duelos 4-Marketplace 5-Torneos 6-Comunidades 7-Ranking
 const navItems: NavItem[] = [
     { href: "/", label: "Feed", icon: House },
-    { href: "/partidas", label: "Partidas", icon: Dice1, authRequired: true },
+    { href: "/matches", label: "Partidas", icon: Dice1, authRequired: true },
     { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true, badgeKey: "duelos" },
     { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
     { href: "/torneos", label: "Torneos", icon: Cup },

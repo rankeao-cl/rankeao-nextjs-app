@@ -126,7 +126,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
                 (p) => p.user_id === currentUserId && p.status === "accepted"
             );
             if (isParticipant) {
-                router.replace(`/partidas/${partidaId}/jugar`);
+                router.replace(`/matches/${partidaId}/jugar`);
             }
         }
     }, [partida, currentUserId, partidaId, router]);
@@ -143,7 +143,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
                 const isParticipant = p.participants.some(
                     (part) => part.user_id === currentUserId && part.status === "accepted"
                 );
-                if (isParticipant) router.replace(`/partidas/${partidaId}/jugar`);
+                if (isParticipant) router.replace(`/matches/${partidaId}/jugar`);
             },
             [currentUserId, partidaId, router]
         ),
@@ -154,7 +154,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
         }, [load]),
         onCancelled: useCallback(() => {
             toast.danger("Partida cancelada");
-            router.replace("/partidas");
+            router.replace("/matches");
         }, [router]),
     });
 
@@ -171,7 +171,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
             <div className="flex flex-col items-center py-20 gap-3">
                 <p className="text-white/30 text-sm">Partida no encontrada</p>
                 <button
-                    onClick={() => router.push("/partidas")}
+                    onClick={() => router.push("/matches")}
                     className="text-indigo-400 text-sm font-bold"
                     style={{ cursor: "pointer", background: "none", border: "none" }}
                 >
@@ -207,7 +207,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
         setActionLoading(true);
         try {
             await leavePartida(partidaId);
-            router.replace("/partidas");
+            router.replace("/matches");
         } catch {
             toast.danger("Error", { description: "No se pudo abandonar" });
             setActionLoading(false);
@@ -219,7 +219,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
         setActionLoading(true);
         try {
             await cancelPartida(partidaId);
-            router.replace("/partidas");
+            router.replace("/matches");
         } catch {
             toast.danger("Error", { description: "No se pudo cancelar" });
             setActionLoading(false);
@@ -245,7 +245,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <button
-                        onClick={() => router.push("/partidas")}
+                        onClick={() => router.push("/matches")}
                         className="text-xs text-white/30 mb-2 flex items-center gap-1"
                         style={{ cursor: "pointer", background: "none", border: "none" }}
                     >
@@ -401,7 +401,7 @@ export default function PartidaLobbyClient({ partidaId, initialPartida }: Partid
             {/* Active: go to game button (in case redirect didn't fire) */}
             {partida.status === "active" && isAccepted && (
                 <button
-                    onClick={() => router.push(`/partidas/${partidaId}/jugar`)}
+                    onClick={() => router.push(`/matches/${partidaId}/jugar`)}
                     className="w-full rounded-xl py-3.5 text-sm font-bold text-white"
                     style={{
                         background: "rgba(34,197,94,0.85)",

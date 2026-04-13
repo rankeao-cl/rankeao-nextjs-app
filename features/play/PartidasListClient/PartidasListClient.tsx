@@ -300,7 +300,7 @@ export default function PartidasListClient() {
                                 <PartidaCard
                                     key={p.id}
                                     partida={p}
-                                    onOpen={() => router.push(`/partidas/${p.id}`)}
+                                    onOpen={() => router.push(`/matches/${p.id}`)}
                                 />
                             ))}
                         </section>
@@ -312,7 +312,7 @@ export default function PartidasListClient() {
                                 <PartidaCard
                                     key={p.id}
                                     partida={p}
-                                    onOpen={() => router.push(`/partidas/${p.id}`)}
+                                    onOpen={() => router.push(`/matches/${p.id}`)}
                                 />
                             ))}
                         </section>
@@ -325,7 +325,7 @@ export default function PartidasListClient() {
                     onClose={() => setShowCreate(false)}
                     onCreated={(partida) => {
                         setShowCreate(false);
-                        router.push(`/partidas/${partida.id}`);
+                        router.push(`/matches/${partida.id}`);
                     }}
                 />
             )}

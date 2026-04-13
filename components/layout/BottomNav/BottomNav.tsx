@@ -16,7 +16,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 
 const tabs = [
     { href: "/", label: "Feed", icon: House },
-    { href: "/partidas", label: "Partidas", icon: Dice1, authRequired: true },
+    { href: "/matches", label: "Partidas", icon: Dice1, authRequired: true },
     { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true },
     { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
 ];

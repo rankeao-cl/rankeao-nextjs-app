@@ -1,7 +1,7 @@
 import { apiFetch, apiPost, apiDelete } from "./client";
 import type { ApiResponse } from "@/lib/types/api";
 
-const BASE = "/play/partidas";
+const BASE = "/play/matches";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
