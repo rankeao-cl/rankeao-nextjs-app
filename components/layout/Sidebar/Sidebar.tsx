@@ -15,6 +15,7 @@ import {
     Person,
     Plus,
     SquareDashed,
+    Dice1,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useUIStore } from "@/lib/stores/ui-store";
@@ -28,9 +29,10 @@ interface NavItem {
     badgeKey?: "duelos";
 }
 
-// Orden: 1-Feed 2-Duelos 3-Marketplace 4-Notificaciones 5-Torneos 6-Comunidades 7-Ranking
+// Orden: 1-Feed 2-Partidas 3-Duelos 4-Marketplace 5-Torneos 6-Comunidades 7-Ranking
 const navItems: NavItem[] = [
     { href: "/", label: "Feed", icon: House },
+    { href: "/partidas", label: "Partidas", icon: Dice1, authRequired: true },
     { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true, badgeKey: "duelos" },
     { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
     { href: "/torneos", label: "Torneos", icon: Cup },

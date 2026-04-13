@@ -9,13 +9,14 @@ import {
     Medal,
     ShoppingCart,
     TargetDart,
+    Dice1,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 const tabs = [
     { href: "/", label: "Feed", icon: House },
-    { href: "/torneos", label: "Torneos", icon: Medal },
+    { href: "/partidas", label: "Partidas", icon: Dice1, authRequired: true },
     { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true },
     { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
 ];
