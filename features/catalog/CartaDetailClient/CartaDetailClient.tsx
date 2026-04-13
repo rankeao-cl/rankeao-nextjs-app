@@ -151,11 +151,11 @@ export default function CartaDetailClient({ cardName }: { cardName: string }) {
 
             <div className="flex flex-col md:flex-row gap-6">
                 <div className="shrink-0 mx-auto md:mx-0">
-                    <div className="relative" style={{ width: 300, aspectRatio: "63 / 88", borderRadius: 8, overflow: "hidden", backgroundColor: "#0a0a0a" }}>
+                    <div className="relative" style={{ width: 300, aspectRatio: "63 / 88", borderRadius: "4.75% / 3.5%", overflow: "hidden", backgroundColor: "#0a0a0a", boxShadow: "rgba(0,0,0,0.5) 1px 1px 8px 0px" }}>
                         {imgUrl ? (
-                            <Image src={imgUrl} alt={card.name} fill className="object-cover" sizes="300px" priority />
+                            <Image src={imgUrl} alt={card.name} fill className="object-cover" style={{ backfaceVisibility: "hidden" }} sizes="300px" priority />
                         ) : (
-                            <div className="flex items-center justify-center h-full">
+                            <div className="flex items-center justify-center h-full" style={{ background: "repeating-linear-gradient(-55deg, #ddd, #ddd 5px, #ccc 5px, #ccc 10px)" }}>
                                 <span className="text-4xl opacity-20" style={{ color: "var(--muted)" }}>?</span>
                             </div>
                         )}

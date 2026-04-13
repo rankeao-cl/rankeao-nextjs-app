@@ -44,7 +44,10 @@ export default function NavigationProgress() {
     // Listen for clicks on links to START the bar
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
-            const anchor = (e.target as HTMLElement).closest("a");
+            const target = e.target as HTMLElement;
+            // Never start the bar when a button (or element inside one) was clicked
+            if (target.closest("button")) return;
+            const anchor = target.closest("a");
             if (!anchor) return;
             const href = anchor.getAttribute("href");
             if (!href || href.startsWith("#") || href.startsWith("http") || anchor.target === "_blank") return;

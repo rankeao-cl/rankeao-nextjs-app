@@ -184,10 +184,10 @@ function DeckCardInner({ deck }: DeckCardProps) {
                                 style={{
                                     position: "relative",
                                     aspectRatio: "63 / 88",
-                                    borderRadius: 5,
+                                    borderRadius: "4.75% / 3.5%",
                                     overflow: "hidden",
                                     backgroundColor: "var(--background)",
-                                    border: "1px solid var(--border)",
+                                    boxShadow: "rgba(0,0,0,0.4) 1px 1px 5px 0px",
                                 }}
                             >
                                 {card.image_url && (
@@ -230,7 +230,7 @@ function DeckCardInner({ deck }: DeckCardProps) {
                                 key={`empty-${i}`}
                                 style={{
                                     aspectRatio: "63 / 88",
-                                    borderRadius: 5,
+                                    borderRadius: "4.75% / 3.5%",
                                     backgroundColor: "var(--surface)",
                                     border: "1px dashed var(--border)",
                                     opacity: 0.25,

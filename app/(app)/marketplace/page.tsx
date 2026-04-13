@@ -196,9 +196,10 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
                 </div>
               ) : (
                 <div
-                  className="grid gap-3"
+                  className="grid"
                   style={{
-                    gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
+                    gap: "20px 12px",
                   }}
                 >
                   {groupedCards.map((group) => (

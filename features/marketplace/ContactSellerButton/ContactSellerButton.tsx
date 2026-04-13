@@ -13,9 +13,11 @@ interface Props {
     sellerUsername: string;
     listingTitle: string;
     listingId: string;
+    className?: string;
+    style?: React.CSSProperties;
 }
 
-export default function ContactSellerButton({ sellerUsername, listingId }: Props) {
+export default function ContactSellerButton({ sellerUsername, listingId, className, style }: Props) {
     const router = useRouter();
     const { session, status } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -69,8 +71,8 @@ export default function ContactSellerButton({ sellerUsername, listingId }: Props
     return (
         <Button
             type="button"
-            className="flex-1 font-semibold"
-            style={{ background: "var(--accent)", color: "var(--accent-foreground)" }}
+            className={className ?? "flex-1 font-semibold"}
+            style={style ?? { background: "var(--accent)", color: "var(--accent-foreground)" }}
             onPress={handleContact}
             isPending={loading}
         >
