@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeSlash, Envelope, Lock } from "@gravity-ui/icons";
 import { Button } from "@heroui/react/button";
-import { Form } from "@heroui/react/form";
 import { Input } from "@heroui/react/input";
 import { motion } from "framer-motion";
 
@@ -63,7 +62,7 @@ export default function LoginForm() {
 
           {/* Card */}
           <div className="login-card p-6 sm:p-8 space-y-6">
-            <Form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="relative w-full">
                 <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/40 pointer-events-none z-10" />
                 <Input
@@ -117,7 +116,7 @@ export default function LoginForm() {
               >
                 {isSubmitting ? "Entrando..." : "Iniciar sesión"}
               </Button>
-            </Form>
+            </form>
           </div>
 
           {/* Footer */}
