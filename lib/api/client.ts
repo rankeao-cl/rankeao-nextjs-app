@@ -102,6 +102,11 @@ async function handle401(): Promise<string | null> {
     // share the same promise and wait for its result.
     if (refreshPromise) return refreshPromise;
 
+    // No refresh token means the user wasn't authenticated — don't forceLogout,
+    // just let the error bubble (e.g. invalid credentials on the login page).
+    const hasRefreshToken = !!useAuthStore.getState().refreshToken;
+    if (!hasRefreshToken) return null;
+
     refreshPromise = (async () => {
         try {
             const newToken = await tryRefreshToken();
