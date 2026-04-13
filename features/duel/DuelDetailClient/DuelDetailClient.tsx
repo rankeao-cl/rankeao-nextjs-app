@@ -19,15 +19,11 @@ import {
     reportDuelOpponent,
     getDuel,
 } from "@/lib/api/duels";
-import { getGameState, startGame } from "@/lib/api/game";
 import type { Duel } from "@/lib/types/duel";
-import type { GameStateSnapshot } from "@/lib/types/game";
 import { TargetDart } from "@gravity-ui/icons";
 import RankeaoSpinner from "@/components/ui/RankeaoSpinner";
 import { getGameBrand } from "@/lib/gameLogos";
-import GameTracker from "@/features/duel/GameTracker";
 import MatchFoundOverlay from "@/features/duel/MatchFoundOverlay";
-import GameStartedOverlay from "@/features/duel/GameStartedOverlay";
 
 // Sub-components
 import DuelHeroBanner from "@/features/duel/DuelHeroBanner";
@@ -80,11 +76,9 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [loading, setLoading] = useState<string | null>(null);
     const [showIntro, setShowIntro] = useState(false);
     const [introFading, setIntroFading] = useState(false);
-    const [introType, setIntroType] = useState<"match_found" | "match_accepted" | "game_started" | null>(null);
-    const [gameStartedInfo, setGameStartedInfo] = useState<{ gameNumber: number; mode: string } | null>(null);
+    const [introType, setIntroType] = useState<"match_found" | "match_accepted" | null>(null);
     const introEligible = duel ? ["ACCEPTED", "IN_PROGRESS"].includes(duel.status) : false;
     const prevDuelStatusRef = useRef<string | null>(null);
-    const prevGameNumberRef = useRef<number | null>(null);
 
     // Canonical redirect: once slug is available, update URL silently
     useEffect(() => {
@@ -100,7 +94,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
         const key = `intro_shown_${duelId}`;
         if (!sessionStorage.getItem(key)) {
             sessionStorage.setItem(key, "1");
-            setIntroType(duel.status === "IN_PROGRESS" ? "game_started" : "match_accepted");
+            setIntroType("match_accepted");
             setShowIntro(true);
         }
     // Only run once when duel first loads
@@ -153,11 +147,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const [showReportUser, setShowReportUser] = useState(false);
     const [reportReason, setReportReason] = useState("");
 
-    // Game tracker
-    const [activeGameNumber, setActiveGameNumber] = useState<number | null>(null);
-    const [activeGameSnapshot, setActiveGameSnapshot] = useState<GameStateSnapshot | null>(null);
-    const [gameLoading, setGameLoading] = useState(false);
-
     const fetchComments = useCallback(async () => {
         if (!token) return;
         try {
@@ -166,49 +155,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             setComments(list);
         } catch (err) { console.error("[DuelDetail] Error fetching comments:", err); }
     }, [duelId, token]);
-
-    const fetchActiveGame = useCallback(async () => {
-        if (!token) return;
-        try {
-            const snap = await getGameState(duelId, 1, token);
-            const gameNum = snap?.game?.game_number ?? null;
-            if (gameNum) {
-                setActiveGameNumber(gameNum);
-                setActiveGameSnapshot(snap);
-                // Trigger animation when opponent starts game (we had no active game before)
-                if (prevGameNumberRef.current === null && typeof window !== "undefined") {
-                    const key = `game_intro_${duelId}_${gameNum}`;
-                    if (!sessionStorage.getItem(key)) {
-                        sessionStorage.setItem(key, "1");
-                        const gameMode = snap?.game?.mode ?? "simple";
-                        setGameStartedInfo({ gameNumber: gameNum, mode: gameMode });
-                        setIntroType("game_started");
-                        setShowIntro(true);
-                    }
-                }
-            }
-            prevGameNumberRef.current = gameNum;
-        } catch {}
-    }, [duelId, token]);
-
-    const handleStartGame = async () => {
-        if (!token || !duel) return;
-        setGameLoading(true);
-        try {
-            await startGame(duelId, { game_rules_slug: duel.game_slug ?? "" }, token);
-            toast.success("Partida iniciada");
-            setTimeout(() => fetchActiveGame(), 500);
-        } catch (err: unknown) {
-            const apiErr = err as { status?: number; code?: string };
-            if (apiErr?.status === 409 || apiErr?.code === "ACTIVE_GAME_EXISTS") {
-                await fetchActiveGame();
-            } else {
-                toast.danger("Error", { description: mapErrorMessage(err) });
-            }
-        } finally {
-            setGameLoading(false);
-        }
-    };
 
     const refreshDuel = useCallback(async () => {
         try {
@@ -241,10 +187,7 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     useEffect(() => {
         if (token) {
             refreshDuel().then((d) => {
-                if (d) {
-                    prevDuelStatusRef.current = d.status;
-                    if (["ACCEPTED", "IN_PROGRESS"].includes(d.status)) fetchActiveGame();
-                }
+                if (d) prevDuelStatusRef.current = d.status;
             });
             fetchComments();
         }
@@ -257,8 +200,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
             refreshDuel().then((d) => {
                 if (!d) return;
                 prevDuelStatusRef.current = d.status;
-                if (["ACCEPTED", "IN_PROGRESS"].includes(d.status)) fetchActiveGame();
-                // Mostrar animación al challenger (quien estaba esperando)
                 if (typeof window !== "undefined") {
                     const key = `intro_shown_${duelId}`;
                     if (!sessionStorage.getItem(key)) {
@@ -269,23 +210,11 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                 }
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [duelId, refreshDuel, fetchActiveGame]),
+        }, [duelId, refreshDuel]),
         onGameStarted: useCallback(() => {
-            const prevGame = prevGameNumberRef.current;
-            fetchActiveGame().then(() => {
-                if (typeof window !== "undefined") {
-                    const gameNum = prevGameNumberRef.current ?? 1;
-                    const key = `game_intro_${duelId}_${gameNum}`;
-                    // Show animation if we didn't already show it via fetchActiveGame
-                    if (prevGame === null && !sessionStorage.getItem(key)) {
-                        sessionStorage.setItem(key, "1");
-                        setIntroType("game_started");
-                        setShowIntro(true);
-                    }
-                }
-            });
+            refreshDuel();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [duelId, fetchActiveGame]),
+        }, [refreshDuel]),
     });
 
     // Polling de respaldo solo para AWAITING_CONFIRMATION (no cubierto por WS)
@@ -342,26 +271,6 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
     const p1 = duel.challenger;
     const p2 = duel.opponent;
 
-    // ── Game active: show only the tracker ──
-
-    if (isActive && isMyDuel && token && activeGameNumber !== null) {
-        return (
-            <GameTracker
-                duelID={duelId}
-                myPlayerID={isChallenger ? parseInt(p1.id, 10) : parseInt(p2.id, 10)}
-                opponentPlayerID={isChallenger ? parseInt(p2.id, 10) : parseInt(p1.id, 10)}
-                myUsername={myUsername ?? "Yo"}
-                opponentUsername={isChallenger ? (p2.display_name ?? p2.username) : (p1.display_name ?? p1.username)}
-                myAvatarUrl={isChallenger ? p1.avatar_url : p2.avatar_url}
-                opponentAvatarUrl={isChallenger ? p2.avatar_url : p1.avatar_url}
-                token={token}
-                gameNumber={activeGameNumber}
-                initialSnapshot={activeGameSnapshot}
-                onGameEnd={() => refreshDuel()}
-            />
-        );
-    }
-
     // ── Actions ──
 
     const exec = async (label: string, fn: () => Promise<unknown>) => {
@@ -408,43 +317,20 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
 
     // ── Intro animation ──
 
-    if (showIntro && duel) {
-        // Match found / accepted overlay
-        if (introType === "match_found" || introType === "match_accepted") {
-            return (
-                <MatchFoundOverlay
-                    type={introType === "match_found" ? "found" : "accepted"}
-                    challengerUsername={p1.display_name || p1.username}
-                    challengerAvatarUrl={p1.avatar_url}
-                    challengedUsername={p2.display_name || p2.username}
-                    challengedAvatarUrl={p2.avatar_url}
-                    gameName={duel.game_name}
-                    bestOf={duel.best_of}
-                    isFading={introFading}
-                    onSkip={skipIntro}
-                />
-            );
-        }
-
-        // Game started overlay
-        if (introType === "game_started") {
-            const gameNum = gameStartedInfo?.gameNumber ?? 1;
-            const rawMode = gameStartedInfo?.mode ?? "simple";
-            const overlayMode: "simple" | "advanced" =
-                rawMode === "advanced" ? "advanced" : "simple";
-            return (
-                <GameStartedOverlay
-                    gameNumber={gameNum}
-                    totalGames={duel.best_of ?? 1}
-                    mode={overlayMode}
-                    gameName={duel.game_name}
-                    formatName={duel.format_name}
-                    isFading={introFading}
-                    onSkip={skipIntro}
-                />
-            );
-        }
-
+    if (showIntro && duel && (introType === "match_found" || introType === "match_accepted")) {
+        return (
+            <MatchFoundOverlay
+                type={introType === "match_found" ? "found" : "accepted"}
+                challengerUsername={p1.display_name || p1.username}
+                challengerAvatarUrl={p1.avatar_url}
+                challengedUsername={p2.display_name || p2.username}
+                challengedAvatarUrl={p2.avatar_url}
+                gameName={duel.game_name}
+                bestOf={duel.best_of}
+                isFading={introFading}
+                onSkip={skipIntro}
+            />
+        );
     }
 
     // ──────────────────────────────────
@@ -547,36 +433,34 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     onReportUser={handleReportUser}
                 />
 
-                {/* Start game button (only when no active game, and not an MTG duel — MTG uses Life Counter) */}
-                {isActive && isMyDuel && token && activeGameNumber === null && !isMagicDuel(duel) && (
-                    <button
-                        onClick={handleStartGame}
-                        disabled={gameLoading}
-                        className="w-full mb-4 py-3.5 rounded-xl border-none text-white text-[15px] font-extrabold flex items-center justify-center gap-2"
-                        style={{
-                            backgroundColor: "var(--accent)", cursor: gameLoading ? "not-allowed" : "pointer",
-                            opacity: gameLoading ? 0.7 : 1, boxShadow: "0 4px 14px rgba(59,130,246,0.3)",
-                        }}
-                    >
-                        {gameLoading ? (
-                            <><div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> Iniciando...</>
-                        ) : <><TargetDart style={{ width: 18, height: 18 }} /> Iniciar partida</>}
-                    </button>
-                )}
-
-                {/* Life Counter button — solo para duelos MTG activos */}
-                {isActive && isMyDuel && isMagicDuel(duel) && (
-                    <Link
-                        href={`/duels?duelId=${duel.id}`}
-                        className="w-full mb-4 py-3.5 rounded-xl text-white text-[15px] font-extrabold flex items-center justify-center gap-2 no-underline"
-                        style={{
-                            backgroundColor: "rgba(99,102,241,0.9)",
-                            boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
-                        }}
-                    >
-                        <span style={{ fontSize: 18 }}>♥</span>
-                        Iniciar Life Counter
-                    </Link>
+                {/* Game action — MTG: Life Counter / otros juegos: Próximamente */}
+                {isActive && isMyDuel && (
+                    isMagicDuel(duel) ? (
+                        <Link
+                            href={`/duels?duelId=${duel.id}`}
+                            className="w-full mb-4 py-3.5 rounded-xl text-white text-[15px] font-extrabold flex items-center justify-center gap-2 no-underline"
+                            style={{
+                                backgroundColor: "rgba(99,102,241,0.9)",
+                                boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
+                            }}
+                        >
+                            <span style={{ fontSize: 18 }}>♥</span>
+                            Iniciar Life Counter
+                        </Link>
+                    ) : (
+                        <div
+                            className="w-full mb-4 py-3.5 rounded-xl text-[15px] font-extrabold flex items-center justify-center gap-2"
+                            style={{
+                                backgroundColor: "var(--surface-solid)",
+                                border: "1px dashed var(--border)",
+                                color: "var(--muted)",
+                                cursor: "default",
+                            }}
+                        >
+                            <TargetDart style={{ width: 18, height: 18, opacity: 0.5 }} />
+                            Seguimiento de partida — Próximamente
+                        </div>
+                    )
                 )}
 
                 {/* Chat */}
