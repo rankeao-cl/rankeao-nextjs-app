@@ -22,14 +22,16 @@ interface GameMode {
 }
 
 const GAME_MODES: GameMode[] = [
-    { game_slug: "mtg", mode_slug: "commander", label: "Commander", playerCount: 4, life: 40 },
-    { game_slug: "mtg", mode_slug: "brawl", label: "Brawl", playerCount: 4, life: 25 },
-    { game_slug: "mtg", mode_slug: "standard", label: "Standard", playerCount: 2, life: 20 },
-    { game_slug: "mtg", mode_slug: "pioneer", label: "Pioneer", playerCount: 2, life: 20 },
-    { game_slug: "mtg", mode_slug: "modern", label: "Modern", playerCount: 2, life: 20 },
-    { game_slug: "mtg", mode_slug: "legacy", label: "Legacy", playerCount: 2, life: 20 },
-    { game_slug: "mtg", mode_slug: "pauper", label: "Pauper", playerCount: 2, life: 20 },
-    { game_slug: "mtg", mode_slug: "draft", label: "Draft", playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "commander",   label: "Commander",  playerCount: 4, life: 40 },
+    { game_slug: "magic", mode_slug: "brawl",        label: "Brawl",      playerCount: 4, life: 25 },
+    { game_slug: "magic", mode_slug: "oathbreaker",  label: "Oathbreaker",playerCount: 4, life: 20 },
+    { game_slug: "magic", mode_slug: "standard",     label: "Standard",   playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "pioneer",      label: "Pioneer",    playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "modern",       label: "Modern",     playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "legacy",       label: "Legacy",     playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "pauper",       label: "Pauper",     playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "draft",        label: "Draft",      playerCount: 2, life: 20 },
+    { game_slug: "magic", mode_slug: "custom",       label: "Custom",     playerCount: 8, life: 20 },
 ];
 
 const STATUS_LABEL: Record<PartidaStatus, string> = {
