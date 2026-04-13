@@ -547,8 +547,8 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                     onReportUser={handleReportUser}
                 />
 
-                {/* Start game button (only when no active game) */}
-                {isActive && isMyDuel && token && activeGameNumber === null && (
+                {/* Start game button (only when no active game, and not an MTG duel — MTG uses Life Counter) */}
+                {isActive && isMyDuel && token && activeGameNumber === null && !isMagicDuel(duel) && (
                     <button
                         onClick={handleStartGame}
                         disabled={gameLoading}
