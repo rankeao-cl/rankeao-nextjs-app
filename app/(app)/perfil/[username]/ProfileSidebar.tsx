@@ -2,13 +2,10 @@ import Image from "next/image";
 import { getRankForElo } from "@/lib/rankSystem";
 import type { UserProfile } from "@/lib/types/social";
 import type { Badge, RawGameStat } from "@/lib/types/gamification";
-import type { Duel } from "@/lib/types/duel";
-import ProfileRecentDuels from "./ProfileRecentDuels";
 
 interface ProfileSidebarProps {
     gamesList: string[];
     gameStats: RawGameStat[];
-    recentDuels: Duel[];
     profileUsername: string;
     badges: Badge[];
     badgesCount: number;
@@ -18,8 +15,6 @@ interface ProfileSidebarProps {
 export default function ProfileSidebar({
     gamesList,
     gameStats,
-    recentDuels,
-    profileUsername,
     badges,
     badgesCount,
     friends,
@@ -87,9 +82,6 @@ export default function ProfileSidebar({
                         </div>
                     </div>
                 )}
-
-                {/* Recent duels */}
-                <ProfileRecentDuels recentDuels={recentDuels} profileUsername={profileUsername} />
 
                 {/* Badges showcase */}
                 {badges.length > 0 && (

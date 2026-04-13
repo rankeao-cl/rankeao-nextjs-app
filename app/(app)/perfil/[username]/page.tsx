@@ -24,8 +24,6 @@ import {
 import { getUserStats, getBadges } from "@/lib/api/gamification";
 import { getUserTournamentHistory } from "@/lib/api/ratings";
 import { getListings } from "@/lib/api/marketplace";
-import { getDuels } from "@/lib/api/duels";
-import type { Duel } from "@/lib/types/duel";
 import type { Clan } from "@/lib/types/clan";
 import type { UserProfile, Deck, CollectionItem, WishlistItem, RawFeedEntry } from "@/lib/types/social";
 import type { Badge, RawGameStat } from "@/lib/types/gamification";
@@ -66,7 +64,6 @@ export default function PublicProfilePage({
     const [gamiStats, setGamiStats] = useState<Record<string, unknown> | null>(null);
     const [tournamentHistory, setTournamentHistory] = useState<Record<string, unknown> | null>(null);
     const [userClan, setUserClan] = useState<Clan | null>(null);
-    const [recentDuels, setRecentDuels] = useState<Duel[]>([]);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -170,10 +167,6 @@ export default function PublicProfilePage({
                             setListings(all.filter(l => l.seller_id === userUUID || l.seller_username === username));
                         })
                         .catch(() => setListings([]));
-
-                    getDuels({ user_id: userUUID, per_page: 5, status: "COMPLETED" })
-                        .then(res => setRecentDuels(res.duels.slice(0, 5)))
-                        .catch(() => setRecentDuels([]));
                 }
 
             } catch (error) {
@@ -446,7 +439,6 @@ export default function PublicProfilePage({
                     <ProfileSidebar
                         gamesList={gamesList}
                         gameStats={gameStats}
-                        recentDuels={recentDuels}
                         profileUsername={profile?.username || ""}
                         badges={badges}
                         badgesCount={badgesCount}

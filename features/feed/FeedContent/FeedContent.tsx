@@ -9,14 +9,12 @@ import { browseDecks, getDeck } from "@/lib/api/social";
 import FeedListingCard from "@/features/feed/FeedListingCard";
 import PostCard from "@/features/social/PostCard";
 import type { FeedPost } from "@/features/social/PostCard";
-import FeedDuelSearchCard from "@/features/feed/FeedDuelSearchCard";
 import FeedActivityCard from "@/features/feed/FeedActivityCard";
 import type { ActivityData } from "@/features/feed/FeedActivityCard";
 import DeckCard from "@/features/deck/DeckCard";
 import type { Deck, RawFeedEntry } from "@/lib/types/social";
 import type { Tournament } from "@/lib/types/tournament";
 import type { Listing } from "@/lib/types/marketplace";
-import type { Duel } from "@/lib/types/duel";
 import FeedTabs from "@/features/feed/FeedTabs";
 import FeedEmptyState from "@/features/feed/FeedEmptyState";
 
@@ -26,7 +24,6 @@ type FeedItemType =
   | { id: string; type: "tournament"; data: Tournament; timestamp: number; pinned?: boolean }
   | { id: string; type: "sale"; data: Listing; timestamp: number; pinned?: boolean }
   | { id: string; type: "post"; data: FeedPost; timestamp: number; pinned?: boolean }
-  | { id: string; type: "duel_search"; data: Duel; timestamp: number; pinned?: boolean }
   | { id: string; type: "deck"; data: Deck; timestamp: number; pinned?: boolean }
   | { id: string; type: "activity"; data: ActivityData; timestamp: number; pinned?: boolean };
 
@@ -104,32 +101,8 @@ export default function FeedContent({
         const user = s.user ?? {};
         const itemType = (s.type ?? s.item_type ?? "").toUpperCase();
 
-        // Duel search items — show in feed (mobile only via CSS)
+        // Skip duel search items — system removed
         if (itemType === "DUEL_SEARCH") {
-          const meta = s.metadata ?? {};
-          items.push({
-            id: `duel-search-${s.id}`,
-            type: "duel_search",
-            pinned: true,
-            data: {
-              id: meta.duel_id ?? String(s.entity_id ?? s.id),
-              challenger: {
-                id: user.id ?? "",
-                username: user.username ?? s.username ?? "",
-                display_name: user.display_name,
-                avatar_url: user.avatar_url ?? s.avatar_url,
-                rating: user.rating,
-              },
-              opponent: { id: "", username: "" },
-              game_name: meta.game_name ?? "",
-              format_name: meta.format_name,
-              best_of: meta.best_of ?? 1,
-              status: "PENDING" as const,
-              created_at: s.created_at ?? "",
-              message: s.description,
-            },
-            timestamp: new Date(s.created_at || Date.now()).getTime(),
-          });
           continue;
         }
 
@@ -285,16 +258,6 @@ export default function FeedContent({
       {feedItems.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {feedItems.map((item) => {
-            if (item.type === "duel_search") {
-              return (
-                <div key={item.id} className="lg:hidden">
-                  <FeedDuelSearchCard
-                    duel={item.data as Duel}
-                    onAccepted={() => socialQ.refetch()}
-                  />
-                </div>
-              );
-            }
             if (item.type === "sale") {
               return (
                 <FeedListingCard

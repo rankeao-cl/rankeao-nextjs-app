@@ -6,9 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     House,
-    Medal,
     ShoppingCart,
-    TargetDart,
     Dice1,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
@@ -17,7 +15,6 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 const tabs = [
     { href: "/", label: "Feed", icon: House },
     { href: "/matches", label: "Partidas", icon: Dice1, authRequired: true },
-    { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true },
     { href: "/marketplace", label: "Mercado", icon: ShoppingCart },
 ];
 
@@ -58,34 +55,6 @@ export default function BottomNav() {
                 {filteredTabs.map((tab) => {
                     const Icon = tab.icon;
                     const active = isActive(tab.href);
-                    const isDuelos = tab.href === "/duelos";
-
-                    if (isDuelos) {
-                        return (
-                            <Link
-                                key={tab.href}
-                                href={tab.href}
-                                className="flex-1 flex flex-col items-center justify-end py-1"
-                                aria-label={tab.label}
-                            >
-                                <div
-                                    className="flex items-center justify-center w-10 h-10 rounded-full bg-accent mb-1"
-                                >
-                                    <Icon
-                                        className="size-[20px] text-white"
-                                    />
-                                </div>
-                                <span
-                                    className="leading-none whitespace-nowrap transition-opacity duration-200 text-[10px] font-semibold tracking-[0.1px] text-foreground"
-                                    style={{
-                                        opacity: active ? 1 : 0.5,
-                                    }}
-                                >
-                                    {tab.label}
-                                </span>
-                            </Link>
-                        );
-                    }
 
                     return (
                         <Link

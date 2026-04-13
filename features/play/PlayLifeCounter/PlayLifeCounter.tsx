@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "@heroui/react/toast";
 
 import { usePlayLCStore } from "./use-play-life-counter";
-import PlayerPanel from "@/features/duels/LifeCounter/PlayerPanel";
-import CommanderDamageOverlay from "@/features/duels/LifeCounter/CommanderDamageOverlay";
-import LifeHistory from "@/features/duels/LifeCounter/LifeHistory";
-import CenterMenu from "@/features/duels/LifeCounter/CenterMenu";
+import PlayerPanel from "@/features/play/LifeCounter/PlayerPanel";
+import CommanderDamageOverlay from "@/features/play/LifeCounter/CommanderDamageOverlay";
+import LifeHistory from "@/features/play/LifeCounter/LifeHistory";
+import CenterMenu from "@/features/play/LifeCounter/CenterMenu";
 
 import { useTrackerSocket } from "@/lib/hooks/use-partida-socket";
 import { useAuth } from "@/lib/hooks/use-auth";

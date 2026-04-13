@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import {
     House,
     Cup,
-    TargetDart,
     ChartColumn,
     ShoppingCart,
     Persons,
@@ -19,21 +18,18 @@ import {
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useUIStore } from "@/lib/stores/ui-store";
-import { getDuels } from "@/lib/api/duels";
 
 interface NavItem {
     href: string;
     label: string;
     icon: typeof House;
     authRequired?: boolean;
-    badgeKey?: "duelos";
 }
 
-// Orden: 1-Feed 2-Partidas 3-Duelos 4-Marketplace 5-Torneos 6-Comunidades 7-Ranking
+// Orden: 1-Feed 2-Partidas 3-Marketplace 4-Torneos 5-Comunidades 6-Ranking
 const navItems: NavItem[] = [
     { href: "/", label: "Feed", icon: House },
     { href: "/matches", label: "Partidas", icon: Dice1, authRequired: true },
-    { href: "/duelos", label: "Duelos", icon: TargetDart, authRequired: true, badgeKey: "duelos" },
     { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
     { href: "/torneos", label: "Torneos", icon: Cup },
     { href: "/comunidades", label: "Comunidades", icon: Persons },
@@ -42,11 +38,10 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { session, status } = useAuth();
+    const { status } = useAuth();
     const openCreatePost = useUIStore((s) => s.openCreatePost);
     const isAuth = status === "authenticated";
 
-    const [pendingDuels, setPendingDuels] = useState(0);
     const [createOpen, setCreateOpen] = useState(false);
     const [hovered, setHovered] = useState(false);
     const createRef = useRef<HTMLDivElement>(null);
@@ -59,26 +54,6 @@ export default function Sidebar() {
         if (href === "/comunidades") return pathname.startsWith("/comunidades") || pathname.startsWith("/clanes");
         return pathname.startsWith(href);
     };
-
-    // Sondeo de duelos pendientes (invitaciones recibidas)
-    // Uses per_page: 1 since we only need the total count from meta, not full duel data.
-    // Polls every 60s to reduce API load (badge count is not time-critical).
-    useEffect(() => {
-        if (!isAuth || !session?.accessToken || !session?.username) return;
-        const token = session.accessToken;
-
-        const poll = () => {
-            getDuels({ per_page: 1, status: "PENDING", role: "challenged" }, token)
-                .then(({ duels, meta }) => {
-                    setPendingDuels(meta?.total ?? duels.length);
-                })
-                .catch(() => {});
-        };
-
-        poll();
-        const interval = setInterval(poll, 60_000);
-        return () => clearInterval(interval);
-    }, [isAuth, session?.accessToken, session?.username]);
 
     // Cierra el dropdown al hacer click fuera o presionar Escape
     useEffect(() => {
@@ -178,7 +153,6 @@ export default function Sidebar() {
                     {visibleItems.map((item) => {
                         const Icon = item.icon;
                         const active = isActive(item.href);
-                        const badgeCount = item.badgeKey === "duelos" ? pendingDuels : 0;
 
                         return (
                             <Link
@@ -189,13 +163,6 @@ export default function Sidebar() {
                             >
                                 <span className="relative shrink-0">
                                     <Icon className="size-[22px]" />
-                                    {badgeCount > 0 && (
-                                        <span
-                                            className="absolute -bottom-[7px] -right-[7px] min-w-[16px] h-[16px] text-[9px] px-[3px] py-0 flex items-center justify-center rounded-full text-white font-extrabold leading-none bg-purple border-2 border-background"
-                                        >
-                                            {badgeCount > 9 ? "9+" : badgeCount}
-                                        </span>
-                                    )}
                                 </span>
                                 <span className="truncate">{item.label}</span>
                             </Link>

@@ -92,7 +92,6 @@ function getEntityHref(entityType?: string, entityId?: string, metadata?: Record
     if (t === "clan") return `/clanes/${entityId}`;
     if (t === "user") return `/perfil/${entityId}`;
     if (t === "deck") return `/decks/${entityId}`;
-    if (t === "duel") return `/duelos/${metadata?.duel_id ?? entityId}`;
     return null;
 }
 
@@ -101,7 +100,6 @@ const ENTITY_LABELS: Record<string, string> = {
     clan: "Ver clan",
     user: "Ver perfil",
     deck: "Ver mazo",
-    duel: "Ver duelo",
 };
 
 // ── Component ──
