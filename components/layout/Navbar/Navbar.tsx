@@ -36,7 +36,7 @@ import type { UserProfile } from "@/lib/types/social";
 
 const NotificationSidebar = dynamic(() => import("@/components/layout/NotificationSidebar"), { ssr: false });
 
-const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email"];
+const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/duels/session"];
 
 export default function Navbar() {
   const pathname = usePathname();

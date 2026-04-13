@@ -9,7 +9,7 @@ import BottomNav from "@/components/layout/BottomNav";
 const CreatePostModal = dynamic(() => import("@/features/social/CreatePostModal"), { ssr: false });
 const CreatePostFAB = dynamic(() => import("@/features/chat/ChatFAB"), { ssr: false });
 
-const fullWidthPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/terminos", "/privacidad", "/cookies"];
+const fullWidthPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/terminos", "/privacidad", "/cookies", "/duels/session"];
 const fixedLayoutPages = ["/chat"];
 
 class SafeBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {

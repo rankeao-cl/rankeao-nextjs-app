@@ -83,7 +83,7 @@ export function useDuelSocket(
         intentionalCloseRef.current = false;
 
         const cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-        const url = `${WS_BASE}/api/v1/social/duels/${encodeURIComponent(duelID)}/ws?token=${encodeURIComponent(cleanToken)}`;
+        const url = `${WS_BASE}/api/v1/duels/${encodeURIComponent(duelID)}/ws?token=${encodeURIComponent(cleanToken)}`;
 
         try {
             const ws = new WebSocket(url);

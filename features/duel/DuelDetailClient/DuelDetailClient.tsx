@@ -37,6 +37,20 @@ import DuelDetailActions from "@/features/duel/DuelDetailActions";
 import DuelChat from "@/features/duel/DuelChat";
 import type { DuelComment } from "@/features/duel/DuelChat";
 
+// ── Helpers ──
+
+function isMagicDuel(duel: Duel): boolean {
+    const slug = duel.game_slug?.toLowerCase() ?? "";
+    const name = duel.game_name?.toLowerCase() ?? "";
+    return (
+        slug === "magic" ||
+        slug === "mtg" ||
+        slug.includes("magic") ||
+        name.includes("magic") ||
+        name.includes("gathering")
+    );
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     PENDING: { label: "Pendiente", color: "var(--warning)" },
     ACCEPTED: { label: "Aceptado", color: "var(--accent)" },
@@ -548,6 +562,21 @@ export default function DuelDetailClient({ duelId, initialDuel }: DuelDetailClie
                             <><div className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> Iniciando...</>
                         ) : <><TargetDart style={{ width: 18, height: 18 }} /> Iniciar partida</>}
                     </button>
+                )}
+
+                {/* Life Counter button — solo para duelos MTG activos */}
+                {isActive && isMyDuel && isMagicDuel(duel) && (
+                    <Link
+                        href={`/duels?duelId=${duel.id}`}
+                        className="w-full mb-4 py-3.5 rounded-xl text-white text-[15px] font-extrabold flex items-center justify-center gap-2 no-underline"
+                        style={{
+                            backgroundColor: "rgba(99,102,241,0.9)",
+                            boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
+                        }}
+                    >
+                        <span style={{ fontSize: 18 }}>♥</span>
+                        Iniciar Life Counter
+                    </Link>
                 )}
 
                 {/* Chat */}
