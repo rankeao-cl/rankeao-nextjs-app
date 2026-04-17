@@ -5,7 +5,7 @@ import Image from "next/image";
 import { toast } from "@heroui/react/toast";
 
 import { Xmark, ChevronLeft } from "@gravity-ui/icons";
-import { autocompleteUsers } from "@/lib/api/social";
+import { autocompleteUsers, extractUserSearchResults } from "@/lib/api/social";
 import { createChannel } from "@/lib/api/chat";
 import { useAuth } from "@/lib/hooks/use-auth";
 import type { Channel } from "@/lib/types/chat";
@@ -80,7 +80,7 @@ export default function NewChatModal({ isOpen, onOpenChange, onChannelCreated }:
             setIsLoading(true);
             try {
                 const val = await autocompleteUsers(search, session.accessToken);
-                const users = val?.data || val?.users || [];
+                const users = extractUserSearchResults(val);
                 const filtered = users.filter((u: UserSuggestion) => u.username !== session.username);
                 setSuggestions(filtered);
             } catch (error) {

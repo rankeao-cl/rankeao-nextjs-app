@@ -7,6 +7,7 @@ import { timeAgo } from "@/lib/utils/format";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { usePostComments, useAddComment, useLikeComment } from "@/lib/hooks/use-social";
 import { getCommentReplies } from "@/lib/api/social";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { PostComment } from "@/lib/types/social";
 
 interface CommentSectionProps {
@@ -23,6 +24,7 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
     const [replyingTo, setReplyingTo] = useState<{ commentId: string; username: string } | null>(null);
     const [expandedReplies, setExpandedReplies] = useState<Record<string, PostComment[]>>({});
     const [loadingReplies, setLoadingReplies] = useState<Record<string, boolean>>({});
+    const [replyErrors, setReplyErrors] = useState<Record<string, string>>({});
     const inputRef = useRef<HTMLInputElement>(null);
 
     const addCommentMutation = useAddComment();
@@ -67,12 +69,17 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
 
     const handleLoadReplies = useCallback(async (commentId: string) => {
         setLoadingReplies((prev) => ({ ...prev, [commentId]: true }));
+        setReplyErrors((prev) => {
+            const next = { ...prev };
+            delete next[commentId];
+            return next;
+        });
         try {
             const res = await getCommentReplies(commentId);
-            const replies: PostComment[] = res?.data?.comments ?? res?.comments ?? [];
+            const replies: PostComment[] = res?.data?.replies ?? res?.replies ?? res?.data?.comments ?? res?.comments ?? [];
             setExpandedReplies((prev) => ({ ...prev, [commentId]: replies }));
-        } catch {
-            // silent
+        } catch (error: unknown) {
+            setReplyErrors((prev) => ({ ...prev, [commentId]: mapErrorMessage(error) }));
         } finally {
             setLoadingReplies((prev) => ({ ...prev, [commentId]: false }));
         }
@@ -244,6 +251,11 @@ export default function CommentSection({ postId, show }: CommentSectionProps) {
                                                 : `Ver ${repliesCount} respuesta${repliesCount > 1 ? "s" : ""}`
                                             }
                                         </button>
+                                        {replyErrors[c.id] && (
+                                            <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--danger)" }}>
+                                                {replyErrors[c.id]}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 

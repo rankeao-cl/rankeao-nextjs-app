@@ -49,7 +49,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <SafeBoundary><CreatePostModal /></SafeBoundary>
             <SafeBoundary><CreateDeckModal /></SafeBoundary>
             <SafeBoundary><CreateListingModal /></SafeBoundary>
-            <SafeBoundary><CreatePostFAB /></SafeBoundary>
+            {!isFixedLayout && <SafeBoundary><CreatePostFAB /></SafeBoundary>}
         </div>
     );
 }

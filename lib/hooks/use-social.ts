@@ -5,6 +5,16 @@ import * as socialApi from "@/lib/api/social";
 import type { Params } from "@/lib/types/api";
 import { ApiError } from "@/lib/api/errors";
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+function extractPayload(value: unknown): Record<string, unknown> | null {
+    const root = asRecord(value);
+    if (!root) return null;
+    return asRecord(root.data) ?? root;
+}
+
 // ── Feed ──
 
 export function useFeed(params?: Params, enabled = true) {
@@ -135,20 +145,24 @@ export function useLikePost() {
     return useMutation<{ liked: boolean; likes_count: number } | null, Error, { postId: string; like: boolean; token?: string }>({
         mutationFn: async ({ postId, like, token }) => {
             try {
-                if (like) {
-                    const res = await socialApi.likePost(postId, token);
-                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
-                } else {
-                    const res = await socialApi.unlikePost(postId, token);
-                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
+                const res = like
+                    ? await socialApi.likePost(postId, token)
+                    : await socialApi.unlikePost(postId, token);
+                const payload = extractPayload(res);
+                if (payload && typeof payload.liked === "boolean" && typeof payload.likes_count === "number") {
+                    return { liked: payload.liked, likes_count: payload.likes_count };
                 }
+                return null;
             } catch (err: unknown) {
                 // 409 = already in the desired state — keep optimistic update, don't revert
                 if (err instanceof ApiError && err.status === 409) return null;
                 throw err;
             }
         },
-        onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["social", "feed"] });
+            qc.invalidateQueries({ queryKey: ["social", "feed-discover"] });
+        },
     });
 }
 
@@ -157,20 +171,24 @@ export function useFirePost() {
     return useMutation<{ fired: boolean; fires_count: number } | null, Error, { postId: string; fire: boolean; token?: string }>({
         mutationFn: async ({ postId, fire, token }) => {
             try {
-                if (fire) {
-                    const res = await socialApi.firePost(postId, token);
-                    return (res as { data?: { fired: boolean; fires_count: number } })?.data ?? null;
-                } else {
-                    const res = await socialApi.unfirePost(postId, token);
-                    return (res as { data?: { fired: boolean; fires_count: number } })?.data ?? null;
+                const res = fire
+                    ? await socialApi.firePost(postId, token)
+                    : await socialApi.unfirePost(postId, token);
+                const payload = extractPayload(res);
+                if (payload && typeof payload.fired === "boolean" && typeof payload.fires_count === "number") {
+                    return { fired: payload.fired, fires_count: payload.fires_count };
                 }
+                return null;
             } catch (err: unknown) {
                 // 409 = already in the desired state — keep optimistic update, don't revert
                 if (err instanceof ApiError && err.status === 409) return null;
                 throw err;
             }
         },
-        onSuccess: () => qc.invalidateQueries({ queryKey: ["social", "feed"] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["social", "feed"] });
+            qc.invalidateQueries({ queryKey: ["social", "feed-discover"] });
+        },
     });
 }
 
@@ -199,13 +217,14 @@ export function useLikeComment() {
     return useMutation<{ liked: boolean; likes_count: number } | null, Error, { commentId: string; like: boolean; token?: string }>({
         mutationFn: async ({ commentId, like, token }) => {
             try {
-                if (like) {
-                    const res = await socialApi.likeComment(commentId, token);
-                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
-                } else {
-                    const res = await socialApi.unlikeComment(commentId, token);
-                    return (res as { data?: { liked: boolean; likes_count: number } })?.data ?? null;
+                const res = like
+                    ? await socialApi.likeComment(commentId, token)
+                    : await socialApi.unlikeComment(commentId, token);
+                const payload = extractPayload(res);
+                if (payload && typeof payload.liked === "boolean" && typeof payload.likes_count === "number") {
+                    return { liked: payload.liked, likes_count: payload.likes_count };
                 }
+                return null;
             } catch (err: unknown) {
                 if (err instanceof ApiError && err.status === 409) return null;
                 throw err;
@@ -214,6 +233,7 @@ export function useLikeComment() {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ["social", "post"] });
             qc.invalidateQueries({ queryKey: ["social", "feed"] });
+            qc.invalidateQueries({ queryKey: ["social", "feed-discover"] });
         },
     });
 }

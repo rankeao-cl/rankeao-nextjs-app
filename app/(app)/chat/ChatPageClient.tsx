@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getChatChannels, createChannel } from "@/lib/api/chat";
-import { autocompleteUsers } from "@/lib/api/social";
+import { autocompleteUsers, extractUserSearchResults } from "@/lib/api/social";
 import type { Channel } from "@/lib/types/chat";
 import ChatSidebar from "./ChatSidebar";
 import ChatArea from "./ChatArea";
@@ -58,7 +58,7 @@ export default function ChatPageClient() {
             // Look up user ID
             try {
               const res = await autocompleteUsers(targetUser, token);
-              const users = res?.data || res?.users || [];
+              const users = extractUserSearchResults(res);
               const user = users.find((u) => u.username === targetUser);
               if (user) {
                 const dmRes = await createChannel({ type: "DM", user_ids: [user.id] }, token);

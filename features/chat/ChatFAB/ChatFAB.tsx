@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getChatChannels, getChatMessages, sendChatMessage, createChannel } from "@/lib/api/chat";
 import { useChatWebSocket, type ChatPresenceEvent, type ChatAckEvent } from "@/lib/hooks/use-chat";
-import { autocompleteUsers } from "@/lib/api/social";
+import { autocompleteUsers, extractUserSearchResults } from "@/lib/api/social";
 import { timeAgo } from "@/lib/utils/format";
 import type { Channel, ChannelMember, ChatMessage } from "@/lib/types/chat";
 
@@ -224,7 +224,7 @@ export default function CreatePostFAB() {
             setNewChatLoading(true);
             try {
                 const val = await autocompleteUsers(newChatSearch, session.accessToken);
-                const users = val?.data || val?.users || [];
+                const users = extractUserSearchResults(val);
                 setNewChatSuggestions(users.filter((u: UserSuggestion) => u.username !== session.username));
             } catch (error: unknown) {
                 setNewChatSuggestions([]);

@@ -201,6 +201,31 @@ export interface PostComment {
     replies?: PostComment[];
 }
 
+export interface Story {
+    id: string;
+    image_url?: string;
+    caption?: string;
+    background_color?: string;
+    text_color?: string;
+    font_weight?: "normal" | "bold";
+    font_style?: "normal" | "italic";
+    text_x?: number;
+    text_y?: number;
+    created_at: string;
+    expires_at: string;
+    viewed?: boolean;
+}
+
+export interface StoryTrayGroup {
+    user: {
+        id: string;
+        username: string;
+        avatar_url?: string;
+    };
+    stories: Story[];
+    has_unseen: boolean;
+}
+
 // ── Raw Feed API response shapes ──
 
 export interface RawFeedUser {

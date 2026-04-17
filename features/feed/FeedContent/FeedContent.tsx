@@ -38,10 +38,17 @@ export default function FeedContent({
   const { status } = useAuth();
   const isAuth = status === "authenticated";
 
-  const personalFeedQ = useFeed({ per_page: 20 }, isAuth);
+  const feedParams = useMemo(() => {
+    if (feedFilter === "posts") {
+      return { per_page: 20, type: "POST" };
+    }
+    return { per_page: 20 };
+  }, [feedFilter]);
+
+  const personalFeedQ = useFeed(feedParams, isAuth);
 
   // Always fetch discover feed (for unauthenticated users it's the primary; for auth users it's the fallback)
-  const discoverFeedQ = useFeedDiscover({ per_page: 20 });
+  const discoverFeedQ = useFeedDiscover(feedParams);
 
   // Load decks to inject into feed as DeckCards (with full card details)
   const [feedDecks, setFeedDecks] = useState<Deck[]>([]);
@@ -112,7 +119,7 @@ export default function FeedContent({
         }
 
         // Deck published → DeckCard with miniature grid
-        if (itemType === "DECK_PUBLISHED") {
+        if (itemType === "DECK_PUBLISH" || itemType === "DECK_PUBLISHED") {
           const meta = s.metadata ?? {};
           if (feedFilter !== "actividad") {
             items.push({

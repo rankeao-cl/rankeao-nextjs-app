@@ -5,7 +5,7 @@ import type {
     UserProfile, FriendRequest, Activity, Deck, CollectionItem, WishlistItem,
     FeedResponse, FeedPost, FollowedTenant, UserSearchResult, PostComment,
     AddCollectionItemPayload, UpdateCollectionItemPayload, AddWishlistItemPayload,
-    Bookmark, UserBadge, RatingHistoryEntry,
+    Bookmark, UserBadge, RatingHistoryEntry, Story, StoryTrayGroup,
 } from "@/lib/types/social";
 
 // ── Feed ──
@@ -19,6 +19,27 @@ export async function getFeedDiscover(params?: Params) {
 }
 
 // ── Posts ──
+
+export async function listStories(token?: string) {
+    return apiFetch<{ data?: { stories?: StoryTrayGroup[] }; stories?: StoryTrayGroup[] }>("/social/stories", undefined, { token, cache: "no-store" });
+}
+
+export async function createStory(payload: {
+    image_url?: string;
+    caption?: string;
+    background_color?: string;
+    text_color?: string;
+    font_weight?: "normal" | "bold";
+    font_style?: "normal" | "italic";
+    text_x?: number;
+    text_y?: number;
+}, token?: string) {
+    return apiPost<ApiResponse<{ story: Story }>>("/social/stories", payload, { token });
+}
+
+export async function markStoryViewed(storyId: string, token?: string) {
+    return apiPost<{ viewed: boolean }>(`/social/stories/${encodeURIComponent(storyId)}/view`, {}, { token });
+}
 
 export async function createPost(payload: { content: string; image_url?: string }, token?: string) {
     return apiPost<ApiResponse<{ post: FeedPost }>>("/social/feed/posts", payload, { token });
@@ -62,7 +83,7 @@ export async function addPostComment(postId: string | number, content: string, t
 }
 
 export async function getCommentReplies(commentId: string | number, params?: Params) {
-    return apiFetch<{ data?: { comments: PostComment[] }; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/comments/${commentId}/replies`, params);
+    return apiFetch<{ data?: { replies?: PostComment[]; comments?: PostComment[] }; replies?: PostComment[]; comments?: PostComment[]; meta?: PaginationMeta }>(`/social/feed/comments/${commentId}/replies`, params);
 }
 
 export async function likeComment(commentId: string | number, token?: string) {
@@ -121,8 +142,24 @@ export async function searchUsers(params?: Params, token?: string) {
     return apiFetch<{ data?: UserSearchResult[]; users?: UserSearchResult[]; meta?: PaginationMeta }>("/social/users/search", params, { token });
 }
 
+type AutocompleteUsersResponse = {
+    data?: UserSearchResult[] | { users?: UserSearchResult[] };
+    users?: UserSearchResult[];
+};
+
+export function extractUserSearchResults(payload?: AutocompleteUsersResponse | UserSearchResult[] | null): UserSearchResult[] {
+    if (Array.isArray(payload)) return payload;
+    if (!payload) return [];
+    if (Array.isArray(payload.data)) return payload.data;
+    if (payload.data && typeof payload.data === "object" && Array.isArray(payload.data.users)) {
+        return payload.data.users;
+    }
+    if (Array.isArray(payload.users)) return payload.users;
+    return [];
+}
+
 export async function autocompleteUsers(q: string, token?: string) {
-    return apiFetch<{ data?: UserSearchResult[]; users?: UserSearchResult[] }>("/social/users/autocomplete", { q }, { token, cache: "no-store" });
+    return apiFetch<AutocompleteUsersResponse>("/social/users/autocomplete", { q }, { token, cache: "no-store" });
 }
 
 export async function getUserProfile(username: string) {
@@ -130,7 +167,7 @@ export async function getUserProfile(username: string) {
 }
 
 export async function getUserActivity(username: string, params?: Params) {
-    return apiFetch<{ data?: Activity[]; activities?: Activity[]; meta?: PaginationMeta }>(`/social/users/${encodeURIComponent(username)}/activity`, params);
+    return apiFetch<{ data?: Activity[] | { activity?: Activity[] }; activity?: Activity[]; activities?: Activity[]; meta?: PaginationMeta }>(`/social/users/${encodeURIComponent(username)}/activity`, params);
 }
 
 export async function getUserBadges(username: string) {
