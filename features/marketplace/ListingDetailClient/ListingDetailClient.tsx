@@ -120,8 +120,17 @@ export default function ListingDetailClient({ listing, id }: Props) {
 
   function handleShare() {
     const url = `https://rankeao.cl/marketplace/${listing.slug || listing.id}`;
-    if (navigator.share) navigator.share({ title: listing.title, url }).catch(() => {});
-    else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+    if (navigator.share) {
+      navigator.share({ title: listing.title, url }).catch((error: unknown) => {
+        console.warn("No se pudo compartir publicacion", error);
+      });
+    } else {
+      navigator.clipboard.writeText(url)
+        .then(() => toast.success("Enlace copiado"))
+        .catch((error: unknown) => {
+          console.warn("No se pudo copiar enlace de publicacion", error);
+        });
+    }
   }
 
   return (
@@ -242,11 +251,11 @@ export default function ListingDetailClient({ listing, id }: Props) {
                 {/* Izq: número + mercado */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-1.5 leading-none">
-                    <span style={{ fontSize: 26, fontWeight: 800, color: "rgba(255,255,255,0.45)", lineHeight: 1 }}>$</span>
-                    <span style={{ fontSize: 50, fontWeight: 900, color: "#fff", letterSpacing: "-2.5px", lineHeight: 1 }}>
+                    <span style={{ fontSize: 26, fontWeight: 800, color: "var(--muted)", lineHeight: 1 }}>$</span>
+                    <span style={{ fontSize: 50, fontWeight: 900, color: "var(--foreground)", letterSpacing: "-2.5px", lineHeight: 1 }}>
                       {fmtPrice(listing.price)}
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.35)", paddingBottom: 2 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", paddingBottom: 2 }}>
                       {listing.currency || "CLP"}
                     </span>
                   </div>
@@ -285,7 +294,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
                 padding: "13px 20px",
                 borderRadius: 12, border: "none",
                 background: "var(--accent)",
-                color: "#fff", fontSize: 15, fontWeight: 800,
+                color: "var(--accent-foreground)", fontSize: 15, fontWeight: 800,
                 cursor: "pointer", letterSpacing: "-0.2px",
                 boxShadow: "0 4px 20px rgba(59,130,246,0.3)",
               }}
@@ -299,9 +308,9 @@ export default function ListingDetailClient({ listing, id }: Props) {
                   flex: 1,
                   padding: "11px 20px",
                   borderRadius: 12,
-                  background: "rgba(34,197,94,0.1)",
-                  border: "1px solid rgba(34,197,94,0.3)",
-                  color: "#22c55e", fontSize: 14, fontWeight: 700,
+                  background: "color-mix(in srgb, var(--success) 10%, transparent)",
+                  border: "1px solid color-mix(in srgb, var(--success) 30%, transparent)",
+                  color: "var(--success)", fontSize: 14, fontWeight: 700,
                   cursor: "pointer",
                 }}
               >
@@ -335,7 +344,14 @@ export default function ListingDetailClient({ listing, id }: Props) {
                   {sellerName}
                 </Link>
                 {isVerified && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ color: "#22c55e", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)" }}>
+                  <span
+                    className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                    style={{
+                      color: "var(--success)",
+                      background: "color-mix(in srgb, var(--success) 10%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--success) 25%, transparent)",
+                    }}
+                  >
                     ✓
                   </span>
                 )}
@@ -366,8 +382,8 @@ export default function ListingDetailClient({ listing, id }: Props) {
               className="font-semibold text-sm shrink-0"
               style={{
                 background: "transparent",
-                border: "1px solid rgba(255,255,255,0.25)",
-                color: "rgba(255,255,255,0.8)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
               }}
             />
           </div>
@@ -487,7 +503,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
                         <div className="flex items-center gap-1.5">
                           <span className="text-[13px] font-semibold text-foreground truncate">{itemSeller}</span>
                           {isVerifiedItem && (
-                            <span style={{ fontSize: 9, fontWeight: 800, color: "#22c55e" }}>✓</span>
+                            <span style={{ fontSize: 9, fontWeight: 800, color: "var(--success)" }}>✓</span>
                           )}
                           {isCurrent && (
                             <span className="text-[9px] font-bold shrink-0" style={{ color: "var(--accent)" }}>· esta</span>
@@ -514,7 +530,11 @@ export default function ListingDetailClient({ listing, id }: Props) {
                       <div className="flex items-center gap-1">
                         {item.is_foil && (
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                            style={{ color: "#eab308", background: "rgba(234,179,8,0.1)" }}>
+                            style={{
+                              color: "var(--warning)",
+                              background: "color-mix(in srgb, var(--warning) 12%, transparent)",
+                              border: "1px solid color-mix(in srgb, var(--warning) 25%, transparent)",
+                            }}>
                             Foil
                           </span>
                         )}
@@ -530,8 +550,8 @@ export default function ListingDetailClient({ listing, id }: Props) {
                     {/* Price + CTA — right */}
                     <div className="shrink-0 flex items-center gap-2.5" style={{ minWidth: 130 }}>
                       <div className="flex items-baseline gap-0.5 leading-none flex-1 justify-end">
-                        <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", fontFamily: "Georgia, serif" }}>$</span>
-                        <span style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", fontFamily: "Georgia, serif" }}>$</span>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)", letterSpacing: "-0.5px" }}>
                           {fmtPrice(item.price ?? 0)}
                         </span>
                       </div>
@@ -543,7 +563,7 @@ export default function ListingDetailClient({ listing, id }: Props) {
                           className="text-[11px] font-bold whitespace-nowrap px-3 py-1.5 rounded-lg"
                           style={{
                             background: isCurrent ? "rgba(59,130,246,0.15)" : "var(--accent)",
-                            color: isCurrent ? "var(--accent)" : "#fff",
+                            color: isCurrent ? "var(--accent)" : "var(--accent-foreground)",
                             border: isCurrent ? "1px solid rgba(59,130,246,0.35)" : "none",
                             display: "inline-block",
                           }}

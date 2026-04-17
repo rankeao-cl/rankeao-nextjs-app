@@ -5,7 +5,7 @@ import type {
     Dispute, DisputeEvidence, DisputeMessage, Favorite, PriceAlert, SavedSearch, SellerProfile, BankAccount, Payout,
     ListingImage, GroupedCard, GroupedCardsResponse,
     CreateReviewPayload, AddDisputeEvidencePayload, RespondToDisputePayload,
-    UpdatePriceAlertPayload, SetupSellerProfilePayload, UpdateSellerProfilePayload,
+    UpdatePriceAlertPayload, SetupSellerProfilePayload, UpdateSellerProfilePayload, CheckoutPaymentResult,
     AddBankAccountPayload, UploadMarketplaceFilePayload, CheckoutListingPayload,
 } from "@/lib/types/marketplace";
 import type { Params, PaginationMeta } from "@/lib/types/api";
@@ -38,7 +38,303 @@ function normalizeListing(item: Record<string, unknown>): Listing {
         result.tenant_name = result.tenant_name || tenant.name;
         result.tenant_id = result.tenant_id || tenant.id;
     }
-    return result as unknown as Listing;
+
+    const listing: Listing = {
+        id: asString(result.id) ?? "",
+        title: asString(result.title) ?? asString(result.card_name) ?? "Publicacion",
+    };
+
+    const price = asNumber(result.price);
+    const quantity = asNumber(result.quantity);
+    const viewsCount = asNumber(result.views_count);
+    const favoritesCount = asNumber(result.favorites_count);
+    const latitude = asNumber(result.lat);
+    const longitude = asNumber(result.lng);
+    const images = asListingImages(result.images);
+
+    if (price !== undefined) listing.price = price;
+    if (quantity !== undefined) listing.quantity = quantity;
+    if (viewsCount !== undefined) listing.views_count = viewsCount;
+    if (favoritesCount !== undefined) listing.favorites_count = favoritesCount;
+    if (latitude !== undefined) listing.lat = latitude;
+    if (longitude !== undefined) listing.lng = longitude;
+    if (images) listing.images = images;
+
+    listing.slug = asString(result.slug);
+    listing.currency = asString(result.currency);
+    listing.card_condition = asString(result.card_condition);
+    listing.card_language = asString(result.card_language);
+    listing.card_id = asString(result.card_id);
+    listing.card_name = asString(result.card_name);
+    listing.printing_id = asString(result.printing_id);
+    listing.game_id = asString(result.game_id);
+    listing.game_name = asString(result.game_name);
+    listing.set_name = asString(result.set_name);
+    listing.set_code = asString(result.set_code);
+    listing.rarity = asString(result.rarity);
+    listing.seller_id = asString(result.seller_id);
+    listing.seller_username = asString(result.seller_username);
+    listing.seller_avatar_url = asString(result.seller_avatar_url);
+    listing.tenant_id = asString(result.tenant_id);
+    listing.tenant_name = asString(result.tenant_name);
+    listing.city = asString(result.city);
+    listing.region = asString(result.region);
+    listing.country = asString(result.country);
+    listing.card_image_url = asString(result.card_image_url);
+    listing.image_url = asString(result.image_url);
+    listing.status = asString(result.status);
+    listing.created_at = asString(result.created_at);
+    listing.updated_at = asString(result.updated_at);
+    listing.expires_at = asString(result.expires_at);
+
+    const isFoil = asBoolean(result.is_foil);
+    const isFirstEdition = asBoolean(result.is_first_edition);
+    const acceptsOffers = asBoolean(result.accepts_offers);
+    const acceptsShipping = asBoolean(result.accepts_shipping);
+    const acceptsInPerson = asBoolean(result.accepts_in_person);
+    const isVerifiedStore = asBoolean(result.is_verified_store);
+    const isVerifiedSeller = asBoolean(result.is_verified_seller);
+
+    if (isFoil !== undefined) listing.is_foil = isFoil;
+    if (isFirstEdition !== undefined) listing.is_first_edition = isFirstEdition;
+    if (acceptsOffers !== undefined) listing.accepts_offers = acceptsOffers;
+    if (acceptsShipping !== undefined) listing.accepts_shipping = acceptsShipping;
+    if (acceptsInPerson !== undefined) listing.accepts_in_person = acceptsInPerson;
+    if (isVerifiedStore !== undefined) listing.is_verified_store = isVerifiedStore;
+    if (isVerifiedSeller !== undefined) listing.is_verified_seller = isVerifiedSeller;
+
+    return listing;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+    if (typeof value !== "object" || value === null) return null;
+    return value as Record<string, unknown>;
+}
+
+function asString(value: unknown): string | undefined {
+    return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function asNumber(value: unknown): number | undefined {
+    return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function asBoolean(value: unknown): boolean | undefined {
+    return typeof value === "boolean" ? value : undefined;
+}
+
+function asListingImages(value: unknown): ListingImage[] | undefined {
+    if (!Array.isArray(value)) return undefined;
+    const images = value
+        .map((entry) => {
+            const record = asRecord(entry);
+            if (!record) return null;
+            const url = asString(record.url) ?? asString(record.image_url);
+            if (!url) return null;
+            const image: ListingImage = { url };
+            const thumbnailUrl = asString(record.thumbnail_url);
+            const altText = asString(record.alt_text);
+            if (thumbnailUrl) image.thumbnail_url = thumbnailUrl;
+            if (altText) image.alt_text = altText;
+            return image;
+        })
+        .filter((image): image is ListingImage => image !== null);
+
+    return images.length > 0 ? images : undefined;
+}
+
+function asShippingAddress(value: unknown): MarketplaceCheckout["shipping_address"] | MarketplaceOrder["shipping_address"] | undefined {
+    if (typeof value === "string" && value.length > 0) {
+        return value;
+    }
+    const address = asRecord(value);
+    if (!address) return undefined;
+    if (
+        typeof address.address_line_1 !== "string" ||
+        typeof address.city !== "string" ||
+        typeof address.region !== "string"
+    ) {
+        return undefined;
+    }
+    return {
+        full_name: asString(address.full_name),
+        name: asString(address.name),
+        address_line_1: address.address_line_1,
+        address_line_2: asString(address.address_line_2),
+        city: address.city,
+        region: address.region,
+        postal_code: asString(address.postal_code),
+        country: asString(address.country),
+        phone: asString(address.phone),
+    };
+}
+
+function asOffer(value: unknown): Offer | null {
+    const record = asRecord(value);
+    if (!record) return null;
+    if (typeof record.id !== "string" || typeof record.listing_id !== "string" || typeof record.buyer_id !== "string" || typeof record.seller_id !== "string" || typeof record.status !== "string") {
+        return null;
+    }
+
+    const offer: Offer = {
+        id: record.id,
+        listing_id: record.listing_id,
+        buyer_id: record.buyer_id,
+        seller_id: record.seller_id,
+        status: record.status,
+        amount: asNumber(record.amount) ?? 0,
+    };
+
+    offer.quantity = asNumber(record.quantity);
+    offer.currency = asString(record.currency);
+    offer.buyer_username = asString(record.buyer_username);
+    offer.seller_username = asString(record.seller_username);
+    offer.message = asString(record.message);
+    offer.listing_title = asString(record.listing_title);
+    offer.parent_offer_id = asString(record.parent_offer_id);
+    offer.counter_amount = asNumber(record.counter_amount);
+    offer.counter_message = asString(record.counter_message);
+    offer.responded_at = asString(record.responded_at);
+    offer.response_message = asString(record.response_message);
+    offer.created_at = asString(record.created_at);
+    offer.updated_at = asString(record.updated_at);
+    offer.expires_at = asString(record.expires_at);
+
+    return offer;
+}
+
+function extractOffers(raw: unknown): Offer[] {
+    const root = asRecord(raw);
+    if (!root) return [];
+    const data = asRecord(root.data);
+    const candidates: unknown[] = [
+        data?.offers,
+        data?.items,
+        data,
+        root.offers,
+        root.items,
+        root,
+    ];
+    for (const candidate of candidates) {
+        if (!Array.isArray(candidate)) continue;
+        return candidate
+            .map((entry) => asOffer(entry))
+            .filter((entry): entry is Offer => entry !== null);
+    }
+    return [];
+}
+
+function asOrder(value: unknown): MarketplaceOrder | null {
+    const record = asRecord(value);
+    if (!record) return null;
+    if (typeof record.id !== "string" || typeof record.status !== "string") return null;
+
+    const listingId = asString(record.listing_id) ?? "";
+    const buyerId = asString(record.buyer_id) ?? "";
+    const sellerId = asString(record.seller_id) ?? "";
+
+    const order: MarketplaceOrder = {
+        id: record.id,
+        listing_id: listingId,
+        buyer_id: buyerId,
+        seller_id: sellerId,
+        status: record.status,
+    };
+
+    order.buyer_username = asString(record.buyer_username);
+    order.seller_username = asString(record.seller_username);
+    order.quantity = asNumber(record.quantity);
+    order.total = asNumber(record.total);
+    order.total_price = asNumber(record.total_price);
+    if (record.delivery_method === "SHIPPING" || record.delivery_method === "IN_PERSON" || record.delivery_method === "PICKUP") {
+        order.delivery_method = record.delivery_method;
+    }
+    order.shipping_address = asShippingAddress(record.shipping_address);
+    order.shipping_name = asString(record.shipping_name);
+    order.shipping_phone = asString(record.shipping_phone);
+    order.shipping_city = asString(record.shipping_city);
+    order.shipping_region = asString(record.shipping_region);
+    order.shipping_postal = asString(record.shipping_postal);
+    order.carrier = asString(record.carrier) ?? asString(asRecord(record.shipment)?.carrier);
+    order.tracking_number = asString(record.tracking_number) ?? asString(asRecord(record.shipment)?.tracking_number);
+    order.tracking_url = asString(record.tracking_url) ?? asString(asRecord(record.shipment)?.tracking_url);
+    order.created_at = asString(record.created_at);
+    order.updated_at = asString(record.updated_at);
+    if (asRecord(record.review)) {
+        order.review = record.review as MarketplaceOrder["review"];
+    }
+
+    return order;
+}
+
+function extractOrders(raw: unknown): MarketplaceOrder[] {
+    const root = asRecord(raw);
+    if (!root) return [];
+    const data = asRecord(root.data);
+    const candidates: unknown[] = [
+        data?.orders,
+        data?.items,
+        data,
+        root.orders,
+        root.items,
+        root,
+    ];
+    for (const candidate of candidates) {
+        if (!Array.isArray(candidate)) continue;
+        return candidate
+            .map((entry) => asOrder(entry))
+            .filter((entry): entry is MarketplaceOrder => entry !== null);
+    }
+    return [];
+}
+
+function asCheckout(value: unknown): MarketplaceCheckout | null {
+    const record = asRecord(value);
+    if (!record) return null;
+    if (typeof record.id !== "string" || record.id.length === 0) return null;
+
+    const checkout: MarketplaceCheckout = { id: record.id };
+
+    if (typeof record.listing_id === "string") checkout.listing_id = record.listing_id;
+    if (record.payment_method === "WEBPAY" || record.payment_method === "MERCADOPAGO" || record.payment_method === "TRANSFER") {
+        checkout.payment_method = record.payment_method;
+    }
+    if (record.delivery_method === "SHIPPING" || record.delivery_method === "PICKUP" || record.delivery_method === "IN_PERSON") {
+        checkout.delivery_method = record.delivery_method;
+    }
+    if (typeof record.status === "string") checkout.status = record.status;
+    if (typeof record.total === "number") checkout.total = record.total;
+    if (typeof record.subtotal === "number") checkout.subtotal = record.subtotal;
+    if (typeof record.shipping_cost === "number") checkout.shipping_cost = record.shipping_cost;
+    if (typeof record.platform_fee === "number") checkout.platform_fee = record.platform_fee;
+    if (typeof record.quantity === "number") checkout.quantity = record.quantity;
+    if (typeof record.item_summary === "string") checkout.item_summary = record.item_summary;
+    if (typeof record.item_name === "string") checkout.item_name = record.item_name;
+    if (typeof record.order_number === "string") checkout.order_number = record.order_number;
+    if (typeof record.payment_url === "string") checkout.payment_url = record.payment_url;
+    if (typeof record.created_at === "string") checkout.created_at = record.created_at;
+
+    checkout.shipping_address = asShippingAddress(record.shipping_address);
+
+    return checkout;
+}
+
+function extractCheckout(raw: unknown): MarketplaceCheckout | null {
+    const root = asRecord(raw);
+    if (!root) return null;
+
+    const data = asRecord(root.data);
+    const candidates: unknown[] = [
+        data?.checkout,
+        data,
+        root.checkout,
+        root,
+    ];
+    for (const candidate of candidates) {
+        const checkout = asCheckout(candidate);
+        if (checkout) return checkout;
+    }
+    return null;
 }
 
 // ── Config ──
@@ -144,8 +440,13 @@ export async function renewListing(id: string) {
 
 // ── Offers ──
 
-export async function getMyOffers(params?: Params) {
-    return apiFetch<{ data?: Offer[]; offers?: Offer[]; meta?: PaginationMeta }>("/marketplace/offers/mine", params, { cache: "no-store" });
+export async function getMyOffers(params?: Params): Promise<{ data: Offer[]; meta?: PaginationMeta }> {
+    const raw = await apiFetch<Record<string, unknown>>("/marketplace/offers/mine", params, { cache: "no-store" });
+    const root = asRecord(raw);
+    const data = root ? asRecord(root.data) : null;
+    const rawMeta = (root?.meta ?? data?.meta) as Record<string, unknown> | undefined;
+    const offers = extractOffers(raw);
+    return { data: offers, meta: normalizeMeta(rawMeta, offers.length) };
 }
 
 // ── My Listings ──
@@ -158,8 +459,13 @@ export async function createOffer(listingId: string, payload: { amount: number; 
     return apiPost<{ offer: Offer }>(`/marketplace/listings/${encodeURIComponent(listingId)}/offers`, payload);
 }
 
-export async function getListingOffers(listingId: string) {
-    return apiFetch<{ data?: Offer[]; offers?: Offer[] }>(`/marketplace/listings/${encodeURIComponent(listingId)}/offers`, undefined, { cache: "no-store" });
+export async function getListingOffers(listingId: string): Promise<{ data: Offer[]; meta?: PaginationMeta }> {
+    const raw = await apiFetch<Record<string, unknown>>(`/marketplace/listings/${encodeURIComponent(listingId)}/offers`, undefined, { cache: "no-store" });
+    const root = asRecord(raw);
+    const data = root ? asRecord(root.data) : null;
+    const rawMeta = (root?.meta ?? data?.meta) as Record<string, unknown> | undefined;
+    const offers = extractOffers(raw);
+    return { data: offers, meta: normalizeMeta(rawMeta, offers.length) };
 }
 
 export async function acceptOffer(offerId: string) {
@@ -180,8 +486,16 @@ export async function withdrawOffer(offerId: string) {
 
 // ── Buy ──
 
-export async function buyListing(listingId: string, payload: { quantity: number; delivery_method: string; shipping_address?: string }) {
-    return apiPost<{ checkout: MarketplaceCheckout }>(`/marketplace/listings/${encodeURIComponent(listingId)}/buy`, payload);
+export async function buyListing(listingId: string, payload: CheckoutListingPayload): Promise<MarketplaceCheckout> {
+    const raw = await apiPost<Record<string, unknown>>(
+        `/marketplace/listings/${encodeURIComponent(listingId)}/buy`,
+        payload,
+    );
+    const checkout = extractCheckout(raw);
+    if (!checkout) {
+        throw new Error("Respuesta inválida al iniciar la compra");
+    }
+    return checkout;
 }
 
 // ── Counter Offer Accept ──
@@ -210,27 +524,61 @@ export async function checkoutListing(listingId: string, payload: CheckoutListin
     return buyListing(listingId, payload);
 }
 
-export async function getCheckout(checkoutId: string) {
-    return apiFetch<{ data?: MarketplaceCheckout; checkout?: MarketplaceCheckout }>(`/marketplace/checkouts/${encodeURIComponent(checkoutId)}`, undefined, { cache: "no-store" });
+export async function getCheckout(checkoutId: string): Promise<MarketplaceCheckout> {
+    const raw = await apiFetch<Record<string, unknown>>(
+        `/marketplace/checkouts/${encodeURIComponent(checkoutId)}`,
+        undefined,
+        { cache: "no-store" },
+    );
+    const checkout = extractCheckout(raw);
+    if (!checkout) {
+        throw new Error("Checkout no encontrado");
+    }
+    return checkout;
 }
 
-export async function payCheckout(checkoutId: string, payload?: { provider?: string }) {
-    return apiPost<{ checkout: MarketplaceCheckout }>(`/marketplace/checkouts/${encodeURIComponent(checkoutId)}/pay`, payload ?? {});
+export async function payCheckout(checkoutId: string, payload?: { provider?: string }): Promise<CheckoutPaymentResult> {
+    const raw = await apiPost<Record<string, unknown>>(
+        `/marketplace/checkouts/${encodeURIComponent(checkoutId)}/pay`,
+        payload ?? {},
+    );
+    const data = asRecord(raw.data);
+    const base = data ?? raw;
+    return {
+        checkout_id: typeof base.checkout_id === "string" ? base.checkout_id : undefined,
+        payment_id: typeof base.payment_id === "string" ? base.payment_id : undefined,
+        payment_url: typeof base.payment_url === "string" ? base.payment_url : undefined,
+        provider: typeof base.provider === "string" ? base.provider : undefined,
+        payment_status: typeof base.payment_status === "string" ? base.payment_status : undefined,
+    };
 }
 
-export async function getMarketplaceOrders(params?: Params) {
-    return apiFetch<{ data?: MarketplaceOrder[]; orders?: MarketplaceOrder[]; meta?: PaginationMeta }>("/marketplace/orders", params, { cache: "no-store" });
+export async function getMarketplaceOrders(params?: Params): Promise<{ data: MarketplaceOrder[]; meta?: PaginationMeta }> {
+    const raw = await apiFetch<Record<string, unknown>>("/marketplace/orders", params, { cache: "no-store" });
+    const root = asRecord(raw);
+    const data = root ? asRecord(root.data) : null;
+    const rawMeta = (root?.meta ?? data?.meta) as Record<string, unknown> | undefined;
+    const orders = extractOrders(raw);
+    return { data: orders, meta: normalizeMeta(rawMeta, orders.length) };
 }
 
-export async function getMarketplaceOrderDetail(orderId: string) {
-    return apiFetch<{ data?: MarketplaceOrder; order?: MarketplaceOrder }>(`/marketplace/orders/${encodeURIComponent(orderId)}`, undefined, { cache: "no-store" });
+export async function getMarketplaceOrderDetail(orderId: string): Promise<MarketplaceOrder> {
+    const raw = await apiFetch<Record<string, unknown>>(`/marketplace/orders/${encodeURIComponent(orderId)}`, undefined, { cache: "no-store" });
+    const root = asRecord(raw);
+    const data = root ? asRecord(root.data) : null;
+    const candidates: unknown[] = [data?.order, data, root?.order, root];
+    for (const candidate of candidates) {
+        const order = asOrder(candidate);
+        if (order) return order;
+    }
+    throw new Error("Orden no encontrada");
 }
 
 export async function confirmDelivery(orderId: string) {
     return apiPost<{ order: MarketplaceOrder }>(`/marketplace/orders/${encodeURIComponent(orderId)}/confirm-delivery`, {});
 }
 
-export async function shipOrder(orderId: string, payload: { carrier?: string; tracking_number?: string; tracking_url?: string }) {
+export async function shipOrder(orderId: string, payload: { carrier?: string; carrier_name?: string; tracking_number?: string; tracking_url?: string }) {
     return apiPost<{ order: MarketplaceOrder }>(`/marketplace/orders/${encodeURIComponent(orderId)}/ship`, payload);
 }
 

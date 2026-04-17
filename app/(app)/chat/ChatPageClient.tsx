@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getChatChannels, createChannel } from "@/lib/api/chat";
@@ -17,6 +17,24 @@ export default function ChatPageClient() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [loadingChannels, setLoadingChannels] = useState(true);
+
+  const handlePresenceUpdate = useCallback((channelId: string, user: { id: string; username: string }, isOnline: boolean) => {
+    const applyPresence = (channel: Channel): Channel => {
+      if (channel.id !== channelId || !channel.members?.length) return channel;
+      return {
+        ...channel,
+        members: channel.members.map((member) => {
+          const memberId = member.user_id || member.id;
+          if (!memberId) return member;
+          if (memberId !== user.id && member.username !== user.username) return member;
+          return { ...member, is_online: isOnline };
+        }),
+      };
+    };
+
+    setChannels((prev) => prev.map(applyPresence));
+    setSelectedChannel((prev) => (prev ? applyPresence(prev) : prev));
+  }, []);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.accessToken) return;
@@ -172,6 +190,7 @@ export default function ChatPageClient() {
         <ChatArea
           selectedChannel={selectedChannel}
           onBack={() => setSelectedChannel(null)}
+          onPresenceUpdate={handlePresenceUpdate}
         />
       </div>
     </div>

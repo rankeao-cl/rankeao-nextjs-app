@@ -5,9 +5,9 @@ import { toast } from "@heroui/react/toast";
 import { PaperPlane, Comment, ChevronLeft, ChevronsDown, Paperclip, Xmark, Persons, Gear, Shield } from "@gravity-ui/icons";
 import { mapErrorMessage } from "@/lib/api/errors";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chat";
-import { useChatWebSocket } from "@/lib/hooks/use-chat";
+import { useChatWebSocket, type ChatPresenceEvent, type ChatAckEvent } from "@/lib/hooks/use-chat";
 import { useAuth } from "@/lib/hooks/use-auth";
-import type { Channel, ChatMessage } from "@/lib/types/chat";
+import type { Channel, ChannelMember, ChatMessage } from "@/lib/types/chat";
 import ChatMessageBubble from "@/features/chat/ChatMessageBubble";
 import ChatSettingsModal, { type ChatSettings, DEFAULT_CHAT_SETTINGS } from "@/features/chat/ChatSettingsModal";
 
@@ -15,13 +15,16 @@ function loadChatSettings(): ChatSettings {
     try {
         const raw = localStorage.getItem("rankeao.chat.settings");
         if (raw) return { ...DEFAULT_CHAT_SETTINGS, ...JSON.parse(raw) };
-    } catch {}
+    } catch (error: unknown) {
+        console.warn("No se pudo cargar la configuracion del chat", error);
+    }
     return DEFAULT_CHAT_SETTINGS;
 }
 
 interface ChatAreaProps {
     selectedChannel: Channel | null;
     onBack?: () => void;
+    onPresenceUpdate?: (channelId: string, user: { id: string; username: string }, isOnline: boolean) => void;
 }
 
 function getJwtField(token: string | undefined, field: string): string | undefined {
@@ -56,7 +59,14 @@ function groupMessagesByDate(messages: ChatMessage[]): { date: string; messages:
     return groups;
 }
 
-export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
+function createClientMessageId(): string {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export default function ChatArea({ selectedChannel, onBack, onPresenceUpdate }: ChatAreaProps) {
     const { session } = useAuth();
 
     const myUsername = session?.username || getJwtField(session?.accessToken, "usr") || getJwtField(session?.accessToken, "username");
@@ -106,14 +116,15 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const messagesRef = useRef<ChatMessage[]>([]);
+    const pendingAcksRef = useRef<Map<string, { tempId: string; channelId: string }>>(new Map());
     const pollInterval = useRef<NodeJS.Timeout | null>(null);
+    const [presenceByChannel, setPresenceByChannel] = useState<Record<string, Record<string, boolean>>>({});
 
-    // ── WebSocket for room channels (COMMUNITY / CLAN) ──
-    const isRoomChannel = selectedChannel?.type === "COMMUNITY" || selectedChannel?.type === "CLAN";
-    const wsRoomId = isRoomChannel ? selectedChannel?.id ?? null : null;
     const wsToken = session?.accessToken ?? null;
 
-    const handleWsMessage = useCallback((msg: ChatMessage) => {
+    const handleWsMessage = useCallback((msg: ChatMessage, channelId: string) => {
+        if (!selectedChannel?.id || channelId !== selectedChannel.id) return;
+
         const formatted: ChatMessage = {
             ...msg,
             sender_id: msg.sender?.id || msg.sender_id,
@@ -134,11 +145,70 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         } else {
             setNewMessagesCount(prev => prev + 1);
         }
-    }, [myUsername, myUserId]);
+    }, [myUsername, myUserId, selectedChannel?.id]);
 
-    const { connected: wsConnected, sendMessage: wsSendMessage } = useChatWebSocket(wsRoomId, wsToken, handleWsMessage);
+    const handleWsPresence = useCallback((event: ChatPresenceEvent) => {
+        if (!event.channelId || !event.user?.id) return;
 
-    const fetchMessages = async (channelId: string, isInitial = false) => {
+        const isOnline = event.type === "user_joined";
+        setPresenceByChannel(prev => {
+            const currentChannel = prev[event.channelId] || {};
+            if (currentChannel[event.user.id] === isOnline) return prev;
+            return {
+                ...prev,
+                [event.channelId]: {
+                    ...currentChannel,
+                    [event.user.id]: isOnline,
+                },
+            };
+        });
+
+        onPresenceUpdate?.(
+            event.channelId,
+            { id: event.user.id, username: event.user.username },
+            isOnline,
+        );
+    }, [onPresenceUpdate]);
+
+    const handleWsAck = useCallback((event: ChatAckEvent) => {
+        const pending = pendingAcksRef.current.get(event.clientMsgId);
+        if (!pending) return;
+        pendingAcksRef.current.delete(event.clientMsgId);
+        if (pending.channelId !== event.channelId) return;
+
+        setMessages(prev => {
+            const tempIndex = prev.findIndex(m => m.id === pending.tempId);
+            if (tempIndex === -1) return prev;
+
+            if (prev.some(m => m.id === event.messageId)) {
+                const withoutTemp = prev.filter(m => m.id !== pending.tempId);
+                messagesRef.current = withoutTemp;
+                return withoutTemp;
+            }
+
+            const updated = [...prev];
+            updated[tempIndex] = {
+                ...updated[tempIndex],
+                id: event.messageId,
+                status: "delivered",
+            };
+            messagesRef.current = updated;
+            return updated;
+        });
+    }, []);
+
+    const wsEnabled = !!selectedChannel?.id;
+    const { connected: wsConnected, subscribe, unsubscribe, sendMessage: wsSendMessage } = useChatWebSocket(
+        wsToken,
+        {
+            onMessage: handleWsMessage,
+            onPresence: handleWsPresence,
+            onAck: handleWsAck,
+        },
+        wsEnabled,
+    );
+
+    const fetchMessages = useCallback(async (channelId: string, isInitial = false) => {
         if (!session?.accessToken) return;
         try {
             const val = await getChatMessages(channelId, { limit: 50 }, session.accessToken);
@@ -173,36 +243,43 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
         } catch (err: unknown) {
             console.error("Error obteniendo mensajes:", err);
         }
-    };
+    }, [session?.accessToken, myUsername, myUserId]);
 
     useEffect(() => {
-        if (!selectedChannel) return;
+        if (!selectedChannel?.id) return;
+        subscribe(selectedChannel.id);
+        return () => unsubscribe(selectedChannel.id);
+    }, [selectedChannel?.id, subscribe, unsubscribe]);
+
+    useEffect(() => {
+        const channelId = selectedChannel?.id;
+        if (!channelId) return;
 
         setNewMessagesCount(0);
         setIsAtBottom(true);
         isAtBottomRef.current = true;
         messagesRef.current = [];
+        pendingAcksRef.current.clear();
         setLoadingMessages(true);
         setAttachedImage(null);
         setImagePreviewUrl(null);
-        fetchMessages(selectedChannel.id, true).finally(() => {
+        fetchMessages(channelId, true).finally(() => {
             setLoadingMessages(false);
             setTimeout(scrollToBottom, 100);
         });
 
-        // Use polling only for non-room channels (DM, GROUP, TOURNAMENT).
-        // Room channels (COMMUNITY, CLAN) use WebSocket for real-time updates.
+        // Fallback polling while socket is disconnected.
         if (pollInterval.current) clearInterval(pollInterval.current);
-        if (!isRoomChannel) {
+        if (!wsConnected) {
             pollInterval.current = setInterval(() => {
-                fetchMessages(selectedChannel.id);
+                fetchMessages(channelId);
             }, 3000);
         }
 
         return () => {
             if (pollInterval.current) clearInterval(pollInterval.current);
         };
-    }, [selectedChannel?.id, isRoomChannel]);
+    }, [selectedChannel?.id, wsConnected, fetchMessages]);
 
     useEffect(() => {
         return () => {
@@ -262,6 +339,7 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!chatSettings.enterToSend) return;
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();
@@ -294,9 +372,27 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
                 content = content ? `${content}\n${imageNote}` : imageNote;
             }
 
-            // Use WebSocket for room channels, REST for others
-            if (isRoomChannel && wsConnected) {
-                wsSendMessage(content);
+            // Use WebSocket for all channels when connected, fallback to REST otherwise.
+            if (wsConnected) {
+                const clientMsgId = createClientMessageId();
+                const tempId = `temp-${clientMsgId}`;
+                const optimistic: ChatMessage = {
+                    id: tempId,
+                    channel_id: selectedChannel.id,
+                    sender_id: myUserId || "",
+                    sender_username: myUsername,
+                    content,
+                    status: "sent",
+                    created_at: new Date().toISOString(),
+                };
+
+                setMessages(prev => {
+                    const updated = [...prev, optimistic];
+                    messagesRef.current = updated;
+                    return updated;
+                });
+                pendingAcksRef.current.set(clientMsgId, { tempId, channelId: selectedChannel.id });
+                wsSendMessage(selectedChannel.id, content, undefined, clientMsgId);
             } else {
                 await sendChatMessage(selectedChannel.id, { content }, session.accessToken);
                 await fetchMessages(selectedChannel.id);
@@ -360,20 +456,30 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
     }
 
     // ── Resolve channel metadata ──
+    const channelPresence = presenceByChannel[selectedChannel.id] || {};
+    const channelMembers: ChannelMember[] = (selectedChannel.members || []).map((member) => {
+        const memberId = member.user_id || member.id;
+        if (!memberId || channelPresence[memberId] === undefined) return member;
+        return {
+            ...member,
+            is_online: channelPresence[memberId],
+        };
+    });
+
     const isOnline = selectedChannel.type === "DM"
-        ? selectedChannel.members?.some(m => m.username !== myUsername && m.is_online)
+        ? channelMembers.some(m => m.username !== myUsername && m.is_online)
         : false;
 
     const isGroup = selectedChannel.type === "GROUP";
     const isClan = selectedChannel.type === "CLAN";
     const isCommunity = selectedChannel.type === "COMMUNITY";
-    const memberCount = selectedChannel.members?.length || 0;
+    const memberCount = channelMembers.length || 0;
 
     let displayName = selectedChannel.name || (selectedChannel.type === "DM" ? "Mensaje Directo" : "Sala de Chat");
     let displayAvatar: string | undefined = undefined;
 
     if (selectedChannel.type === "DM" && myUsername) {
-        const otherMember = selectedChannel.members?.find(m => m.username !== myUsername);
+        const otherMember = channelMembers.find(m => m.username !== myUsername);
         if (otherMember) {
             displayName = otherMember.username;
             displayAvatar = otherMember.avatar_url;
@@ -752,12 +858,12 @@ export default function ChatArea({ selectedChannel, onBack }: ChatAreaProps) {
 
             {/* ── Members panel (CLAN only) ── */}
             {isClan && showMembersPanel && (() => {
-                const members = selectedChannel.members || [];
+                const members = channelMembers;
                 const online = members.filter(m => m.is_online);
                 const offline = members.filter(m => !m.is_online);
 
                 const renderMember = (m: import("@/lib/types/chat").ChannelMember) => (
-                    <div key={m.user_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 12px" }}>
+                    <div key={m.user_id || m.id || m.username} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 12px" }}>
                         <div style={{ position: "relative", flexShrink: 0 }}>
                             {m.avatar_url ? (
                                 <Image src={m.avatar_url} alt={m.username} width={32} height={32} className="object-cover rounded-full" />

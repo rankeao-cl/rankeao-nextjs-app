@@ -8,11 +8,12 @@ import { toast } from "@heroui/react/toast";
 import { Heart, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useDeck, useLikeDeck } from "@/lib/hooks/use-social";
-import type { DeckCard } from "@/lib/types/social";
+import type { Deck, DeckCard } from "@/lib/types/social";
 
 interface DeckFanModalProps {
     deckId: string;
     onClose: () => void;
+    initialDeck?: Deck;
     initialLiked?: boolean;
     initialLikesCount?: number;
     onLikeChange?: (liked: boolean, count: number) => void;
@@ -67,10 +68,24 @@ function calcLayout(fanCount: number, winWidth: number): Layout {
 
 type UniqueCard = DeckCard & { board?: string; totalQty: number };
 
-export default function DeckFanModal({ deckId, onClose, initialLiked, initialLikesCount, onLikeChange }: DeckFanModalProps) {
-    const deckQuery = useDeck(deckId);
+export default function DeckFanModal({ deckId, onClose, initialDeck, initialLiked, initialLikesCount, onLikeChange }: DeckFanModalProps) {
+    const hasInitialCards = (initialDeck?.cards?.length ?? 0) > 0;
+    const initialDeckData = useMemo(() => {
+        if (!initialDeck) return undefined;
+        return { data: { deck: initialDeck } };
+    }, [initialDeck]);
+    const deckQuery = useDeck(deckId, {
+        enabled: !hasInitialCards,
+        initialData: initialDeckData,
+        staleTime: hasInitialCards ? 5 * 60 * 1000 : 2 * 60 * 1000,
+    });
     const rawData = deckQuery.data as { data?: { deck?: RawDeck; [k: string]: unknown }; deck?: RawDeck; [k: string]: unknown } | null | undefined;
-    const deck: RawDeck | null = rawData?.data?.deck ?? (rawData?.deck as RawDeck | undefined) ?? (rawData?.data as RawDeck | undefined) ?? null;
+    const deck: RawDeck | null =
+        rawData?.data?.deck ??
+        (rawData?.deck as RawDeck | undefined) ??
+        (rawData?.data as RawDeck | undefined) ??
+        (initialDeck as RawDeck | undefined) ??
+        null;
 
     const mainCards = useMemo<RawCard[]>(() =>
         (deck?.cards ?? []).filter(c => !c.board || c.board === "MAIN"),
@@ -94,6 +109,7 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
     const fanCards = useMemo(() => uniqueCards.slice(0, MAX_FAN), [uniqueCards]);
 
     const fanCount = fanCards.length > 0 ? fanCards.length : MAX_FAN;
+    const canAnimateFan = !deckQuery.isPending && fanCards.length > 0;
 
     const deckStats = useMemo(() => {
         const allCards = deck?.cards ?? [];
@@ -118,6 +134,8 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
     );
     const [selectedCard, setSelectedCard] = useState<UniqueCard | null>(null);
     const [entered, setEntered] = useState(false);
+    const [fanEntered, setFanEntered] = useState(false);
+    const fanIsEntered = canAnimateFan && fanEntered;
 
     // Interactions
     const { status: authStatus } = useAuth();
@@ -143,6 +161,12 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
         const id = requestAnimationFrame(() => setEntered(true));
         return () => cancelAnimationFrame(id);
     }, []);
+
+    useEffect(() => {
+        if (!canAnimateFan) return;
+        const id = requestAnimationFrame(() => setFanEntered(true));
+        return () => cancelAnimationFrame(id);
+    }, [deckId, canAnimateFan]);
 
     const layout = useMemo<Layout>(() => calcLayout(fanCount, windowWidth), [fanCount, windowWidth]);
 
@@ -195,7 +219,9 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
         }
         navigator.clipboard.writeText(lines.join("\n").trim()).then(() => {
             toast.success("Mazo copiado al portapapeles");
-        }).catch(() => {});
+        }).catch((error: unknown) => {
+            console.warn("No se pudo copiar lista del mazo", error);
+        });
     }, [deck]);
 
     const ownerUsername = deck?.username ?? deck?.owner?.username ?? deck?.user?.username ?? "";
@@ -222,13 +248,31 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
     const handleShare = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         const url = `https://rankeao.cl/decks/${deckId}`;
-        if (navigator.share) navigator.share({ title: deck?.name ?? "Mazo", url }).catch(() => {});
-        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+        if (navigator.share) {
+            navigator.share({ title: deck?.name ?? "Mazo", url }).catch((error: unknown) => {
+                console.warn("No se pudo compartir mazo", error);
+            });
+        } else {
+            navigator.clipboard.writeText(url)
+                .then(() => toast.success("Enlace copiado"))
+                .catch((error: unknown) => {
+                    console.warn("No se pudo copiar enlace de mazo", error);
+                });
+        }
     }, [deckId, deck?.name]);
 
     return (
         <div
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+            onKeyDown={(e) => {
+                if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " " || e.key === "Escape")) {
+                    e.preventDefault();
+                    onClose();
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Cerrar modal de mazo"
             style={{
                 position: "fixed", inset: 0, zIndex: 200,
                 backgroundColor: "rgba(0,0,0,0.72)",
@@ -361,7 +405,6 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                 /* ── Detalle carta — centrado vertical ── */
                 <div
                     style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}
-                    onClick={(e) => e.stopPropagation()}
                 >
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, animation: "card-zoom-in 0.2s ease-out" }}>
                         <div style={{ width: "min(380px, 85dvw)", aspectRatio: `1 / ${CARD_RATIO}`, borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 72px rgba(0,0,0,0.75)", border: "2px solid rgba(255,255,255,0.22)", position: "relative" }}>
@@ -407,7 +450,8 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                 }} />
                             ))
                             : uniqueCards.map((card) => (
-                                <div
+                                <button
+                                    type="button"
                                     key={card.card_id || card.card_name}
                                     onClick={() => setSelectedCard(card)}
                                     style={{
@@ -419,7 +463,10 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                         border: "1.5px solid rgba(255,255,255,0.12)",
                                         boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
                                         transition: "transform 0.15s",
+                                        padding: 0,
+                                        background: "transparent",
                                     }}
+                                    aria-label={`Ver carta ${card.card_name}`}
                                 >
                                     {card.image_url ? (
                                         <Image src={card.image_url} alt={card.card_name}
@@ -439,7 +486,7 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                             &times;{card.totalQty}
                                         </div>
                                     )}
-                                </div>
+                                </button>
                             ))
                         )}
                     </div>
@@ -495,10 +542,10 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                                 left: "50%", marginLeft: -(cardW / 2), bottom: liftPx,
                                                 borderRadius: Math.round(cardW * 0.07),
                                                 overflow: "hidden",
-                                                transform: entered ? `rotate(${angle}deg) translateY(${(s + 1) * 6}px)` : `rotate(0deg) translateY(${(s + 1) * 6}px)`,
+                                                transform: fanIsEntered ? `rotate(${angle}deg) translateY(${(s + 1) * 6}px)` : `rotate(0deg) translateY(${(s + 1) * 6}px)`,
                                                 transformOrigin: `center ${originY}px`,
                                                 zIndex: baseZ - (s + 1),
-                                                opacity: entered ? 1 - (s + 1) * 0.18 : 0,
+                                                opacity: fanIsEntered ? 1 - (s + 1) * 0.18 : 0,
                                                 border: "1.5px solid rgba(255,255,255,0.10)",
                                                 pointerEvents: "auto",
                                                 transition: entryTransition,
@@ -514,15 +561,16 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                             position: "absolute",
                                             width: cardW, height: cardH,
                                             left: "50%", marginLeft: -(cardW / 2), bottom: liftPx,
-                                            transform: entered ? `rotate(${angle}deg)` : "rotate(0deg) scale(0.75)",
+                                            transform: fanIsEntered ? `rotate(${angle}deg)` : "rotate(0deg) scale(0.75)",
                                             transformOrigin: `center ${originY}px`,
-                                            opacity: entered ? 1 : 0,
+                                            opacity: fanIsEntered ? 1 : 0,
                                             zIndex: baseZ,
                                             pointerEvents: "none",
                                             transition: entryTransition,
                                         }}
                                     >
-                                    <div
+                                    <button
+                                        type="button"
                                         onClick={() => !isLoading && card && setSelectedCard(card)}
                                         style={{
                                             width: "100%", height: "100%",
@@ -535,6 +583,8 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                             transformOrigin: "center center",
                                             pointerEvents: "auto",
                                             position: "relative",
+                                            background: "transparent",
+                                            padding: 0,
                                         }}
                                         onMouseEnter={(e) => {
                                             if (!card || isLoading) return;
@@ -549,6 +599,8 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                             el.style.filter = "";
                                             (el.parentElement as HTMLElement).style.zIndex = String(baseZ);
                                         }}
+                                        aria-label={card ? `Ver carta ${card.card_name}` : "Carta"}
+                                        disabled={!card || isLoading}
                                     >
                                         {isLoading ? (
                                             <div style={{ width: "100%", height: "100%", background: "rgba(255,255,255,0.08)", animation: "deck-skeleton-pulse 1.4s ease-in-out infinite" }} />
@@ -577,7 +629,7 @@ export default function DeckFanModal({ deckId, onClose, initialLiked, initialLik
                                                 ×{card.totalQty}
                                             </div>
                                         )}
-                                    </div>
+                                    </button>
                                     </div>
                                 </Fragment>
                             );

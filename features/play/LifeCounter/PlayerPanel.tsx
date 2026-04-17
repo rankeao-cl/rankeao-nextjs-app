@@ -96,9 +96,7 @@ export default function PlayerPanel({
             if (isLongPressRef.current) return;
             e.stopPropagation();
             handleChange(zone === "top" ? 1 : -1);
-            try {
-                if (navigator.vibrate) navigator.vibrate(30);
-            } catch {}
+            navigator.vibrate?.(30);
         },
         [handleChange]
     );
@@ -108,9 +106,7 @@ export default function PlayerPanel({
             isLongPressRef.current = false;
             longPressTimerRef.current = setTimeout(() => {
                 isLongPressRef.current = true;
-                try {
-                    if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
-                } catch {}
+                navigator.vibrate?.([50, 30, 80]);
                 onLongPress(seat);
             }, LONG_PRESS_MS);
         },

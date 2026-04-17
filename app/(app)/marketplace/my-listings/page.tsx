@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
@@ -18,6 +18,7 @@ import {
   useRenewListing,
   useDeleteListing,
 } from "@/lib/hooks/use-marketplace";
+import { useUIStore } from "@/lib/stores/ui-store";
 import type { Listing } from "@/lib/types/marketplace";
 
 // ── Status helpers ──
@@ -86,6 +87,13 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
     activateMutation.isPending ||
     renewMutation.isPending ||
     deleteMutation.isPending;
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const timer = setTimeout(() => setConfirmDelete(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmDelete]);
 
   async function handlePause() {
     try {
@@ -118,13 +126,18 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
   }
 
   async function handleDelete() {
-    if (!confirm("Estas seguro de que quieres eliminar esta publicacion? Esta accion no se puede deshacer.")) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
     try {
       await deleteMutation.mutateAsync(listing.id);
       toast.success("Publicacion eliminada");
       onAction();
     } catch {
       toast.danger("Error al eliminar la publicacion");
+    } finally {
+      setConfirmDelete(false);
     }
   }
 
@@ -226,7 +239,7 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
                   onPress={handleDelete}
                 >
                   <TrashBin className="w-3.5 h-3.5" />
-                  Eliminar
+                  {confirmDelete ? "Confirmar" : "Eliminar"}
                 </Button>
               </>
             )}
@@ -250,7 +263,7 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
                   onPress={handleDelete}
                 >
                   <TrashBin className="w-3.5 h-3.5" />
-                  Eliminar
+                  {confirmDelete ? "Confirmar" : "Eliminar"}
                 </Button>
               </>
             )}
@@ -265,6 +278,7 @@ function ListingCard({ listing, onAction }: { listing: Listing; onAction: () => 
 
 export default function MyListingsPage() {
   const { status: authStatus } = useAuth();
+  const openCreateListing = useUIStore((s) => s.openCreateListing);
   const isAuth = authStatus === "authenticated";
 
   const [tab, setTab] = useState<Tab>("all");
@@ -346,18 +360,19 @@ export default function MyListingsPage() {
               Gestiona todas tus publicaciones del marketplace.
             </p>
           </div>
-          <Link
-            href="/marketplace/new"
+          <button
+            type="button"
+            onClick={openCreateListing}
             style={{
               display: "flex", flexDirection: "row", alignItems: "center", gap: 4,
               backgroundColor: "var(--accent)", borderRadius: 12,
               paddingLeft: 14, paddingRight: 14, paddingTop: 8, paddingBottom: 8,
-              marginLeft: 12, alignSelf: "center", textDecoration: "none", flexShrink: 0,
+              marginLeft: 12, alignSelf: "center", flexShrink: 0, border: "none", cursor: "pointer",
             }}
           >
-            <Plus style={{ width: 16, height: 16, color: "white" }} />
-            <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Crear</span>
-          </Link>
+            <Plus style={{ width: 16, height: 16, color: "var(--accent-foreground)" }} />
+            <span style={{ color: "var(--accent-foreground)", fontSize: 12, fontWeight: 700 }}>Crear</span>
+          </button>
         </div>
       </div>
 
@@ -403,12 +418,10 @@ export default function MyListingsPage() {
               <p className="text-sm text-[var(--muted)] mb-4">
                 Publica tu primera carta y comienza a vender.
               </p>
-              <Link href="/marketplace/new">
-                <Button variant="primary" size="sm" className="font-semibold">
+              <Button variant="primary" size="sm" className="font-semibold" onPress={openCreateListing}>
                   <Plus className="w-4 h-4" />
                   Crear publicacion
-                </Button>
-              </Link>
+              </Button>
             </Card.Content>
           </Card>
         ) : (

@@ -28,18 +28,24 @@ const ORDER_STATUS_CONFIG: Record<
   string,
   { label: string; chipColor: ChipColor; icon: typeof Clock }
 > = {
-  PENDING:   { label: "Pendiente",  chipColor: "warning", icon: Clock },
-  CONFIRMED: { label: "Confirmado", chipColor: "accent",  icon: CircleCheck },
-  PAID:      { label: "Pagado",     chipColor: "accent",  icon: CircleCheck },
-  SHIPPED:   { label: "Enviado",    chipColor: "warning", icon: Plane },
-  DELIVERED: { label: "Entregado",  chipColor: "success", icon: CircleCheck },
+  PENDING_PAYMENT: { label: "Pendiente de pago", chipColor: "warning", icon: Clock },
+  PAID: { label: "Pagado", chipColor: "accent", icon: CircleCheck },
+  PROCESSING: { label: "Procesando", chipColor: "accent", icon: Clock },
+  SHIPPED: { label: "Enviado", chipColor: "warning", icon: Plane },
+  IN_TRANSIT: { label: "En transito", chipColor: "warning", icon: Plane },
+  DELIVERED: { label: "Entregado", chipColor: "success", icon: CircleCheck },
   COMPLETED: { label: "Completado", chipColor: "success", icon: CircleCheck },
-  CANCELLED: { label: "Cancelado",  chipColor: "danger",  icon: CircleXmark },
-  DISPUTED:  { label: "En disputa", chipColor: "danger",  icon: TriangleExclamation },
+  CANCELLED: { label: "Cancelado", chipColor: "danger", icon: CircleXmark },
+  REFUNDED: { label: "Reembolsado", chipColor: "default", icon: CircleXmark },
+  PARTIALLY_REFUNDED: { label: "Reembolso parcial", chipColor: "default", icon: CircleXmark },
+  DISPUTED: { label: "En disputa", chipColor: "danger", icon: TriangleExclamation },
+  // Legacy statuses kept for backward compatibility
+  PENDING: { label: "Pendiente", chipColor: "warning", icon: Clock },
+  CONFIRMED: { label: "Confirmado", chipColor: "accent", icon: CircleCheck },
 };
 
 function getStatusConfig(status: string) {
-  return ORDER_STATUS_CONFIG[status.toUpperCase()] ?? ORDER_STATUS_CONFIG.PENDING;
+  return ORDER_STATUS_CONFIG[status.toUpperCase()] ?? ORDER_STATUS_CONFIG.PENDING_PAYMENT;
 }
 
 const DELIVERY_LABELS: Record<string, string> = {
@@ -59,9 +65,9 @@ const TABS: { key: Tab; label: string }[] = [
 
 function filterOrders(orders: MarketplaceOrder[], tab: Tab): MarketplaceOrder[] {
   if (tab === "all") return orders;
-  if (tab === "pending") return orders.filter((o) => ["PENDING"].includes(o.status.toUpperCase()));
-  if (tab === "active") return orders.filter((o) => ["CONFIRMED", "PAID", "SHIPPED", "DELIVERED"].includes(o.status.toUpperCase()));
-  if (tab === "completed") return orders.filter((o) => ["COMPLETED", "CANCELLED", "DISPUTED"].includes(o.status.toUpperCase()));
+  if (tab === "pending") return orders.filter((o) => ["PENDING_PAYMENT", "PENDING"].includes(o.status.toUpperCase()));
+  if (tab === "active") return orders.filter((o) => ["PAID", "PROCESSING", "SHIPPED", "IN_TRANSIT", "DELIVERED", "DISPUTED", "CONFIRMED"].includes(o.status.toUpperCase()));
+  if (tab === "completed") return orders.filter((o) => ["COMPLETED", "CANCELLED", "REFUNDED", "PARTIALLY_REFUNDED"].includes(o.status.toUpperCase()));
   return orders;
 }
 
@@ -177,9 +183,7 @@ export default function OrdersPage() {
     setError(false);
     try {
       const res = await getMarketplaceOrders();
-      const raw = res?.data ?? res?.orders ?? [];
-      const items = Array.isArray(raw) ? raw : [];
-      setOrders(items);
+      setOrders(res.data);
     } catch {
       setError(true);
     } finally {

@@ -3,11 +3,13 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ScrollShadow } from "@heroui/react/scroll-shadow";
+import { toast } from "@heroui/react/toast";
 
 import { Bell, Person, ShoppingCart, StarFill } from "@gravity-ui/icons";
 import { timeAgo, stripHtml, sanitizeHref } from "@/lib/utils/format";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getNotifications, getUnreadNotificationCount, markAllNotificationsRead } from "@/lib/api/notifications";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { Notification } from "@/lib/types/notification";
 
 const TABS = [
@@ -86,16 +88,35 @@ export default function NotificacionesPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("all");
     const [markingAll, setMarkingAll] = useState(false);
+    const [loadError, setLoadError] = useState(false);
 
     useEffect(() => {
-        if (!isAuthenticated || !session?.accessToken) return;
+        if (!isAuthenticated || !session?.accessToken) {
+            setNotifications([]);
+            setLoadError(false);
+            setLoading(false);
+            return;
+        }
+
+        let mounted = true;
         const token = session.accessToken;
 
-        setLoading(true);
-        Promise.all([
-            getNotifications({ per_page: 100 }, token).catch(() => null),
-            getUnreadNotificationCount(token).catch(() => null),
-        ]).then(([notifRes]) => {
+        async function loadData() {
+            const [notifResult, unreadCountResult] = await Promise.allSettled([
+                getNotifications({ per_page: 100 }, token),
+                getUnreadNotificationCount(token),
+            ]);
+            if (!mounted) return;
+
+            setLoadError(notifResult.status === "rejected" || unreadCountResult.status === "rejected");
+
+            if (notifResult.status !== "fulfilled") {
+                setNotifications([]);
+                setLoading(false);
+                return;
+            }
+
+            const notifRes = notifResult.value;
             const raw = notifRes?.notifications ?? [];
             const normalized = (Array.isArray(raw) ? raw : []).map((n: Notification) => ({
                 ...n,
@@ -104,7 +125,13 @@ export default function NotificacionesPage() {
             }));
             setNotifications(normalized);
             setLoading(false);
-        });
+        }
+
+        loadData();
+
+        return () => {
+            mounted = false;
+        };
     }, [isAuthenticated, session?.accessToken]);
 
     const unreadCount = useMemo(() => notifications.filter((n) => !n.is_read).length, [notifications]);
@@ -125,8 +152,11 @@ export default function NotificacionesPage() {
         try {
             await markAllNotificationsRead(session.accessToken);
             setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-        } catch { /* ignore */ }
-        setMarkingAll(false);
+        } catch (error: unknown) {
+            toast.danger("Error", { description: mapErrorMessage(error) });
+        } finally {
+            setMarkingAll(false);
+        }
     };
 
     return (
@@ -197,6 +227,12 @@ export default function NotificacionesPage() {
 
             {/* List */}
             <ScrollShadow className="flex-1 overflow-y-auto custom-scrollbar">
+                {loadError && (
+                    <div className="mx-4 mt-4 rounded-xl border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-4 py-3">
+                        <p className="text-sm font-semibold text-foreground">No pudimos cargar todas las notificaciones.</p>
+                        <p className="text-xs text-muted">Mostramos la información que sí pudimos obtener.</p>
+                    </div>
+                )}
                 {loading ? (
                     <div className="flex flex-col gap-3 px-4 py-5">
                         {[...Array(6)].map((_, i) => (

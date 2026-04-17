@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
-import { getUserFollowing, browseDecks } from "@/lib/api/social";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { getUserFollowing, browseDecks, getUserProfile } from "@/lib/api/social";
 import type { UserProfile, Deck } from "@/lib/types/social";
 import dynamic from "next/dynamic";
 const DeckFanModal = dynamic(() => import("@/features/deck/DeckFanModal"), { ssr: false });
@@ -23,6 +24,7 @@ const SCROLL_AMOUNT = PAGE_SIZE * (ITEM_WIDTH + ITEM_GAP);
 export default function FeedClient() {
   const { status, session } = useAuth();
   const isAuth = status === "authenticated";
+  const avatarUrl = useAuthStore((s) => s.avatarUrl);
 
   const [following, setFollowing] = useState<UserProfile[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -38,8 +40,22 @@ export default function FeedClient() {
         const users = (val?.data as Record<string, unknown>)?.following as UserProfile[] | undefined || val?.data as UserProfile[] | undefined || val?.following as UserProfile[] | undefined || [];
         setFollowing(Array.isArray(users) ? users : []);
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.warn("No se pudo cargar seguidos del feed", error);
+      });
   }, [isAuth, session?.username]);
+
+  useEffect(() => {
+    if (!isAuth || !session?.username || avatarUrl) return;
+    getUserProfile(session.username)
+      .then((res) => {
+        const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
+        if (profile?.avatar_url) useAuthStore.getState().setAvatarUrl(profile.avatar_url);
+      })
+      .catch((error: unknown) => {
+        console.warn("No se pudo cargar perfil para feed", error);
+      });
+  }, [isAuth, session?.username, avatarUrl]);
 
   useEffect(() => {
     browseDecks({ per_page: 15, sort: "newest" })
@@ -47,7 +63,9 @@ export default function FeedClient() {
         const d = (val?.data as Record<string, unknown>)?.decks as Deck[] | undefined || val?.data as Deck[] | undefined || val?.decks as Deck[] | undefined || [];
         setDecks(Array.isArray(d) ? d : []);
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.warn("No se pudieron cargar mazos del feed", error);
+      });
   }, []);
 
   const items = useMemo<FeedItem[]>(() => {
@@ -80,6 +98,29 @@ export default function FeedClient() {
     el.addEventListener("scroll", updateScrollButtons, { passive: true });
     return () => el.removeEventListener("scroll", updateScrollButtons);
   }, [updateScrollButtons, items]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      const rawDelta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (rawDelta === 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const unit = e.deltaMode === 1 ? 14 : e.deltaMode === 2 ? el.clientWidth : 1;
+      const pxDelta = rawDelta * unit;
+      const step = Math.sign(pxDelta) * Math.min(40, Math.max(10, Math.abs(pxDelta) * 0.28));
+      el.scrollBy({ left: step, behavior: "auto" });
+      updateScrollButtons();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+    };
+  }, [updateScrollButtons]);
 
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
@@ -134,10 +175,11 @@ export default function FeedClient() {
           display: "flex",
           gap: ITEM_GAP,
           overflowX: "auto",
+          overscrollBehavior: "contain",
           scrollbarWidth: "none",
           padding: "4px 0",
           maxWidth: VISIBLE_COUNT * ITEM_WIDTH + (VISIBLE_COUNT - 1) * ITEM_GAP,
-          scrollSnapType: "x mandatory",
+          scrollSnapType: "x proximity",
         }}
       >
         {/* My profile (always first) */}
@@ -157,9 +199,13 @@ export default function FeedClient() {
                   backgroundColor: "var(--background)", display: "flex", alignItems: "center", justifyContent: "center",
                   overflow: "hidden",
                 }}>
-                  <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>
-                    {session?.username?.[0]?.toUpperCase() || "?"}
-                  </span>
+                  {avatarUrl ? (
+                    <Image src={avatarUrl} alt={session?.username || "Tu perfil"} width={74} height={74} className="object-cover" />
+                  ) : (
+                    <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>
+                      {session?.username?.[0]?.toUpperCase() || "?"}
+                    </span>
+                  )}
                 </div>
               </div>
               <div style={{

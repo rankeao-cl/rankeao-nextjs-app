@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-const DeckFanModal = dynamic(() => import("@/features/deck/DeckFanModal"), { ssr: false });
+const loadDeckFanModal = () => import("@/features/deck/DeckFanModal");
+const DeckFanModal = dynamic(loadDeckFanModal, { ssr: false });
 import type { ReactNode } from "react";
 import {
     Cup,
@@ -85,7 +86,7 @@ const FALLBACK_CONFIG: ActivityConfig = {
 
 // ── Entity link resolver ──
 
-function getEntityHref(entityType?: string, entityId?: string, metadata?: Record<string, unknown>): string | null {
+function getEntityHref(entityType?: string, entityId?: string): string | null {
     if (!entityType || !entityId) return null;
     const t = entityType.toLowerCase();
     if (t === "tournament") return `/torneos/${entityId}`;
@@ -106,7 +107,7 @@ const ENTITY_LABELS: Record<string, string> = {
 
 export default function FeedActivityCard({ activity }: { activity: ActivityData }) {
     const config = ACTIVITY_CONFIG[activity.type] ?? FALLBACK_CONFIG;
-    const href = getEntityHref(activity.entity_type, activity.entity_id, activity.metadata);
+    const href = getEntityHref(activity.entity_type, activity.entity_id);
     const entityLabel = activity.entity_type ? ENTITY_LABELS[activity.entity_type.toLowerCase()] ?? "Ver detalle" : "Ver detalle";
 
     const { status, session } = useAuth();
@@ -148,10 +149,19 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
     };
 
     const handleShare = () => {
-        const entityHref = getEntityHref(activity.entity_type, activity.entity_id, activity.metadata);
+    const entityHref = getEntityHref(activity.entity_type, activity.entity_id);
         const url = `https://rankeao.cl${entityHref || '/feed'}`;
-        if (navigator.share) navigator.share({ title: activity.title, url }).catch(() => {});
-        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+        if (navigator.share) {
+            navigator.share({ title: activity.title, url }).catch((error: unknown) => {
+                console.warn("No se pudo compartir actividad", error);
+            });
+        } else {
+            navigator.clipboard.writeText(url)
+                .then(() => toast.success("Enlace copiado"))
+                .catch((error: unknown) => {
+                    console.warn("No se pudo copiar enlace de actividad", error);
+                });
+        }
     };
 
 
@@ -215,6 +225,8 @@ export default function FeedActivityCard({ activity }: { activity: ActivityData 
                 <button
                     type="button"
                     onClick={() => setDeckFanOpen(true)}
+                    onMouseEnter={() => { void loadDeckFanModal(); }}
+                    onTouchStart={() => { void loadDeckFanModal(); }}
                     className="inline-flex items-center gap-1 text-[13px] font-semibold bg-transparent border-none cursor-pointer p-0"
                     style={{ color: config.color }}
                 >

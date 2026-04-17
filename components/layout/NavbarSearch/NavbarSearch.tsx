@@ -146,20 +146,21 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
       }
 
       // Listings
-      if (listingsRes.status === "fulfilled") {
-        const val = listingsRes.value as ApiResponse<{ listings?: Listing[] }>;
-        const listings = val?.data?.listings || val?.listings || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-        listings.slice(0, 4).forEach((l: Listing) => {
-          items.push({
-            id: l.id,
-            type: "listing",
-            title: l.title || l.card_name || "Producto",
-            subtitle: l.price ? `$${Number(l.price).toLocaleString("es-CL")}` : undefined,
-            image: (l.images?.[0] as unknown as string) || l.image_url,
-            href: `/marketplace/${l.id}`,
+        if (listingsRes.status === "fulfilled") {
+          const val = listingsRes.value as ApiResponse<{ listings?: Listing[] }>;
+          const listings = val?.data?.listings || val?.listings || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
+          listings.slice(0, 4).forEach((l: Listing) => {
+            const previewImage = l.images?.[0]?.thumbnail_url || l.images?.[0]?.url || l.image_url;
+            items.push({
+              id: l.id,
+              type: "listing",
+              title: l.title || l.card_name || "Producto",
+              subtitle: l.price ? `$${Number(l.price).toLocaleString("es-CL")}` : undefined,
+              image: previewImage,
+              href: `/marketplace/${l.id}`,
+            });
           });
-        });
-      }
+        }
 
       // Cards (Scryfall)
       if (cardsRes.status === "fulfilled") {
@@ -234,7 +235,7 @@ export default function NavbarSearch({ expanded = false, onClose }: { expanded?:
     return acc;
   }, {});
 
-  const typeOrder: SearchResult["type"][] = ["user", "tournament", "community", "listing"];
+  const typeOrder: SearchResult["type"][] = ["user", "tournament", "community", "card", "listing"];
   let globalIndex = -1;
 
   return (

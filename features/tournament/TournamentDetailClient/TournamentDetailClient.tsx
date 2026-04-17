@@ -217,7 +217,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex-shrink-0 flex items-center justify-center"
                                 style={{ backgroundColor: "var(--overlay)", border: "2px solid var(--border)", boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
                             >
-                                <span className="text-2xl font-black text-white/60">
+                                <span className="text-2xl font-black text-[var(--muted)]">
                                     {tournament.tenant_name[0]?.toUpperCase()}
                                 </span>
                             </div>
@@ -403,7 +403,7 @@ function ActionButtons({
                 </Button>
             )}
             {role === "player" && isCheckIn && isRegistered && !isCheckedIn && (
-                <Button size="sm" isDisabled={loading} className="font-bold bg-[var(--success)] text-white"
+                <Button size="sm" isDisabled={loading} className="font-bold bg-[var(--success)] text-[var(--success-foreground)]"
                     onPress={() => onAction(() => checkInTournament(tournament.id), "Check-in realizado")}>
                     Hacer check-in
                 </Button>
@@ -418,7 +418,7 @@ function ActionButtons({
                 </Button>
             )}
             {role === "organizer" && (isOpen || isCheckIn) && (
-                <Button size="sm" isDisabled={loading} className="font-bold bg-[var(--success)] text-white"
+                <Button size="sm" isDisabled={loading} className="font-bold bg-[var(--success)] text-[var(--success-foreground)]"
                     onPress={() => onAction(() => startTournament(tournament.id), "Torneo iniciado")}>
                     Iniciar torneo
                 </Button>
@@ -700,10 +700,10 @@ function MatchCard({ match, tournamentId, role, currentUsername, onUpdate }: {
 
             <div className="flex flex-wrap gap-2">
                 {canReport && !showReport && <Button size="sm" variant="primary" onPress={() => setShowReport(true)}>Reportar resultado</Button>}
-                {canConfirm && <Button size="sm" isDisabled={submitting} onPress={handleConfirm} className="bg-[var(--success)] text-white font-bold">Confirmar</Button>}
+                {canConfirm && <Button size="sm" isDisabled={submitting} onPress={handleConfirm} className="bg-[var(--success)] text-[var(--success-foreground)] font-bold">Confirmar</Button>}
                 {canDispute && <Button size="sm" variant="danger-soft" isDisabled={submitting} onPress={handleDispute}>Disputar</Button>}
                 {canJudgeReport && !showReport && (
-                    <Button size="sm" onPress={() => setShowReport(true)} className="bg-[var(--warning)] text-black font-bold">
+                    <Button size="sm" onPress={() => setShowReport(true)} className="bg-[var(--warning)] text-[var(--warning-foreground)] font-bold">
                         {canResolveDispute ? "Resolver disputa" : "Reportar como juez"}
                     </Button>
                 )}

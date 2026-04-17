@@ -57,12 +57,17 @@ export default function FeedContent({
           shuffled.map((dk) =>
             getDeck(dk.id)
               .then((res: Record<string, unknown>) => (res?.data as Record<string, unknown>)?.deck as Deck | undefined || (res?.deck as Deck | undefined) || (res?.data as Deck | undefined) || null)
-              .catch(() => null)
+              .catch((error: unknown) => {
+                console.warn("No se pudo cargar detalle de mazo para feed", error);
+                return null;
+              })
           )
         );
         setFeedDecks(detailed.filter((dk): dk is Deck => dk !== null && (dk.cards?.length ?? 0) > 0));
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.warn("No se pudieron cargar mazos para feed", error);
+      });
   }, []);
 
   // Personal feed resolved with 0 items or errored → fall back to discover

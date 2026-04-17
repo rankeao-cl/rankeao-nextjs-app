@@ -42,10 +42,10 @@ const STATUS_LABEL: Record<PartidaStatus, string> = {
 };
 
 const STATUS_COLOR: Record<PartidaStatus, string> = {
-    lobby: "#6366f1",
-    active: "#22c55e",
-    completed: "#94a3b8",
-    cancelled: "#ef4444",
+    lobby: "var(--accent)",
+    active: "var(--success)",
+    completed: "var(--muted)",
+    cancelled: "var(--danger)",
 };
 
 // ── Create form ───────────────────────────────────────────────────────────────
@@ -89,19 +89,19 @@ function CreatePartidaModal({
             <div
                 className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl flex flex-col gap-5"
                 style={{
-                    background: "rgba(12,12,18,0.98)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "var(--surface-solid)",
+                    border: "1px solid var(--border)",
                     padding: "28px 20px 32px",
                     maxHeight: "90dvh",
                     overflowY: "auto",
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <h2 className="text-lg font-black text-white">Nueva partida</h2>
+                <h2 className="text-lg font-black text-foreground">Nueva partida</h2>
 
                 {/* Mode grid */}
                 <div>
-                    <p className="text-xs font-semibold text-white/40 mb-3 uppercase tracking-widest">Formato</p>
+                    <p className="text-xs font-semibold text-muted mb-3 uppercase tracking-widest">Formato</p>
                     <div className="grid grid-cols-2 gap-2">
                         {GAME_MODES.map((mode) => (
                             <button
@@ -110,16 +110,16 @@ function CreatePartidaModal({
                                 className="flex flex-col items-start rounded-xl px-4 py-3 text-left"
                                 style={{
                                     background: selectedMode.mode_slug === mode.mode_slug
-                                        ? "rgba(99,102,241,0.2)"
-                                        : "rgba(255,255,255,0.04)",
+                                        ? "color-mix(in srgb, var(--accent) 18%, transparent)"
+                                        : "var(--surface)",
                                     border: `1px solid ${selectedMode.mode_slug === mode.mode_slug
-                                        ? "rgba(99,102,241,0.6)"
-                                        : "rgba(255,255,255,0.08)"}`,
+                                        ? "color-mix(in srgb, var(--accent) 45%, transparent)"
+                                        : "var(--border)"}`,
                                     cursor: "pointer",
                                 }}
                             >
-                                <span className="text-sm font-bold text-white">{mode.label}</span>
-                                <span className="text-[10px] text-white/40 mt-0.5">
+                                <span className="text-sm font-bold text-foreground">{mode.label}</span>
+                                <span className="text-[10px] text-muted mt-0.5">
                                     {mode.playerCount}J · {mode.life}VP
                                 </span>
                             </button>
@@ -129,7 +129,7 @@ function CreatePartidaModal({
 
                 {/* Optional title */}
                 <div>
-                    <p className="text-xs font-semibold text-white/40 mb-2 uppercase tracking-widest">
+                    <p className="text-xs font-semibold text-muted mb-2 uppercase tracking-widest">
                         Título (opcional)
                     </p>
                     <input
@@ -138,10 +138,10 @@ function CreatePartidaModal({
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Mi partida de Commander..."
                         maxLength={80}
-                        className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted outline-none"
                         style={{
-                            background: "rgba(255,255,255,0.06)",
-                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "var(--field-background)",
+                            border: "1px solid var(--border)",
                         }}
                     />
                 </div>
@@ -150,10 +150,10 @@ function CreatePartidaModal({
                 <div className="flex gap-3">
                     <button
                         onClick={onClose}
-                        className="flex-1 rounded-xl py-3 text-sm font-bold text-white/60"
+                        className="flex-1 rounded-xl py-3 text-sm font-bold text-muted"
                         style={{
-                            background: "rgba(255,255,255,0.06)",
-                            border: "1px solid rgba(255,255,255,0.08)",
+                            background: "var(--surface-solid-secondary)",
+                            border: "1px solid var(--border)",
                             cursor: "pointer",
                         }}
                     >
@@ -162,10 +162,13 @@ function CreatePartidaModal({
                     <button
                         onClick={handleCreate}
                         disabled={loading}
-                        className="flex-1 rounded-xl py-3 text-sm font-bold text-white"
+                        className="flex-1 rounded-xl py-3 text-sm font-bold"
                         style={{
-                            background: loading ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.9)",
-                            border: "1px solid rgba(99,102,241,0.6)",
+                            background: loading
+                                ? "color-mix(in srgb, var(--accent) 45%, transparent)"
+                                : "var(--accent)",
+                            color: "var(--accent-foreground)",
+                            border: "1px solid color-mix(in srgb, var(--accent) 70%, transparent)",
                             cursor: loading ? "not-allowed" : "pointer",
                         }}
                     >
@@ -187,8 +190,8 @@ function PartidaCard({ partida, onOpen }: { partida: Partida; onOpen: () => void
             onClick={onOpen}
             className="w-full flex items-center gap-4 rounded-2xl px-4 py-4 text-left"
             style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
                 cursor: "pointer",
             }}
         >
@@ -200,10 +203,10 @@ function PartidaCard({ partida, onOpen }: { partida: Partida; onOpen: () => void
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">
+                <p className="text-sm font-bold text-foreground truncate">
                     {partida.title || `${partida.game_slug} · ${partida.mode_slug}`}
                 </p>
-                <p className="text-xs text-white/40 mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                     {accepted}/{partida.max_players} jugadores
                 </p>
             </div>
@@ -212,9 +215,9 @@ function PartidaCard({ partida, onOpen }: { partida: Partida; onOpen: () => void
             <span
                 className="flex-shrink-0 text-[10px] font-bold rounded-full px-2.5 py-1"
                 style={{
-                    background: `${STATUS_COLOR[partida.status]}20`,
+                    background: `color-mix(in srgb, ${STATUS_COLOR[partida.status]} 14%, transparent)`,
                     color: STATUS_COLOR[partida.status],
-                    border: `1px solid ${STATUS_COLOR[partida.status]}40`,
+                    border: `1px solid color-mix(in srgb, ${STATUS_COLOR[partida.status]} 30%, transparent)`,
                 }}
             >
                 {STATUS_LABEL[partida.status]}
@@ -252,7 +255,7 @@ export default function PartidasListClient() {
     if (status === "unauthenticated") {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <p className="text-white/40 text-sm">Inicia sesión para ver tus partidas</p>
+                <p className="text-muted text-sm">Inicia sesión para ver tus partidas</p>
             </div>
         );
     }
@@ -264,13 +267,14 @@ export default function PartidasListClient() {
         <div className="max-w-xl mx-auto px-4 py-6 flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-xl font-black text-white">Partidas</h1>
+                <h1 className="text-xl font-black text-foreground">Partidas</h1>
                 <button
                     onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white"
+                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold"
                     style={{
-                        background: "rgba(99,102,241,0.9)",
-                        border: "1px solid rgba(99,102,241,0.6)",
+                        background: "var(--accent)",
+                        color: "var(--accent-foreground)",
+                        border: "1px solid color-mix(in srgb, var(--accent) 70%, transparent)",
                         cursor: "pointer",
                     }}
                 >
@@ -280,15 +284,21 @@ export default function PartidasListClient() {
 
             {loading ? (
                 <div className="flex justify-center py-12">
-                    <div className="w-7 h-7 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                    <div
+                        className="w-7 h-7 rounded-full animate-spin"
+                        style={{
+                            border: "2px solid var(--border)",
+                            borderTopColor: "var(--accent)",
+                        }}
+                    />
                 </div>
             ) : partidas.length === 0 ? (
                 <div className="flex flex-col items-center py-16 gap-3">
-                    <p className="text-white/30 text-sm">Sin partidas aún</p>
+                    <p className="text-muted text-sm">Sin partidas aún</p>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="text-indigo-400 text-sm font-bold"
-                        style={{ cursor: "pointer", background: "none", border: "none" }}
+                        className="text-sm font-bold"
+                        style={{ cursor: "pointer", background: "none", border: "none", color: "var(--accent)" }}
                     >
                         Crear primera partida
                     </button>
@@ -297,7 +307,7 @@ export default function PartidasListClient() {
                 <div className="flex flex-col gap-6">
                     {active.length > 0 && (
                         <section className="flex flex-col gap-2">
-                            <p className="text-xs font-bold text-white/30 uppercase tracking-widest">Activas</p>
+                            <p className="text-xs font-bold text-muted uppercase tracking-widest">Activas</p>
                             {active.map((p) => (
                                 <PartidaCard
                                     key={p.id}
@@ -309,7 +319,7 @@ export default function PartidasListClient() {
                     )}
                     {past.length > 0 && (
                         <section className="flex flex-col gap-2">
-                            <p className="text-xs font-bold text-white/30 uppercase tracking-widest">Historial</p>
+                            <p className="text-xs font-bold text-muted uppercase tracking-widest">Historial</p>
                             {past.map((p) => (
                                 <PartidaCard
                                     key={p.id}

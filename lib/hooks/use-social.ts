@@ -100,11 +100,22 @@ export function useBrowseDecks(params?: Params) {
     });
 }
 
-export function useDeck(deckId: string) {
+export function useDeck(
+    deckId: string,
+    options?: {
+        enabled?: boolean;
+        initialData?: unknown;
+        staleTime?: number;
+    }
+) {
     return useQuery({
         queryKey: ["social", "decks", deckId],
         queryFn: () => socialApi.getDeck(deckId),
-        enabled: !!deckId,
+        enabled: (options?.enabled ?? true) && !!deckId,
+        initialData: options?.initialData,
+        staleTime: options?.staleTime ?? 2 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 }
 

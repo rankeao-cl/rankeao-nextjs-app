@@ -50,7 +50,7 @@ export default function GroupedSaleCardList({ group }: { group: GroupedCard }) {
                     {/* Price */}
                     {min_price > 0 ? (
                         <div className="flex items-baseline gap-[2px] leading-none">
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.30)", lineHeight: 1 }}>$</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", lineHeight: 1 }}>$</span>
                             <span style={{ fontSize: 20, fontWeight: 900, color: "var(--foreground)", letterSpacing: "-0.5px", lineHeight: 1 }}>
                                 {min_price.toLocaleString("es-CL")}
                             </span>

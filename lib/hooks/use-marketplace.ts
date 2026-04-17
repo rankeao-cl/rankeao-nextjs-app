@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as marketplaceApi from "@/lib/api/marketplace";
-import type { ListingFilters, CreateListingRequest, CreateOfferRequest, Favorite, UpdatePriceAlertPayload } from "@/lib/types/marketplace";
+import type { ListingFilters, CreateListingRequest, CreateOfferRequest, CheckoutListingPayload, UpdatePriceAlertPayload } from "@/lib/types/marketplace";
 import type { Params } from "@/lib/types/api";
 
 // ── Listings ──
@@ -32,10 +32,11 @@ export function useCreateListing() {
 
 // ── Offers ──
 
-export function useMyOffers(params?: Params) {
+export function useMyOffers(params?: Params, enabled = true) {
     return useQuery({
         queryKey: ["marketplace", "offers", params],
         queryFn: () => marketplaceApi.getMyOffers(params),
+        enabled,
     });
 }
 
@@ -63,7 +64,7 @@ export function useToggleFavorite() {
         mutationFn: async ({ listingId, add }: { listingId: string; add: boolean }) => {
             if (add) return marketplaceApi.addFavorite(listingId);
             await marketplaceApi.removeFavorite(listingId);
-            return { favorite: null as unknown as Favorite };
+            return { favorite: null };
         },
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "favorites"] }),
     });
@@ -83,7 +84,7 @@ export function useMarketplaceOrders(params?: Params) {
 export function useBuyListing() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ listingId, payload }: { listingId: string; payload: { quantity: number; delivery_method: string; shipping_address?: string; notes?: string } }) =>
+        mutationFn: ({ listingId, payload }: { listingId: string; payload: CheckoutListingPayload }) =>
             marketplaceApi.buyListing(listingId, payload),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace"] }),
     });

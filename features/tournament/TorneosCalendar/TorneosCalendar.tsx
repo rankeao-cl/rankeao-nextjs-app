@@ -162,7 +162,7 @@ export default function TorneosCalendar({ tournaments }: TorneosCalendarProps) {
                                     aspect-square rounded-lg flex flex-col items-center justify-center relative
                                     text-sm transition-all duration-150
                                     ${isSelected
-                                        ? "bg-[var(--accent)] text-white font-bold"
+                                        ? "bg-[var(--accent)] text-[var(--accent-foreground)] font-bold"
                                         : isToday
                                         ? "bg-[var(--accent)]/10 text-[var(--accent)] font-bold border border-[var(--accent)]/30"
                                         : "text-[var(--foreground)] hover:bg-[var(--surface-secondary)]"
@@ -179,7 +179,7 @@ export default function TorneosCalendar({ tournaments }: TorneosCalendarProps) {
                                                 className="w-1 h-1 rounded-full"
                                                 style={{
                                                     background: isSelected
-                                                        ? "white"
+                                                        ? "var(--accent-foreground)"
                                                         : "var(--accent)",
                                                 }}
                                             />

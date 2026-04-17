@@ -54,11 +54,11 @@ export default function ResultVotingPanel({
             <section
                 className="flex flex-col gap-4 rounded-2xl p-5"
                 style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
                 }}
             >
-                <p className="text-sm font-bold text-white">Proponer resultado</p>
+                <p className="text-sm font-bold text-foreground">Proponer resultado</p>
 
                 {/* Result type */}
                 <div className="flex gap-2">
@@ -69,12 +69,12 @@ export default function ResultVotingPanel({
                             className="flex-1 rounded-xl py-2.5 text-sm font-bold"
                             style={{
                                 background: resultType === type
-                                    ? "rgba(99,102,241,0.25)"
-                                    : "rgba(255,255,255,0.05)",
+                                    ? "color-mix(in srgb, var(--accent) 18%, transparent)"
+                                    : "var(--surface-solid-secondary)",
                                 border: `1px solid ${resultType === type
-                                    ? "rgba(99,102,241,0.5)"
-                                    : "rgba(255,255,255,0.08)"}`,
-                                color: resultType === type ? "#a5b4fc" : "rgba(255,255,255,0.5)",
+                                    ? "color-mix(in srgb, var(--accent) 40%, transparent)"
+                                    : "var(--border)"}`,
+                                color: resultType === type ? "var(--accent)" : "var(--muted)",
                                 cursor: "pointer",
                             }}
                         >
@@ -86,7 +86,7 @@ export default function ResultVotingPanel({
                 {/* Winner selector */}
                 {resultType === "win" && (
                     <div className="flex flex-col gap-2">
-                        <p className="text-xs text-white/40">Ganador</p>
+                        <p className="text-xs text-muted">Ganador</p>
                         {accepted.map((p) => (
                             <button
                                 key={p.user_id}
@@ -94,21 +94,21 @@ export default function ResultVotingPanel({
                                 className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-left"
                                 style={{
                                     background: selectedWinner === p.user_id
-                                        ? "rgba(34,197,94,0.15)"
-                                        : "rgba(255,255,255,0.04)",
+                                        ? "color-mix(in srgb, var(--success) 14%, transparent)"
+                                        : "var(--surface-solid-secondary)",
                                     border: `1px solid ${selectedWinner === p.user_id
-                                        ? "rgba(34,197,94,0.4)"
-                                        : "rgba(255,255,255,0.07)"}`,
+                                        ? "color-mix(in srgb, var(--success) 35%, transparent)"
+                                        : "var(--border)"}`,
                                     cursor: "pointer",
                                 }}
                             >
                                 <div
                                     className="w-2 h-2 rounded-full flex-shrink-0"
                                     style={{
-                                        background: selectedWinner === p.user_id ? "#4ade80" : "rgba(255,255,255,0.2)",
+                                        background: selectedWinner === p.user_id ? "var(--success)" : "var(--muted)",
                                     }}
                                 />
-                                <span className="text-sm font-semibold text-white">
+                                <span className="text-sm font-semibold text-foreground">
                                     {p.display_name || p.username}
                                 </span>
                             </button>
@@ -119,10 +119,11 @@ export default function ResultVotingPanel({
                 <button
                     onClick={handleSubmit}
                     disabled={submitting || (resultType === "win" && !selectedWinner)}
-                    className="w-full rounded-xl py-3 text-sm font-bold text-white"
+                    className="w-full rounded-xl py-3 text-sm font-bold"
                     style={{
-                        background: "rgba(99,102,241,0.85)",
-                        border: "1px solid rgba(99,102,241,0.5)",
+                        background: "var(--accent)",
+                        color: "var(--accent-foreground)",
+                        border: "1px solid color-mix(in srgb, var(--accent) 70%, transparent)",
                         opacity: submitting || (resultType === "win" && !selectedWinner) ? 0.5 : 1,
                         cursor: submitting || (resultType === "win" && !selectedWinner) ? "not-allowed" : "pointer",
                     }}
@@ -143,27 +144,27 @@ export default function ResultVotingPanel({
             <section
                 className="flex flex-col gap-4 rounded-2xl p-5"
                 style={{
-                    background: "rgba(99,102,241,0.06)",
-                    border: "1px solid rgba(99,102,241,0.2)",
+                    background: "color-mix(in srgb, var(--accent) 10%, var(--surface))",
+                    border: "1px solid color-mix(in srgb, var(--accent) 24%, transparent)",
                 }}
             >
                 <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-white">Resultado propuesto</p>
-                    <span className="text-xs text-white/40">
+                    <p className="text-sm font-bold text-foreground">Resultado propuesto</p>
+                    <span className="text-xs text-muted">
                         {agreeCount}/{accepted.length} votos
                     </span>
                 </div>
 
                 {/* Proposed result summary */}
                 <div className="rounded-xl px-4 py-3"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{ background: "var(--surface-solid-secondary)", border: "1px solid var(--border)" }}
                 >
                     {result.result_type === "win" && winnerParticipant ? (
-                        <p className="text-sm text-white">
+                        <p className="text-sm text-foreground">
                             Ganador: <span className="font-bold">{winnerParticipant.display_name || winnerParticipant.username}</span>
                         </p>
                     ) : (
-                        <p className="text-sm text-white font-bold">Empate</p>
+                        <p className="text-sm text-foreground font-bold">Empate</p>
                     )}
                 </div>
 
@@ -173,8 +174,8 @@ export default function ResultVotingPanel({
                         const voter = accepted.find((p) => p.user_id === vote.participant_user_id);
                         return (
                             <div key={vote.id} className="flex items-center justify-between text-xs">
-                                <span className="text-white/50">{voter?.display_name ?? `Usuario ${vote.participant_user_id}`}</span>
-                                <span style={{ color: vote.vote === "agree" ? "#4ade80" : "#f87171" }}>
+                                <span className="text-muted">{voter?.display_name ?? `Usuario ${vote.participant_user_id}`}</span>
+                                <span style={{ color: vote.vote === "agree" ? "var(--success)" : "var(--danger)" }}>
                                     {vote.vote === "agree" ? "De acuerdo" : "En desacuerdo"}
                                 </span>
                             </div>
@@ -190,9 +191,9 @@ export default function ResultVotingPanel({
                             disabled={submitting}
                             className="flex-1 rounded-xl py-2.5 text-sm font-bold"
                             style={{
-                                background: "rgba(34,197,94,0.15)",
-                                border: "1px solid rgba(34,197,94,0.4)",
-                                color: "#4ade80",
+                                background: "color-mix(in srgb, var(--success) 14%, transparent)",
+                                border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
+                                color: "var(--success)",
                                 cursor: submitting ? "not-allowed" : "pointer",
                                 opacity: submitting ? 0.6 : 1,
                             }}
@@ -204,9 +205,9 @@ export default function ResultVotingPanel({
                             disabled={submitting}
                             className="flex-1 rounded-xl py-2.5 text-sm font-bold"
                             style={{
-                                background: "rgba(239,68,68,0.12)",
-                                border: "1px solid rgba(239,68,68,0.35)",
-                                color: "#f87171",
+                                background: "color-mix(in srgb, var(--danger) 12%, transparent)",
+                                border: "1px solid color-mix(in srgb, var(--danger) 32%, transparent)",
+                                color: "var(--danger)",
                                 cursor: submitting ? "not-allowed" : "pointer",
                                 opacity: submitting ? 0.6 : 1,
                             }}
@@ -217,8 +218,8 @@ export default function ResultVotingPanel({
                 )}
 
                 {myVote && (
-                    <p className="text-xs text-center text-white/30">
-                        Ya votaste: <span style={{ color: myVote.vote === "agree" ? "#4ade80" : "#f87171" }}>
+                    <p className="text-xs text-center text-muted">
+                        Ya votaste: <span style={{ color: myVote.vote === "agree" ? "var(--success)" : "var(--danger)" }}>
                             {myVote.vote === "agree" ? "De acuerdo" : "En desacuerdo"}
                         </span>
                     </p>
@@ -236,17 +237,17 @@ export default function ResultVotingPanel({
         <section
             className="flex flex-col gap-3 rounded-2xl p-5 text-center"
             style={{
-                background: "rgba(34,197,94,0.08)",
-                border: "1px solid rgba(34,197,94,0.25)",
+                background: "color-mix(in srgb, var(--success) 12%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--success) 28%, transparent)",
             }}
         >
             <p className="text-4xl">🏆</p>
-            <p className="text-base font-black text-white">
+            <p className="text-base font-black text-foreground">
                 {result.result_type === "win" && winnerParticipant
                     ? `${winnerParticipant.display_name || winnerParticipant.username} gana`
                     : "Empate"}
             </p>
-            <p className="text-xs text-white/30">Resultado confirmado por consenso</p>
+            <p className="text-xs text-muted">Resultado confirmado por consenso</p>
         </section>
     );
 }

@@ -150,10 +150,10 @@ export default function TournamentBracket({ rounds, matches }: TournamentBracket
                                                 {isActive && (
                                                     <div className="absolute top-0 right-0 px-1.5 py-0.5 rounded-bl-lg bg-[var(--success)] flex items-center gap-1 z-10">
                                                         <span className="relative flex h-1.5 w-1.5">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success-foreground)] opacity-75" />
+                                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--success-foreground)]" />
                                                         </span>
-                                                        <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+                                                        <span className="text-[9px] font-bold text-[var(--success-foreground)] uppercase tracking-wider">
                                                             En vivo
                                                         </span>
                                                     </div>

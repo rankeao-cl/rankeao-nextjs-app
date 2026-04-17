@@ -5,6 +5,7 @@ import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
 import { Spinner } from "@heroui/react/spinner";
+import { toast } from "@heroui/react/toast";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,10 +14,10 @@ import {
   getMarketplaceOrderDetail,
   shipOrder,
   confirmDelivery,
-  cancelOrder,
   openDispute,
   reviewOrder,
 } from "@/lib/api/marketplace";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { MarketplaceOrder } from "@/lib/types/marketplace";
 import {
   ArrowLeft,
@@ -35,18 +36,23 @@ const ORDER_STATUS_CONFIG: Record<
   string,
   { label: string; chipColor: ChipColor }
 > = {
-  PENDING:   { label: "Pendiente",  chipColor: "warning" },
-  CONFIRMED: { label: "Confirmado", chipColor: "accent" },
-  PAID:      { label: "Pagado",     chipColor: "accent" },
-  SHIPPED:   { label: "Enviado",    chipColor: "warning" },
-  DELIVERED: { label: "Entregado",  chipColor: "success" },
+  PENDING_PAYMENT: { label: "Pendiente de pago", chipColor: "warning" },
+  PAID: { label: "Pagado", chipColor: "accent" },
+  PROCESSING: { label: "Procesando", chipColor: "accent" },
+  SHIPPED: { label: "Enviado", chipColor: "warning" },
+  IN_TRANSIT: { label: "En transito", chipColor: "warning" },
+  DELIVERED: { label: "Entregado", chipColor: "success" },
   COMPLETED: { label: "Completado", chipColor: "success" },
-  CANCELLED: { label: "Cancelado",  chipColor: "danger" },
-  DISPUTED:  { label: "En disputa", chipColor: "danger" },
+  CANCELLED: { label: "Cancelado", chipColor: "danger" },
+  REFUNDED: { label: "Reembolsado", chipColor: "default" },
+  PARTIALLY_REFUNDED: { label: "Reembolso parcial", chipColor: "default" },
+  DISPUTED: { label: "En disputa", chipColor: "danger" },
+  PENDING: { label: "Pendiente", chipColor: "warning" },
+  CONFIRMED: { label: "Confirmado", chipColor: "accent" },
 };
 
 function getStatusConfig(status: string) {
-  return ORDER_STATUS_CONFIG[status.toUpperCase()] ?? ORDER_STATUS_CONFIG.PENDING;
+  return ORDER_STATUS_CONFIG[status.toUpperCase()] ?? ORDER_STATUS_CONFIG.PENDING_PAYMENT;
 }
 
 const DELIVERY_LABELS: Record<string, string> = {
@@ -55,10 +61,32 @@ const DELIVERY_LABELS: Record<string, string> = {
   PICKUP: "Retiro en tienda",
 };
 
-const TIMELINE_STEPS = ["PENDING", "CONFIRMED", "PAID", "SHIPPED", "DELIVERED", "COMPLETED"];
+const TIMELINE_STEPS = ["PENDING_PAYMENT", "PAID", "PROCESSING", "SHIPPED", "IN_TRANSIT", "DELIVERED", "COMPLETED"];
+const TIMELINE_HIDDEN_STATUSES = ["CANCELLED", "DISPUTED", "REFUNDED", "PARTIALLY_REFUNDED"];
+const SHIP_CARRIERS = [
+  { value: "CHILEXPRESS", label: "Chilexpress" },
+  { value: "STARKEN", label: "Starken" },
+  { value: "CORREOS_CHILE", label: "Correos de Chile" },
+  { value: "BLUE_EXPRESS", label: "Blue Express" },
+  { value: "DHL", label: "DHL" },
+  { value: "FEDEX", label: "FedEx" },
+  { value: "OTHER", label: "Otro courier" },
+];
+const DISPUTE_REASONS = [
+  { value: "ITEM_NOT_RECEIVED", label: "No recibi el producto" },
+  { value: "ITEM_NOT_AS_DESCRIBED", label: "Producto distinto a la descripcion" },
+  { value: "WRONG_ITEM", label: "Producto equivocado" },
+  { value: "DAMAGED_IN_SHIPPING", label: "Danado en el envio" },
+  { value: "SELLER_NOT_SHIPPING", label: "El vendedor no envio" },
+  { value: "COUNTERFEIT", label: "Sospecha de falsificacion" },
+  { value: "BUYER_NOT_PAYING", label: "Comprador no paga" },
+  { value: "BUYER_NOT_CONFIRMING", label: "Comprador no confirma recepcion" },
+  { value: "OTHER", label: "Otro motivo" },
+];
 
 function getTimelineIndex(status: string): number {
-  const idx = TIMELINE_STEPS.indexOf(status.toUpperCase());
+  const normalized = status.toUpperCase() === "PENDING" ? "PENDING_PAYMENT" : status.toUpperCase() === "CONFIRMED" ? "PAID" : status.toUpperCase();
+  const idx = TIMELINE_STEPS.indexOf(normalized);
   return idx >= 0 ? idx : 0;
 }
 
@@ -99,28 +127,48 @@ function ShipForm({
   isPending,
   onCancel,
 }: {
-  onSubmit: (carrier: string, tracking: string) => void;
+  onSubmit: (payload: { carrier: string; carrier_name?: string; tracking_number: string }) => void;
   isPending: boolean;
   onCancel: () => void;
 }) {
-  const [carrier, setCarrier] = useState("");
+  const [carrier, setCarrier] = useState("CHILEXPRESS");
+  const [carrierName, setCarrierName] = useState("");
   const [tracking, setTracking] = useState("");
 
   return (
     <SectionCard title="Marcar como enviado">
       <div className="space-y-3">
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-[var(--muted)]">Courier / Empresa</label>
-          <input
+          <label htmlFor="ship-carrier" className="text-xs font-semibold text-[var(--muted)]">Courier</label>
+          <select
+            id="ship-carrier"
             className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
-            placeholder="Ej: Chilexpress, Starken, Correos"
             value={carrier}
             onChange={(e) => setCarrier(e.target.value)}
-          />
+          >
+            {SHIP_CARRIERS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
         </div>
+        {carrier === "OTHER" && (
+          <div className="space-y-1">
+            <label htmlFor="ship-carrier-name" className="text-xs font-semibold text-[var(--muted)]">Nombre del courier</label>
+            <input
+              id="ship-carrier-name"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
+              placeholder="Ej: Transporte local"
+              value={carrierName}
+              onChange={(e) => setCarrierName(e.target.value)}
+            />
+          </div>
+        )}
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-[var(--muted)]">Numero de seguimiento</label>
+          <label htmlFor="ship-tracking" className="text-xs font-semibold text-[var(--muted)]">Numero de seguimiento</label>
           <input
+            id="ship-tracking"
             className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
             placeholder="Ej: CL12345678"
             value={tracking}
@@ -136,9 +184,20 @@ function ShipForm({
             className="flex-1"
             isPending={isPending}
             onPress={() => {
-              if (carrier.trim() && tracking.trim()) {
-                onSubmit(carrier.trim(), tracking.trim());
+              if (!tracking.trim()) {
+                toast.danger("Ingresa un numero de seguimiento");
+                return;
               }
+              const payload = {
+                carrier,
+                carrier_name: carrier === "OTHER" ? carrierName.trim() || undefined : undefined,
+                tracking_number: tracking.trim(),
+              };
+              if (carrier === "OTHER" && !payload.carrier_name) {
+                toast.danger("Ingresa el nombre del courier");
+                return;
+              }
+              onSubmit(payload);
             }}
           >
             Confirmar envio
@@ -160,24 +219,31 @@ function DisputeForm({
   isPending: boolean;
   onCancel: () => void;
 }) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState("ITEM_NOT_RECEIVED");
   const [description, setDescription] = useState("");
 
   return (
     <SectionCard title="Abrir disputa">
       <div className="space-y-3">
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-[var(--muted)]">Motivo</label>
-          <input
+          <label htmlFor="dispute-reason" className="text-xs font-semibold text-[var(--muted)]">Motivo</label>
+          <select
+            id="dispute-reason"
             className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
-            placeholder="Ej: Producto no recibido, estado incorrecto"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-          />
+          >
+            {DISPUTE_REASONS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-[var(--muted)]">Descripcion</label>
+          <label htmlFor="dispute-description" className="text-xs font-semibold text-[var(--muted)]">Descripcion</label>
           <textarea
+            id="dispute-description"
             className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] min-h-[80px] resize-none"
             placeholder="Describe el problema en detalle..."
             value={description}
@@ -194,9 +260,11 @@ function DisputeForm({
             className="flex-1"
             isPending={isPending}
             onPress={() => {
-              if (reason.trim() && description.trim()) {
-                onSubmit(reason.trim(), description.trim());
+              if (!reason.trim()) {
+                toast.danger("Selecciona un motivo para la disputa");
+                return;
               }
+              onSubmit(reason.trim(), description.trim());
             }}
           >
             Enviar disputa
@@ -241,8 +309,9 @@ function ReviewForm({
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-[var(--muted)]">Comentario (opcional)</label>
+          <label htmlFor="review-comment" className="text-xs font-semibold text-[var(--muted)]">Comentario (opcional)</label>
           <textarea
+            id="review-comment"
             className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] min-h-[60px] resize-none"
             placeholder="Cuenta tu experiencia..."
             value={comment}
@@ -288,7 +357,6 @@ export default function OrderDetailPage() {
   // Action states
   const [shipPending, setShipPending] = useState(false);
   const [confirmPending, setConfirmPending] = useState(false);
-  const [cancelPending, setCancelPending] = useState(false);
   const [disputePending, setDisputePending] = useState(false);
   const [reviewPending, setReviewPending] = useState(false);
 
@@ -300,8 +368,7 @@ export default function OrderDetailPage() {
     setLoading(true);
     setError(false);
     try {
-      const res = await getMarketplaceOrderDetail(orderId);
-      const item = (res?.data ?? res?.order ?? res) as MarketplaceOrder;
+      const item = await getMarketplaceOrderDetail(orderId);
       setOrder(item);
     } catch {
       setError(true);
@@ -314,52 +381,59 @@ export default function OrderDetailPage() {
     fetchOrder();
   }, [fetchOrder]);
 
-  const handleShip = async (carrier: string, tracking: string) => {
+  const handleShip = async (payload: { carrier: string; carrier_name?: string; tracking_number: string }) => {
     setShipPending(true);
     try {
-      await shipOrder(orderId, { carrier, tracking_number: tracking });
+      await shipOrder(orderId, payload);
+      toast.success("Orden marcada como enviada");
       setShowShipForm(false);
-      fetchOrder();
-    } catch { /* handled by client */ }
-    setShipPending(false);
+      await fetchOrder();
+    } catch (err: unknown) {
+      toast.danger(mapErrorMessage(err));
+    } finally {
+      setShipPending(false);
+    }
   };
 
   const handleConfirmDelivery = async () => {
     setConfirmPending(true);
     try {
       await confirmDelivery(orderId);
-      fetchOrder();
-    } catch { /* handled by client */ }
-    setConfirmPending(false);
-  };
-
-  const handleCancel = async () => {
-    setCancelPending(true);
-    try {
-      await cancelOrder(orderId);
-      fetchOrder();
-    } catch { /* handled by client */ }
-    setCancelPending(false);
+      toast.success("Entrega confirmada");
+      await fetchOrder();
+    } catch (err: unknown) {
+      toast.danger(mapErrorMessage(err));
+    } finally {
+      setConfirmPending(false);
+    }
   };
 
   const handleDispute = async (reason: string, description: string) => {
     setDisputePending(true);
     try {
       await openDispute(orderId, { reason, description });
+      toast.success("Disputa abierta");
       setShowDisputeForm(false);
-      fetchOrder();
-    } catch { /* handled by client */ }
-    setDisputePending(false);
+      await fetchOrder();
+    } catch (err: unknown) {
+      toast.danger(mapErrorMessage(err));
+    } finally {
+      setDisputePending(false);
+    }
   };
 
   const handleReview = async (rating: number, comment: string) => {
     setReviewPending(true);
     try {
       await reviewOrder(orderId, { overall_rating: rating, comment });
+      toast.success("Resena enviada");
       setShowReviewForm(false);
-      fetchOrder();
-    } catch { /* handled by client */ }
-    setReviewPending(false);
+      await fetchOrder();
+    } catch (err: unknown) {
+      toast.danger(mapErrorMessage(err));
+    } finally {
+      setReviewPending(false);
+    }
   };
 
   if (loading) {
@@ -400,10 +474,9 @@ export default function OrderDetailPage() {
   const isSeller = order.seller_username === currentUsername || order.seller_id === currentUsername;
 
   // Determine available actions
-  const canShip = isSeller && (status === "PAID" || status === "CONFIRMED");
-  const canConfirmDelivery = isBuyer && status === "SHIPPED";
-  const canCancel = (isBuyer || isSeller) && status === "PENDING";
-  const canDispute = (isBuyer || isSeller) && ["SHIPPED", "DELIVERED"].includes(status);
+  const canShip = isSeller && (status === "PAID" || status === "PROCESSING");
+  const canConfirmDelivery = isBuyer && ["SHIPPED", "IN_TRANSIT", "DELIVERED"].includes(status);
+  const canDispute = (isBuyer || isSeller) && !["COMPLETED", "CANCELLED", "REFUNDED", "DISPUTED"].includes(status);
   const canReview = isBuyer && (status === "DELIVERED" || status === "COMPLETED") && !order.review;
 
   return (
@@ -433,10 +506,10 @@ export default function OrderDetailPage() {
 
       <div className="px-4 lg:px-6">
         {/* Status Banner */}
-        <div className="glass-sm border border-[var(--border)] rounded-2xl p-4 flex items-center gap-3 mb-4 border-l-4" style={{ borderLeftColor: status === "CANCELLED" || status === "DISPUTED" ? "var(--danger, #ef4444)" : status === "COMPLETED" || status === "DELIVERED" ? "var(--success, #22c55e)" : "var(--accent)" }}>
-          {status === "CANCELLED" || status === "DISPUTED" ? (
+        <div className="glass-sm border border-[var(--border)] rounded-2xl p-4 flex items-center gap-3 mb-4 border-l-4" style={{ borderLeftColor: ["CANCELLED", "DISPUTED", "REFUNDED", "PARTIALLY_REFUNDED"].includes(status) ? "var(--danger, #ef4444)" : status === "COMPLETED" || status === "DELIVERED" ? "var(--success, #22c55e)" : "var(--accent)" }}>
+          {["CANCELLED", "DISPUTED", "REFUNDED", "PARTIALLY_REFUNDED"].includes(status) ? (
             <CircleXmark className="w-6 h-6 text-red-500 shrink-0" />
-          ) : status === "SHIPPED" ? (
+          ) : status === "SHIPPED" || status === "IN_TRANSIT" ? (
             <Plane className="w-6 h-6 text-yellow-500 shrink-0" />
           ) : status === "COMPLETED" || status === "DELIVERED" ? (
             <CircleCheck className="w-6 h-6 text-green-500 shrink-0" />
@@ -452,11 +525,11 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Timeline */}
-        {!["CANCELLED", "DISPUTED"].includes(status) && (
+        {!TIMELINE_HIDDEN_STATUSES.includes(status) && (
           <SectionCard title="Progreso">
             <div className="flex flex-col gap-0">
               {TIMELINE_STEPS.map((step, i) => {
-                const stepCfg = ORDER_STATUS_CONFIG[step] ?? ORDER_STATUS_CONFIG.PENDING;
+                const stepCfg = ORDER_STATUS_CONFIG[step] ?? ORDER_STATUS_CONFIG.PENDING_PAYMENT;
                 const isActive = i <= timelineIdx;
                 const isCurrent = i === timelineIdx;
                 return (
@@ -502,8 +575,8 @@ export default function OrderDetailPage() {
               { label: "Cantidad", value: order.quantity != null ? String(order.quantity) : "1" },
               { label: "Entrega", value: order.delivery_method ? (DELIVERY_LABELS[order.delivery_method] ?? order.delivery_method) : "-" },
               { label: "Fecha", value: order.created_at ? formatDate(order.created_at) : "-" },
-              { label: "Comprador", value: order.buyer_username ?? order.buyer_id.slice(-8) },
-              { label: "Vendedor", value: order.seller_username ?? order.seller_id.slice(-8) },
+              { label: "Comprador", value: order.buyer_username ?? (order.buyer_id ? order.buyer_id.slice(-8) : "-") },
+              { label: "Vendedor", value: order.seller_username ?? (order.seller_id ? order.seller_id.slice(-8) : "-") },
             ].map((row, i, arr) => (
               <div
                 key={row.label}
@@ -546,7 +619,21 @@ export default function OrderDetailPage() {
                   <span className="text-sm font-semibold text-[var(--foreground)] text-right max-w-[60%]">
                     {typeof order.shipping_address === "string"
                       ? order.shipping_address
-                      : `${order.shipping_address.address_line_1}, ${order.shipping_address.city}`}
+                      : `${order.shipping_address.address_line_1}, ${order.shipping_address.city}, ${order.shipping_address.region}`}
+                  </span>
+                </div>
+              )}
+              {order.shipping_name && (
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-[var(--muted)]">Destinatario</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)]">{order.shipping_name}</span>
+                </div>
+              )}
+              {(order.shipping_city || order.shipping_region) && (
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-[var(--muted)]">Ciudad / Region</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)] text-right max-w-[60%]">
+                    {[order.shipping_city, order.shipping_region].filter(Boolean).join(", ")}
                   </span>
                 </div>
               )}
@@ -578,13 +665,6 @@ export default function OrderDetailPage() {
             <Button variant="primary" className="w-full" isPending={confirmPending} onPress={handleConfirmDelivery}>
               <CircleCheck className="w-4 h-4 mr-2" />
               Confirmar entrega
-            </Button>
-          )}
-
-          {canCancel && (
-            <Button variant="danger-soft" className="w-full" isPending={cancelPending} onPress={handleCancel}>
-              <CircleXmark className="w-4 h-4 mr-2" />
-              Cancelar orden
             </Button>
           )}
 

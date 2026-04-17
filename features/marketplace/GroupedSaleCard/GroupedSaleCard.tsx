@@ -39,9 +39,11 @@ function GroupedSaleCard({ group }: { group: GroupedCard }) {
                     {/* Sellers badge */}
                     {seller_count > 1 && (
                         <span
-                            className="absolute top-1.5 right-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-[3px] text-white tracking-[0.3px]"
+                            className="absolute top-1.5 right-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-[3px] tracking-[0.3px]"
                             style={{
-                                backgroundColor: "rgba(0,0,0,0.72)",
+                                backgroundColor: "color-mix(in srgb, var(--background) 75%, transparent)",
+                                color: "var(--foreground)",
+                                border: "1px solid var(--border)",
                                 backdropFilter: "blur(4px)",
                                 zIndex: 10,
                             }}
@@ -60,7 +62,7 @@ function GroupedSaleCard({ group }: { group: GroupedCard }) {
                     {/* Price */}
                     {min_price > 0 ? (
                         <div className="flex items-baseline gap-[2px] leading-none mt-0.5">
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.30)", lineHeight: 1 }}>$</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", lineHeight: 1 }}>$</span>
                             <span style={{ fontSize: 18, fontWeight: 900, color: "var(--foreground)", letterSpacing: "-0.5px", lineHeight: 1 }}>
                                 {min_price.toLocaleString("es-CL")}
                             </span>

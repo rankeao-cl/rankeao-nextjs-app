@@ -156,13 +156,17 @@ export default function ChatSettingsModal({ isOpen, onOpenChange, channel, onCha
         const next = { ...localSettings, ...partial };
         setLocalSettings(next);
         onChatSettingsChange?.(next);
-        try { localStorage.setItem("rankeao.chat.settings", JSON.stringify(next)); } catch {}
+        try {
+            localStorage.setItem("rankeao.chat.settings", JSON.stringify(next));
+        } catch (error: unknown) {
+            console.warn("No se pudo guardar la configuracion del chat", error);
+        }
     };
 
     if (!channel || !isOpen) return null;
 
     const isGroup = channel.type === "GROUP";
-    const isCommunity = channel.type === "CLAN" || channel.type === "TOURNAMENT";
+    const isCommunity = channel.type === "CLAN" || channel.type === "TOURNAMENT" || channel.type === "COMMUNITY";
     const members = channel.members ?? [];
     const myUsername = session?.username;
 

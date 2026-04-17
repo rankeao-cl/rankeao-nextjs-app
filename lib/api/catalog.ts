@@ -4,14 +4,27 @@ import type { Params, PaginationMeta } from "@/lib/types/api";
 
 // ── Games ──
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
 export async function getGames(): Promise<GamesResponse> {
-    const payload = await apiFetch<GamesResponse>("/catalog/games", undefined, { revalidate: 300 });
-    if (Array.isArray(payload)) return { data: payload as unknown as CatalogGame[], success: true };
-    if (payload && Array.isArray(payload.data)) return { data: payload.data, success: true };
-    const extended = payload as GamesResponse & { data?: { games?: CatalogGame[] } };
-    if (extended.data && Array.isArray((extended.data as unknown as { games?: CatalogGame[] }).games))
-        return { data: (extended.data as unknown as { games: CatalogGame[] }).games, success: true };
-    return payload as GamesResponse;
+    const payload = await apiFetch<unknown>("/catalog/games", undefined, { revalidate: 300 });
+    if (Array.isArray(payload)) return { data: payload as CatalogGame[], success: true };
+
+    const root = asRecord(payload);
+    if (!root) return {};
+
+    if (Array.isArray(root.data)) {
+        return { data: root.data as CatalogGame[], success: true };
+    }
+
+    const nestedData = asRecord(root.data);
+    if (nestedData && Array.isArray(nestedData.games)) {
+        return { data: nestedData.games as CatalogGame[], success: true };
+    }
+
+    return root as GamesResponse;
 }
 
 export async function getGameDetail(slug: string) {
@@ -59,7 +72,7 @@ export async function getCardLegality(cardId: string) {
 // ── Autocomplete ──
 
 export async function autocompleteCards(q: string, game?: string, limit?: number) {
-    return apiFetch<{ results: AutocompleteResult[] }>("/catalog/autocomplete", {
+    return apiFetch<{ results: AutocompleteResult[] }>("/catalog/cards/autocomplete", {
         q,
         ...(game ? { game } : {}),
         ...(limit ? { limit } : {}),

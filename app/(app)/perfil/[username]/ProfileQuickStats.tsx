@@ -28,8 +28,8 @@ export default function ProfileQuickStats({
                 <div
                     className="rounded-[14px] py-4 px-3 text-center backdrop-blur-sm"
                     style={{
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface)",
+                        border: "1px solid var(--border)",
                     }}
                 >
                     <p className="text-2xl font-extrabold m-0 leading-none" style={{ color: rank.cssColor }}>
@@ -44,8 +44,8 @@ export default function ProfileQuickStats({
                 <div
                     className="rounded-[14px] py-4 px-3 text-center backdrop-blur-sm"
                     style={{
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface)",
+                        border: "1px solid var(--border)",
                     }}
                 >
                     <p
@@ -63,8 +63,8 @@ export default function ProfileQuickStats({
                 <div
                     className="rounded-[14px] py-4 px-3 text-center backdrop-blur-sm"
                     style={{
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface)",
+                        border: "1px solid var(--border)",
                     }}
                 >
                     <p className="text-2xl font-extrabold m-0 leading-none" style={{ color: "var(--foreground)" }}>
@@ -79,8 +79,8 @@ export default function ProfileQuickStats({
                 <div
                     className="rounded-[14px] py-4 px-3 text-center backdrop-blur-sm"
                     style={{
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        backgroundColor: "var(--surface)",
+                        border: "1px solid var(--border)",
                     }}
                 >
                     <p

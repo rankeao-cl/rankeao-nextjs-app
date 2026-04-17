@@ -8,12 +8,12 @@ import MarketplaceSearch from "./MarketplaceSearch";
 import ViewToggle, { GRID_ICON, LIST_ICON } from "@/components/ui/ViewToggle";
 import ConditionFilterChips from "./ConditionFilterChips";
 import type { Metadata } from "next";
-import Link from "next/link";
 import MarketplaceFavorites from "./MarketplaceFavorites";
 import MarketplaceSubastas from "./MarketplaceSubastas";
 import PageHero from "@/components/ui/PageHero";
 import FilterPills from "@/components/ui/FilterPills";
 import type { FilterPill } from "@/components/ui/FilterPills";
+import OpenCreateListingAction from "./OpenCreateListingAction";
 
 export async function generateMetadata({ searchParams }: MarketplacePageProps): Promise<Metadata> {
   const params = (await searchParams) ?? {};
@@ -61,16 +61,15 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
     category: params.category,
   };
 
-  let cardsData;
-  let gamesData;
-  try {
-    [cardsData, gamesData] = await Promise.all([
-      getGroupedCards(filters).catch(() => null),
-      getGames().catch(() => null),
-    ]);
-  } catch {
-    // silent
-  }
+  const [cardsResult, gamesResult] = await Promise.allSettled([
+    getGroupedCards(filters),
+    getGames(),
+  ]);
+
+  const cardsData = cardsResult.status === "fulfilled" ? cardsResult.value : null;
+  const gamesData = gamesResult.status === "fulfilled" ? gamesResult.value : null;
+  const cardsLoadFailed = cardsResult.status === "rejected";
+  const gamesLoadFailed = gamesResult.status === "rejected";
 
   const groupedCards = cardsData?.cards ?? [];
   const meta = cardsData?.meta;
@@ -86,33 +85,7 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         badge="Compra y venta"
         title="Marketplace TCG"
         subtitle="Compra y vende cartas con jugadores de tu comunidad."
-        action={
-          <Link
-            href="/marketplace/new"
-            className="shrink-0"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-              backgroundColor: "var(--accent)",
-              borderRadius: 12,
-              paddingLeft: 14,
-              paddingRight: 14,
-              paddingTop: 8,
-              paddingBottom: 8,
-              marginLeft: 12,
-              alignSelf: "center",
-              textDecoration: "none",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Vender</span>
-          </Link>
-        }
+        action={<OpenCreateListingAction />}
       />
 
       {/* ── Quick links ── */}
@@ -138,6 +111,12 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
         <MarketplaceFavorites />
       ) : (
       <>
+      {(cardsLoadFailed || gamesLoadFailed) && (
+        <div className="mx-4 lg:mx-6 mb-3 rounded-xl border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-4 py-3">
+          <p className="text-sm font-semibold text-[var(--foreground)]">No pudimos cargar todos los datos del marketplace.</p>
+          <p className="text-xs text-[var(--muted)]">Mostramos resultados parciales.</p>
+        </div>
+      )}
       {/* ── Search + view toggle ── */}
       <div className="flex items-center gap-2 mx-4 lg:mx-6 mb-3">
         <div className="flex-1 min-w-0">

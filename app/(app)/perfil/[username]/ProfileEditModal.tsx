@@ -103,7 +103,10 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
             onClick={onClose}
         >
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60" />
+            <div
+                className="absolute inset-0"
+                style={{ backgroundColor: "color-mix(in srgb, var(--overlay) 75%, transparent)" }}
+            />
 
             {/* Modal */}
             <div
@@ -127,7 +130,7 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                     <button
                         onClick={handleSave}
                         disabled={saving || uploadingAvatar || uploadingBanner}
-                        className="rounded-[20px] px-[18px] py-2 text-[13px] font-bold border-none text-white"
+                        className="rounded-[20px] px-[18px] py-2 text-[13px] font-bold border-none text-[var(--accent-foreground)]"
                         style={{
                             backgroundColor: "var(--accent)",
                             cursor: (saving || uploadingAvatar || uploadingBanner) ? "not-allowed" : "pointer",
@@ -154,10 +157,13 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                             <div className="absolute inset-x-0 top-1/2 h-1/2" style={{ backgroundColor: "var(--surface-solid-secondary)" }} />
                         </div>
                     )}
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div
+                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ backgroundColor: "color-mix(in srgb, var(--overlay) 45%, transparent)" }}
+                    >
                         {uploadingBanner
-                            ? <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            : <Camera width={28} height={28} color="white" />
+                            ? <div className="w-6 h-6 border-2 border-[var(--foreground)] border-t-transparent rounded-full animate-spin" />
+                            : <Camera width={28} height={28} color="var(--foreground)" />
                         }
                     </div>
                 </button>
@@ -185,13 +191,16 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                                 className="w-20 h-20 rounded-full flex items-center justify-center"
                                 style={{ backgroundColor: "var(--surface-solid)", border: "4px solid var(--background)" }}
                             >
-                                <span className="text-[28px] font-extrabold text-white">{initial}</span>
+                                <span className="text-[28px] font-extrabold text-[var(--foreground)]">{initial}</span>
                             </div>
                         )}
-                        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div
+                            className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ backgroundColor: "color-mix(in srgb, var(--overlay) 55%, transparent)" }}
+                        >
                             {uploadingAvatar
-                                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                : <Camera width={20} height={20} color="white" />
+                                ? <div className="w-5 h-5 border-2 border-[var(--foreground)] border-t-transparent rounded-full animate-spin" />
+                                : <Camera width={20} height={20} color="var(--foreground)" />
                             }
                         </div>
                     </button>
@@ -249,7 +258,7 @@ export default function ProfileEditModal({ profile, token, onClose, onSaved }: P
                                     className="px-3 py-1.5 rounded-2xl text-[13px] border-none cursor-pointer"
                                     style={{
                                         backgroundColor: country === c.code ? "var(--accent)" : "var(--surface)",
-                                        color: country === c.code ? "#FFFFFF" : "var(--muted)",
+                                        color: country === c.code ? "var(--accent-foreground)" : "var(--muted)",
                                         fontWeight: country === c.code ? 600 : 400,
                                     }}
                                 >

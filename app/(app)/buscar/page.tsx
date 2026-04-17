@@ -29,6 +29,10 @@ interface SearchResult {
     meta?: Record<string, unknown>;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
 const TAB_CONFIG: Record<ResultType | "all", { icon: typeof Person; label: string; color: string; bg: string }> = {
     all:        { icon: Magnifier,    label: "Todo",         color: "var(--foreground)",  bg: "var(--surface)" },
     user:       { icon: Person,       label: "Jugadores",    color: "var(--accent)",  bg: "color-mix(in srgb, var(--accent) 12%, transparent)" },
@@ -51,11 +55,19 @@ function SearchContent() {
     const [activeTab, setActiveTab] = useState<ResultType | "all">("all");
 
     useEffect(() => {
-        if (!query || query.length < 2) { setResults([]); return; }
+        if (!query || query.length < 2) {
+            Promise.resolve().then(() => {
+                setResults([]);
+                setIsLoading(false);
+            });
+            return;
+        }
 
         const controller = new AbortController();
-        setIsLoading(true);
-        setActiveTab("all");
+        Promise.resolve().then(() => {
+            setIsLoading(true);
+            setActiveTab("all");
+        });
 
         Promise.allSettled([
             autocompleteUsers(query),
@@ -72,7 +84,7 @@ function SearchContent() {
             if (usersRes.status === "fulfilled") {
                 const val = usersRes.value;
                 const rawUsers = val?.data;
-                const userList = Array.isArray(rawUsers) ? rawUsers : (rawUsers as unknown as Record<string, unknown>)?.users;
+                const userList = Array.isArray(rawUsers) ? rawUsers : asRecord(rawUsers)?.users;
                 const users = Array.isArray(userList) ? userList : Array.isArray(val?.users) ? val.users : [];
                 for (const u of users) {
                     items.push({

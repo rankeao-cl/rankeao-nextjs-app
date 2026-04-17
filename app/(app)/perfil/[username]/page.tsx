@@ -4,9 +4,11 @@ import { useEffect, useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Person, Shield } from "@gravity-ui/icons";
+import { toast } from "@heroui/react/toast";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { getRankForElo } from "@/lib/rankSystem";
+import { mapErrorMessage } from "@/lib/api/errors";
 import {
     getUserProfile,
     getUserActivity,
@@ -37,6 +39,15 @@ import ProfileEditModal from "./ProfileEditModal";
 import ProfileSidebar from "./ProfileSidebar";
 import { toArray, TABS, getRankGradient, getRankRingColor } from "./profileUtils";
 import type { ProfileTab } from "./profileUtils";
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+function isUserProfileRecord(value: unknown): value is UserProfile {
+    const record = asRecord(value);
+    return Boolean(record && typeof record.id === "string" && typeof record.username === "string");
+}
 
 export default function PublicProfilePage({
     params,
@@ -75,13 +86,19 @@ export default function PublicProfilePage({
 
         const fetchData = async () => {
             try {
-                const extractUser = (json: Record<string, unknown>): UserProfile | null => {
-                    if (!json) return null;
-                    const data = json.data as Record<string, unknown> | undefined;
-                    if (data && typeof data === "object" && "user" in data) return data.user as UserProfile;
-                    if (json.user) return json.user as UserProfile;
-                    if (data && typeof data === "object" && "id" in data) return data as unknown as UserProfile;
-                    if (json.id) return json as unknown as UserProfile;
+                const extractUser = (json: unknown): UserProfile | null => {
+                    const root = asRecord(json);
+                    if (!root) return null;
+
+                    const data = asRecord(root.data);
+                    const dataUser = data ? asRecord(data.user) : null;
+                    if (isUserProfileRecord(dataUser)) return dataUser;
+
+                    const rootUser = asRecord(root.user);
+                    if (isUserProfileRecord(rootUser)) return rootUser;
+
+                    if (isUserProfileRecord(data)) return data;
+                    if (isUserProfileRecord(root)) return root;
                     return null;
                 };
 
@@ -105,7 +122,7 @@ export default function PublicProfilePage({
                 let profile: UserProfile | null = null;
                 try {
                     const raw = await getUserProfile(resolvedUsername);
-                    profile = extractUser(raw as unknown as Record<string, unknown>);
+                    profile = extractUser(raw);
                 } catch { /* profile fetch failed */ }
 
                 if (!profile) {
@@ -182,19 +199,24 @@ export default function PublicProfilePage({
     /* ── Follow handler ── */
     const handleFollow = async () => {
         const userId = profile?.id || profile?.user_id;
-        if (!userId || !session?.accessToken) return;
+        if (!userId || !session?.accessToken) {
+            toast.danger("Inicia sesion para seguir a este usuario.");
+            return;
+        }
         setFollowLoading(true);
         try {
             if (isFollowing) {
                 await unfollowUser(userId, session.accessToken);
                 setIsFollowing(false);
                 setFollowers((prev) => prev.filter((f) => f.username !== session?.username));
+                toast.success("Dejaste de seguir a este usuario");
             } else {
                 await followUser(userId, session.accessToken);
                 setIsFollowing(true);
+                toast.success("Ahora sigues a este usuario");
             }
-        } catch {
-            // Error al actualizar seguimiento
+        } catch (err: unknown) {
+            toast.danger(mapErrorMessage(err));
         } finally {
             setFollowLoading(false);
         }
@@ -386,7 +408,7 @@ export default function PublicProfilePage({
                                         style={{
                                             padding: "7px 18px",
                                             backgroundColor: active ? ringColor : "transparent",
-                                            color: active ? "#fff" : "var(--muted)",
+                                            color: active ? "var(--accent-foreground)" : "var(--muted)",
                                             fontSize: 13,
                                             fontWeight: active ? 700 : 500,
                                             border: active ? "none" : "1px solid transparent",

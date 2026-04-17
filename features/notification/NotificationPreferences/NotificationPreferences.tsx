@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@heroui/react/button";
 import { Switch } from "@heroui/react/switch";
+import { toast } from "@heroui/react/toast";
 
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/lib/hooks/use-notifications";
+import { mapErrorMessage } from "@/lib/api/errors";
+import type { NotificationPreferences as NotificationPreferencesShape } from "@/lib/types/notification";
 
 interface PreferenceRow {
-    key: string;
+    key: keyof NotificationPreferencesShape;
     label: string;
     description: string;
     icon: string;
@@ -73,22 +76,37 @@ export default function NotificationPreferences() {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        if (prefData) {
+        if (!prefData) return;
+
+        Promise.resolve().then(() => {
             const raw = prefData?.preferences ?? prefData;
-            const prefs = raw as unknown as Record<string, unknown>;
+            const prefs: Partial<NotificationPreferencesShape> & {
+                push_enabled?: boolean;
+                dnd_enabled?: boolean;
+                dnd_from?: string;
+                dnd_to?: string;
+            } =
+                typeof raw === "object" && raw !== null
+                    ? (raw as Partial<NotificationPreferencesShape> & {
+                        push_enabled?: boolean;
+                        dnd_enabled?: boolean;
+                        dnd_from?: string;
+                        dnd_to?: string;
+                    })
+                    : {};
             const parsed: Record<string, boolean> = {};
             PREFERENCE_ROWS.forEach((row) => {
-                parsed[row.key] = prefs?.[row.key] !== false;
+                parsed[row.key] = prefs[row.key] !== false;
             });
             setPrefs(parsed);
-            if (prefs?.push_enabled !== undefined) setPushEnabled(prefs.push_enabled as boolean);
-            if (prefs?.dnd_enabled !== undefined) setDndEnabled(prefs.dnd_enabled as boolean);
-            if (prefs?.dnd_from) setDndFrom(prefs.dnd_from as string);
-            if (prefs?.dnd_to) setDndTo(prefs.dnd_to as string);
-        }
+            if (typeof prefs.push_enabled === "boolean") setPushEnabled(prefs.push_enabled);
+            if (typeof prefs.dnd_enabled === "boolean") setDndEnabled(prefs.dnd_enabled);
+            if (typeof prefs.dnd_from === "string" && prefs.dnd_from) setDndFrom(prefs.dnd_from);
+            if (typeof prefs.dnd_to === "string" && prefs.dnd_to) setDndTo(prefs.dnd_to);
+        });
     }, [prefData]);
 
-    const togglePref = (key: string, value: boolean) => {
+    const togglePref = (key: keyof NotificationPreferencesShape, value: boolean) => {
         setPrefs((prev) => ({ ...prev, [key]: value }));
     };
 
@@ -100,8 +118,9 @@ export default function NotificationPreferences() {
                 push_enabled: pushEnabled,
                 dnd_enabled: dndEnabled,
             } as Record<string, boolean>);
-        } catch {
-            // silent
+            toast.success("Preferencias guardadas");
+        } catch (error: unknown) {
+            toast.danger("Error", { description: mapErrorMessage(error) });
         }
         setSaving(false);
     };
@@ -152,15 +171,17 @@ export default function NotificationPreferences() {
                 </div>
                 {dndEnabled && (
                     <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[var(--border)]">
-                        <label className="text-xs text-[var(--muted)] font-medium">Desde</label>
+                        <label htmlFor="notification-dnd-from" className="text-xs text-[var(--muted)] font-medium">Desde</label>
                         <input
+                            id="notification-dnd-from"
                             type="time"
                             value={dndFrom}
                             onChange={(e) => setDndFrom(e.target.value)}
                             className="px-2 py-1.5 rounded-lg text-xs bg-[var(--surface-secondary)] border border-[var(--border)] text-[var(--foreground)]"
                         />
-                        <label className="text-xs text-[var(--muted)] font-medium">Hasta</label>
+                        <label htmlFor="notification-dnd-to" className="text-xs text-[var(--muted)] font-medium">Hasta</label>
                         <input
+                            id="notification-dnd-to"
                             type="time"
                             value={dndTo}
                             onChange={(e) => setDndTo(e.target.value)}

@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@heroui/react/button";
 import { Spinner } from "@heroui/react/spinner";
+import { toast } from "@heroui/react/toast";
 
 import Link from "next/link";
 import { addWishlistItem, removeWishlistItem } from "@/lib/api/social";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { autocompleteCards } from "@/lib/api/catalog";
 import type { AutocompleteResult } from "@/lib/types/catalog";
 import type { WishlistItem, AddWishlistItemPayload } from "@/lib/types/social";
@@ -38,17 +40,30 @@ export default function ProfileWishlistTab({
     const [items, setItems] = useState<WishlistItem[]>(initialWishlist);
     const [showAddModal, setShowAddModal] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!confirmDeleteId) return;
+        const timer = setTimeout(() => setConfirmDeleteId(null), 4000);
+        return () => clearTimeout(timer);
+    }, [confirmDeleteId]);
 
     const handleDelete = async (itemId: string) => {
-        if (!confirm("¿Eliminar esta carta de tu wishlist?")) return;
+        if (confirmDeleteId !== itemId) {
+            setConfirmDeleteId(itemId);
+            return;
+        }
         setDeletingId(itemId);
         try {
             await removeWishlistItem(itemId, token);
             setItems((prev) => prev.filter((i) => i.id !== itemId));
-        } catch {
-            // silent
+            toast.success("Carta eliminada de tu wishlist");
+        } catch (err: unknown) {
+            toast.danger(mapErrorMessage(err));
+        } finally {
+            setDeletingId(null);
+            setConfirmDeleteId(null);
         }
-        setDeletingId(null);
     };
 
     const handleAdd = async (payload: AddWishlistItemPayload) => {
@@ -57,8 +72,9 @@ export default function ProfileWishlistTab({
             const newItem = res?.item;
             if (newItem) setItems((prev) => [newItem, ...prev]);
             setShowAddModal(false);
-        } catch {
-            // silent
+            toast.success("Carta agregada a tu wishlist");
+        } catch (err: unknown) {
+            toast.danger(mapErrorMessage(err));
         }
     };
 
@@ -88,7 +104,7 @@ export default function ProfileWishlistTab({
                     <Button
                         variant="primary"
                         size="sm"
-                        className="bg-[var(--accent)] text-white rounded-full px-4 font-semibold shadow-brand-sm"
+                        className="bg-[var(--accent)] text-[var(--accent-foreground)] rounded-full px-4 font-semibold shadow-brand-sm"
                         onPress={() => setShowAddModal(true)}
                     >
                         <Plus className="size-4 mr-1" />
@@ -134,9 +150,17 @@ export default function ProfileWishlistTab({
                                         <button
                                             onClick={() => handleDelete(item.id)}
                                             disabled={deletingId === item.id}
-                                            className="absolute top-1.5 left-1.5 w-7 h-7 rounded-lg flex items-center justify-center bg-black/60 text-white hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                                            className="absolute top-1.5 left-1.5 w-7 h-7 rounded-lg flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                                            style={{
+                                                backgroundColor: "color-mix(in srgb, var(--overlay) 70%, transparent)",
+                                                color: "var(--foreground)",
+                                            }}
                                         >
-                                            <TrashBin className="size-3.5" />
+                                            {confirmDeleteId === item.id ? (
+                                                <span className="text-[9px] font-bold">OK</span>
+                                            ) : (
+                                                <TrashBin className="size-3.5" />
+                                            )}
                                         </button>
                                     )}
                                 </div>
@@ -212,24 +236,44 @@ function AddWishlistModal({
     const [priority, setPriority] = useState(2);
     const [maxPrice, setMaxPrice] = useState("");
     const [saving, setSaving] = useState(false);
+    const visibleResults = searchQuery.length >= 2 ? results : [];
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setSelected(null);
+        if (value.length < 2) {
+            setResults([]);
+            setSearching(false);
+        }
+    };
 
     useEffect(() => {
         if (searchQuery.length < 2) {
-            setResults([]);
             return;
         }
+        let cancelled = false;
         const timer = setTimeout(async () => {
             setSearching(true);
             try {
                 const res = await autocompleteCards(searchQuery);
                 const raw = res?.results ?? [];
-                setResults(Array.isArray(raw) ? raw : []);
+                if (!cancelled) {
+                    setResults(Array.isArray(raw) ? raw : []);
+                }
             } catch {
-                setResults([]);
+                if (!cancelled) {
+                    setResults([]);
+                }
+            } finally {
+                if (!cancelled) {
+                    setSearching(false);
+                }
             }
-            setSearching(false);
         }, 400);
-        return () => clearTimeout(timer);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [searchQuery]);
 
     const handleSave = async () => {
@@ -249,17 +293,22 @@ function AddWishlistModal({
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4"
-            onClick={onClose}
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center backdrop-blur-sm p-0 sm:p-4"
+            style={{ backgroundColor: "color-mix(in srgb, var(--overlay) 70%, transparent)" }}
         >
+            <button
+                type="button"
+                aria-label="Cerrar modal"
+                onClick={onClose}
+                className="absolute inset-0"
+            />
             <div
-                className="w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto border border-[var(--border)] bg-[var(--surface)]"
+                className="relative z-10 w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto border border-[var(--border)] bg-[var(--surface)]"
                 style={{ backdropFilter: "blur(20px)" }}
-                onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold text-[var(--foreground)]">Agregar a wishlist</h3>
-                    <button onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer">
+                    <button type="button" onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer">
                         <Xmark className="size-5" />
                     </button>
                 </div>
@@ -270,21 +319,18 @@ function AddWishlistModal({
                     <input
                         type="text"
                         value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setSelected(null);
-                        }}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         placeholder="Buscar carta..."
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-[var(--field-background)] text-[var(--foreground)] placeholder:text-[var(--field-placeholder)] border border-[var(--border)] focus:border-[var(--focus)] outline-none transition-colors"
-                        autoFocus
                     />
                 </div>
 
                 {/* Results */}
-                {!selected && results.length > 0 && (
+                {!selected && visibleResults.length > 0 && (
                     <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] p-1">
-                        {results.map((card, idx) => (
+                        {visibleResults.map((card, idx) => (
                             <button
+                                type="button"
                                 key={card.id || idx}
                                 onClick={() => {
                                     setSelected(card);
@@ -327,6 +373,7 @@ function AddWishlistModal({
                                 </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => setSelected(null)}
                                 className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer"
                             >
@@ -342,6 +389,7 @@ function AddWishlistModal({
                             <div className="flex gap-2">
                                 {CONDITIONS.map((c) => (
                                     <button
+                                        type="button"
                                         key={c}
                                         onClick={() => setCondition(c)}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
@@ -364,6 +412,7 @@ function AddWishlistModal({
                             <div className="flex gap-2">
                                 {PRIORITIES.map((p) => (
                                     <button
+                                        type="button"
                                         key={p.value}
                                         onClick={() => setPriority(p.value)}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
@@ -394,7 +443,7 @@ function AddWishlistModal({
 
                         <Button
                             variant="primary"
-                            className="w-full bg-[var(--accent)] text-white rounded-full font-semibold"
+                            className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] rounded-full font-semibold"
                             onPress={handleSave}
                             isPending={saving}
                         >

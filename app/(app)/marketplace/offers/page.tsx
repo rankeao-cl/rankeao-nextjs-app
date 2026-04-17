@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
 import { Input } from "@heroui/react/input";
 import { Spinner } from "@heroui/react/spinner";
 import { toast } from "@heroui/react/toast";
-
-
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import {
@@ -19,6 +18,8 @@ import {
   useWithdrawOffer,
   useAcceptCounterOffer,
 } from "@/lib/hooks/use-marketplace";
+import { getMyListings, getListingOffers } from "@/lib/api/marketplace";
+import type { Offer } from "@/lib/types/marketplace";
 import {
   ArrowLeft,
   TriangleExclamation,
@@ -26,46 +27,24 @@ import {
   Comment,
 } from "@gravity-ui/icons";
 
-// ── Types ──
-
-interface Offer {
-  id: string;
-  listing_id: string;
-  buyer_id: string;
-  buyer_username?: string;
-  seller_id: string;
-  seller_username?: string;
-  amount: number;
-  currency?: string;
-  status: string;
-  message?: string;
-  counter_amount?: number;
-  listing_title?: string;
-  created_at?: string;
-  updated_at?: string;
-  expires_at?: string;
-}
-
-// ── Helpers ──
-
 type ChipColor = "warning" | "success" | "danger" | "accent" | "default";
+type Tab = "received" | "sent";
+type ConfirmAction = "reject" | "withdraw" | "decline-counter";
 
 const OFFER_STATUS_CONFIG: Record<
   string,
   { label: string; chipColor: ChipColor }
 > = {
-  PENDING:   { label: "Pendiente",    chipColor: "warning" },
-  ACCEPTED:  { label: "Aceptada",     chipColor: "success" },
-  REJECTED:  { label: "Rechazada",    chipColor: "danger" },
+  PENDING: { label: "Pendiente", chipColor: "warning" },
+  ACCEPTED: { label: "Aceptada", chipColor: "success" },
+  REJECTED: { label: "Rechazada", chipColor: "danger" },
   COUNTERED: { label: "Contraoferta", chipColor: "accent" },
-  WITHDRAWN: { label: "Retirada",     chipColor: "default" },
-  EXPIRED:   { label: "Expirada",     chipColor: "default" },
+  WITHDRAWN: { label: "Retirada", chipColor: "default" },
+  EXPIRED: { label: "Expirada", chipColor: "default" },
 };
 
 function getStatusConfig(status: string) {
-  return (
-    OFFER_STATUS_CONFIG[status.toUpperCase()] ?? OFFER_STATUS_CONFIG.PENDING
-  );
+  return OFFER_STATUS_CONFIG[status.toUpperCase()] ?? OFFER_STATUS_CONFIG.PENDING;
 }
 
 function formatCLP(amount: number | undefined): string {
@@ -86,14 +65,48 @@ function formatRelativeDate(dateStr: string): string {
   if (diffMins < 60) return `Hace ${diffMins} min`;
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return `Hace ${diffHours} horas`;
-  return date.toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" });
+  return date.toLocaleDateString("es-CL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-// ── Tab type ──
+function sortOffersByDate(items: Offer[]): Offer[] {
+  return [...items].sort((a, b) => {
+    const aTime = a.created_at ? Date.parse(a.created_at) : 0;
+    const bTime = b.created_at ? Date.parse(b.created_at) : 0;
+    return bTime - aTime;
+  });
+}
 
-type Tab = "received" | "sent";
+async function fetchReceivedOffers(): Promise<Offer[]> {
+  const listingsRes = await getMyListings({ page: 1, per_page: 100 });
+  const listingsRaw = Array.isArray(listingsRes?.data)
+    ? listingsRes.data
+    : Array.isArray(listingsRes?.listings)
+      ? listingsRes.listings
+      : [];
+  const listingIds = listingsRaw
+    .map((listing) => listing.id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
 
-// ── Offer Card ──
+  if (listingIds.length === 0) return [];
+
+  const offersById = new Map<string, Offer>();
+  const requests = await Promise.allSettled(
+    listingIds.map((listingId) => getListingOffers(listingId)),
+  );
+
+  for (const result of requests) {
+    if (result.status !== "fulfilled") continue;
+    for (const offer of result.value.data) {
+      offersById.set(offer.id, offer);
+    }
+  }
+
+  return sortOffersByDate(Array.from(offersById.values()));
+}
 
 function OfferCard({
   offer,
@@ -103,6 +116,7 @@ function OfferCard({
   onCounter,
   onWithdraw,
   onAcceptCounter,
+  onDeclineCounter,
   loadingAction,
 }: {
   offer: Offer;
@@ -112,33 +126,48 @@ function OfferCard({
   onCounter: (id: string, amount: number, message?: string) => void;
   onWithdraw: (id: string) => void;
   onAcceptCounter: (id: string) => void;
+  onDeclineCounter: (id: string) => void;
   loadingAction: string | null;
 }) {
   const cfg = getStatusConfig(offer.status);
-  const isPending = offer.status.toUpperCase() === "PENDING";
-  const isCountered = offer.status.toUpperCase() === "COUNTERED";
+  const status = offer.status.toUpperCase();
+  const isPending = status === "PENDING";
+  const isCountered = status === "COUNTERED";
+  const isCounterProposal = isPending && !!offer.parent_offer_id;
   const isLoading = loadingAction === offer.id;
 
   const [showCounterForm, setShowCounterForm] = useState(false);
   const [counterAmount, setCounterAmount] = useState("");
   const [counterMessage, setCounterMessage] = useState("");
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
 
   function handleCounterSubmit() {
-    const num = parseInt(counterAmount, 10);
-    if (!num || num <= 0) {
-      toast.danger("Ingresa un monto valido");
+    const amount = Number(counterAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.danger("Ingresa un monto válido");
       return;
     }
-    onCounter(offer.id, num, counterMessage || undefined);
+    onCounter(offer.id, Math.round(amount), counterMessage.trim() || undefined);
     setShowCounterForm(false);
     setCounterAmount("");
     setCounterMessage("");
   }
 
+  const counterParty =
+    tab === "received"
+      ? (offer.buyer_username ?? `#${offer.buyer_id.slice(-8).toUpperCase()}`)
+      : (offer.seller_username ?? `#${offer.seller_id.slice(-8).toUpperCase()}`);
+
+  const confirmMessage =
+    confirmAction === "reject"
+      ? "¿Rechazar esta oferta?"
+      : confirmAction === "withdraw"
+        ? "¿Retirar esta oferta?"
+        : "¿Rechazar esta contraoferta?";
+
   return (
     <Card className="glass-sm border border-[var(--border)]">
       <Card.Content className="p-4">
-        {/* Header row */}
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-full bg-[var(--surface-secondary)] flex items-center justify-center shrink-0">
             <Tag className="w-5 h-5 text-[var(--muted)]" />
@@ -158,7 +187,6 @@ function OfferCard({
           </Chip>
         </div>
 
-        {/* Details */}
         <div className="border-t border-[var(--border)] pt-3 space-y-1.5">
           <div className="flex justify-between">
             <span className="text-xs text-[var(--muted)]">Monto ofertado</span>
@@ -167,9 +195,16 @@ function OfferCard({
             </span>
           </div>
 
-          {isCountered && offer.counter_amount != null && (
+          {offer.quantity != null && (
             <div className="flex justify-between">
-              <span className="text-xs text-[var(--muted)]">Contraoferta</span>
+              <span className="text-xs text-[var(--muted)]">Cantidad</span>
+              <span className="text-sm text-[var(--foreground)]">{offer.quantity}</span>
+            </div>
+          )}
+
+          {offer.counter_amount != null && (
+            <div className="flex justify-between">
+              <span className="text-xs text-[var(--muted)]">Monto contraoferta</span>
               <span className="text-sm font-semibold text-[var(--accent)]">
                 {formatCLP(offer.counter_amount)}
               </span>
@@ -180,23 +215,52 @@ function OfferCard({
             <span className="text-xs text-[var(--muted)]">
               {tab === "received" ? "Comprador" : "Vendedor"}
             </span>
-            <span className="text-sm text-[var(--accent)]">
-              {tab === "received" ? offer.buyer_username : offer.seller_username}
+            <span className="text-sm text-[var(--accent)] truncate max-w-[60%] text-right">
+              {counterParty}
             </span>
           </div>
 
           {offer.message && (
             <div className="flex items-start gap-2 mt-2 p-2.5 rounded-lg bg-[var(--surface-secondary)]">
               <Comment className="w-4 h-4 text-[var(--muted)] shrink-0 mt-0.5" />
-              <p className="text-xs text-[var(--muted)] break-words">
-                {offer.message}
-              </p>
+              <p className="text-xs text-[var(--muted)] break-words">{offer.message}</p>
             </div>
           )}
         </div>
 
-        {/* Actions for received PENDING offers */}
-        {tab === "received" && isPending && (
+        {confirmAction && (
+          <div className="border-t border-[var(--border)] mt-3 pt-3">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-secondary)] px-3 py-2">
+              <p className="text-xs text-[var(--foreground)] mb-2">{confirmMessage}</p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="tertiary"
+                  className="flex-1"
+                  onPress={() => setConfirmAction(null)}
+                >
+                  Volver
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger-soft"
+                  className="flex-1"
+                  isPending={isLoading}
+                  onPress={() => {
+                    if (confirmAction === "reject") onReject(offer.id);
+                    if (confirmAction === "withdraw") onWithdraw(offer.id);
+                    if (confirmAction === "decline-counter") onDeclineCounter(offer.id);
+                    setConfirmAction(null);
+                  }}
+                >
+                  Confirmar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === "received" && isPending && !confirmAction && (
           <div className="border-t border-[var(--border)] mt-3 pt-3">
             {!showCounterForm ? (
               <div className="flex gap-2">
@@ -220,15 +284,9 @@ function OfferCard({
                 </Button>
                 <Button
                   size="sm"
-                  variant="primary"
+                  variant="danger-soft"
                   className="flex-1 font-semibold"
-                  style={{ background: "var(--danger)", color: "#fff" }}
-                  isPending={isLoading}
-                  onPress={() => {
-                    if (window.confirm("Rechazar esta oferta?")) {
-                      onReject(offer.id);
-                    }
-                  }}
+                  onPress={() => setConfirmAction("reject")}
                 >
                   Rechazar
                 </Button>
@@ -240,13 +298,13 @@ function OfferCard({
                   type="number"
                   value={counterAmount}
                   onChange={(e) => setCounterAmount(e.target.value)}
-                  placeholder="Monto contraoferta (CLP) Ej: 8000"
+                  placeholder="Monto contraoferta (CLP)"
                 />
                 <Input
                   aria-label="Mensaje (opcional)"
                   value={counterMessage}
                   onChange={(e) => setCounterMessage(e.target.value)}
-                  placeholder="Mensaje (opcional) Puedo dejarlo en..."
+                  placeholder="Mensaje (opcional)"
                 />
                 <div className="flex gap-2">
                   <Button
@@ -276,27 +334,7 @@ function OfferCard({
           </div>
         )}
 
-        {/* Actions for sent PENDING offers */}
-        {tab === "sent" && isPending && (
-          <div className="border-t border-[var(--border)] mt-3 pt-3">
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full font-semibold"
-              isPending={isLoading}
-              onPress={() => {
-                if (window.confirm("Retirar esta oferta?")) {
-                  onWithdraw(offer.id);
-                }
-              }}
-            >
-              Retirar oferta
-            </Button>
-          </div>
-        )}
-
-        {/* Actions for sent COUNTERED offers */}
-        {tab === "sent" && isCountered && (
+        {tab === "sent" && isCounterProposal && !confirmAction && (
           <div className="border-t border-[var(--border)] mt-3 pt-3 flex gap-2">
             <Button
               size="sm"
@@ -310,26 +348,40 @@ function OfferCard({
             </Button>
             <Button
               size="sm"
-              variant="primary"
+              variant="danger-soft"
               className="flex-1 font-semibold"
-              style={{ background: "var(--danger)", color: "#fff" }}
-              isPending={isLoading}
-              onPress={() => {
-                if (window.confirm("Rechazar esta contraoferta?")) {
-                  onReject(offer.id);
-                }
-              }}
+              onPress={() => setConfirmAction("decline-counter")}
             >
-              Rechazar
+              Rechazar contraoferta
             </Button>
+          </div>
+        )}
+
+        {tab === "sent" && isPending && !isCounterProposal && !confirmAction && (
+          <div className="border-t border-[var(--border)] mt-3 pt-3">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full font-semibold"
+              isPending={isLoading}
+              onPress={() => setConfirmAction("withdraw")}
+            >
+              Retirar oferta
+            </Button>
+          </div>
+        )}
+
+        {tab === "sent" && isCountered && (
+          <div className="border-t border-[var(--border)] mt-3 pt-3">
+            <p className="text-xs text-[var(--muted)]">
+              El vendedor propuso una contraoferta. Veras una entrada pendiente para aceptarla o rechazarla.
+            </p>
           </div>
         )}
       </Card.Content>
     </Card>
   );
 }
-
-// ── Main Page ──
 
 export default function OffersPage() {
   const { status: authStatus } = useAuth();
@@ -338,29 +390,36 @@ export default function OffersPage() {
   const [tab, setTab] = useState<Tab>("received");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  // Fetch offers by role
-  const receivedQuery = useMyOffers({ role: "seller" });
-  const sentQuery = useMyOffers({ role: "buyer" });
+  const receivedQuery = useQuery({
+    queryKey: ["marketplace", "offers", "received"],
+    queryFn: fetchReceivedOffers,
+    enabled: isAuth,
+  });
+  const sentQuery = useMyOffers(undefined, isAuth);
 
   const activeQuery = tab === "received" ? receivedQuery : sentQuery;
 
-  const offers: Offer[] = (() => {
-    const raw = activeQuery.data?.data ?? activeQuery.data?.offers ?? activeQuery.data ?? [];
-    return Array.isArray(raw) ? raw : [];
-  })();
+  const offers = useMemo(() => {
+    const raw = tab === "received" ? receivedQuery.data ?? [] : sentQuery.data?.data ?? [];
+    return sortOffersByDate(raw);
+  }, [tab, receivedQuery.data, sentQuery.data?.data]);
 
-  // Mutations
   const acceptOffer = useAcceptOffer();
   const rejectOffer = useRejectOffer();
   const counterOffer = useCounterOffer();
   const withdrawOffer = useWithdrawOffer();
   const acceptCounterOffer = useAcceptCounterOffer();
 
+  async function refreshOffers() {
+    await Promise.all([receivedQuery.refetch(), sentQuery.refetch()]);
+  }
+
   async function handleAccept(offerId: string) {
     setLoadingAction(offerId);
     try {
       await acceptOffer.mutateAsync(offerId);
       toast.success("Oferta aceptada");
+      await refreshOffers();
     } catch (e: unknown) {
       toast.danger(e instanceof Error ? e.message : "Error al aceptar oferta");
     } finally {
@@ -373,6 +432,7 @@ export default function OffersPage() {
     try {
       await rejectOffer.mutateAsync(offerId);
       toast.success("Oferta rechazada");
+      await refreshOffers();
     } catch (e: unknown) {
       toast.danger(e instanceof Error ? e.message : "Error al rechazar oferta");
     } finally {
@@ -388,6 +448,7 @@ export default function OffersPage() {
         payload: { amount, message },
       });
       toast.success("Contraoferta enviada");
+      await refreshOffers();
     } catch (e: unknown) {
       toast.danger(e instanceof Error ? e.message : "Error al enviar contraoferta");
     } finally {
@@ -400,6 +461,7 @@ export default function OffersPage() {
     try {
       await withdrawOffer.mutateAsync(offerId);
       toast.success("Oferta retirada");
+      await refreshOffers();
     } catch (e: unknown) {
       toast.danger(e instanceof Error ? e.message : "Error al retirar oferta");
     } finally {
@@ -412,14 +474,13 @@ export default function OffersPage() {
     try {
       await acceptCounterOffer.mutateAsync(offerId);
       toast.success("Contraoferta aceptada");
+      await refreshOffers();
     } catch (e: unknown) {
       toast.danger(e instanceof Error ? e.message : "Error al aceptar contraoferta");
     } finally {
       setLoadingAction(null);
     }
   }
-
-  // ── Auth guard ──
 
   if (!isAuth) {
     return (
@@ -439,11 +500,8 @@ export default function OffersPage() {
     );
   }
 
-  // ── Render ──
-
   return (
     <div className="max-w-7xl mx-auto flex flex-col pb-12">
-      {/* Header */}
       <div className="mx-4 lg:mx-6 mt-3 mb-[14px]">
         <div
           style={{
@@ -464,10 +522,15 @@ export default function OffersPage() {
               <Link
                 href="/marketplace"
                 style={{
-                  width: 28, height: 28, borderRadius: 14,
-                  backgroundColor: "var(--surface)", display: "flex",
-                  alignItems: "center", justifyContent: "center",
-                  textDecoration: "none", flexShrink: 0,
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
+                  backgroundColor: "var(--surface)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textDecoration: "none",
+                  flexShrink: 0,
                 }}
               >
                 <ArrowLeft style={{ width: 14, height: 14, color: "var(--foreground)" }} />
@@ -476,8 +539,14 @@ export default function OffersPage() {
                 style={{
                   display: "inline-block",
                   backgroundColor: "var(--surface)",
-                  paddingLeft: 10, paddingRight: 10, paddingTop: 4, paddingBottom: 4,
-                  borderRadius: 999, color: "var(--muted)", fontSize: 11, fontWeight: 600,
+                  paddingLeft: 10,
+                  paddingRight: 10,
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                  borderRadius: 999,
+                  color: "var(--muted)",
+                  fontSize: 11,
+                  fontWeight: 600,
                 }}
               >
                 Mis Ofertas
@@ -493,33 +562,29 @@ export default function OffersPage() {
         </div>
       </div>
 
-      {/* Tabs */}
       <section className="px-4 lg:px-6 mb-6">
         <div className="flex gap-2 p-1 rounded-xl bg-[var(--surface)] border border-[var(--border)]">
           <button
             onClick={() => setTab("received")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${
-              tab === "received"
-                ? "bg-[var(--surface-secondary)] text-[var(--accent)]"
-                : "text-[var(--muted)] hover:text-[var(--foreground)]"
-            }`}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${tab === "received"
+              ? "bg-[var(--surface-secondary)] text-[var(--accent)]"
+              : "text-[var(--muted)] hover:text-[var(--foreground)]"
+              }`}
           >
             Recibidas
           </button>
           <button
             onClick={() => setTab("sent")}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${
-              tab === "sent"
-                ? "bg-[var(--surface-secondary)] text-[var(--accent)]"
-                : "text-[var(--muted)] hover:text-[var(--foreground)]"
-            }`}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${tab === "sent"
+              ? "bg-[var(--surface-secondary)] text-[var(--accent)]"
+              : "text-[var(--muted)] hover:text-[var(--foreground)]"
+              }`}
           >
             Enviadas
           </button>
         </div>
       </section>
 
-      {/* Content */}
       <section className="px-4 lg:px-6">
         {activeQuery.isLoading ? (
           <div className="flex justify-center py-20">
@@ -568,6 +633,7 @@ export default function OffersPage() {
                 onCounter={handleCounter}
                 onWithdraw={handleWithdraw}
                 onAcceptCounter={handleAcceptCounter}
+                onDeclineCounter={handleWithdraw}
                 loadingAction={loadingAction}
               />
             ))}

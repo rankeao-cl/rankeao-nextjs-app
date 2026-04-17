@@ -80,8 +80,17 @@ function PostCard({ post }: { post: FeedPost }) {
 
     const handleShare = () => {
         const url = `https://rankeao.cl/feed`;
-        if (navigator.share) navigator.share({ title: postText.slice(0, 60), url }).catch(() => {});
-        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+        if (navigator.share) {
+            navigator.share({ title: postText.slice(0, 60), url }).catch((error: unknown) => {
+                console.warn("No se pudo compartir post", error);
+            });
+        } else {
+            navigator.clipboard.writeText(url)
+                .then(() => toast.success("Enlace copiado"))
+                .catch((error: unknown) => {
+                    console.warn("No se pudo copiar enlace del post", error);
+                });
+        }
     };
 
     return (

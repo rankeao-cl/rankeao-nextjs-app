@@ -111,12 +111,25 @@ export interface RoomListFilters {
 // ── WebSocket message types ──
 
 export interface WSIncomingMessage {
-    type: "message";
-    content: string;
+    type: "subscribe" | "unsubscribe" | "message" | "ping";
+    channel_id?: string;
+    content?: string;
     reply_to_id?: string;
+    client_msg_id?: string;
+}
+
+export interface WSPresenceUser {
+    id: string;
+    username: string;
+    avatar_url?: string;
 }
 
 export interface WSOutgoingMessage {
-    type: "message" | "error" | "user_joined" | "user_left";
-    data: ChatMessage | { message: string };
+    type: "message" | "error" | "subscribed" | "unsubscribed" | "user_joined" | "user_left" | "message_ack";
+    channel_id?: string;
+    data?:
+        | ChatMessage
+        | { message: string }
+        | { user: WSPresenceUser }
+        | { client_msg_id: string; message_id: string };
 }

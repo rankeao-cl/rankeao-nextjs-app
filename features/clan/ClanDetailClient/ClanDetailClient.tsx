@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getClan, applyToClan, leaveClan } from "@/lib/api/clans";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { ClanMember } from "@/lib/types/clan";
 import Link from "next/link";
+import { toast } from "@heroui/react/toast";
 import { Comment } from "@gravity-ui/icons";
 
 interface Props {
@@ -24,6 +26,7 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
   const [left, setLeft] = useState(false);
   const [myMembership, setMyMembership] = useState<ClanMember | undefined>(serverMembership);
   const [checked, setChecked] = useState(!!serverMembership);
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
   // Client-side: check if user is a member by fetching clan with token or matching members
   useEffect(() => {
@@ -54,9 +57,17 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
           if (match) setMyMembership(match);
         }
       })
-      .catch(() => {})
+      .catch((error: unknown) => {
+        console.error("No se pudo validar membresía del clan", error);
+      })
       .finally(() => setChecked(true));
   }, [isAuth, session, clanId, checked, serverMembers]);
+
+  useEffect(() => {
+    if (!confirmLeave) return;
+    const timer = setTimeout(() => setConfirmLeave(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmLeave]);
 
   if (!isAuth) return null;
 
@@ -69,22 +80,29 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
     try {
       await applyToClan(clanId, undefined, session?.accessToken);
       setApplied(true);
-    } catch {
-      // silent
+      toast.success("Solicitud enviada");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     }
     setLoading(false);
   };
 
   const handleLeave = async () => {
-    if (!confirm("¿Estás seguro de que quieres abandonar el clan?")) return;
+    if (!confirmLeave) {
+      setConfirmLeave(true);
+      return;
+    }
     setLoading(true);
     try {
       await leaveClan(clanId, session?.accessToken);
       setLeft(true);
-    } catch {
-      // silent
+      toast.success("Has abandonado el clan");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
+    } finally {
+      setConfirmLeave(false);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -146,7 +164,7 @@ export default function ClanDetailClient({ clanId, myMembership: serverMembershi
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? "Saliendo..." : "Abandonar clan"}
+              {loading ? "Saliendo..." : confirmLeave ? "Confirmar salida" : "Abandonar clan"}
             </button>
           )}
         </>

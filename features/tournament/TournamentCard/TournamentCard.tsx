@@ -53,7 +53,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
 
     return (
         <Link href={`/torneos/${tournament.slug ?? tournament.id}`} style={{ textDecoration: "none", display: "block" }}>
-            <div className="relative rounded-xl overflow-hidden group border border-border transition-[box-shadow,border-color] duration-[250ms] hover:border-white/15 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]" style={{ aspectRatio: "16/9" }}>
+            <div className="relative rounded-xl overflow-hidden group border border-border transition-[box-shadow,border-color] duration-[250ms] hover:border-border hover:[box-shadow:var(--shadow-card-hover)]" style={{ aspectRatio: "16/9" }}>
 
                 {/* Imagen de fondo */}
                 {bgImage ? (
@@ -68,7 +68,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                     <div
                         className="absolute inset-0"
                         style={{
-                            background: `linear-gradient(135deg, ${brand.bg} 0%, color-mix(in srgb, ${brand.color} 8%, ${brand.bg}) 50%, #0a0a10 100%)`,
+                            background: `linear-gradient(135deg, ${brand.bg} 0%, color-mix(in srgb, ${brand.color} 8%, ${brand.bg}) 50%, var(--surface-solid) 100%)`,
                         }}
                     />
                 )}
@@ -108,7 +108,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                     <div className="absolute top-3 left-3 z-10">
                         <div
                             className="w-8 h-8 rounded-lg overflow-hidden"
-                            style={{ border: "1px solid rgba(255,255,255,0.2)", boxShadow: "0 2px 8px rgba(0,0,0,0.4)" }}
+                            style={{ border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.4)" }}
                         >
                             <Image
                                 src={tournament.tenant_logo_url}

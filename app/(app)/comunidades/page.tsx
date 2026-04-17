@@ -36,17 +36,23 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
   let tenants: Tenant[] = [];
   let clans: Clan[] = [];
   let totalPages = 1;
+  let tenantsLoadFailed = false;
+  let clansLoadFailed = false;
 
   if (activeType === "clanes") {
-    try {
-      const data = await getClans({
+    const [clansResult] = await Promise.allSettled([
+      getClans({
         search: params.q,
         per_page: 30,
-      }).catch(() => null);
+      }),
+    ]);
+
+    if (clansResult.status === "fulfilled") {
+      const data = clansResult.value;
       const raw = data?.data?.clans ?? data?.clans ?? data?.data;
       clans = Array.isArray(raw) ? raw : [];
-    } catch {
-      // silent
+    } else {
+      clansLoadFailed = true;
     }
   } else {
     const filters = {
@@ -59,9 +65,10 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
       per_page: 12,
     };
 
+    const [tenantsResult] = await Promise.allSettled([getTenants(filters)]);
     let tenantsData;
-    try {
-      const raw = await getTenants(filters).catch(() => null);
+    if (tenantsResult.status === "fulfilled") {
+      const raw = tenantsResult.value;
       if (raw && typeof raw === "object" && "data" in raw) {
         const inner = (raw as Record<string, unknown>).data as Record<string, unknown> | undefined;
         tenantsData = {
@@ -71,8 +78,8 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
       } else {
         tenantsData = raw;
       }
-    } catch {
-      // silent
+    } else {
+      tenantsLoadFailed = true;
     }
 
     const baseTenants = (tenantsData?.tenants ?? []) as Tenant[];
@@ -80,18 +87,23 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
     totalPages = meta?.total_pages ?? 1;
 
     // Enrich tenants with detail data (banner_url, etc.) in parallel
-    tenants = await Promise.all(
+    const enrichedResults = await Promise.allSettled(
       baseTenants.map(async (t) => {
         if (t.banner_url) return t;
-        try {
-          const detail = await getTenant(t.slug || t.id).catch(() => null);
-          if (detail?.tenant?.banner_url) {
-            return { ...t, banner_url: detail.tenant.banner_url };
-          }
-        } catch {}
+        const detail = await getTenant(t.slug || t.id);
+        if (detail?.tenant?.banner_url) {
+          return { ...t, banner_url: detail.tenant.banner_url };
+        }
         return t;
       })
     );
+
+    tenants = enrichedResults.map((result, index) =>
+      result.status === "fulfilled" ? result.value : baseTenants[index]
+    );
+    if (enrichedResults.some((result) => result.status === "rejected")) {
+      tenantsLoadFailed = true;
+    }
   }
 
   function buildUrl(overrides: Record<string, string>) {
@@ -123,6 +135,9 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
 
   const isTiendas = activeType === "tiendas";
   const isClanes = activeType === "clanes";
+  const showLoadWarning = isClanes
+    ? clansLoadFailed
+    : tenantsLoadFailed;
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col">
@@ -146,10 +161,10 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
                 marginLeft: 12, alignSelf: "center", textDecoration: "none", flexShrink: 0,
               }}
             >
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="var(--accent-foreground)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span style={{ color: "white", fontSize: 12, fontWeight: 700 }}>Crear</span>
+              <span style={{ color: "var(--accent-foreground)", fontSize: 12, fontWeight: 700 }}>Crear</span>
             </Link>
           ) : undefined
         }
@@ -165,6 +180,13 @@ export default async function ComunidadesPage({ searchParams }: ComunidadesPageP
           activeKey={activeType}
         />
       </div>
+
+      {showLoadWarning && (
+        <div className="mx-4 lg:mx-6 mb-3 rounded-xl border border-[var(--border)] bg-[var(--surface-solid)] px-4 py-3">
+          <p className="text-sm font-semibold text-[var(--foreground)]">No pudimos cargar comunidades en este momento.</p>
+          <p className="text-xs text-[var(--muted)]">Intenta recargar en unos segundos.</p>
+        </div>
+      )}
 
       <ComunidadesClient
         tenants={tenants}

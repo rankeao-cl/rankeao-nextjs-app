@@ -18,8 +18,25 @@ import type { Params } from "@/lib/types/api";
 
 // ── Helpers ──
 
-function normalizeTournament(t: Record<string, unknown>): Tournament {
-    const result = { ...t };
+function asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+function asString(value: unknown): string | undefined {
+    return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function asNumber(value: unknown): number | undefined {
+    return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function asBoolean(value: unknown): boolean | undefined {
+    return typeof value === "boolean" ? value : undefined;
+}
+
+function normalizeTournament(value: unknown): Tournament {
+    const source = asRecord(value) ?? {};
+    const result: Record<string, unknown> = { ...source };
     // Flatten current_players → registered_count
     if (result.current_players != null && result.registered_count == null) {
         result.registered_count = result.current_players;
@@ -48,7 +65,82 @@ function normalizeTournament(t: Record<string, unknown>): Tournament {
         result.tenant_slug = result.tenant_slug || tenant.slug;
         result.tenant_logo_url = result.tenant_logo_url || tenant.logo_url;
     }
-    return result as unknown as Tournament;
+
+    const tournament: Tournament = {
+        id: asString(result.id) ?? "",
+        name: asString(result.name) ?? "Torneo",
+        status: asString(result.status) ?? "draft",
+    };
+
+    tournament.slug = asString(result.slug);
+    tournament.game = asString(result.game);
+    tournament.game_id = asString(result.game_id);
+    tournament.game_name = asString(result.game_name);
+    tournament.game_logo_url = asString(result.game_logo_url);
+    tournament.banner_url = asString(result.banner_url);
+    tournament.logo_url = asString(result.logo_url);
+    tournament.format = asString(result.format);
+    tournament.format_id = asString(result.format_id);
+    tournament.format_name = asString(result.format_name);
+    tournament.structure = asString(result.structure);
+    tournament.city = asString(result.city);
+    tournament.country = asString(result.country);
+    tournament.country_code = asString(result.country_code);
+    tournament.visibility = asString(result.visibility) as Tournament["visibility"];
+    tournament.modality = asString(result.modality);
+    tournament.tier = asString(result.tier);
+    tournament.description = asString(result.description);
+    tournament.rules = asString(result.rules);
+    tournament.prize_pool = asString(result.prize_pool);
+    tournament.entry_fee = asString(result.entry_fee);
+    tournament.tenant_id = asString(result.tenant_id);
+    tournament.tenant_name = asString(result.tenant_name);
+    tournament.tenant_slug = asString(result.tenant_slug);
+    tournament.tenant_logo_url = asString(result.tenant_logo_url);
+    tournament.starts_at = asString(result.starts_at);
+    tournament.ends_at = asString(result.ends_at);
+    tournament.created_at = asString(result.created_at);
+    tournament.updated_at = asString(result.updated_at);
+    tournament.organizer_id = asString(result.organizer_id);
+    tournament.organizer_username = asString(result.organizer_username);
+    tournament.organizer_name = asString(result.organizer_name);
+    tournament.venue_name = asString(result.venue_name);
+    tournament.venue_address = asString(result.venue_address);
+
+    const bestOf = asNumber(result.best_of);
+    const maxPlayers = asNumber(result.max_players);
+    const currentRound = asNumber(result.current_round);
+    const totalRounds = asNumber(result.total_rounds);
+    const maxRounds = asNumber(result.max_rounds);
+    const roundTimer = asNumber(result.round_timer_min);
+    const registeredCount = asNumber(result.registered_count);
+    const currentPlayers = asNumber(result.current_players);
+
+    if (bestOf !== undefined) tournament.best_of = bestOf;
+    if (maxPlayers !== undefined) tournament.max_players = maxPlayers;
+    if (currentRound !== undefined) tournament.current_round = currentRound;
+    if (totalRounds !== undefined) tournament.total_rounds = totalRounds;
+    if (maxRounds !== undefined) tournament.max_rounds = maxRounds;
+    if (roundTimer !== undefined) tournament.round_timer_min = roundTimer;
+    if (registeredCount !== undefined) tournament.registered_count = registeredCount;
+    if (currentPlayers !== undefined) tournament.current_players = currentPlayers;
+
+    const isRanked = asBoolean(result.is_ranked);
+    const isOnline = asBoolean(result.is_online);
+    if (isRanked !== undefined) tournament.is_ranked = isRanked;
+    if (isOnline !== undefined) tournament.is_online = isOnline;
+
+    const tenant = asRecord(result.tenant);
+    if (tenant) {
+        tournament.tenant = {
+            id: asString(tenant.id),
+            name: asString(tenant.name),
+            slug: asString(tenant.slug),
+            logo_url: asString(tenant.logo_url),
+        };
+    }
+
+    return tournament;
 }
 
 // ── List / Search ──
@@ -63,7 +155,7 @@ export async function getTournaments(
     );
     const data = res.data || res;
     if (Array.isArray(data.tournaments)) {
-        data.tournaments = data.tournaments.map((t) => normalizeTournament(t as unknown as Record<string, unknown>));
+        data.tournaments = data.tournaments.map((t) => normalizeTournament(t));
     }
     return data;
 }

@@ -114,7 +114,9 @@ function migrateLegacySession() {
     useAuthStore.setState({ email: legacy.email || "", username: username || null, accessToken: clean, refreshToken: legacy.refreshToken || legacy.refresh_token || null });
     syncCookie(true);
     localStorage.removeItem(LEGACY_KEY);
-  } catch {}
+  } catch (error: unknown) {
+    console.error("No se pudo migrar la sesion legacy de auth", error);
+  }
 }
 
 if (typeof window !== "undefined") {

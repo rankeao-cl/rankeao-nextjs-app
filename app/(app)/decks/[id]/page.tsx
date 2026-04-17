@@ -5,11 +5,29 @@ import DeckDetailClient from "./DeckDetailClient";
 export default async function DeckPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
+  const [deckResult] = await Promise.allSettled([getDeck(id)]);
+  const deckLoadFailed = deckResult.status === "rejected";
   let deck: Deck | null = null;
-  try {
-    const res = await getDeck(id);
+  if (deckResult.status === "fulfilled") {
+    const res = deckResult.value;
     deck = res?.data ?? res?.deck ?? null;
-  } catch {}
+  }
+
+  if (deckLoadFailed) {
+    return (
+      <div style={{ maxWidth: 768, margin: "0 auto", padding: "60px 16px", textAlign: "center" }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 32,
+          backgroundColor: "var(--surface-solid)", margin: "0 auto 16px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <span style={{ fontSize: 24, opacity: 0.5 }}>⚠️</span>
+        </div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>No pudimos cargar el mazo</h2>
+        <p style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>Intenta nuevamente en unos segundos.</p>
+      </div>
+    );
+  }
 
   if (!deck) {
     return (

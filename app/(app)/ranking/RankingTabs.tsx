@@ -117,7 +117,7 @@ export default function RankingTabs({ xpEntries, ratingEntries, selectedTab }: P
                                         height: isFirst ? 48 : pos === 0 ? 32 : 20,
                                         borderRadius: "8px 8px 0 0",
                                         background: isFirst
-                                            ? "linear-gradient(180deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05))"
+                                            ? "linear-gradient(180deg, color-mix(in srgb, var(--warning) 22%, transparent), color-mix(in srgb, var(--warning) 8%, transparent))"
                                             : "linear-gradient(180deg, var(--surface), var(--surface-tertiary))",
                                         border: "1px solid var(--border)",
                                         borderBottom: "none",

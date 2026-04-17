@@ -26,21 +26,20 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const query = params.q?.trim();
   const page = Number(params.page || "1") || 1;
 
-  let gamesData;
-  let cardsData;
-  try {
-    [gamesData, cardsData] = await Promise.all([
-      getGames().catch(() => null),
-      getCards({
-        ...(query ? { q: query } : {}),
-        ...(params.game ? { game: params.game } : {}),
-        page,
-        per_page: 24,
-      }).catch(() => null),
-    ]);
-  } catch {
-    // silent
-  }
+  const [gamesResult, cardsResult] = await Promise.allSettled([
+    getGames(),
+    getCards({
+      ...(query ? { q: query } : {}),
+      ...(params.game ? { game: params.game } : {}),
+      page,
+      per_page: 24,
+    }),
+  ]);
+
+  const gamesData = gamesResult.status === "fulfilled" ? gamesResult.value : null;
+  const cardsData = cardsResult.status === "fulfilled" ? cardsResult.value : null;
+  const gamesLoadFailed = gamesResult.status === "rejected";
+  const cardsLoadFailed = cardsResult.status === "rejected";
 
   const rawGames = gamesData?.data ?? gamesData?.games;
   const games: CatalogGame[] = Array.isArray(rawGames) ? rawGames : [];
@@ -118,6 +117,12 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
           {params.game && <input type="hidden" name="game" value={params.game} />}
         </form>
       </div>
+
+      {(gamesLoadFailed || cardsLoadFailed) && (
+        <div className="mx-4 lg:mx-6 mb-4 rounded-xl border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--foreground)]">
+          No pudimos cargar todo el catalogo. Mostramos resultados parciales.
+        </div>
+      )}
 
       {/* Browse by game */}
       {games.length > 0 && !query && (

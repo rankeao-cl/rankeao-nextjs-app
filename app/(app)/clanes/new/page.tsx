@@ -42,7 +42,10 @@ export default function NewClanPage() {
         const list = res?.data ?? [];
         if (Array.isArray(list)) setGames(list);
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        console.error("No se pudieron cargar juegos para clanes", error);
+        toast.danger("No se pudieron cargar los juegos");
+      });
   }, []);
 
   if (status === "unauthenticated") {

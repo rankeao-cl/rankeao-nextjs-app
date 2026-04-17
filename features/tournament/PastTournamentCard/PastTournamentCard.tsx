@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { Cup, Persons, MapPin, Clock } from "@gravity-ui/icons";
 import { getTournamentStandings } from "@/lib/api/tournaments";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { Tournament, Standing } from "@/lib/types/tournament";
 import Link from "next/link";
 import Image from "next/image";
+import { toast } from "@heroui/react/toast";
 
 const PLACE_EMOJI: Record<number, string> = { 1: "\u{1F947}", 2: "\u{1F948}", 3: "\u{1F949}" };
 
@@ -21,7 +23,9 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                 const raw = res?.data?.standings ?? res?.standings ?? [];
                 if (mounted && Array.isArray(raw)) setStandings(raw.slice(0, 3));
             })
-            .catch(() => {})
+            .catch((error: unknown) => {
+                toast.danger("Error", { description: mapErrorMessage(error) });
+            })
             .finally(() => { if (mounted) setLoading(false); });
         return () => { mounted = false; };
     }, [tournament.id]);
@@ -53,13 +57,16 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
                     ) : (
                         <div
                             className="absolute inset-0"
-                            style={{ background: "linear-gradient(135deg, #131318 0%, #1e1e24 100%)" }}
+                            style={{ background: "linear-gradient(135deg, var(--surface-tertiary) 0%, var(--surface-secondary) 100%)" }}
                         />
                     )}
                     {/* Overlay degradado inferior hacia fondo de la card */}
                     <div
                         className="absolute inset-0"
-                        style={{ background: "linear-gradient(to bottom, rgba(26,26,30,0.2) 0%, rgba(26,26,30,0.75) 60%, var(--surface-solid) 100%)" }}
+                        style={{
+                            background:
+                                "linear-gradient(to bottom, color-mix(in srgb, var(--surface-solid) 20%, transparent) 0%, color-mix(in srgb, var(--surface-solid) 70%, transparent) 60%, var(--surface-solid) 100%)",
+                        }}
                     />
 
                     {/* Chip Finalizado */}
@@ -92,13 +99,10 @@ export default function PastTournamentCard({ tournament }: { tournament: Tournam
 
                     {/* Nombre en la parte inferior del banner */}
                     <div className="absolute bottom-0 left-0 right-0 px-3 pb-2">
-                        <p
-                            className="font-bold text-[13px] text-white line-clamp-1"
-                            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}
-                        >
+                        <p className="font-bold text-[13px] text-[var(--foreground)] line-clamp-1">
                             {tournament.name}
                         </p>
-                        <p className="text-[11px] text-white/50 truncate">
+                        <p className="text-[11px] text-[var(--muted)] truncate">
                             {tournament.tenant_name || tournament.organizer_name || "Torneo finalizado"}
                         </p>
                     </div>

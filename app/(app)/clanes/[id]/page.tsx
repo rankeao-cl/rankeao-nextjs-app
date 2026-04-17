@@ -12,22 +12,34 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   let name = "Clan";
-  try {
-    const data = await getClan(id).catch(() => null);
+  const [clanResult] = await Promise.allSettled([getClan(id)]);
+  if (clanResult.status === "fulfilled") {
+    const data = clanResult.value;
     const clan = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null | undefined;
     if (clan?.name) name = clan.name;
-  } catch {}
+  }
   return { title: name, description: `Clan ${name} en Rankeao.` };
 }
 
 export default async function ClanDetailPage({ params }: Props) {
   const { id } = await params;
-  let clan: ClanDetail | null = null;
+  const [clanResult] = await Promise.allSettled([getClan(id)]);
+  const clanLoadFailed = clanResult.status === "rejected";
+  const data = clanResult.status === "fulfilled" ? clanResult.value : null;
+  const clan = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null;
 
-  try {
-    const data = await getClan(id).catch(() => null);
-    clan = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null;
-  } catch {}
+  if (clanLoadFailed) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 16px", textAlign: "center" }}>
+        <div style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: "var(--surface-solid)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+          <span style={{ fontSize: 32, opacity: 0.4 }}>⚠️</span>
+        </div>
+        <p style={{ color: "var(--foreground)", fontSize: 18, fontWeight: 700, margin: 0, marginBottom: 4 }}>No pudimos cargar este clan</p>
+        <p style={{ color: "var(--muted)", fontSize: 13, margin: 0, marginBottom: 16 }}>Intenta nuevamente en unos segundos.</p>
+        <Link href="/comunidades?type=clanes" style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← Volver a clanes</Link>
+      </div>
+    );
+  }
 
   if (!clan) {
     return (

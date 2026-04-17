@@ -27,7 +27,7 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
             <div className="flex overflow-hidden bg-surface-solid border border-border rounded-[6px]">
                 {/* Thumbnail — sharp corners */}
                 <div
-                    className="shrink-0 relative overflow-hidden w-[80px] bg-[#0a0a0a]"
+                    className="shrink-0 relative overflow-hidden w-[80px] bg-surface"
                     style={{ aspectRatio: "63 / 88" }}
                 >
                     {imageUrl ? (
@@ -46,7 +46,10 @@ export default function SaleCardList({ listing }: { listing: Listing }) {
                     {isFoil && (
                         <span
                             className="absolute top-1 left-1 text-[7px] font-bold uppercase px-1 py-px rounded-[2px] text-yellow"
-                            style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+                            style={{
+                                backgroundColor: "color-mix(in srgb, var(--background) 70%, transparent)",
+                                border: "1px solid var(--border)",
+                            }}
                         >
                             Foil
                         </span>

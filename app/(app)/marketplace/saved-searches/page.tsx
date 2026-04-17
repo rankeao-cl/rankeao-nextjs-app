@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
@@ -100,6 +100,22 @@ function SearchCard({
   isDeleting: boolean;
 }) {
   const filtersSummary = buildFiltersSummary(search.filters);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const timer = setTimeout(() => setConfirmDelete(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmDelete]);
+
+  const handleDeletePress = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    onDelete(search.id);
+    setConfirmDelete(false);
+  };
 
   return (
     <Card className="glass-sm border border-[var(--border)]">
@@ -150,13 +166,9 @@ function SearchCard({
             variant="danger"
             className="font-semibold"
             isDisabled={isDeleting}
-            onPress={() => {
-              if (window.confirm("Eliminar esta busqueda guardada?")) {
-                onDelete(search.id);
-              }
-            }}
+            onPress={handleDeletePress}
           >
-            <TrashBin className="w-3.5 h-3.5" />
+            {confirmDelete ? "Confirmar" : <TrashBin className="w-3.5 h-3.5" />}
           </Button>
         </div>
       </Card.Content>

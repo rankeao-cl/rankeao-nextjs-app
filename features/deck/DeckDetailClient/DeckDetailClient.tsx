@@ -8,6 +8,7 @@ import { toast } from "@heroui/react/toast";
 
 import { useAuth } from "@/lib/hooks/use-auth";
 import { likeDeck, unlikeDeck } from "@/lib/api/social";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { Deck, DeckCard } from "@/lib/types/social";
 
 type Board = "MAIN" | "SIDE" | "EXTRA" | "MAYBE";
@@ -70,7 +71,9 @@ export default function DeckDetailClient({ deck }: { deck: Deck }) {
         setLiked(true);
         setLikeCount((c: number) => c + 1);
       }
-    } catch {}
+    } catch (error: unknown) {
+      toast.danger("Error", { description: mapErrorMessage(error) });
+    }
   };
 
   const handleCopy = () => {
@@ -79,7 +82,9 @@ export default function DeckDetailClient({ deck }: { deck: Deck }) {
       .join("\n");
     navigator.clipboard.writeText(text).then(() => {
       toast.success("Mazo copiado al portapapeles");
-    }).catch(() => {});
+    }).catch((error: unknown) => {
+      toast.danger("Error", { description: mapErrorMessage(error) });
+    });
   };
 
   return (

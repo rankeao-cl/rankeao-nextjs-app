@@ -120,14 +120,30 @@ export interface ListingFilters {
 }
 
 export interface CreateListingRequest {
-    printing_id: string;
+    card_id?: number;
+    printing_id?: number;
+    game_id?: number;
+    card_public_id?: string;
+    printing_public_id?: string;
+    game_public_id?: string;
+    title?: string;
     price: number;
     currency?: string;
     card_condition: string;
     card_language?: string;
     is_foil?: boolean;
+    is_first_edition?: boolean;
     quantity?: number;
     description?: string;
+    accepts_offers?: boolean;
+    accepts_shipping?: boolean;
+    accepts_in_person?: boolean;
+    city?: string;
+    region?: string;
+    card_name?: string;
+    set_name?: string;
+    set_code?: string;
+    card_image_url?: string;
 }
 
 // ── Offers ──
@@ -140,10 +156,16 @@ export interface Offer {
     seller_id: string;
     seller_username?: string;
     amount: number;
+    quantity?: number;
     currency?: string;
     status: string;  // PENDING | ACCEPTED | REJECTED | COUNTERED | WITHDRAWN | EXPIRED
     message?: string;
+    listing_title?: string;
+    parent_offer_id?: string;
     counter_amount?: number;
+    counter_message?: string;
+    responded_at?: string;
+    response_message?: string;
     created_at?: string;
     updated_at?: string;
     expires_at?: string;
@@ -158,11 +180,11 @@ export interface CreateOfferRequest {
 
 export interface MarketplaceCheckout {
     id: string;
-    listing_id: string;
-    payment_method: "WEBPAY" | "MERCADOPAGO" | "TRANSFER";
-    delivery_method: "SHIPPING" | "PICKUP" | "IN_PERSON";
-    status: string;
-    total: number;
+    listing_id?: string;
+    payment_method?: "WEBPAY" | "MERCADOPAGO" | "TRANSFER";
+    delivery_method?: "SHIPPING" | "PICKUP" | "IN_PERSON";
+    status?: string;
+    total?: number;
     subtotal?: number;
     shipping_cost?: number;
     platform_fee?: number;
@@ -170,20 +192,49 @@ export interface MarketplaceCheckout {
     item_summary?: string;
     item_name?: string;
     order_number?: string;
-    shipping_address?: ShippingAddress;
+    shipping_address?: ShippingAddress | string;
     payment_url?: string;
     created_at?: string;
 }
 
 export interface ShippingAddress {
-    name: string;
+    full_name?: string;
+    name?: string;
     address_line_1: string;
     address_line_2?: string;
     city: string;
     region: string;
-    postal_code: string;
-    country: string;
+    postal_code?: string;
+    country?: string;
     phone?: string;
+}
+
+export interface BuyShippingAddress {
+    full_name: string;
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    region: string;
+    postal_code?: string;
+    phone: string;
+}
+
+export type DeliveryMethod = "SHIPPING" | "IN_PERSON" | "PICKUP";
+export type CheckoutProvider = "WEBPAY" | "MERCADOPAGO";
+
+export interface BuyListingPayload {
+    quantity: number;
+    delivery_method: DeliveryMethod;
+    shipping_address?: BuyShippingAddress;
+    notes?: string;
+}
+
+export interface CheckoutPaymentResult {
+    checkout_id?: string;
+    payment_id?: string;
+    payment_url?: string;
+    provider?: string;
+    payment_status?: string;
 }
 
 export type OrderStatus =
@@ -205,10 +256,15 @@ export interface MarketplaceOrder {
     seller_username?: string;
     status: string;
     quantity?: number;
-    total: number;
+    total?: number;
     total_price?: number;
     delivery_method?: "SHIPPING" | "IN_PERSON" | "PICKUP";
     shipping_address?: ShippingAddress | string;
+    shipping_name?: string;
+    shipping_phone?: string;
+    shipping_city?: string;
+    shipping_region?: string;
+    shipping_postal?: string;
     carrier?: string;
     tracking_number?: string;
     tracking_url?: string;
@@ -404,6 +460,7 @@ export interface UploadMarketplaceFilePayload {
 
 export interface CheckoutListingPayload {
     quantity: number;
-    delivery_method: string;
-    shipping_address?: string;
+    delivery_method: DeliveryMethod;
+    shipping_address?: BuyShippingAddress;
+    notes?: string;
 }

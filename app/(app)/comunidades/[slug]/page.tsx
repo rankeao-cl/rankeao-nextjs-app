@@ -91,7 +91,8 @@ const PLATFORMS = [
 
 export async function generateMetadata({ params }: PageProps) {
     const resolvedParams = await params;
-    const data = await getTenant(resolvedParams.slug).catch(() => null);
+    const [tenantResult] = await Promise.allSettled([getTenant(resolvedParams.slug)]);
+    const data = tenantResult.status === "fulfilled" ? tenantResult.value : null;
 
     if (!data?.tenant) return { title: "Comunidad no encontrada" };
 
@@ -106,7 +107,27 @@ export default async function StorePage({ params }: PageProps) {
     const storeSlug = resolvedParams.slug;
 
     // First fetch tenant to get the ID if needed later
-    const tenantData = await getTenant(storeSlug).catch(() => null);
+    const [tenantResult] = await Promise.allSettled([getTenant(storeSlug)]);
+    const tenantData = tenantResult.status === "fulfilled" ? tenantResult.value : null;
+
+    if (tenantResult.status === "rejected") {
+        return (
+            <div className="flex flex-col w-full min-h-screen bg-[var(--background)] pb-20">
+                <div className="max-w-3xl mx-auto w-full px-4 lg:px-6 pt-14">
+                    <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-center">
+                        <p className="text-3xl mb-3">⚠️</p>
+                        <p className="text-lg font-semibold text-[var(--foreground)]">No se pudo cargar la comunidad</p>
+                        <p className="text-sm text-[var(--muted)] mt-1">
+                            Hubo un problema al consultar los datos de esta comunidad.
+                        </p>
+                        <Link href="/comunidades" className="inline-block mt-4">
+                            <Button variant="outline">Volver a comunidades</Button>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (!tenantData?.tenant) {
         notFound();
@@ -139,7 +160,13 @@ export default async function StorePage({ params }: PageProps) {
                     <div className="absolute inset-0 bg-[var(--surface-tertiary)]" />
                 )}
                 {/* Overlay for text contrast */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-transparent to-black/20" />
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background:
+                            "linear-gradient(to top, var(--background) 0%, transparent 60%, color-mix(in srgb, var(--overlay) 35%, transparent) 100%)",
+                    }}
+                />
             </div>
 
             {/* Main Content Container */}
@@ -154,7 +181,7 @@ export default async function StorePage({ params }: PageProps) {
                                     src={tenant.logo_url}
                                     alt={`Logo de ${tenant.name}`}
                                     fill
-                                    className="object-cover"
+                                    className="object-contain p-3"
                                 />
                             ) : (
                                 <div className="flex items-center justify-center w-full h-full text-5xl bg-[var(--surface-tertiary)]">

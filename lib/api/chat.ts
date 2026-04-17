@@ -72,6 +72,10 @@ const WS_BASE_URL = BASE_URL
     .replace(/^https:/, "wss:")
     .replace(/^http:/, "ws:");
 
+export function getChatWSUrl(token: string): string {
+    return `${WS_BASE_URL}/social/chat/ws?token=${encodeURIComponent(token)}`;
+}
+
 export function getChatRoomWSUrl(roomId: string, token: string): string {
     return `${WS_BASE_URL}/social/chat/rooms/${encodeURIComponent(roomId)}/ws?token=${encodeURIComponent(token)}`;
 }

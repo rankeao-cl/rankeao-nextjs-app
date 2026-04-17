@@ -6,7 +6,7 @@ export default function JugarLayout({ children }: { children: React.ReactNode })
                 position: "fixed",
                 inset: 0,
                 zIndex: 40,
-                background: "#000",
+                background: "var(--background)",
                 overflow: "hidden",
             }}
         >

@@ -19,7 +19,8 @@ interface CardDetailPageProps {
 
 export async function generateMetadata({ params }: CardDetailPageProps): Promise<Metadata> {
   const { cardId } = await params;
-  const res = await getCardDetail(cardId).catch(() => null);
+  const [detailResult] = await Promise.allSettled([getCardDetail(cardId)]);
+  const res = detailResult.status === "fulfilled" ? detailResult.value : null;
   const card = res?.data ?? res?.card;
   return {
     title: card?.name ? `${card.name} - Catalogo` : "Detalle de Carta",
@@ -29,18 +30,21 @@ export async function generateMetadata({ params }: CardDetailPageProps): Promise
 
 export default async function CardDetailPage({ params }: CardDetailPageProps) {
   const { cardId } = await params;
+  const [cardResult, printingsResult, legalityResult, priceResult] = await Promise.allSettled([
+    getCardDetail(cardId),
+    getCardPrintings(cardId),
+    getCardLegality(cardId),
+    getCardPriceHistory(cardId),
+  ]);
 
-  let cardData, printingsData, legalityData, priceData;
-  try {
-    [cardData, printingsData, legalityData, priceData] = await Promise.all([
-      getCardDetail(cardId).catch(() => null),
-      getCardPrintings(cardId).catch(() => null),
-      getCardLegality(cardId).catch(() => null),
-      getCardPriceHistory(cardId).catch(() => null),
-    ]);
-  } catch {
-    // silent
-  }
+  const cardData = cardResult.status === "fulfilled" ? cardResult.value : null;
+  const printingsData = printingsResult.status === "fulfilled" ? printingsResult.value : null;
+  const legalityData = legalityResult.status === "fulfilled" ? legalityResult.value : null;
+  const priceData = priceResult.status === "fulfilled" ? priceResult.value : null;
+  const cardLoadFailed = cardResult.status === "rejected";
+  const printingsLoadFailed = printingsResult.status === "rejected";
+  const legalityLoadFailed = legalityResult.status === "rejected";
+  const pricesLoadFailed = priceResult.status === "rejected";
 
   const card: CatalogCard | undefined = cardData?.data ?? cardData?.card;
   const printings: Printing[] = printingsData?.data ?? printingsData?.printings ?? card?.printings ?? [];
@@ -54,9 +58,13 @@ export default async function CardDetailPage({ params }: CardDetailPageProps) {
           <Card className="max-w-md w-full border border-dashed border-[var(--border)] bg-transparent">
             <Card.Content className="py-12 text-center flex flex-col items-center">
               <span className="text-4xl block mb-4">&#128196;</span>
-              <p className="text-[var(--foreground)] font-medium mb-1">Carta no encontrada</p>
+              <p className="text-[var(--foreground)] font-medium mb-1">
+                {cardLoadFailed ? "No se pudo cargar la carta" : "Carta no encontrada"}
+              </p>
               <p className="text-sm text-[var(--muted)]">
-                No se pudo obtener la informacion de esta carta.
+                {cardLoadFailed
+                  ? "Hubo un problema al consultar el catalogo. Intenta nuevamente en unos minutos."
+                  : "No se pudo obtener la informacion de esta carta."}
               </p>
               <Link href="/catalogo" className="mt-4">
                 <Button size="sm" variant="ghost">
@@ -103,6 +111,18 @@ export default async function CardDetailPage({ params }: CardDetailPageProps) {
           <span className="text-[var(--foreground)]">{card.name}</span>
         </div>
       </nav>
+
+      {(printingsLoadFailed || legalityLoadFailed || pricesLoadFailed) && (
+        <div className="px-4 lg:px-6 mb-4">
+          <Card className="border border-amber-500/30 bg-amber-500/10">
+            <Card.Content className="py-3">
+              <p className="text-xs text-amber-300 font-medium">
+                Algunos datos secundarios no pudieron cargarse (precios, legalidad o impresiones).
+              </p>
+            </Card.Content>
+          </Card>
+        </div>
+      )}
 
       {/* Main content */}
       <div className="flex flex-col md:flex-row gap-6 px-4 lg:px-6 mb-12">

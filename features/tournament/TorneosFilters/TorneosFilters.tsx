@@ -240,8 +240,7 @@ export default function TorneosFilters({ games, currentFilters, activeStatus }: 
                     background: "var(--field-background)",
                     border: "1px solid var(--border)",
                     borderRadius: "0.75rem",
-                    color: "var(--field-foreground)",
-                    colorScheme: "dark"
+                    color: "var(--field-foreground)"
                   }}
                 />
                 <Input
@@ -254,8 +253,7 @@ export default function TorneosFilters({ games, currentFilters, activeStatus }: 
                     background: "var(--field-background)",
                     border: "1px solid var(--border)",
                     borderRadius: "0.75rem",
-                    color: "var(--field-foreground)",
-                    colorScheme: "dark"
+                    color: "var(--field-foreground)"
                   }}
                 />
               </div>

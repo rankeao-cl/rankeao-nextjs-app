@@ -46,7 +46,7 @@ export default function SaleCard({ listing }: { listing: Listing }) {
 
                     {listing.price != null ? (
                         <div className="flex items-baseline gap-[2px] leading-none mt-0.5">
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.30)", lineHeight: 1 }}>$</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--muted)", lineHeight: 1 }}>$</span>
                             <span style={{ fontSize: 18, fontWeight: 900, color: "var(--foreground)", letterSpacing: "-0.5px", lineHeight: 1 }}>
                                 {listing.price.toLocaleString("es-CL")}
                             </span>

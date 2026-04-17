@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
@@ -118,8 +118,9 @@ function CreateAlertForm({
       <Card.Content className="px-5 pb-4 border-t border-[var(--border)] pt-3">
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-[var(--muted)]">Nombre de la carta</label>
+            <label htmlFor="price-alert-card-name" className="text-xs font-semibold text-[var(--muted)]">Nombre de la carta</label>
             <input
+              id="price-alert-card-name"
               className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
               placeholder="Ej: Charizard ex, Pikachu VMAX"
               value={cardName}
@@ -127,8 +128,9 @@ function CreateAlertForm({
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-[var(--muted)]">Precio maximo (CLP)</label>
+            <label htmlFor="price-alert-max-price" className="text-xs font-semibold text-[var(--muted)]">Precio maximo (CLP)</label>
             <input
+              id="price-alert-max-price"
               className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
               placeholder="Ej: 15000"
               type="number"
@@ -138,8 +140,9 @@ function CreateAlertForm({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--muted)]">Condicion minima</label>
+              <label htmlFor="price-alert-condition" className="text-xs font-semibold text-[var(--muted)]">Condicion minima</label>
               <select
+                id="price-alert-condition"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
@@ -152,8 +155,9 @@ function CreateAlertForm({
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--muted)]">Idioma</label>
+              <label htmlFor="price-alert-language" className="text-xs font-semibold text-[var(--muted)]">Idioma</label>
               <select
+                id="price-alert-language"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--accent)]"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
@@ -199,6 +203,23 @@ function AlertCard({
   isToggling: boolean;
   isDeleting: boolean;
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const timer = setTimeout(() => setConfirmDelete(false), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmDelete]);
+
+  const handleDeletePress = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    onDelete(alert.id);
+    setConfirmDelete(false);
+  };
+
   return (
     <Card className="glass-sm border border-[var(--border)]">
       <Card.Content className="p-4">
@@ -285,13 +306,9 @@ function AlertCard({
             variant="danger"
             className="font-semibold"
             isDisabled={isDeleting}
-            onPress={() => {
-              if (window.confirm("Eliminar esta alerta de precio?")) {
-                onDelete(alert.id);
-              }
-            }}
+            onPress={handleDeletePress}
           >
-            <TrashBin className="w-3.5 h-3.5" />
+            {confirmDelete ? "Confirmar" : <TrashBin className="w-3.5 h-3.5" />}
           </Button>
         </div>
       </Card.Content>

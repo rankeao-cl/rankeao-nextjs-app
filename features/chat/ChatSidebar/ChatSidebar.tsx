@@ -54,7 +54,10 @@ export default function ChatSidebar({ channels, loading, selectedChannel, onSele
                 const r = val?.data?.rooms || val?.rooms || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
                 setRooms(r);
             })
-            .catch(() => {});
+            .catch((error: unknown) => {
+                setRooms([]);
+                console.error("No se pudieron cargar las salas de chat", error);
+            });
     }, [session?.accessToken]);
 
     // Convert rooms to Channel-compatible items

@@ -6,9 +6,11 @@ import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
 import { Spinner } from "@heroui/react/spinner";
+import { toast } from "@heroui/react/toast";
 
 import { Plus, Xmark, Magnifier, TrashBin } from "@gravity-ui/icons";
 import { addCollectionItem, removeCollectionItem } from "@/lib/api/social";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { autocompleteCards } from "@/lib/api/catalog";
 import type { AutocompleteResult } from "@/lib/types/catalog";
 import type { AddCollectionItemPayload } from "@/lib/types/social";
@@ -61,7 +63,14 @@ export default function ProfileCollectionTab({
     const [gameFilter, setGameFilter] = useState<string>("all");
     const [setFilter, setSetFilter] = useState<string>("all");
     const [showAddModal, setShowAddModal] = useState(false);
-    const [, setDeletingId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!confirmDeleteId) return;
+        const timer = setTimeout(() => setConfirmDeleteId(null), 4000);
+        return () => clearTimeout(timer);
+    }, [confirmDeleteId]);
 
     const games = useMemo(() => {
         const g = new Set<string>();
@@ -94,15 +103,21 @@ export default function ProfileCollectionTab({
     }, [collection, gameFilter, setFilter]);
 
     const handleDelete = async (itemId: string) => {
-        if (!confirm("¿Eliminar esta carta de tu colección?")) return;
+        if (confirmDeleteId !== itemId) {
+            setConfirmDeleteId(itemId);
+            return;
+        }
         setDeletingId(itemId);
         try {
             await removeCollectionItem(itemId, token);
             setCollection((prev) => prev.filter((i) => i.id !== itemId));
-        } catch {
-            // silent
+            toast.success("Carta eliminada de tu coleccion");
+        } catch (err: unknown) {
+            toast.danger(mapErrorMessage(err));
+        } finally {
+            setDeletingId(null);
+            setConfirmDeleteId(null);
         }
-        setDeletingId(null);
     };
 
     const handleAdd = async (payload: AddCollectionItemPayload & Record<string, unknown>) => {
@@ -111,8 +126,9 @@ export default function ProfileCollectionTab({
             const newItem = res?.item;
             if (newItem) setCollection((prev) => [newItem, ...prev]);
             setShowAddModal(false);
-        } catch {
-            // silent
+            toast.success("Carta agregada a tu coleccion");
+        } catch (err: unknown) {
+            toast.danger(mapErrorMessage(err));
         }
     };
 
@@ -139,7 +155,7 @@ export default function ProfileCollectionTab({
                     <Button
                         variant="primary"
                         size="sm"
-                        className="bg-[var(--accent)] text-white rounded-full px-4 font-semibold shadow-brand-sm"
+                        className="bg-[var(--accent)] text-[var(--accent-foreground)] rounded-full px-4 font-semibold shadow-brand-sm"
                         onPress={() => setShowAddModal(true)}
                     >
                         <Plus className="size-4 mr-1" />
@@ -235,9 +251,18 @@ export default function ProfileCollectionTab({
                                     {isOwnProfile && item.id && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDelete(item.id!); }}
-                                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                            disabled={deletingId === item.id}
+                                            className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                            style={{
+                                                backgroundColor: "color-mix(in srgb, var(--overlay) 70%, transparent)",
+                                                color: "var(--foreground)",
+                                            }}
                                         >
-                                            <TrashBin className="size-3.5 text-red-400" />
+                                            {confirmDeleteId === item.id ? (
+                                                <span className="text-[9px] font-bold text-[var(--danger)]">OK</span>
+                                            ) : (
+                                                <TrashBin className="size-3.5 text-[var(--danger)]" />
+                                            )}
                                         </button>
                                     )}
 
@@ -250,7 +275,13 @@ export default function ProfileCollectionTab({
 
                                     {/* Foil indicator */}
                                     {item.is_foil && (
-                                        <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-yellow-500/80 text-[9px] font-bold text-black uppercase">
+                                        <div
+                                            className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase"
+                                            style={{
+                                                backgroundColor: "color-mix(in srgb, var(--warning) 80%, transparent)",
+                                                color: "var(--warning-foreground)",
+                                            }}
+                                        >
                                             Foil
                                         </div>
                                     )}
@@ -323,25 +354,45 @@ function AddCardModal({
     const [condition, setCondition] = useState<string>("NM");
     const [isFoil, setIsFoil] = useState(false);
     const [saving, setSaving] = useState(false);
+    const visibleResults = searchQuery.length >= 2 ? results : [];
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setSelected(null);
+        if (value.length < 2) {
+            setResults([]);
+            setSearching(false);
+        }
+    };
 
     // Debounced search
     useEffect(() => {
         if (searchQuery.length < 2) {
-            setResults([]);
             return;
         }
+        let cancelled = false;
         const timer = setTimeout(async () => {
             setSearching(true);
             try {
                 const res = await autocompleteCards(searchQuery);
                 const raw = res?.results ?? [];
-                setResults(Array.isArray(raw) ? raw : []);
+                if (!cancelled) {
+                    setResults(Array.isArray(raw) ? raw : []);
+                }
             } catch {
-                setResults([]);
+                if (!cancelled) {
+                    setResults([]);
+                }
+            } finally {
+                if (!cancelled) {
+                    setSearching(false);
+                }
             }
-            setSearching(false);
         }, 400);
-        return () => clearTimeout(timer);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [searchQuery]);
 
     const handleSave = async () => {
@@ -361,16 +412,21 @@ function AddCardModal({
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4"
-            onClick={onClose}
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center backdrop-blur-sm p-0 sm:p-4"
+            style={{ backgroundColor: "color-mix(in srgb, var(--overlay) 70%, transparent)" }}
         >
+            <button
+                type="button"
+                aria-label="Cerrar modal"
+                onClick={onClose}
+                className="absolute inset-0"
+            />
             <div
-                className="w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto bg-surface border border-border"
-                onClick={(e) => e.stopPropagation()}
+                className="relative z-10 w-full max-w-md sm:rounded-2xl rounded-t-2xl p-5 space-y-4 max-h-[85vh] overflow-y-auto bg-surface border border-border"
             >
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold text-[var(--foreground)]">Agregar carta</h3>
-                    <button onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer">
+                    <button type="button" onClick={onClose} className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer">
                         <Xmark className="size-5" />
                     </button>
                 </div>
@@ -381,18 +437,18 @@ function AddCardModal({
                     <input
                         type="text"
                         value={searchQuery}
-                        onChange={(e) => { setSearchQuery(e.target.value); setSelected(null); }}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         placeholder="Buscar carta por nombre..."
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-[var(--field-background)] text-[var(--foreground)] placeholder:text-[var(--field-placeholder)] border border-[var(--border)] focus:border-[var(--focus)] outline-none transition-colors"
-                        autoFocus
                     />
                 </div>
 
                 {/* Search results */}
-                {!selected && results.length > 0 && (
+                {!selected && visibleResults.length > 0 && (
                     <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-[var(--border)] bg-[var(--surface-secondary)] p-1">
-                        {results.map((card, idx) => (
+                        {visibleResults.map((card, idx) => (
                             <button
+                                type="button"
                                 key={card.id || idx}
                                 onClick={() => { setSelected(card); setResults([]); }}
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--default)] transition-colors text-left cursor-pointer"
@@ -436,6 +492,7 @@ function AddCardModal({
                                 )}
                             </div>
                             <button
+                                type="button"
                                 onClick={() => setSelected(null)}
                                 className="text-[var(--muted)] hover:text-[var(--foreground)] cursor-pointer"
                             >
@@ -450,6 +507,7 @@ function AddCardModal({
                             </p>
                             <div className="flex items-center gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                     className="w-9 h-9 rounded-lg bg-[var(--surface-secondary)] text-[var(--foreground)] font-bold flex items-center justify-center hover:bg-[var(--default)] transition-colors cursor-pointer"
                                 >
@@ -459,6 +517,7 @@ function AddCardModal({
                                     {quantity}
                                 </span>
                                 <button
+                                    type="button"
                                     onClick={() => setQuantity(quantity + 1)}
                                     className="w-9 h-9 rounded-lg bg-[var(--surface-secondary)] text-[var(--foreground)] font-bold flex items-center justify-center hover:bg-[var(--default)] transition-colors cursor-pointer"
                                 >
@@ -475,6 +534,7 @@ function AddCardModal({
                             <div className="flex gap-2">
                                 {CONDITIONS.map((c) => (
                                     <button
+                                        type="button"
                                         key={c}
                                         onClick={() => setCondition(c)}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
@@ -490,26 +550,30 @@ function AddCardModal({
                         </div>
 
                         {/* Foil toggle */}
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <div
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={isFoil}
+                                aria-label="Alternar foil"
                                 className={`w-10 h-6 rounded-full transition-colors relative ${
                                     isFoil ? "bg-[var(--accent)]" : "bg-[var(--surface-secondary)]"
                                 }`}
-                                onClick={() => setIsFoil(!isFoil)}
+                                onClick={() => setIsFoil((prev) => !prev)}
                             >
-                                <div
-                                    className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                                <span
+                                    className={`absolute top-0.5 w-5 h-5 rounded-full bg-[var(--surface-solid)] border border-[var(--border)] shadow transition-transform ${
                                         isFoil ? "translate-x-4" : "translate-x-0.5"
                                     }`}
                                 />
-                            </div>
+                            </button>
                             <span className="text-sm text-[var(--foreground)]">Foil / Holográfica</span>
-                        </label>
+                        </div>
 
                         {/* Save */}
                         <Button
                             variant="primary"
-                            className="w-full bg-[var(--accent)] text-white rounded-full font-semibold"
+                            className="w-full bg-[var(--accent)] text-[var(--accent-foreground)] rounded-full font-semibold"
                             onPress={handleSave}
                             isPending={saving}
                         >

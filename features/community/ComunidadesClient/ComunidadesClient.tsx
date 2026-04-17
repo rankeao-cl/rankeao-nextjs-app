@@ -195,19 +195,47 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
           {tenant.banner_url ? (
             <Image src={tenant.banner_url} alt="" fill style={{ objectFit: "cover" }} sizes="(max-width: 768px) 100vw, 33vw" />
           ) : tenant.logo_url ? (
-            <Image src={tenant.logo_url} alt="" fill style={{ objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.25 }} sizes="33vw" />
+            <>
+              <div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(135deg, var(--surface-tertiary), var(--surface-secondary))" }}
+              />
+              <Image
+                src={tenant.logo_url}
+                alt=""
+                fill
+                sizes="33vw"
+                className="object-contain p-4 opacity-20"
+              />
+            </>
           ) : (
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #1e293b, #0f172a)" }} />
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(135deg, var(--surface-tertiary), var(--surface-secondary))" }}
+            />
           )}
           {/* Dark overlay */}
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--background) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.1) 100%)" }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to top, var(--background) 0%, color-mix(in srgb, var(--overlay) 55%, transparent) 40%, color-mix(in srgb, var(--overlay) 20%, transparent) 100%)",
+            }}
+          />
 
           {/* Floating badges */}
           <div className="absolute top-2.5 left-2.5 right-2.5 flex justify-between items-start">
             {/* Left: location */}
             <div>
               {tenant.city && (
-                <span className="text-[10px] font-semibold text-foreground inline-flex items-center gap-[3px] rounded-full px-2 py-[3px]" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
+                <span
+                  className="text-[10px] font-semibold text-foreground inline-flex items-center gap-[3px] rounded-full px-2 py-[3px]"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--overlay) 70%, transparent)",
+                    border: "1px solid var(--border)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
                   <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                   </svg>
@@ -218,12 +246,26 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
             {/* Right: status badges */}
             <div className="flex gap-1">
               {tenant.is_public && (
-                <span className="text-[10px] font-bold text-success rounded-full px-2.5 py-[3px]" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}>
+                <span
+                  className="text-[10px] font-bold text-success rounded-full px-2.5 py-[3px]"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--overlay) 75%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
                   Activa
                 </span>
               )}
               {tenant.is_open && (
-                <span className="text-[10px] font-bold text-accent rounded-full px-2.5 py-[3px]" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}>
+                <span
+                  className="text-[10px] font-bold text-accent rounded-full px-2.5 py-[3px]"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--overlay) 75%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
                   Abierta
                 </span>
               )}
@@ -237,7 +279,7 @@ function TenantCard({ tenant }: { tenant: Tenant }) {
               style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.5)" }}
             >
               {tenant.logo_url ? (
-                <Image src={tenant.logo_url} alt={tenant.name} width={52} height={52} className="w-full h-full object-cover" />
+                <Image src={tenant.logo_url} alt={tenant.name} width={52} height={52} className="w-full h-full object-contain p-1.5" />
               ) : (
                 <span className="text-[20px] font-black text-accent">
                   {tenant.name?.charAt(0)?.toUpperCase()}
@@ -306,7 +348,19 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
             {tenant.banner_url ? (
               <Image src={tenant.banner_url} alt="" fill style={{ objectFit: "cover" }} sizes="100vw" />
             ) : tenant.logo_url ? (
-              <Image src={tenant.logo_url} alt="" fill style={{ objectFit: "cover", transform: "scale(3)", filter: "blur(24px)", opacity: 0.15 }} sizes="100vw" />
+              <>
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(135deg, var(--surface-tertiary), var(--surface-secondary))" }}
+                />
+                <Image
+                  src={tenant.logo_url}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  className="object-contain p-6 opacity-15"
+                />
+              </>
             ) : null}
             <div className="absolute inset-0" style={{ background: "linear-gradient(to right, color-mix(in srgb, var(--surface-solid) 92%, transparent), color-mix(in srgb, var(--surface-solid) 75%, transparent))" }} />
           </div>
@@ -320,7 +374,7 @@ function TenantListRow({ tenant }: { tenant: Tenant }) {
             style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}
           >
             {tenant.logo_url ? (
-              <Image src={tenant.logo_url} alt={tenant.name} width={52} height={52} className="w-full h-full object-cover" />
+              <Image src={tenant.logo_url} alt={tenant.name} width={52} height={52} className="w-full h-full object-contain p-1.5" />
             ) : (
               <span className="text-[20px] font-black text-accent">{tenant.name?.charAt(0)?.toUpperCase()}</span>
             )}

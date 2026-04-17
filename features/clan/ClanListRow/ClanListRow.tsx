@@ -19,7 +19,9 @@ export default function ClanListRow({ clan }: { clan: Clan }) {
                 if (detail?.banner_url && !bannerUrl) setBannerUrl(detail.banner_url);
                 if (detail?.logo_url && !logoUrl) setLogoUrl(detail.logo_url);
             })
-            .catch(() => {});
+            .catch((error: unknown) => {
+                console.warn("No se pudo cargar detalle del clan", error);
+            });
     }, [clan.id]);
 
     const clanRating = clan.clan_rating ?? clan.rating;

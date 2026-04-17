@@ -18,7 +18,9 @@ export default function MyClanBanner({ clan }: { clan: Clan }) {
                 if (detail?.banner_url && !bannerUrl) setBannerUrl(detail.banner_url);
                 if (detail?.logo_url && !logoUrl) setLogoUrl(detail.logo_url);
             })
-            .catch(() => {});
+            .catch((error: unknown) => {
+                console.warn("No se pudo cargar banner del clan", error);
+            });
     }, [clan.id]);
 
     return (

@@ -26,21 +26,19 @@ export default async function DiscoverPage({ searchParams }: Props) {
   const showTournaments = !tipo || tipo === "torneos";
   const showListings = !tipo || tipo === "ventas";
 
-  let tournamentsData;
-  let listingsData;
+  const [tournamentsResult, listingsResult] = await Promise.allSettled([
+    showTournaments
+      ? getTournaments({ sort: "upcoming", per_page: 20 })
+      : Promise.resolve(null),
+    showListings
+      ? getListings({ sort: "newest", per_page: 20 })
+      : Promise.resolve(null),
+  ]);
 
-  try {
-    [tournamentsData, listingsData] = await Promise.all([
-      showTournaments
-        ? getTournaments({ sort: "upcoming", per_page: 20 }).catch(() => null)
-        : Promise.resolve(null),
-      showListings
-        ? getListings({ sort: "newest", per_page: 20 }).catch(() => null)
-        : Promise.resolve(null),
-    ]);
-  } catch {
-    // Silent fallback
-  }
+  const tournamentsData = tournamentsResult.status === "fulfilled" ? tournamentsResult.value : null;
+  const listingsData = listingsResult.status === "fulfilled" ? listingsResult.value : null;
+  const tournamentsLoadFailed = showTournaments && tournamentsResult.status === "rejected";
+  const listingsLoadFailed = showListings && listingsResult.status === "rejected";
 
   const tournaments = asArray<Tournament>(tournamentsData?.tournaments);
   const listings = asArray<Listing>(listingsData?.listings);
@@ -77,6 +75,13 @@ export default async function DiscoverPage({ searchParams }: Props) {
 
       {/* Filter chips */}
       <DiscoverFilters active={tipo} />
+
+      {(tournamentsLoadFailed || listingsLoadFailed) && (
+        <div className="rounded-xl border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-4 py-3">
+          <p className="text-sm font-semibold text-[var(--foreground)]">No pudimos cargar todo el contenido.</p>
+          <p className="text-xs text-[var(--muted)]">Mostramos los resultados disponibles por ahora.</p>
+        </div>
+      )}
 
       {/* Feed items */}
       {feedItems.length > 0 ? (

@@ -86,6 +86,7 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
   const apiStatus = params.status || config.apiStatus;
 
   let tournamentsData;
+  let listLoadFailed = false;
 
   try {
     tournamentsData = await getTournaments({
@@ -100,9 +101,10 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
       sort: config.sort,
       page,
       per_page: 12,
-    }).catch(() => null);
+    });
   } catch {
-    // silent fail
+    listLoadFailed = true;
+    tournamentsData = null;
   }
 
   const rawTournaments = tournamentsData?.tournaments;
@@ -121,6 +123,18 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
               <TournamentCard key={t.id} tournament={t} />
             )
           ))}
+        </div>
+      ) : listLoadFailed ? (
+        <div className="rounded-2xl border border-border bg-surface-solid">
+          <div className="py-16 text-center">
+            <p className="text-4xl mb-4">⚠️</p>
+            <p className="text-lg font-medium text-foreground">
+              No pudimos cargar los torneos
+            </p>
+            <p className="text-sm mt-1 text-muted">
+              Intenta actualizar la pagina en unos segundos.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="rounded-2xl border border-border bg-surface-solid">
@@ -147,11 +161,12 @@ async function TournamentsList({ params, tab }: { params: Record<string, string 
 async function CalendarTournaments() {
   // Fetch upcoming + live tournaments for the calendar view
   const allTournaments: Tournament[] = [];
+  let calendarLoadFailed = false;
   try {
     const [upcoming, live, past] = await Promise.all([
-      getTournaments({ status: "OPEN", sort: "upcoming", per_page: 50 }).catch(() => null),
-      getTournaments({ status: "STARTED,CHECK_IN,ROUND_IN_PROGRESS,ROUND_COMPLETE", sort: "recent", per_page: 50 }).catch(() => null),
-      getTournaments({ status: "FINISHED,CLOSED", sort: "recent", per_page: 50 }).catch(() => null),
+      getTournaments({ status: "OPEN", sort: "upcoming", per_page: 50 }),
+      getTournaments({ status: "STARTED,CHECK_IN,ROUND_IN_PROGRESS,ROUND_COMPLETE", sort: "recent", per_page: 50 }),
+      getTournaments({ status: "FINISHED,CLOSED", sort: "recent", per_page: 50 }),
     ]);
     const u = upcoming?.tournaments;
     const l = live?.tournaments;
@@ -160,7 +175,19 @@ async function CalendarTournaments() {
     if (Array.isArray(l)) allTournaments.push(...l);
     if (Array.isArray(p)) allTournaments.push(...p);
   } catch {
-    // silent fail
+    calendarLoadFailed = true;
+  }
+
+  if (calendarLoadFailed && allTournaments.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface-solid">
+        <div className="py-16 text-center">
+          <p className="text-4xl mb-4">⚠️</p>
+          <p className="text-lg font-medium text-foreground">No pudimos cargar el calendario</p>
+          <p className="text-sm mt-1 text-muted">Intenta nuevamente en unos segundos.</p>
+        </div>
+      </div>
+    );
   }
 
   return <TorneosCalendar tournaments={allTournaments} />;

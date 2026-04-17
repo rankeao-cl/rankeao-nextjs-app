@@ -12,17 +12,15 @@ function asArray<T>(value: unknown): T[] {
 }
 
 export default async function HomePage() {
-  let tournamentsData;
-  let listingsData;
+  const [tournamentsResult, listingsResult] = await Promise.allSettled([
+    getTournaments({ sort: "upcoming", per_page: 15 }),
+    getListings({ sort: "newest", per_page: 15 }),
+  ]);
 
-  try {
-    [tournamentsData, listingsData] = await Promise.all([
-      getTournaments({ sort: "upcoming", per_page: 15 }).catch(() => null),
-      getListings({ sort: "newest", per_page: 15 }).catch(() => null),
-    ]);
-  } catch {
-    // Silent fallback
-  }
+  const tournamentsData = tournamentsResult.status === "fulfilled" ? tournamentsResult.value : null;
+  const listingsData = listingsResult.status === "fulfilled" ? listingsResult.value : null;
+  const tournamentsLoadFailed = tournamentsResult.status === "rejected";
+  const listingsLoadFailed = listingsResult.status === "rejected";
 
   const tournaments = asArray<Tournament>(tournamentsData?.tournaments);
   const listings = asArray<Listing>(listingsData?.listings);
@@ -33,6 +31,12 @@ export default async function HomePage() {
       <div style={{ paddingTop: 16, display: "flex", gap: 56 }}>
         {/* Main feed column */}
         <div style={{ flex: 1, minWidth: 0, maxWidth: 620 }}>
+          {(tournamentsLoadFailed || listingsLoadFailed) && (
+            <div className="mb-3 rounded-xl border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-4 py-3">
+              <p className="text-sm font-semibold text-[var(--foreground)]">No pudimos cargar todo el feed.</p>
+              <p className="text-xs text-[var(--muted)]">Mostramos el contenido disponible.</p>
+            </div>
+          )}
           <FeedClient />
           <FeedMobileCarousel tournaments={tournaments} />
           <FeedContent tournaments={tournaments} listings={listings} />

@@ -40,13 +40,21 @@ const visibilities = [
     { value: "PUBLIC", label: "Público" },
     { value: "PRIVATE", label: "Privado" },
     { value: "UNLISTED", label: "No listado" },
-];
+] as const;
 
 const bestOfOptions = [
     { value: 1, label: "Bo1" },
     { value: 3, label: "Bo3" },
     { value: 5, label: "Bo5" },
 ];
+
+type CreateTournamentPayload = CreateTournamentRequest & {
+    format_type?: string;
+    max_rounds?: number;
+    tier?: string;
+    modality?: string;
+    region?: string;
+};
 
 export default function CreateTournamentForm() {
     const router = useRouter();
@@ -66,7 +74,7 @@ export default function CreateTournamentForm() {
     const [bestOf, setBestOf] = useState(3);
     const [tier, setTier] = useState("CASUAL");
     const [modality, setModality] = useState("IN_PERSON");
-    const [visibility, setVisibility] = useState("PUBLIC");
+    const [visibility, setVisibility] = useState<CreateTournamentRequest["visibility"]>("PUBLIC");
     const [isRanked, setIsRanked] = useState(false);
     const [maxPlayers, setMaxPlayers] = useState("");
     const [maxRounds, setMaxRounds] = useState("");
@@ -88,7 +96,9 @@ export default function CreateTournamentForm() {
                 const list = res.data || (res as { data?: CatalogGame[]; games?: CatalogGame[] }).games || [];
                 setGames(Array.isArray(list) ? list : []);
             })
-            .catch(() => {});
+            .catch((error: unknown) => {
+                toast.danger("Error", { description: mapErrorMessage(error) });
+            });
     }, []);
 
     // Load formats when game changes
@@ -118,7 +128,7 @@ export default function CreateTournamentForm() {
 
         setSubmitting(true);
         try {
-            const payload: Record<string, string | number | boolean | undefined> = {
+            const payload: CreateTournamentPayload = {
                 name: name.trim(),
                 game_id: selectedGame.id,
                 format_id: selectedFormat.id,
@@ -137,16 +147,19 @@ export default function CreateTournamentForm() {
             if (rules.trim()) payload.rules = rules.trim();
             if (maxPlayers) payload.max_players = parseInt(maxPlayers);
             if (maxRounds) payload.max_rounds = parseInt(maxRounds);
-            if (entryFee) payload.entry_fee = parseInt(entryFee);
-            if (prizePool) payload.prize_pool = parseInt(prizePool);
+            if (entryFee) payload.entry_fee = entryFee;
+            if (prizePool) payload.prize_pool = prizePool;
             if (venueName.trim()) payload.venue_name = venueName.trim();
             if (city.trim()) payload.city = city.trim();
             if (region.trim()) payload.region = region.trim();
             if (bannerUrl.trim()) payload.banner_url = bannerUrl.trim();
 
-            const res = await createTournament(payload as unknown as CreateTournamentRequest);
+            const res = await createTournament(payload);
             const outer = res as { tournament?: Tournament; data?: { tournament?: Tournament } };
-            const created = outer.tournament || outer.data?.tournament || (res as unknown as Tournament);
+            const created = outer.tournament || outer.data?.tournament;
+            if (!created) {
+                throw new Error("No se recibio torneo creado");
+            }
 
             toast.success("Torneo creado exitosamente");
             router.push(`/torneos/${created.id || (created as Tournament & { public_id?: string }).public_id}`);
@@ -184,10 +197,11 @@ export default function CreateTournamentForm() {
                     <h2 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Información básica</h2>
 
                     <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
+                        <label htmlFor="tournament-name" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
                             Nombre del torneo *
                         </label>
                         <Input
+                            id="tournament-name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Ej: Copa Santiago Standard"
@@ -197,10 +211,11 @@ export default function CreateTournamentForm() {
                     </div>
 
                     <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
+                        <label htmlFor="tournament-description" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
                             Descripción
                         </label>
                         <textarea
+                            id="tournament-description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Describe tu torneo..."
@@ -216,10 +231,11 @@ export default function CreateTournamentForm() {
                     </div>
 
                     <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
+                        <label htmlFor="tournament-rules" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
                             Reglas
                         </label>
                         <textarea
+                            id="tournament-rules"
                             value={rules}
                             onChange={(e) => setRules(e.target.value)}
                             placeholder="Reglas específicas del torneo..."
@@ -245,10 +261,11 @@ export default function CreateTournamentForm() {
                     </p>
 
                     <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
+                        <label htmlFor="tournament-banner-url" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
                             URL de imagen (landscape, mín. 1200px ancho)
                         </label>
                         <Input
+                            id="tournament-banner-url"
                             value={bannerUrl}
                             onChange={(e) => setBannerUrl(e.target.value)}
                             placeholder="https://ejemplo.com/banner.jpg"
@@ -295,9 +312,9 @@ export default function CreateTournamentForm() {
                     <h2 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Juego y formato</h2>
 
                     <div>
-                        <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>
+                        <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>
                             Juego *
-                        </label>
+                        </p>
                         <div className="flex flex-wrap gap-2">
                             {games.map((g) => (
                                 <button
@@ -317,9 +334,9 @@ export default function CreateTournamentForm() {
 
                     {selectedGame && (
                         <div>
-                            <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>
+                            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>
                                 Formato *
-                            </label>
+                            </p>
                             {formats.length === 0 ? (
                                 <p className="text-xs" style={{ color: "var(--muted)" }}>Cargando formatos...</p>
                             ) : (
@@ -353,7 +370,7 @@ export default function CreateTournamentForm() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {/* Estructura */}
                         <div>
-                            <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>Estructura</label>
+                            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>Estructura</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {structures.map((s) => (
                                     <button
@@ -373,7 +390,7 @@ export default function CreateTournamentForm() {
 
                         {/* Best of */}
                         <div>
-                            <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>Best of</label>
+                            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>Best of</p>
                             <div className="flex gap-1.5">
                                 {bestOfOptions.map((b) => (
                                     <button
@@ -393,7 +410,7 @@ export default function CreateTournamentForm() {
 
                         {/* Tier */}
                         <div>
-                            <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>Tier</label>
+                            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>Tier</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {tiers.map((t) => (
                                     <button
@@ -413,7 +430,7 @@ export default function CreateTournamentForm() {
 
                         {/* Modality */}
                         <div>
-                            <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>Modalidad</label>
+                            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>Modalidad</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {modalities.map((m) => (
                                     <button
@@ -433,7 +450,7 @@ export default function CreateTournamentForm() {
 
                         {/* Visibility */}
                         <div>
-                            <label className="text-xs font-medium mb-2 block" style={{ color: "var(--muted)" }}>Visibilidad</label>
+                            <p className="text-xs font-medium mb-2" style={{ color: "var(--muted)" }}>Visibilidad</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {visibilities.map((v) => (
                                     <button
@@ -453,15 +470,16 @@ export default function CreateTournamentForm() {
 
                         {/* Ranked toggle */}
                         <div className="flex items-center justify-between">
-                            <label className="text-xs font-medium" style={{ color: "var(--muted)" }}>Ranked</label>
+                            <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>Ranked</span>
                             <Switch isSelected={isRanked} onChange={() => setIsRanked(!isRanked)} />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
-                            <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Máx. jugadores</label>
+                            <label htmlFor="tournament-max-players" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Máx. jugadores</label>
                             <Input
+                                id="tournament-max-players"
                                 type="number"
                                 value={maxPlayers}
                                 onChange={(e) => setMaxPlayers(e.target.value)}
@@ -472,8 +490,9 @@ export default function CreateTournamentForm() {
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Máx. rondas</label>
+                            <label htmlFor="tournament-max-rounds" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Máx. rondas</label>
                             <Input
+                                id="tournament-max-rounds"
                                 type="number"
                                 value={maxRounds}
                                 onChange={(e) => setMaxRounds(e.target.value)}
@@ -484,8 +503,9 @@ export default function CreateTournamentForm() {
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Timer por ronda (min)</label>
+                            <label htmlFor="tournament-round-timer" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Timer por ronda (min)</label>
                             <Input
+                                id="tournament-round-timer"
                                 type="number"
                                 value={roundTimerMin}
                                 onChange={(e) => setRoundTimerMin(e.target.value)}
@@ -505,10 +525,11 @@ export default function CreateTournamentForm() {
                     <h2 className="font-bold text-sm" style={{ color: "var(--foreground)" }}>Fecha y lugar</h2>
 
                     <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
+                        <label htmlFor="tournament-start-at" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>
                             Fecha de inicio *
                         </label>
                         <input
+                            id="tournament-start-at"
                             type="datetime-local"
                             value={startsAt}
                             onChange={(e) => setStartsAt(e.target.value)}
@@ -518,7 +539,6 @@ export default function CreateTournamentForm() {
                                 background: "var(--field-background, var(--surface-secondary))",
                                 border: "1px solid var(--border)",
                                 color: "var(--foreground)",
-                                colorScheme: "dark",
                                 outline: "none",
                             }}
                         />
@@ -527,8 +547,9 @@ export default function CreateTournamentForm() {
                     {modality !== "ONLINE" && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Lugar</label>
+                                <label htmlFor="tournament-venue-name" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Lugar</label>
                                 <Input
+                                    id="tournament-venue-name"
                                     value={venueName}
                                     onChange={(e) => setVenueName(e.target.value)}
                                     placeholder="Nombre de la tienda o local"
@@ -536,8 +557,9 @@ export default function CreateTournamentForm() {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Ciudad</label>
+                                <label htmlFor="tournament-city" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Ciudad</label>
                                 <Input
+                                    id="tournament-city"
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
                                     placeholder="Santiago"
@@ -545,8 +567,9 @@ export default function CreateTournamentForm() {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Región</label>
+                                <label htmlFor="tournament-region" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Región</label>
                                 <Input
+                                    id="tournament-region"
                                     value={region}
                                     onChange={(e) => setRegion(e.target.value)}
                                     placeholder="Metropolitana"
@@ -554,8 +577,9 @@ export default function CreateTournamentForm() {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Código país</label>
+                                <label htmlFor="tournament-country-code" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Código país</label>
                                 <Input
+                                    id="tournament-country-code"
                                     value={countryCode}
                                     onChange={(e) => setCountryCode(e.target.value)}
                                     placeholder="CL"
@@ -575,8 +599,9 @@ export default function CreateTournamentForm() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Inscripción (CLP)</label>
+                            <label htmlFor="tournament-entry-fee" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Inscripción (CLP)</label>
                             <Input
+                                id="tournament-entry-fee"
                                 type="number"
                                 value={entryFee}
                                 onChange={(e) => setEntryFee(e.target.value)}
@@ -586,8 +611,9 @@ export default function CreateTournamentForm() {
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Pozo de premios (CLP)</label>
+                            <label htmlFor="tournament-prize-pool" className="text-xs font-medium mb-1 block" style={{ color: "var(--muted)" }}>Pozo de premios (CLP)</label>
                             <Input
+                                id="tournament-prize-pool"
                                 type="number"
                                 value={prizePool}
                                 onChange={(e) => setPrizePool(e.target.value)}

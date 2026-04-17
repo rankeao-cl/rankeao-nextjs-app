@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
@@ -9,7 +9,7 @@ import { toast } from "@heroui/react/toast";
 
 import { useRouter } from "next/navigation";
 import { useBuyListing } from "@/lib/hooks/use-marketplace";
-import type { Listing } from "@/lib/types/marketplace";
+import type { CheckoutListingPayload, DeliveryMethod, Listing } from "@/lib/types/marketplace";
 
 
 interface Props {
@@ -18,7 +18,7 @@ interface Props {
   onClose: () => void;
 }
 
-const DELIVERY_OPTIONS = [
+const DELIVERY_OPTIONS: Array<{ key: DeliveryMethod; label: string }> = [
   { key: "IN_PERSON", label: "Retiro en persona" },
   { key: "SHIPPING", label: "Envio por courier" },
 ];
@@ -27,33 +27,58 @@ export default function BuyModal({ listing, open, onClose }: Props) {
   const router = useRouter();
   const buy = useBuyListing();
   const [quantity, setQuantity] = useState(1);
-  const [delivery, setDelivery] = useState("IN_PERSON");
+  const [delivery, setDelivery] = useState<DeliveryMethod>("IN_PERSON");
   const [address, setAddress] = useState({ name: "", address_line_1: "", city: "", region: "", phone: "" });
-
-  if (!open) return null;
 
   const maxQty = listing.quantity ?? 1;
   const unitPrice = listing.price ?? 0;
   const total = unitPrice * quantity;
+  const deliveryOptions = useMemo(
+    () =>
+      DELIVERY_OPTIONS.filter((option) =>
+        (option.key === "SHIPPING" && listing.accepts_shipping) ||
+        (option.key === "IN_PERSON" && listing.accepts_in_person) ||
+        (!listing.accepts_shipping && !listing.accepts_in_person)
+      ),
+    [listing.accepts_in_person, listing.accepts_shipping]
+  );
+  const effectiveDelivery: DeliveryMethod =
+    deliveryOptions.some((option) => option.key === delivery)
+      ? delivery
+      : (deliveryOptions[0]?.key || "IN_PERSON");
+
+  if (!open) return null;
 
   async function handleBuy() {
+    if (quantity < 1 || quantity > maxQty) {
+      toast.danger("Cantidad invalida");
+      return;
+    }
     try {
-      const payload: { quantity: number; delivery_method: string; shipping_address?: string; notes?: string } = {
+      const payload: CheckoutListingPayload = {
         quantity,
-        delivery_method: delivery,
+        delivery_method: effectiveDelivery,
       };
-      if (delivery === "SHIPPING") {
-        (payload as Record<string, unknown>).shipping_address = {
-          full_name: address.name,
-          address_line_1: address.address_line_1,
-          city: address.city,
-          region: address.region,
-          phone: address.phone,
+      if (effectiveDelivery === "SHIPPING") {
+        const fullName = address.name.trim();
+        const addressLine1 = address.address_line_1.trim();
+        const city = address.city.trim();
+        const region = address.region.trim();
+        const phone = address.phone.trim();
+        if (!fullName || !addressLine1 || !city || !region || !phone) {
+          toast.danger("Completa todos los campos de envio");
+          return;
+        }
+        payload.shipping_address = {
+          full_name: fullName,
+          address_line_1: addressLine1,
+          city,
+          region,
+          phone,
         };
       }
-      const result = await buy.mutateAsync({ listingId: listing.id, payload });
-      const checkoutResult = result as { checkout?: { id?: string }; id?: string; checkout_id?: string };
-      const checkoutId = checkoutResult.checkout?.id || checkoutResult.id || checkoutResult.checkout_id;
+      const checkout = await buy.mutateAsync({ listingId: listing.id, payload });
+      const checkoutId = checkout.id;
       toast.success("Compra iniciada");
       onClose();
       if (checkoutId) {
@@ -67,7 +92,13 @@ export default function BuyModal({ listing, open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <button
+        type="button"
+        aria-label="Cerrar compra"
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
       <Card className="surface-card w-full max-w-md mx-4 rounded-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <Card.Content className="p-6 space-y-4">
           <h2 className="text-lg font-bold text-[var(--foreground)]">Comprar</h2>
@@ -90,7 +121,7 @@ export default function BuyModal({ listing, open, onClose }: Props) {
           {/* Quantity */}
           {maxQty > 1 && (
             <div>
-              <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Cantidad</label>
+              <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider m-0">Cantidad</p>
               <div className="flex items-center gap-2 mt-1">
                 <Button size="sm" variant="secondary" isDisabled={quantity <= 1} onPress={() => setQuantity(q => q - 1)}>-</Button>
                 <span className="text-sm font-bold text-[var(--foreground)] w-8 text-center">{quantity}</span>
@@ -102,17 +133,13 @@ export default function BuyModal({ listing, open, onClose }: Props) {
 
           {/* Delivery method */}
           <div>
-            <label className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Metodo de entrega</label>
+            <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider m-0">Metodo de entrega</p>
             <div className="flex gap-2 mt-1">
-              {DELIVERY_OPTIONS.filter(o =>
-                (o.key === "SHIPPING" && listing.accepts_shipping) ||
-                (o.key === "IN_PERSON" && listing.accepts_in_person) ||
-                (!listing.accepts_shipping && !listing.accepts_in_person)
-              ).map(o => (
+              {deliveryOptions.map(o => (
                 <Button
                   key={o.key}
                   size="sm"
-                  variant={delivery === o.key ? "primary" : "secondary"}
+                  variant={effectiveDelivery === o.key ? "primary" : "secondary"}
                   onPress={() => setDelivery(o.key)}
                 >
                   {o.key === "SHIPPING" ? "📦" : "🤝"} {o.label}
@@ -122,7 +149,7 @@ export default function BuyModal({ listing, open, onClose }: Props) {
           </div>
 
           {/* Shipping address */}
-          {delivery === "SHIPPING" && (
+          {effectiveDelivery === "SHIPPING" && (
             <div className="space-y-2">
               <Input aria-label="Nombre completo" placeholder="Nombre completo" value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} />
               <Input aria-label="Direccion" placeholder="Direccion" value={address.address_line_1} onChange={(e) => setAddress({ ...address, address_line_1: e.target.value })} />

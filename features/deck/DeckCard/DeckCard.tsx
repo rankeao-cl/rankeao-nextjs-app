@@ -10,7 +10,8 @@ import { Heart, Eye, ArrowShapeTurnUpRight } from "@gravity-ui/icons";
 import { toast } from "@heroui/react/toast";
 
 import dynamic from "next/dynamic";
-const DeckFanModal = dynamic(() => import("@/features/deck/DeckFanModal"), { ssr: false });
+const loadDeckFanModal = () => import("@/features/deck/DeckFanModal");
+const DeckFanModal = dynamic(loadDeckFanModal, { ssr: false });
 import type { Deck, DeckCard as DeckCardType } from "@/lib/types/social";
 
 export interface FeedDeck {
@@ -55,8 +56,17 @@ function DeckCardInner({ deck }: DeckCardProps) {
     const handleShare = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         const url = `https://rankeao.cl/decks/${deck.slug || deck.id}`;
-        if (navigator.share) navigator.share({ title: deck.name, url }).catch(() => {});
-        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+        if (navigator.share) {
+            navigator.share({ title: deck.name, url }).catch((error: unknown) => {
+                console.warn("No se pudo compartir mazo", error);
+            });
+        } else {
+            navigator.clipboard.writeText(url)
+                .then(() => toast.success("Enlace copiado"))
+                .catch((error: unknown) => {
+                    console.warn("No se pudo copiar enlace de mazo", error);
+                });
+        }
     }, [deck.id, deck.name]);
 
     const { visibleCards, remaining, totalCards, sideCount } = useMemo(() => {
@@ -86,6 +96,8 @@ function DeckCardInner({ deck }: DeckCardProps) {
         <>
             <article
                 onClick={() => setFanOpen(true)}
+                onMouseEnter={() => { void loadDeckFanModal(); }}
+                onTouchStart={() => { void loadDeckFanModal(); }}
                 style={{
                     background: "var(--surface-solid)",
                     borderRadius: 16,
@@ -290,6 +302,7 @@ function DeckCardInner({ deck }: DeckCardProps) {
             {fanOpen && (
                 <DeckFanModal
                     deckId={deck.id}
+                    initialDeck={deck}
                     onClose={() => setFanOpen(false)}
                     initialLiked={liked}
                     initialLikesCount={likesCount}

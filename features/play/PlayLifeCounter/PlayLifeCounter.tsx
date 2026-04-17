@@ -17,7 +17,6 @@ import {
     getTrackerHistory,
     updateLife,
     updateCommanderDamage,
-    updateCounter,
     undoLast,
     endTrackerSession,
 } from "@/lib/api/play";
@@ -25,6 +24,7 @@ import type { LCSession, LCPlayer, LCEvent } from "@/lib/api/play";
 
 // Duels types needed for shared UI components
 import type { SessionPlayer, Session, LifeEvent } from "@/lib/api/sessions";
+import { mapErrorMessage } from "@/lib/api/errors";
 
 interface PlayLifeCounterProps {
     partidaId: string;
@@ -37,15 +37,47 @@ interface PlayLifeCounterProps {
 // commander_damage, is_eliminated, elimination_reason).
 
 function asSessionPlayer(p: LCPlayer): SessionPlayer {
-    return p as unknown as SessionPlayer;
+    return {
+        id: p.id,
+        seat: p.seat,
+        display_name: p.display_name,
+        color: p.color,
+        life_total: p.life_total,
+        poison_counters: p.poison_counters,
+        energy_counters: p.energy_counters,
+        experience_counters: p.experience_counters,
+        commander_damage: p.commander_damage,
+        is_eliminated: p.is_eliminated,
+        elimination_reason: p.elimination_reason,
+        user_id: p.user_id !== undefined ? String(p.user_id) : undefined,
+    };
 }
 
 function asSession(s: LCSession): Session {
-    return s as unknown as Session;
+    return {
+        id: s.id,
+        duel_id: s.partida_id,
+        game_number: s.game_number,
+        format: s.is_commander ? "COMMANDER" : "STANDARD",
+        starting_life: s.starting_life,
+        player_count: s.players.length,
+        host_mode: false,
+        status: s.status,
+        players: s.players.map(asSessionPlayer),
+    };
 }
 
 function asLifeEvents(events: LCEvent[]): LifeEvent[] {
-    return events as unknown as LifeEvent[];
+    return events.map((event) => ({
+        id: event.id,
+        target_seat: event.target_seat,
+        change_amount: event.change_amount,
+        new_total: event.new_total,
+        event_type: event.event_type,
+        source_seat: event.source_seat,
+        seq: event.seq,
+        created_at: event.created_at,
+    }));
 }
 
 // ── WakeLock helper ───────────────────────────────────────────────────────────
@@ -62,8 +94,8 @@ function useWakeLock() {
                 lockRef.current.addEventListener("release", () => {
                     if (active) acquireLock();
                 });
-            } catch {
-                // not all browsers support WakeLock
+            } catch (error: unknown) {
+                console.error("No se pudo adquirir WakeLock", error);
             }
         }
 
@@ -77,7 +109,9 @@ function useWakeLock() {
         return () => {
             active = false;
             document.removeEventListener("visibilitychange", handleVisibility);
-            lockRef.current?.release().catch(() => {});
+            lockRef.current?.release().catch((error: unknown) => {
+                console.error("No se pudo liberar WakeLock", error);
+            });
         };
     }, []);
 }
@@ -94,12 +128,13 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
         setSession,
         updatePlayerLife,
         updateCommanderDamage: updateCDStore,
-        updateCounter: updateCounterStore,
     } = usePlayLCStore();
 
     const [cmdOverlaySeat, setCmdOverlaySeat] = useState<number | null>(null);
     const [showHistory, setShowHistory] = useState(false);
     const [ending, setEnding] = useState(false);
+    const [confirmEnd, setConfirmEnd] = useState(false);
+    const [confirmReset, setConfirmReset] = useState(false);
 
     // Init session
     useEffect(() => {
@@ -110,9 +145,32 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
                 .then((res) => {
                     if (res.data) setSession(res.data);
                 })
-                .catch(() => toast.danger("Error", { description: "No se pudo cargar la sesión" }));
+                .catch((error: unknown) => {
+                    toast.danger("Error", { description: mapErrorMessage(error) });
+                });
         }
     }, [partidaId, initialSession, setSession]);
+
+    useEffect(() => {
+        if (!confirmEnd) return;
+        const timer = setTimeout(() => setConfirmEnd(false), 4000);
+        return () => clearTimeout(timer);
+    }, [confirmEnd]);
+
+    useEffect(() => {
+        if (!confirmReset) return;
+        const timer = setTimeout(() => setConfirmReset(false), 4000);
+        return () => clearTimeout(timer);
+    }, [confirmReset]);
+
+    const refreshState = useCallback(async () => {
+        try {
+            const res = await getTrackerState(partidaId);
+            if (res.data) setSession(res.data);
+        } catch (error: unknown) {
+            toast.danger("Error", { description: mapErrorMessage(error) });
+        }
+    }, [partidaId, setSession]);
 
     // ── Life change ──
     const handleLifeChange = useCallback(
@@ -122,13 +180,10 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
                 const res = await updateLife(partidaId, seat, change);
                 if (res.data) setSession(res.data);
             } catch {
-                try {
-                    const res = await getTrackerState(partidaId);
-                    if (res.data) setSession(res.data);
-                } catch {}
+                await refreshState();
             }
         },
-        [partidaId, updatePlayerLife, setSession]
+        [partidaId, updatePlayerLife, setSession, refreshState]
     );
 
     // ── Commander damage ──
@@ -139,30 +194,10 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
                 const res = await updateCommanderDamage(partidaId, targetSeat, sourceSeat, damage);
                 if (res.data) setSession(res.data);
             } catch {
-                try {
-                    const res = await getTrackerState(partidaId);
-                    if (res.data) setSession(res.data);
-                } catch {}
+                await refreshState();
             }
         },
-        [partidaId, updateCDStore, setSession]
-    );
-
-    // ── Counter update ──
-    const handleCounterUpdate = useCallback(
-        async (seat: number, type: "poison" | "energy" | "experience", change: number) => {
-            updateCounterStore(seat, type, change);
-            try {
-                const res = await updateCounter(partidaId, seat, type, change);
-                if (res.data) setSession(res.data);
-            } catch {
-                try {
-                    const res = await getTrackerState(partidaId);
-                    if (res.data) setSession(res.data);
-                } catch {}
-            }
-        },
-        [partidaId, updateCounterStore, setSession]
+        [partidaId, updateCDStore, setSession, refreshState]
     );
 
     // ── Undo ──
@@ -171,8 +206,8 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
             const res = await undoLast(partidaId);
             if (res.data) setSession(res.data);
             toast.success("Deshecho");
-        } catch {
-            toast.danger("Error", { description: "No se pudo deshacer" });
+        } catch (error: unknown) {
+            toast.danger("Error", { description: mapErrorMessage(error) });
         }
     }, [partidaId, setSession]);
 
@@ -187,29 +222,41 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
 
     // ── End session ──
     const handleEnd = useCallback(async () => {
-        if (!confirm("¿Terminar la sesión?")) return;
+        if (!confirmEnd) {
+            setConfirmEnd(true);
+            toast("Presiona terminar nuevamente para confirmar.");
+            return;
+        }
         setEnding(true);
         try {
             await endTrackerSession(partidaId);
             toast.success("Sesión terminada");
             router.back();
-        } catch {
-            toast.danger("Error", { description: "No se pudo terminar la sesión" });
+        } catch (error: unknown) {
+            toast.danger("Error", { description: mapErrorMessage(error) });
             setEnding(false);
+        } finally {
+            setConfirmEnd(false);
         }
-    }, [partidaId, router]);
+    }, [confirmEnd, partidaId, router]);
 
     // ── Reset: refetch from API ──
     const handleReset = useCallback(async () => {
-        if (!confirm("¿Recargar el estado actual?")) return;
+        if (!confirmReset) {
+            setConfirmReset(true);
+            toast("Presiona reset nuevamente para confirmar.");
+            return;
+        }
         try {
             const res = await getTrackerState(partidaId);
             if (res.data) setSession(res.data);
             toast.success("Estado recargado");
-        } catch {
-            toast.danger("Error", { description: "No se pudo recargar" });
+        } catch (error: unknown) {
+            toast.danger("Error", { description: mapErrorMessage(error) });
+        } finally {
+            setConfirmReset(false);
         }
-    }, [partidaId, setSession]);
+    }, [confirmReset, partidaId, setSession]);
 
     // ── WebSocket ──
     useTrackerSocket(partidaId, true, token, {
@@ -252,9 +299,12 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
         return (
             <div
                 className="fixed inset-0 flex items-center justify-center"
-                style={{ background: "#080810" }}
+                style={{ background: "var(--background)" }}
             >
-                <div className="w-8 h-8 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+                <div
+                    className="w-8 h-8 rounded-full animate-spin"
+                    style={{ border: "2px solid var(--border)", borderTopColor: "var(--accent)" }}
+                />
             </div>
         );
     }
@@ -298,7 +348,7 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
             <div
                 style={{
                     [horizontal ? "height" : "width"]: 1,
-                    background: "rgba(0,0,0,0.6)",
+                    background: "var(--border)",
                     flexShrink: 0,
                 }}
             />
@@ -368,7 +418,7 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
         <>
             <div
                 className="fixed inset-0 overflow-hidden"
-                style={{ background: "#000", touchAction: "manipulation" }}
+                style={{ background: "var(--background)", touchAction: "manipulation" }}
             >
                 {renderLayout()}
 
@@ -391,9 +441,16 @@ export default function PlayLifeCounter({ partidaId, initialSession }: PlayLifeC
                 {ending && (
                     <div
                         className="absolute inset-0 flex items-center justify-center"
-                        style={{ background: "rgba(0,0,0,0.7)", zIndex: 200, backdropFilter: "blur(4px)" }}
+                        style={{
+                            background: "color-mix(in srgb, var(--background) 72%, transparent)",
+                            zIndex: 200,
+                            backdropFilter: "blur(4px)",
+                        }}
                     >
-                        <div className="w-10 h-10 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        <div
+                            className="w-10 h-10 rounded-full animate-spin"
+                            style={{ border: "2px solid var(--border)", borderTopColor: "var(--accent)" }}
+                        />
                     </div>
                 )}
             </div>

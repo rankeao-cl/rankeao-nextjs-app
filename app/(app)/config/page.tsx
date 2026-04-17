@@ -10,6 +10,7 @@ import { uploadMarketplaceImage } from "@/lib/api/marketplace";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 // ── Colors ──
 const C = {
@@ -21,7 +22,7 @@ const C = {
   muted: "var(--muted)",
   accent: "var(--accent)",
   danger: "var(--danger)",
-  dangerBg: "rgba(237,66,69,0.1)",
+  dangerBg: "color-mix(in srgb, var(--danger) 12%, transparent)",
   switchOff: "var(--muted)",
   switchOn: "var(--accent)",
   versionText: "var(--muted)",
@@ -35,6 +36,16 @@ interface SectionDef {
   label: string;
   icon: React.ReactNode;
 }
+
+const NOTIF_MAP: Record<keyof NotificationPreferences, { category: string; channel: string }> = {
+  tournament_updates: { category: "tournament", channel: "IN_APP" },
+  match_reminders: { category: "tournament", channel: "PUSH" },
+  social_interactions: { category: "social", channel: "IN_APP" },
+  clan_activity: { category: "social", channel: "PUSH" },
+  marketplace_offers: { category: "marketplace", channel: "IN_APP" },
+  price_alerts: { category: "marketplace", channel: "PUSH" },
+  system_announcements: { category: "system", channel: "IN_APP" },
+};
 
 // ── Inline SVG Icons (16px default) ──
 function IconPerson({ size = 16, color = C.muted }: { size?: number; color?: string }) {
@@ -170,7 +181,7 @@ function IconEdit({ size = 16, color = C.muted }: { size?: number; color?: strin
     </svg>
   );
 }
-function IconCamera({ size = 16, color = "#fff" }: { size?: number; color?: string }) {
+function IconCamera({ size = 16, color = "var(--accent-foreground)" }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -246,17 +257,25 @@ function Toggle({ value, onChange, disabled }: { value: boolean; onChange: (v: b
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#fff",
+    backgroundColor: C.surfaceSolid,
     position: "absolute",
     top: 2,
     left: value ? 20 : 2,
     transition: "left 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+    border: `1px solid ${C.border}`,
     boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
   };
   return (
-    <div style={trackStyle} onClick={() => !disabled && onChange(!value)} role="switch" aria-checked={value}>
+    <button
+      type="button"
+      style={{ ...trackStyle, border: "none", padding: 0 }}
+      onClick={() => !disabled && onChange(!value)}
+      role="switch"
+      aria-checked={value}
+      disabled={disabled}
+    >
       <div style={thumbStyle} />
-    </div>
+    </button>
   );
 }
 
@@ -303,9 +322,20 @@ function Row({ icon, label, value, chevron, danger, onClick, right, style }: {
   right?: React.ReactNode;
   style?: CSSProperties;
 }) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       style={{
         minHeight: 52,
         padding: "14px 16px",
@@ -436,11 +466,20 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " " || e.key === "Escape")) {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Cerrar modal"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        backgroundColor: "rgba(0,0,0,0.6)",
+        backgroundColor: "color-mix(in srgb, var(--overlay) 70%, transparent)",
         display: "flex",
         flexDirection: "column",
       }}
@@ -480,7 +519,7 @@ function ThemeOption({ label, icon, active, onClick }: {
         padding: "12px 8px",
         borderRadius: 12,
         border: active ? `2px solid ${C.accent}` : `1px solid ${C.border}`,
-        backgroundColor: active ? "rgba(59,130,246,0.08)" : "transparent",
+        backgroundColor: active ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
         cursor: "pointer",
         transition: "all 0.2s ease",
       }}
@@ -528,17 +567,6 @@ export default function ConfigPage() {
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
   // ── Notification prefs ──
-  // Map flat UI keys → API category/channel
-  const NOTIF_MAP: Record<keyof NotificationPreferences, { category: string; channel: string }> = {
-    tournament_updates: { category: "tournament", channel: "IN_APP" },
-    match_reminders: { category: "tournament", channel: "PUSH" },
-    social_interactions: { category: "social", channel: "IN_APP" },
-    clan_activity: { category: "social", channel: "PUSH" },
-    marketplace_offers: { category: "marketplace", channel: "IN_APP" },
-    price_alerts: { category: "marketplace", channel: "PUSH" },
-    system_announcements: { category: "system", channel: "IN_APP" },
-  };
-
   const [localNotifPrefs, setLocalNotifPrefs] = useState<NotificationPreferences>({
     tournament_updates: true,
     match_reminders: true,
@@ -556,7 +584,9 @@ export default function ConfigPage() {
   const [privacyMessages, setPrivacyMessages] = useState(true);
 
   // ── Theme ──
-  const [theme, setTheme] = useState<"dark" | "light" | "system">("dark");
+  const { theme, setTheme: setAppTheme } = useTheme();
+  const selectedTheme: "dark" | "light" | "system" =
+    theme === "dark" || theme === "light" || theme === "system" ? theme : "system";
 
   // ── Toast ──
   const [toastMsg, setToastMsg] = useState("");
@@ -622,7 +652,9 @@ export default function ConfigPage() {
         if (p?.bio) setProfileBio(p.bio as string);
         if (p?.city) setProfileCity(p.city as string);
         if (p?.country) setProfileCountry(p.country as string);
-      }).catch(() => {});
+      }).catch((error: unknown) => {
+        console.warn("No se pudo cargar perfil de usuario", error);
+      });
     }
   }, [session?.username]);
 
@@ -651,8 +683,9 @@ export default function ConfigPage() {
         setAvatarUrl(newUrl);
         showToast("Avatar actualizado");
       }
-    } catch {
-      // silent
+    } catch (error: unknown) {
+      console.error("Error al actualizar avatar", error);
+      showToast("No se pudo actualizar el avatar");
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -670,8 +703,9 @@ export default function ConfigPage() {
       }, token);
       setEditModalOpen(false);
       showToast("Perfil actualizado");
-    } catch {
-      // silent
+    } catch (error: unknown) {
+      console.error("Error al guardar perfil", error);
+      showToast("No se pudo actualizar el perfil");
     } finally {
       setIsSavingProfile(false);
     }
@@ -695,7 +729,8 @@ export default function ConfigPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch {
+    } catch (error: unknown) {
+      console.error("Error al cambiar contrasena", error);
       setPasswordError("Error al cambiar contrasena");
     } finally {
       setIsChangingPassword(false);
@@ -746,7 +781,8 @@ export default function ConfigPage() {
       {/* Avatar */}
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
         <div style={{ position: "relative" }}>
-          <div
+          <button
+            type="button"
             onClick={() => avatarInputRef.current?.click()}
             style={{
               width: 88,
@@ -763,11 +799,15 @@ export default function ConfigPage() {
               border: `2px solid ${C.border}`,
               transition: "opacity 0.2s",
               opacity: isUploadingAvatar ? 0.5 : 1,
+              padding: 0,
             }}
+            aria-label="Cambiar avatar"
+            disabled={isUploadingAvatar}
           >
             {!avatarUrl && <IconPerson size={32} color={C.muted} />}
-          </div>
-          <div
+          </button>
+          <button
+            type="button"
             onClick={() => avatarInputRef.current?.click()}
             style={{
               position: "absolute",
@@ -782,10 +822,13 @@ export default function ConfigPage() {
               justifyContent: "center",
               cursor: "pointer",
               border: `2px solid ${C.bg}`,
+              padding: 0,
             }}
+            aria-label="Abrir selector de avatar"
+            disabled={isUploadingAvatar}
           >
             <IconCamera size={14} />
-          </div>
+          </button>
           <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
         </div>
       </div>
@@ -966,21 +1009,21 @@ export default function ConfigPage() {
         <div style={{ display: "flex", gap: 10 }}>
           <ThemeOption
             label="Oscuro"
-            icon={<IconMoon size={20} color={theme === "dark" ? C.accent : C.muted} />}
-            active={theme === "dark"}
-            onClick={() => setTheme("dark")}
+            icon={<IconMoon size={20} color={selectedTheme === "dark" ? C.accent : C.muted} />}
+            active={selectedTheme === "dark"}
+            onClick={() => setAppTheme("dark")}
           />
           <ThemeOption
             label="Claro"
-            icon={<IconSun size={20} color={theme === "light" ? C.accent : C.muted} />}
-            active={theme === "light"}
-            onClick={() => setTheme("light")}
+            icon={<IconSun size={20} color={selectedTheme === "light" ? C.accent : C.muted} />}
+            active={selectedTheme === "light"}
+            onClick={() => setAppTheme("light")}
           />
           <ThemeOption
             label="Sistema"
-            icon={<IconMonitor size={20} color={theme === "system" ? C.accent : C.muted} />}
-            active={theme === "system"}
-            onClick={() => setTheme("system")}
+            icon={<IconMonitor size={20} color={selectedTheme === "system" ? C.accent : C.muted} />}
+            active={selectedTheme === "system"}
+            onClick={() => setAppTheme("system")}
           />
         </div>
       </SCard>
@@ -1176,7 +1219,7 @@ export default function ConfigPage() {
                     borderRadius: 10,
                     border: "none",
                     cursor: "pointer",
-                    backgroundColor: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+                    backgroundColor: isActive ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                     color: isActive ? C.text : C.muted,
                     fontSize: 14,
                     fontWeight: isActive ? 600 : 400,
@@ -1259,7 +1302,7 @@ export default function ConfigPage() {
               opacity: isSavingProfile ? 0.5 : 1,
               fontSize: 13,
               fontWeight: 700,
-              color: "#fff",
+              color: "var(--accent-foreground)",
             }}
           >
             {isSavingProfile ? "..." : "Guardar"}
@@ -1341,7 +1384,7 @@ export default function ConfigPage() {
             </div>
           )}
           {passwordSuccess && (
-            <div style={{ backgroundColor: "rgba(52,199,89,0.1)", padding: "10px 16px", borderRadius: 12, marginBottom: 16 }}>
+            <div style={{ backgroundColor: "color-mix(in srgb, var(--success) 12%, transparent)", padding: "10px 16px", borderRadius: 12, marginBottom: 16 }}>
               <span style={{ color: "var(--success)", fontSize: 13 }}>{passwordSuccess}</span>
             </div>
           )}
@@ -1374,7 +1417,7 @@ export default function ConfigPage() {
               opacity: isChangingPassword ? 0.5 : 1,
               fontSize: 14,
               fontWeight: 700,
-              color: "#fff",
+              color: "var(--accent-foreground)",
               textAlign: "center",
             }}
           >

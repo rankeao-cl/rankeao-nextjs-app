@@ -54,8 +54,17 @@ function FeedListingCard({ listing }: { listing: Listing }) {
         e.preventDefault();
         e.stopPropagation();
         const url = `https://rankeao.cl/marketplace/${listing.slug || listing.id}`;
-        if (navigator.share) navigator.share({ title: listing.title, url }).catch(() => {});
-        else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+        if (navigator.share) {
+            navigator.share({ title: listing.title, url }).catch((error: unknown) => {
+                console.warn("No se pudo compartir publicacion", error);
+            });
+        } else {
+            navigator.clipboard.writeText(url)
+                .then(() => toast.success("Enlace copiado"))
+                .catch((error: unknown) => {
+                    console.warn("No se pudo copiar enlace de publicacion", error);
+                });
+        }
     };
 
     const handleBuy = (e: React.MouseEvent) => {
@@ -99,7 +108,7 @@ function FeedListingCard({ listing }: { listing: Listing }) {
                         style={{
                             borderRadius: 10,
                             background: "var(--surface-solid)",
-                            border: "1px solid rgba(255,255,255,0.06)",
+                            border: "1px solid var(--border)",
                             containerType: "inline-size",
                         }}
                     >
@@ -167,19 +176,19 @@ function FeedListingCard({ listing }: { listing: Listing }) {
                         <div style={{ padding: "4px 10px 8px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center" }}>
                             {listing.price != null ? (
                                 <div style={{ width: "100%", textAlign: "center" }}>
-                                    <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.22)", letterSpacing: "0.5px", display: "block", lineHeight: 1, marginBottom: 2 }}>
+                                    <span style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.5px", display: "block", lineHeight: 1, marginBottom: 2 }}>
                                         PRECIO
                                     </span>
                                     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 1, lineHeight: 1, width: "100%" }}>
-                                        <span style={{ fontSize: "10cqw", fontWeight: 600, color: "rgba(255,255,255,0.30)", lineHeight: 1, marginBottom: "0.15em" }}>$</span>
-                                        <span style={{ fontSize: "26cqw", fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1 }}>
+                                        <span style={{ fontSize: "10cqw", fontWeight: 600, color: "var(--muted)", lineHeight: 1, marginBottom: "0.15em" }}>$</span>
+                                        <span style={{ fontSize: "26cqw", fontWeight: 900, color: "var(--foreground)", letterSpacing: "-0.04em", lineHeight: 1 }}>
                                             {fmtPrice(listing.price)}
                                         </span>
                                     </div>
                                 </div>
                             ) : (
                                 <div style={{ width: "100%", textAlign: "center" }}>
-                                    <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.22)", letterSpacing: "0.5px", display: "block", lineHeight: 1, marginBottom: 4 }}>
+                                    <span style={{ fontSize: 9, fontWeight: 600, color: "var(--muted)", letterSpacing: "0.5px", display: "block", lineHeight: 1, marginBottom: 4 }}>
                                         PRECIO
                                     </span>
                                     <span className="text-[13px] text-muted font-semibold">Consultar</span>
@@ -266,13 +275,13 @@ function FeedListingCard({ listing }: { listing: Listing }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        background: "rgba(0,0,0,0.68)",
+                        background: "color-mix(in srgb, var(--background) 72%, transparent)",
                         backdropFilter: "blur(10px)",
                         WebkitBackdropFilter: "blur(10px)",
-                        border: "1.5px solid rgba(255,255,255,0.28)",
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.55)",
+                        border: "1.5px solid var(--border)",
+                        boxShadow: "var(--shadow-card)",
                         cursor: "pointer",
-                        color: "rgba(255,255,255,0.9)",
+                        color: "var(--foreground)",
                     }}
                 >
                     <FlipIcon />

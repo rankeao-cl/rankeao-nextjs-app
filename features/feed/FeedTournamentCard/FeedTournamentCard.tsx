@@ -258,8 +258,17 @@ function FeedTournamentCard({ tournament }: { tournament: Tournament }) {
                             e.preventDefault();
                             e.stopPropagation();
                             const url = `https://rankeao.cl/torneos/${tournament.slug ?? tournament.id}`;
-                            if (navigator.share) navigator.share({ title: tournament.name, url }).catch(() => {});
-                            else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado")).catch(() => {});
+                            if (navigator.share) {
+                                navigator.share({ title: tournament.name, url }).catch((error: unknown) => {
+                                    console.warn("No se pudo compartir torneo", error);
+                                });
+                            } else {
+                                navigator.clipboard.writeText(url)
+                                    .then(() => toast.success("Enlace copiado"))
+                                    .catch((error: unknown) => {
+                                        console.warn("No se pudo copiar enlace de torneo", error);
+                                    });
+                            }
                         }} className="flex items-center gap-[5px] bg-transparent border-none text-muted cursor-pointer p-0">
                             <ArrowShapeTurnUpRight className="w-4 h-4" />
                         </button>

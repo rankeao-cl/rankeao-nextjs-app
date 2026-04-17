@@ -9,6 +9,12 @@ interface UIState {
   createPostModalOpen: boolean;
   openCreatePost: () => void;
   closeCreatePost: () => void;
+  createDeckModalOpen: boolean;
+  openCreateDeck: () => void;
+  closeCreateDeck: () => void;
+  createListingModalOpen: boolean;
+  openCreateListing: () => void;
+  closeCreateListing: () => void;
   notificationSidebarOpen: boolean;
   openNotificationSidebar: () => void;
   closeNotificationSidebar: () => void;
@@ -23,6 +29,12 @@ export const useUIStore = create<UIState>()((set) => ({
   createPostModalOpen: false,
   openCreatePost: () => set({ createPostModalOpen: true }),
   closeCreatePost: () => set({ createPostModalOpen: false }),
+  createDeckModalOpen: false,
+  openCreateDeck: () => set({ createDeckModalOpen: true }),
+  closeCreateDeck: () => set({ createDeckModalOpen: false }),
+  createListingModalOpen: false,
+  openCreateListing: () => set({ createListingModalOpen: true }),
+  closeCreateListing: () => set({ createListingModalOpen: false }),
   notificationSidebarOpen: false,
   openNotificationSidebar: () => set({ notificationSidebarOpen: true }),
   closeNotificationSidebar: () => set({ notificationSidebarOpen: false }),

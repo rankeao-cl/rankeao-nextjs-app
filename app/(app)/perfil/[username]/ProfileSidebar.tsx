@@ -27,7 +27,7 @@ export default function ProfileSidebar({
                     <div
                         className="rounded-[14px] p-3.5"
                         style={{
-                            backgroundColor: "rgba(255,255,255,0.03)",
+                            backgroundColor: "var(--surface)",
                             border: "1px solid var(--border)",
                         }}
                     >
@@ -56,7 +56,7 @@ export default function ProfileSidebar({
                     <div
                         className="rounded-[14px] p-3.5"
                         style={{
-                            backgroundColor: "rgba(255,255,255,0.03)",
+                            backgroundColor: "var(--surface)",
                             border: "1px solid var(--border)",
                         }}
                     >
@@ -88,7 +88,7 @@ export default function ProfileSidebar({
                     <div
                         className="rounded-[14px] p-3.5"
                         style={{
-                            backgroundColor: "rgba(255,255,255,0.03)",
+                            backgroundColor: "var(--surface)",
                             border: "1px solid var(--border)",
                         }}
                     >
@@ -120,7 +120,7 @@ export default function ProfileSidebar({
                     <div
                         className="rounded-[14px] p-3.5"
                         style={{
-                            backgroundColor: "rgba(255,255,255,0.03)",
+                            backgroundColor: "var(--surface)",
                             border: "1px solid var(--border)",
                         }}
                     >

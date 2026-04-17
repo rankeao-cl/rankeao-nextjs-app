@@ -45,8 +45,14 @@ export default function OfferModal({ listing, open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <Card className="surface-card w-full max-w-sm mx-4 rounded-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <button
+        type="button"
+        aria-label="Cerrar modal"
+        onClick={onClose}
+        className="absolute inset-0"
+      />
+      <Card className="surface-card relative z-10 w-full max-w-sm mx-4 rounded-2xl">
         <Card.Content className="p-6 space-y-4">
           <h2 className="text-lg font-bold text-[var(--foreground)]">Hacer oferta</h2>
 

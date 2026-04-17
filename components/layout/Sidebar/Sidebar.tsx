@@ -40,6 +40,8 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { status } = useAuth();
     const openCreatePost = useUIStore((s) => s.openCreatePost);
+    const openCreateDeck = useUIStore((s) => s.openCreateDeck);
+    const openCreateListing = useUIStore((s) => s.openCreateListing);
     const isAuth = status === "authenticated";
 
     const [createOpen, setCreateOpen] = useState(false);
@@ -113,26 +115,24 @@ export default function Sidebar() {
                                         Crear Post
                                     </span>
                                 </button>
-                                <Link
-                                    href="/decks/new"
-                                    onClick={() => setCreateOpen(false)}
-                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
+                                <button
+                                    onClick={() => { openCreateDeck(); setCreateOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors cursor-pointer text-left bg-transparent border-none"
                                 >
                                     <SquareDashed className="size-[15px] text-purple-500 shrink-0" />
                                     <span className="text-sm font-semibold text-foreground">
                                         Publicar Mazo
                                     </span>
-                                </Link>
-                                <Link
-                                    href="/marketplace/new"
-                                    onClick={() => setCreateOpen(false)}
-                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors"
+                                </button>
+                                <button
+                                    onClick={() => { openCreateListing(); setCreateOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-solid transition-colors cursor-pointer text-left bg-transparent border-none"
                                 >
                                     <ShoppingCart className="size-[15px] text-orange-500 shrink-0" />
                                     <span className="text-sm font-semibold text-foreground">
                                         Vender Carta
                                     </span>
-                                </Link>
+                                </button>
                                 <Link
                                     href="/torneos/new"
                                     onClick={() => setCreateOpen(false)}

@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollShadow } from "@heroui/react/scroll-shadow";
+import { toast } from "@heroui/react/toast";
 
 import { Bell, ShoppingCart, TargetDart, Xmark, Cup } from "@gravity-ui/icons";
 import { timeAgo, stripHtml, sanitizeHref } from "@/lib/utils/format";
+import { mapErrorMessage } from "@/lib/api/errors";
 import {
     getNotifications,
     getUnreadNotificationCount,
@@ -201,7 +203,9 @@ function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClos
 
     const handleClick = () => {
         if (!notif.is_read && accessToken) {
-            markNotificationRead(String(notif.id), accessToken).catch(() => {});
+            markNotificationRead(String(notif.id), accessToken).catch((error: unknown) => {
+                console.error("No se pudo marcar la notificacion como leida", { notificationId: notif.id, error });
+            });
         }
         onClose();
     };
@@ -217,7 +221,16 @@ function NotifRow({ notif, onClose, accessToken }: { notif: Notification; onClos
             </Link>
         );
     }
-    return <div onClick={handleClick} className="hover:bg-foreground/5 transition-colors cursor-pointer">{inner}</div>;
+    return (
+        <button
+            type="button"
+            onClick={handleClick}
+            className="w-full text-left hover:bg-foreground/5 transition-colors cursor-pointer border-0 bg-transparent p-0"
+            aria-label="Abrir notificacion"
+        >
+            {inner}
+        </button>
+    );
 }
 
 // ── Main Component ──
@@ -236,23 +249,44 @@ export default function NotificationSidebar({
 
     useEffect(() => {
         if (!isOpen || !accessToken) return;
-        setLoading(true);
-        Promise.all([
-            getNotifications({ per_page: 100 }, accessToken).catch(() => null),
-            getUnreadNotificationCount(accessToken).catch(() => null),
-        ]).then(([notifRes, countRes]) => {
-            const raw = notifRes?.notifications ?? [];
-            const normalized = (Array.isArray(raw) ? raw : []).map((n) => ({
-                ...n,
-                is_read: n.is_read ?? n.read_at != null,
-                category: (n.category || n.channel)?.toLowerCase(),
-            }));
-            setNotifications(normalized);
-            const total = countRes?.total;
-            if (typeof total === "number") onUnreadCountChange?.(total);
+        let cancelled = false;
+        const loadNotifications = async () => {
+            setLoading(true);
+            const [notifRes, countRes] = await Promise.allSettled([
+                getNotifications({ per_page: 100 }, accessToken),
+                getUnreadNotificationCount(accessToken),
+            ]);
+            if (cancelled) return;
+
+            if (notifRes.status === "fulfilled") {
+                const raw = notifRes.value?.notifications ?? [];
+                const normalized = (Array.isArray(raw) ? raw : []).map((n) => ({
+                    ...n,
+                    is_read: n.is_read ?? n.read_at != null,
+                    category: (n.category || n.channel)?.toLowerCase(),
+                }));
+                setNotifications(normalized);
+            } else {
+                setNotifications([]);
+                toast.danger("No se pudieron cargar las notificaciones");
+                console.error("Error al cargar notificaciones", notifRes.reason);
+            }
+
+            if (countRes.status === "fulfilled") {
+                const total = countRes.value?.total;
+                if (typeof total === "number") onUnreadCountChange?.(total);
+            } else {
+                console.error("Error al cargar contador de notificaciones", countRes.reason);
+            }
+
             setLoading(false);
-        });
-    }, [isOpen, accessToken]);
+        };
+
+        void loadNotifications();
+        return () => {
+            cancelled = true;
+        };
+    }, [isOpen, accessToken, onUnreadCountChange]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -305,15 +339,20 @@ export default function NotificationSidebar({
             await markAllNotificationsRead(accessToken);
             setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
             onUnreadCountChange?.(0);
-        } catch { /* ignore */ }
+        } catch (error: unknown) {
+            toast.danger(mapErrorMessage(error));
+            console.error("No se pudieron marcar las notificaciones como leidas", error);
+        }
         setMarkingAll(false);
     };
 
     return (
         <>
             {/* Backdrop */}
-            <div
-                className={`fixed inset-0 z-[59] bg-black/50 transition-opacity duration-200 ${
+            <button
+                type="button"
+                aria-label="Cerrar notificaciones"
+                className={`fixed inset-0 z-[59] border-0 bg-black/50 p-0 transition-opacity duration-200 ${
                     isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                 }`}
                 onClick={onClose}

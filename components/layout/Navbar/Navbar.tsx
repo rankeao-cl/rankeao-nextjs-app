@@ -42,6 +42,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const { session, status, logout } = useAuth();
   const openCreatePost = useUIStore((s) => s.openCreatePost);
+  const openCreateDeck = useUIStore((s) => s.openCreateDeck);
+  const openCreateListing = useUIStore((s) => s.openCreateListing);
   const isAuthenticated = status === "authenticated" && Boolean(session?.email);
 
   const { setTheme, resolvedTheme } = useTheme();
@@ -63,26 +65,35 @@ export default function Navbar() {
 
     const token = session.accessToken;
 
-    const pollCount = () => {
-      getUnreadNotificationCount(token).catch(() => null).then((countRes) => {
+    const pollCount = async () => {
+      try {
+        const countRes = await getUnreadNotificationCount(token);
         const total = countRes?.total;
         if (typeof total === "number") setUnreadCount(total);
-      });
+      } catch (error: unknown) {
+        console.error("No se pudo actualizar el contador de notificaciones", error);
+      }
     };
 
-    pollCount();
-    const interval = setInterval(pollCount, 60_000);
+    void pollCount();
+    const interval = setInterval(() => {
+      void pollCount();
+    }, 60_000);
 
     // Fetch user avatar once and store in auth store for shared access
     if (session.username) {
-      getUserProfile(session.username).then((res) => {
-        const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
-        if (profile?.avatar_url) useAuthStore.getState().setAvatarUrl(profile.avatar_url);
-      }).catch(() => {});
+      getUserProfile(session.username)
+        .then((res) => {
+          const profile = ((res?.data as { user?: UserProfile } | undefined)?.user ?? res?.data ?? res) as Partial<UserProfile> | undefined;
+          if (profile?.avatar_url) useAuthStore.getState().setAvatarUrl(profile.avatar_url);
+        })
+        .catch((error: unknown) => {
+          console.error("No se pudo cargar el avatar del usuario", error);
+        });
     }
 
     return () => clearInterval(interval);
-  }, [status, session?.accessToken, session?.username]);
+  }, [status, session?.accessToken, session?.username, setUnreadCount]);
 
   if (authPages.some((p) => pathname.startsWith(p))) {
     return null;
@@ -239,7 +250,7 @@ export default function Navbar() {
                               <p className="text-[11px] text-muted leading-tight">Comparte con la comunidad</p>
                             </div>
                           </button>
-                          <Link href="/decks/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer">
+                          <button onClick={openCreateDeck} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer text-left bg-transparent border-none">
                             <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0 group-hover:bg-purple-500/25 transition-colors">
                               <SquareDashed className="size-4 text-purple-500" />
                             </div>
@@ -247,8 +258,8 @@ export default function Navbar() {
                               <p className="text-sm font-semibold text-foreground">Publicar Mazo</p>
                               <p className="text-[11px] text-muted leading-tight">Muestra tu mejor deck</p>
                             </div>
-                          </Link>
-                          <Link href="/marketplace/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer">
+                          </button>
+                          <button onClick={openCreateListing} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer text-left bg-transparent border-none">
                             <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0 group-hover:bg-orange-500/25 transition-colors">
                               <ShoppingCart className="size-4 text-orange-500" />
                             </div>
@@ -256,7 +267,7 @@ export default function Navbar() {
                               <p className="text-sm font-semibold text-foreground">Vender Carta</p>
                               <p className="text-[11px] text-muted leading-tight">Listado en el marketplace</p>
                             </div>
-                          </Link>
+                          </button>
                           <Link href="/torneos/new" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-solid transition-colors group cursor-pointer">
                             <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/25 transition-colors">
                               <Cup className="size-4 text-emerald-500" />

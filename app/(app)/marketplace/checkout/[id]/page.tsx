@@ -10,7 +10,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useCheckout, usePayCheckout } from "@/lib/hooks/use-marketplace";
-import type { MarketplaceCheckout } from "@/lib/types/marketplace";
 import {
   ArrowLeft,
   CircleCheck,
@@ -106,20 +105,13 @@ export default function CheckoutPage() {
   const isAuth = authStatus === "authenticated";
 
   const {
-    data: rawCheckout,
+    data: checkout,
     isLoading,
     isError,
   } = useCheckout(checkoutId);
 
   const payMutation = usePayCheckout();
   const [payingProvider, setPayingProvider] = useState<string | null>(null);
-
-  // Normalize the checkout data — API may nest under .data or .checkout
-  const checkout: MarketplaceCheckout | null =
-    rawCheckout?.data ??
-    rawCheckout?.checkout ??
-    (rawCheckout as MarketplaceCheckout) ??
-    null;
 
   // ── Pay handler ──
 
@@ -131,10 +123,7 @@ export default function CheckoutPage() {
         checkoutId,
         payload: { provider },
       });
-      const paymentUrl =
-        (result as { payment_url?: string })?.payment_url ??
-        (result as { checkout?: { payment_url?: string } })?.checkout?.payment_url ??
-        (result as { data?: { payment_url?: string } })?.data?.payment_url;
+      const paymentUrl = result.payment_url;
       if (paymentUrl) {
         window.location.href = paymentUrl;
       }
@@ -194,6 +183,7 @@ export default function CheckoutPage() {
   const itemName = checkout.item_summary ?? checkout.item_name ?? `Listing #${checkout.listing_id?.slice(-8) ?? ""}`;
   const quantity = checkout.quantity ?? 1;
   const orderNumber = checkout.order_number ?? checkout.id.slice(-8).toUpperCase();
+  const deliveryMethodKey = checkout.delivery_method?.toUpperCase();
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col pt-4 pb-12">
@@ -346,7 +336,7 @@ export default function CheckoutPage() {
         <SectionCard title="Metodo de entrega">
           <div className="flex items-center gap-2">
             <Chip color="default" variant="soft" size="sm">
-              {DELIVERY_LABELS[checkout.delivery_method?.toUpperCase()] ??
+              {(deliveryMethodKey ? DELIVERY_LABELS[deliveryMethodKey] : undefined) ??
                 checkout.delivery_method ??
                 "-"}
             </Chip>

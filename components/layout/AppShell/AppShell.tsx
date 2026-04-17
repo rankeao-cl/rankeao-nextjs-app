@@ -7,6 +7,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 
 const CreatePostModal = dynamic(() => import("@/features/social/CreatePostModal"), { ssr: false });
+const CreateDeckModal = dynamic(() => import("@/features/deck/CreateDeckModal"), { ssr: false });
+const CreateListingModal = dynamic(() => import("@/features/marketplace/CreateListingModal"), { ssr: false });
 const CreatePostFAB = dynamic(() => import("@/features/chat/ChatFAB"), { ssr: false });
 
 const fullWidthPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/terminos", "/privacidad", "/cookies"];
@@ -45,6 +47,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <BottomNav />
 
             <SafeBoundary><CreatePostModal /></SafeBoundary>
+            <SafeBoundary><CreateDeckModal /></SafeBoundary>
+            <SafeBoundary><CreateListingModal /></SafeBoundary>
             <SafeBoundary><CreatePostFAB /></SafeBoundary>
         </div>
     );

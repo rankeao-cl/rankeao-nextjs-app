@@ -140,7 +140,7 @@ export default function ProfileHeader({
                                     boxShadow: `0 2px 8px ${ringColor}60`,
                                 }}
                             >
-                                <span className="text-[10px] font-extrabold text-white">{level}</span>
+                                <span className="text-[10px] font-extrabold text-[var(--accent-foreground)]">{level}</span>
                             </div>
                         )}
                     </div>
@@ -152,14 +152,14 @@ export default function ProfileHeader({
                                 {name}
                             </h1>
                             {isVerified && <CircleCheck width={16} height={16} color="var(--accent)" />}
-                            {isPremium && <Star width={16} height={16} color="#f59e0b" />}
+                            {isPremium && <Star width={16} height={16} color="var(--warning)" />}
                             {isAdmin && (
-                                <span className="text-[9px] font-bold text-white rounded-full px-2 py-0.5" style={{ backgroundColor: "var(--danger)" }}>
+                                <span className="text-[9px] font-bold text-[var(--danger-foreground)] rounded-full px-2 py-0.5" style={{ backgroundColor: "var(--danger)" }}>
                                     ADMIN
                                 </span>
                             )}
                             {isModerator && (
-                                <span className="text-[9px] font-bold text-white rounded-full px-2 py-0.5" style={{ backgroundColor: "var(--accent)" }}>
+                                <span className="text-[9px] font-bold text-[var(--accent-foreground)] rounded-full px-2 py-0.5" style={{ backgroundColor: "var(--accent)" }}>
                                     MOD
                                 </span>
                             )}
@@ -192,9 +192,9 @@ export default function ProfileHeader({
                                     onClick={onEditProfile}
                                     className="rounded-full px-5 py-2 text-[13px] font-semibold cursor-pointer backdrop-blur-lg"
                                     style={{
-                                        backgroundColor: "rgba(255,255,255,0.08)",
+                                        backgroundColor: "color-mix(in srgb, var(--overlay) 45%, transparent)",
                                         color: "var(--foreground)",
-                                        border: "1px solid rgba(255,255,255,0.12)",
+                                        border: "1px solid var(--border)",
                                     }}
                                 >
                                     Editar perfil
@@ -203,8 +203,8 @@ export default function ProfileHeader({
                                     onClick={() => navigator.clipboard.writeText(window.location.href)}
                                     className="w-[38px] h-[38px] rounded-full flex items-center justify-center cursor-pointer backdrop-blur-lg"
                                     style={{
-                                        backgroundColor: "rgba(255,255,255,0.08)",
-                                        border: "1px solid rgba(255,255,255,0.12)",
+                                        backgroundColor: "color-mix(in srgb, var(--overlay) 45%, transparent)",
+                                        border: "1px solid var(--border)",
                                     }}
                                 >
                                     <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="var(--foreground)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -221,9 +221,9 @@ export default function ProfileHeader({
                                     disabled={followLoading}
                                     className="rounded-full px-6 py-2 text-[13px] font-bold"
                                     style={{
-                                        backgroundColor: isFollowing ? "rgba(255,255,255,0.08)" : ringColor,
-                                        color: isFollowing ? "var(--foreground)" : "#fff",
-                                        border: isFollowing ? "1px solid rgba(255,255,255,0.12)" : "none",
+                                        backgroundColor: isFollowing ? "color-mix(in srgb, var(--overlay) 45%, transparent)" : ringColor,
+                                        color: isFollowing ? "var(--foreground)" : "var(--accent-foreground)",
+                                        border: isFollowing ? "1px solid var(--border)" : "none",
                                         cursor: followLoading ? "not-allowed" : "pointer",
                                         opacity: followLoading ? 0.6 : 1,
                                         boxShadow: isFollowing ? "none" : `0 2px 12px ${ringColor}50`,
@@ -235,9 +235,9 @@ export default function ProfileHeader({
                                     onClick={() => router.push(`/chat?user=${profile?.username}`)}
                                     className="rounded-full px-5 py-2 text-[13px] font-semibold cursor-pointer backdrop-blur-lg"
                                     style={{
-                                        backgroundColor: "rgba(255,255,255,0.08)",
+                                        backgroundColor: "color-mix(in srgb, var(--overlay) 45%, transparent)",
                                         color: "var(--foreground)",
-                                        border: "1px solid rgba(255,255,255,0.12)",
+                                        border: "1px solid var(--border)",
                                     }}
                                 >
                                     Mensaje
@@ -247,8 +247,8 @@ export default function ProfileHeader({
                                         onClick={() => setShowMoreOptions(!showMoreOptions)}
                                         className="w-[38px] h-[38px] rounded-full flex items-center justify-center cursor-pointer backdrop-blur-lg"
                                         style={{
-                                            backgroundColor: "rgba(255,255,255,0.08)",
-                                            border: "1px solid rgba(255,255,255,0.12)",
+                                            backgroundColor: "color-mix(in srgb, var(--overlay) 45%, transparent)",
+                                            border: "1px solid var(--border)",
                                         }}
                                     >
                                         <EllipsisVertical width={14} height={14} color="var(--foreground)" />
@@ -329,7 +329,7 @@ export default function ProfileHeader({
                         </div>
                         <div
                             className="h-1 rounded-sm overflow-hidden w-full"
-                            style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                            style={{ backgroundColor: "var(--surface-secondary)" }}
                         >
                             <div
                                 className="h-full rounded-sm transition-[width] duration-[600ms] ease-[cubic-bezier(0.4,0,0.2,1)]"

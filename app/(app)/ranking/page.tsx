@@ -43,23 +43,33 @@ const CL_CITIES = [
   { key: "Antofagasta", label: "Antofagasta" },
 ];
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
 export default async function RankingPage({ searchParams }: RankingPageProps) {
   const params = (await searchParams) ?? {};
-  let xpData, ratingData, gamesData;
+  let xpData;
+  let ratingData;
+  let gamesData;
+  let xpLoadFailed = false;
+  let ratingLoadFailed = false;
+  let gamesLoadFailed = false;
+  let formatsLoadFailed = false;
 
   const period = params.period || "all_time";
   const selectedTab = params.tab === "ratings" ? "ratings" : "xp";
   const selectedCountry = params.country || "";
   const selectedCity = params.city || "";
 
-  try {
-    [xpData, gamesData] = await Promise.all([
-      getXpLeaderboard({ period, per_page: 20 }).catch(() => null),
-      getGames().catch(() => null),
-    ]);
-  } catch {
-    // silent
-  }
+  const [xpResult, gamesResult] = await Promise.allSettled([
+    getXpLeaderboard({ period, per_page: 20 }),
+    getGames(),
+  ]);
+  if (xpResult.status === "fulfilled") xpData = xpResult.value;
+  else xpLoadFailed = true;
+  if (gamesResult.status === "fulfilled") gamesData = gamesResult.value;
+  else gamesLoadFailed = true;
 
   const rawGames = gamesData?.data ?? gamesData?.games;
   const games: CatalogGame[] = Array.isArray(rawGames) ? rawGames : [];
@@ -69,15 +79,16 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
 
   let formats: CatalogFormat[] = Array.isArray(selectedGame?.formats) ? selectedGame.formats : [];
   if (selectedGame?.slug) {
-    try {
-      const formatsRes = await getGameFormats(selectedGame.slug).catch(() => null);
+    const [formatsResult] = await Promise.allSettled([getGameFormats(selectedGame.slug)]);
+    if (formatsResult.status === "fulfilled") {
+      const formatsRes = formatsResult.value;
       const rawFormats = formatsRes?.formats ?? formatsRes?.data;
       const fetchedFormats: CatalogFormat[] = Array.isArray(rawFormats) ? rawFormats : [];
       if (fetchedFormats.length > 0) {
         formats = fetchedFormats;
       }
-    } catch {
-      // silent
+    } else {
+      formatsLoadFailed = true;
     }
   }
 
@@ -85,21 +96,36 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
     formats.find((f) => f.slug === params.format) ?? formats[0];
 
   if (selectedGame?.slug && selectedFormat?.slug) {
-    try {
-      ratingData = await getRatingLeaderboard({
+    const [ratingResult] = await Promise.allSettled([getRatingLeaderboard({
         game: selectedGame.slug,
         format: selectedFormat.slug,
         per_page: 20,
         ...(selectedCountry ? { country: selectedCountry } : {}),
         ...(selectedCity ? { city: selectedCity } : {}),
-      }).catch(() => null);
-    } catch {
-      // silent
+      })]);
+    if (ratingResult.status === "fulfilled") {
+      ratingData = ratingResult.value;
+    } else {
+      ratingLoadFailed = true;
     }
   }
 
+  const loadWarnings: string[] = [];
+  if (selectedTab === "xp" && xpLoadFailed) {
+    loadWarnings.push("No se pudo cargar el leaderboard de XP.");
+  }
+  if (selectedTab === "ratings" && gamesLoadFailed) {
+    loadWarnings.push("No se pudo cargar la lista de juegos.");
+  }
+  if (selectedTab === "ratings" && formatsLoadFailed) {
+    loadWarnings.push("No se pudo cargar la lista de formatos.");
+  }
+  if (selectedTab === "ratings" && selectedGame?.slug && selectedFormat?.slug && ratingLoadFailed) {
+    loadWarnings.push("No se pudo cargar el leaderboard de ELO para los filtros seleccionados.");
+  }
+
   // API returns { data: [...], meta, success } — data is a flat array of raw entries
-  const xpRaw = xpData as unknown as Record<string, unknown> | null;
+  const xpRaw = asRecord(xpData);
   const rawXpArr = [xpRaw?.data, xpRaw?.leaderboard, xpRaw?.entries, xpData?.leaderboard, xpData?.entries].find(Array.isArray) ?? [];
   const xpEntries: LeaderboardEntry[] = rawXpArr.map((e: Record<string, unknown>, i: number) => {
       const user = (e.user ?? {}) as Record<string, unknown>;
@@ -113,7 +139,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
         title: (e.title ?? user.current_title ?? undefined) as string | undefined,
       };
     });
-  const ratingRaw = ratingData as unknown as Record<string, unknown> | null;
+  const ratingRaw = asRecord(ratingData);
   const rawRatingArr = [ratingRaw?.data, ratingRaw?.leaderboard, ratingRaw?.entries, ratingData?.leaderboard].find(Array.isArray) ?? [];
   const ratingEntries: LeaderboardEntry[] = rawRatingArr.map((e: Record<string, unknown>, i: number) => {
       const user = (e.user ?? {}) as Record<string, unknown>;
@@ -180,9 +206,9 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                     <a key={t.key} href={buildUrl({ tab: t.key })} style={{
                       display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                       textDecoration: "none", transition: "all 0.15s",
-                      backgroundColor: selectedTab === t.key ? "rgba(59,130,246,0.1)" : "transparent",
+                      backgroundColor: selectedTab === t.key ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                       color: selectedTab === t.key ? "var(--accent)" : "var(--muted)",
-                      border: selectedTab === t.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                      border: selectedTab === t.key ? "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "1px solid transparent",
                     }}>
                       {t.label}
                     </a>
@@ -198,9 +224,9 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                     <a key={p.key} href={buildUrl({ period: p.key })} style={{
                       display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                       textDecoration: "none", transition: "all 0.15s",
-                      backgroundColor: period === p.key ? "rgba(59,130,246,0.1)" : "transparent",
+                      backgroundColor: period === p.key ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                       color: period === p.key ? "var(--accent)" : "var(--muted)",
-                      border: period === p.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                      border: period === p.key ? "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "1px solid transparent",
                     }}>
                       {p.label}
                     </a>
@@ -217,9 +243,9 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                       <a key={g.slug} href={buildUrl({ tab: "ratings", game: g.slug })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
-                        backgroundColor: selectedGame?.slug === g.slug ? "rgba(59,130,246,0.1)" : "transparent",
+                        backgroundColor: selectedGame?.slug === g.slug ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                         color: selectedGame?.slug === g.slug ? "var(--accent)" : "var(--muted)",
-                        border: selectedGame?.slug === g.slug ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                        border: selectedGame?.slug === g.slug ? "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "1px solid transparent",
                       }}>
                         {g.name}
                       </a>
@@ -237,9 +263,9 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                       <a key={f.slug} href={buildUrl({ tab: "ratings", game: selectedGame?.slug || "", format: f.slug })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
-                        backgroundColor: selectedFormat?.slug === f.slug ? "rgba(59,130,246,0.1)" : "transparent",
+                        backgroundColor: selectedFormat?.slug === f.slug ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                         color: selectedFormat?.slug === f.slug ? "var(--accent)" : "var(--muted)",
-                        border: selectedFormat?.slug === f.slug ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                        border: selectedFormat?.slug === f.slug ? "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "1px solid transparent",
                       }}>
                         {f.name}
                       </a>
@@ -257,9 +283,9 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                       <a key={r.key} href={buildUrl({ country: r.key, city: "" })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
-                        backgroundColor: selectedCountry === r.key ? "rgba(59,130,246,0.1)" : "transparent",
+                        backgroundColor: selectedCountry === r.key ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                         color: selectedCountry === r.key ? "var(--accent)" : "var(--muted)",
-                        border: selectedCountry === r.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                        border: selectedCountry === r.key ? "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "1px solid transparent",
                       }}>
                         {r.label}
                       </a>
@@ -277,9 +303,9 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                       <a key={c.key} href={buildUrl({ country: "CL", city: c.key })} style={{
                         display: "block", padding: "8px 12px", borderRadius: 10, fontSize: 13, fontWeight: 600,
                         textDecoration: "none", transition: "all 0.15s",
-                        backgroundColor: selectedCity === c.key ? "rgba(59,130,246,0.1)" : "transparent",
+                        backgroundColor: selectedCity === c.key ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
                         color: selectedCity === c.key ? "var(--accent)" : "var(--muted)",
-                        border: selectedCity === c.key ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                        border: selectedCity === c.key ? "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" : "1px solid transparent",
                       }}>
                         {c.label}
                       </a>
@@ -314,6 +340,11 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
 
         {/* Leaderboard content */}
         <section className="flex-1 min-w-0">
+          {loadWarnings.length > 0 && (
+            <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+              <p className="text-xs text-amber-300 font-medium">{loadWarnings.join(" ")}</p>
+            </div>
+          )}
           <RankingTabs
             xpEntries={xpEntries}
             ratingEntries={ratingEntries}

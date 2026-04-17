@@ -18,6 +18,7 @@ import {
   addBankAccount,
   deleteBankAccount,
 } from "@/lib/api/marketplace";
+import { mapErrorMessage } from "@/lib/api/errors";
 import type { SellerProfile, BankAccount } from "@/lib/types/marketplace";
 import { ArrowLeft } from "@gravity-ui/icons";
 
@@ -76,11 +77,18 @@ export default function SellerSetupPage() {
   const [showBankForm, setShowBankForm] = useState(false);
   const [bankForm, setBankForm] = useState({ bank_name: "", account_type: "CORRIENTE", account_number: "", holder_name: "", holder_rut: "" });
   const [bankSaving, setBankSaving] = useState(false);
+  const [confirmDeleteBankId, setConfirmDeleteBankId] = useState<string | null>(null);
 
   // Loading state
   const [profileLoading, setProfileLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!confirmDeleteBankId) return;
+    const timer = setTimeout(() => setConfirmDeleteBankId(null), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmDeleteBankId]);
 
   // Fetch existing profile
   useEffect(() => {
@@ -104,8 +112,11 @@ export default function SellerSetupPage() {
           setAcceptsInPerson(profile.accepts_in_person ?? false);
         }
       })
-      .catch(() => {
-        // No existing profile, that's fine
+      .catch((error: unknown) => {
+        const message = mapErrorMessage(error);
+        if (message !== "Perfil de vendedor no encontrado") {
+          console.error("No se pudo cargar el perfil de vendedor", error);
+        }
       })
       .finally(() => setProfileLoading(false));
   }, [isAuth]);
@@ -149,8 +160,8 @@ export default function SellerSetupPage() {
         toast.success("Perfil creado", { description: "Tu perfil de vendedor fue creado exitosamente." });
       }
       router.push("/marketplace");
-    } catch {
-      // Error handled by API client
+    } catch (error: unknown) {
+      toast.danger("Error", { description: mapErrorMessage(error) });
     } finally {
       setSaving(false);
     }
@@ -211,8 +222,9 @@ export default function SellerSetupPage() {
         <SectionCard title="Informacion de la tienda">
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--muted)]">Nombre de la tienda</label>
+              <label htmlFor="seller-store-name" className="text-xs font-semibold text-[var(--muted)]">Nombre de la tienda</label>
               <input
+                id="seller-store-name"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
                 placeholder="Ej: Mi Tienda TCG"
                 value={storeName}
@@ -220,8 +232,9 @@ export default function SellerSetupPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--muted)]">Descripcion (opcional)</label>
+              <label htmlFor="seller-store-bio" className="text-xs font-semibold text-[var(--muted)]">Descripcion (opcional)</label>
               <textarea
+                id="seller-store-bio"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] min-h-[80px] resize-none"
                 placeholder="Cuenta sobre tu tienda..."
                 value={bio}
@@ -236,8 +249,9 @@ export default function SellerSetupPage() {
         <SectionCard title="Ubicacion">
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-[var(--muted)]">Ciudad</label>
+              <label htmlFor="seller-city" className="text-xs font-semibold text-[var(--muted)]">Ciudad</label>
               <input
+                id="seller-city"
                 className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
                 placeholder="Ej: Santiago"
                 value={city}
@@ -250,6 +264,7 @@ export default function SellerSetupPage() {
                 {REGIONS.map((r) => (
                   <button
                     key={r}
+                    type="button"
                     onClick={() => setRegion(r)}
                     className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
                       region === r
@@ -311,15 +326,22 @@ export default function SellerSetupPage() {
                       size="sm"
                       variant="danger"
                       onPress={async () => {
-                        if (!confirm("Eliminar esta cuenta bancaria?")) return;
+                        if (confirmDeleteBankId !== acc.id) {
+                          setConfirmDeleteBankId(acc.id);
+                          return;
+                        }
                         try {
                           await deleteBankAccount(acc.id);
                           setBankAccounts((prev) => prev.filter((a) => a.id !== acc.id));
                           toast.success("Cuenta eliminada");
-                        } catch { toast.danger("Error al eliminar"); }
+                        } catch (error: unknown) {
+                          toast.danger(mapErrorMessage(error));
+                        } finally {
+                          setConfirmDeleteBankId(null);
+                        }
                       }}
                     >
-                      Eliminar
+                      {confirmDeleteBankId === acc.id ? "Confirmar" : "Eliminar"}
                     </Button>
                   </div>
                 ))
@@ -334,8 +356,9 @@ export default function SellerSetupPage() {
               ) : (
                 <div className="space-y-3 p-4 rounded-xl border border-[var(--border)]">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-[var(--muted)]">Banco</label>
+                    <label htmlFor="seller-bank-name" className="text-xs font-semibold text-[var(--muted)]">Banco</label>
                     <input
+                      id="seller-bank-name"
                       className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
                       placeholder="Ej: Banco de Chile"
                       value={bankForm.bank_name}
@@ -343,11 +366,12 @@ export default function SellerSetupPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-[var(--muted)] mb-1 block">Tipo de cuenta</label>
+                    <p className="text-xs font-semibold text-[var(--muted)] mb-1">Tipo de cuenta</p>
                     <div className="flex gap-2">
                       {[{ k: "CORRIENTE", l: "Corriente" }, { k: "VISTA", l: "Vista" }, { k: "RUT", l: "RUT" }].map((t) => (
                         <button
                           key={t.k}
+                          type="button"
                           onClick={() => setBankForm({ ...bankForm, account_type: t.k })}
                           className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${bankForm.account_type === t.k ? "bg-[var(--accent)] border-[var(--accent)] text-white" : "border-[var(--border)] text-[var(--muted)]"}`}
                         >
@@ -357,8 +381,9 @@ export default function SellerSetupPage() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-[var(--muted)]">Numero de cuenta</label>
+                    <label htmlFor="seller-account-number" className="text-xs font-semibold text-[var(--muted)]">Numero de cuenta</label>
                     <input
+                      id="seller-account-number"
                       className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
                       value={bankForm.account_number}
                       onChange={(e) => setBankForm({ ...bankForm, account_number: e.target.value })}
@@ -366,16 +391,18 @@ export default function SellerSetupPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-[var(--muted)]">Titular</label>
+                      <label htmlFor="seller-account-holder" className="text-xs font-semibold text-[var(--muted)]">Titular</label>
                       <input
+                        id="seller-account-holder"
                         className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
                         value={bankForm.holder_name}
                         onChange={(e) => setBankForm({ ...bankForm, holder_name: e.target.value })}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-[var(--muted)]">RUT</label>
+                      <label htmlFor="seller-holder-rut" className="text-xs font-semibold text-[var(--muted)]">RUT</label>
                       <input
+                        id="seller-holder-rut"
                         className="w-full px-3 py-2 rounded-lg bg-[var(--surface-secondary)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)]"
                         placeholder="12.345.678-9"
                         value={bankForm.holder_rut}
@@ -402,7 +429,9 @@ export default function SellerSetupPage() {
                           setBankForm({ bank_name: "", account_type: "CORRIENTE", account_number: "", holder_name: "", holder_rut: "" });
                           setShowBankForm(false);
                           toast.success("Cuenta agregada");
-                        } catch { toast.danger("Error al agregar cuenta"); }
+                        } catch (error: unknown) {
+                          toast.danger(mapErrorMessage(error));
+                        }
                         finally { setBankSaving(false); }
                       }}
                     >

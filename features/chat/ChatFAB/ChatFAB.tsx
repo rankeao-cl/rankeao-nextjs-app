@@ -8,6 +8,7 @@ import { Comment, Pencil, Xmark, ChevronLeft, PaperPlane, ArrowUpRightFromSquare
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { getChatChannels, getChatMessages, sendChatMessage, createChannel } from "@/lib/api/chat";
+import { useChatWebSocket, type ChatPresenceEvent, type ChatAckEvent } from "@/lib/hooks/use-chat";
 import { autocompleteUsers } from "@/lib/api/social";
 import { timeAgo } from "@/lib/utils/format";
 import type { Channel, ChannelMember, ChatMessage } from "@/lib/types/chat";
@@ -19,6 +20,24 @@ interface UserSuggestion {
     username: string;
     avatar_url?: string;
     name?: string;
+}
+
+function sortMessagesChronologically(messages: ChatMessage[]): ChatMessage[] {
+    return [...messages].sort((a, b) => {
+        const at = Date.parse(a.created_at);
+        const bt = Date.parse(b.created_at);
+        if (Number.isNaN(at) && Number.isNaN(bt)) return 0;
+        if (Number.isNaN(at)) return -1;
+        if (Number.isNaN(bt)) return 1;
+        return at - bt;
+    });
+}
+
+function createClientMessageId(): string {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export default function CreatePostFAB() {
@@ -46,7 +65,81 @@ export default function CreatePostFAB() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const newChatInputRef = useRef<HTMLInputElement>(null);
+    const pendingAcksRef = useRef<Map<string, { tempId: string; channelId: string }>>(new Map());
     const myUsername = session?.username;
+    const wsToken = session?.accessToken ?? null;
+
+    const handleWsMessage = useCallback((msg: ChatMessage, channelId: string) => {
+        setChannels(prev => prev.map((channel) => {
+            if (channel.id !== channelId) return channel;
+            const isActive = activeChannel?.id === channelId;
+            const isMine = !!myUsername && (msg.sender?.username === myUsername || msg.sender_username === myUsername);
+            return {
+                ...channel,
+                last_message: msg,
+                last_message_at: msg.created_at,
+                unread_count: isActive || isMine ? 0 : (channel.unread_count ?? 0) + 1,
+            };
+        }));
+
+        if (!activeChannel?.id || channelId !== activeChannel.id) return;
+        setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev;
+            return sortMessagesChronologically([...prev, msg]);
+        });
+    }, [activeChannel?.id, myUsername]);
+
+    const handleWsPresence = useCallback((event: ChatPresenceEvent) => {
+        const isOnline = event.type === "user_joined";
+        const applyPresence = (channel: Channel): Channel => {
+            if (channel.id !== event.channelId || !channel.members?.length) return channel;
+            return {
+                ...channel,
+                members: channel.members.map((member) => {
+                    const memberId = member.user_id || member.id;
+                    if (!memberId || memberId !== event.user.id) return member;
+                    return { ...member, is_online: isOnline };
+                }),
+            };
+        };
+
+        setChannels(prev => prev.map(applyPresence));
+        setActiveChannel(prev => (prev ? applyPresence(prev) : prev));
+    }, []);
+
+    const handleWsAck = useCallback((event: ChatAckEvent) => {
+        const pending = pendingAcksRef.current.get(event.clientMsgId);
+        if (!pending) return;
+        pendingAcksRef.current.delete(event.clientMsgId);
+        if (pending.channelId !== event.channelId) return;
+
+        setMessages(prev => {
+            const tempIndex = prev.findIndex(m => m.id === pending.tempId);
+            if (tempIndex === -1) return prev;
+
+            if (prev.some(m => m.id === event.messageId)) {
+                return prev.filter(m => m.id !== pending.tempId);
+            }
+
+            const updated = [...prev];
+            updated[tempIndex] = {
+                ...updated[tempIndex],
+                id: event.messageId,
+                status: "delivered",
+            };
+            return updated;
+        });
+    }, []);
+
+    const { connected: wsConnected, subscribe, unsubscribe, sendMessage: wsSendMessage } = useChatWebSocket(
+        wsToken,
+        {
+            onMessage: handleWsMessage,
+            onPresence: handleWsPresence,
+            onAck: handleWsAck,
+        },
+        isOpen,
+    );
 
     // Fetch channels on mount + when panel opens (refresh)
     const fetchChannels = useCallback(() => {
@@ -57,7 +150,9 @@ export default function CreatePostFAB() {
                 const ch = val?.data?.channels || val?.channels || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
                 setChannels(ch);
             })
-            .catch(() => {})
+            .catch((error: unknown) => {
+                console.error("No se pudieron cargar los canales de chat", error);
+            })
             .finally(() => setLoading(false));
     }, [session?.accessToken]);
 
@@ -67,18 +162,45 @@ export default function CreatePostFAB() {
     // Refresh when panel opens
     useEffect(() => { if (isOpen) fetchChannels(); }, [isOpen, fetchChannels]);
 
+    const fetchActiveMessages = useCallback(async (channelId: string, withLoader = false) => {
+        if (!session?.accessToken) return;
+        if (withLoader) setLoadingMessages(true);
+        try {
+            const val = await getChatMessages(channelId, undefined, session.accessToken);
+            const raw = val?.data?.messages || val?.messages || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
+            const msgs = Array.isArray(raw) ? sortMessagesChronologically(raw) : [];
+            setMessages(msgs);
+        } catch (error: unknown) {
+            if (withLoader) {
+                toast.danger("No se pudieron cargar los mensajes");
+            }
+            console.error("No se pudieron cargar mensajes del canal", { channelId, error });
+        } finally {
+            if (withLoader) setLoadingMessages(false);
+        }
+    }, [session?.accessToken]);
+
     // Fetch messages when a channel is selected
     useEffect(() => {
-        if (!activeChannel || !session?.accessToken) return;
-        setLoadingMessages(true);
-        getChatMessages(activeChannel.id, undefined, session.accessToken)
-            .then((val) => {
-                const msgs = val?.data?.messages || val?.messages || (Array.isArray(val?.data) ? val.data : Array.isArray(val) ? val : []);
-                setMessages(msgs);
-            })
-            .catch(() => {})
-            .finally(() => setLoadingMessages(false));
-    }, [activeChannel, session?.accessToken]);
+        if (!activeChannel?.id) return;
+        pendingAcksRef.current.clear();
+        void fetchActiveMessages(activeChannel.id, true);
+    }, [activeChannel?.id, fetchActiveMessages]);
+
+    useEffect(() => {
+        if (!activeChannel?.id) return;
+        subscribe(activeChannel.id);
+        return () => unsubscribe(activeChannel.id);
+    }, [activeChannel?.id, subscribe, unsubscribe]);
+
+    // Keep floating chat updated while open
+    useEffect(() => {
+        if (!isOpen || view !== "chat" || !activeChannel?.id || !session?.accessToken || wsConnected) return;
+        const intervalId = setInterval(() => {
+            void fetchActiveMessages(activeChannel.id);
+        }, 3000);
+        return () => clearInterval(intervalId);
+    }, [isOpen, view, activeChannel?.id, session?.accessToken, wsConnected, fetchActiveMessages]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -104,7 +226,9 @@ export default function CreatePostFAB() {
                 const val = await autocompleteUsers(newChatSearch, session.accessToken);
                 const users = val?.data || val?.users || [];
                 setNewChatSuggestions(users.filter((u: UserSuggestion) => u.username !== session.username));
-            } catch {
+            } catch (error: unknown) {
+                setNewChatSuggestions([]);
+                console.error("No se pudo autocompletar usuarios para chat", error);
             } finally {
                 setNewChatLoading(false);
             }
@@ -189,6 +313,7 @@ export default function CreatePostFAB() {
     }, [myUsername]);
 
     const handleOpenChat = (channel: Channel) => {
+        setChannels(prev => prev.map(c => c.id === channel.id ? { ...c, unread_count: 0 } : c));
         setActiveChannel(channel);
         setView("chat");
     };
@@ -199,6 +324,25 @@ export default function CreatePostFAB() {
         setMessageInput("");
         setSending(true);
 
+        if (wsConnected) {
+            const clientMsgId = createClientMessageId();
+            const tempId = `temp-${clientMsgId}`;
+            const optimistic: ChatMessage = {
+                id: tempId,
+                channel_id: activeChannel.id,
+                sender_id: "",
+                sender_username: myUsername,
+                content,
+                status: "sent",
+                created_at: new Date().toISOString(),
+            };
+            pendingAcksRef.current.set(clientMsgId, { tempId, channelId: activeChannel.id });
+            setMessages(prev => sortMessagesChronologically([...prev, optimistic]));
+            wsSendMessage(activeChannel.id, content, undefined, clientMsgId);
+            setSending(false);
+            return;
+        }
+
         const optimistic: ChatMessage = {
             id: `temp-${Date.now()}`,
             channel_id: activeChannel.id,
@@ -207,15 +351,19 @@ export default function CreatePostFAB() {
             content,
             created_at: new Date().toISOString(),
         };
-        setMessages(prev => [...prev, optimistic]);
+        setMessages(prev => sortMessagesChronologically([...prev, optimistic]));
 
         try {
             const res = await sendChatMessage(activeChannel.id, { content }, session.accessToken);
             const msg = res?.data?.message ?? res?.message;
-            if (msg) setMessages(prev => prev.map(m => m.id === optimistic.id ? msg : m));
-        } catch {
+            if (msg) {
+                setMessages(prev => sortMessagesChronologically(prev.map(m => m.id === optimistic.id ? msg : m)));
+            }
+        } catch (error: unknown) {
             setMessages(prev => prev.filter(m => m.id !== optimistic.id));
             setMessageInput(content);
+            toast.danger("No se pudo enviar el mensaje");
+            console.error("Error al enviar mensaje de chat", error);
         } finally {
             setSending(false);
         }

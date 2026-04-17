@@ -28,6 +28,7 @@ import {
   transferLeadership,
 } from "@/lib/api/clans";
 import { getGames } from "@/lib/api/catalog";
+import { mapErrorMessage } from "@/lib/api/errors";
 import { RankedAvatar } from "@/features/gamification/RankedAvatar";
 import type { CatalogGame } from "@/lib/types/catalog";
 import type {
@@ -85,10 +86,16 @@ export default function ManageClanPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmKickUserId, setConfirmKickUserId] = useState<string | null>(null);
+  const [confirmTransferUserId, setConfirmTransferUserId] = useState<string | null>(null);
+  const [clanLoadFailed, setClanLoadFailed] = useState(false);
+  const [applicationsLoadFailed, setApplicationsLoadFailed] = useState(false);
+  const [gamesLoadFailed, setGamesLoadFailed] = useState(false);
 
   // Load clan data (with token to get my_membership)
   const loadClan = useCallback(async () => {
     try {
+      setClanLoadFailed(false);
       const data = await getClan(clanId, token);
       const c = (data?.data?.clan ?? data?.clan ?? data?.data ?? data) as ClanDetail | null;
       if (!c) return;
@@ -110,35 +117,71 @@ export default function ManageClanPage() {
       setEditRecruitMinElo(String(c.recruit_min_elo ?? ""));
       setEditMaxMembers(String((c as { max_members?: number }).max_members ?? ""));
       setEditRecruiting(c.is_recruiting ?? true);
-    } catch {
-      // silent
+    } catch (error: unknown) {
+      setClanLoadFailed(true);
+      console.error("No se pudo cargar el clan para gestión", error);
     }
   }, [clanId, token]);
 
   const loadApplications = useCallback(async () => {
     if (!token) return;
     try {
+      setApplicationsLoadFailed(false);
       const data = await listClanApplications(clanId, token);
       const apps: ClanApplication[] =
         data?.data?.applications ?? data?.applications ?? [];
       setApplications(apps.filter((a) => a.status === "PENDING" || a.status === "pending"));
-    } catch {
-      // silent
+    } catch (error: unknown) {
+      setApplicationsLoadFailed(true);
+      console.error("No se pudieron cargar las solicitudes del clan", error);
     }
   }, [clanId, token]);
 
   useEffect(() => {
-    Promise.all([
-      loadClan(),
-      loadApplications(),
-      getGames()
-        .then((res) => {
-          const list = res?.data ?? [];
-          if (Array.isArray(list)) setGames(list);
-        })
-        .catch(() => {}),
-    ]).finally(() => setPageLoading(false));
+    let cancelled = false;
+    const loadPage = async () => {
+      setPageLoading(true);
+      const [clanRes, appRes, gamesRes] = await Promise.allSettled([
+        loadClan(),
+        loadApplications(),
+        getGames(),
+      ]);
+
+      if (cancelled) return;
+      if (clanRes.status === "rejected") {
+        setClanLoadFailed(true);
+      }
+      if (appRes.status === "rejected") {
+        setApplicationsLoadFailed(true);
+      }
+      if (gamesRes.status === "fulfilled") {
+        setGamesLoadFailed(false);
+        const list = gamesRes.value?.data ?? [];
+        if (Array.isArray(list)) setGames(list);
+      } else {
+        setGamesLoadFailed(true);
+      }
+
+      setPageLoading(false);
+    };
+
+    void loadPage();
+    return () => {
+      cancelled = true;
+    };
   }, [loadClan, loadApplications]);
+
+  useEffect(() => {
+    if (!confirmKickUserId) return;
+    const timer = setTimeout(() => setConfirmKickUserId(null), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmKickUserId]);
+
+  useEffect(() => {
+    if (!confirmTransferUserId) return;
+    const timer = setTimeout(() => setConfirmTransferUserId(null), 4000);
+    return () => clearTimeout(timer);
+  }, [confirmTransferUserId]);
 
   // Check membership — try my_membership, fallback to matching in members list
   const myMembership = clan?.my_membership
@@ -217,8 +260,8 @@ export default function ManageClanPage() {
       await updateClan(clanId, payload, token);
       toast.success("Clan actualizado");
       await loadClan();
-    } catch {
-      toast.danger("No se pudo actualizar el clan");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     } finally {
       setSaving(false);
     }
@@ -231,8 +274,8 @@ export default function ManageClanPage() {
       await deleteClan(clanId, token);
       toast.success("Clan eliminado");
       router.push("/comunidades?type=clanes");
-    } catch {
-      toast.danger("No se pudo eliminar el clan");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     } finally {
       setDeleting(false);
       setConfirmDelete(false);
@@ -247,8 +290,8 @@ export default function ManageClanPage() {
       await promoteClanMember(clanId, userId, token);
       toast.success(`${username} ha sido promovido`);
       await loadClan();
-    } catch {
-      toast.danger("No se pudo promover al miembro");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     }
   };
 
@@ -258,37 +301,42 @@ export default function ManageClanPage() {
       await demoteClanMember(clanId, userId, token);
       toast.success(`${username} ha sido degradado`);
       await loadClan();
-    } catch {
-      toast.danger("No se pudo degradar al miembro");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     }
   };
 
   const handleKick = async (userId: string, username: string) => {
-    if (!confirm(`¿Expulsar a ${username} del clan?`)) return;
+    if (confirmKickUserId !== userId) {
+      setConfirmKickUserId(userId);
+      return;
+    }
     if (!token) return;
     try {
       await removeClanMember(clanId, userId, token);
       toast.success(`${username} ha sido expulsado`);
       await loadClan();
-    } catch {
-      toast.danger("No se pudo expulsar al miembro");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
+    } finally {
+      setConfirmKickUserId(null);
     }
   };
 
   const handleTransfer = async (userId: string, username: string) => {
-    if (
-      !confirm(
-        `¿Transferir el liderazgo a ${username}? Esta accion no se puede deshacer.`
-      )
-    )
+    if (confirmTransferUserId !== userId) {
+      setConfirmTransferUserId(userId);
       return;
+    }
     if (!token) return;
     try {
       await transferLeadership(clanId, userId, token);
       toast.success(`Liderazgo transferido a ${username}`);
       router.push(`/clanes/${clanId}`);
-    } catch {
-      toast.danger("No se pudo transferir el liderazgo");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
+    } finally {
+      setConfirmTransferUserId(null);
     }
   };
 
@@ -300,8 +348,8 @@ export default function ManageClanPage() {
       await acceptClanApplication(clanId, appId, token);
       toast.success("Solicitud aceptada");
       await Promise.all([loadClan(), loadApplications()]);
-    } catch {
-      toast.danger("No se pudo aceptar la solicitud");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     }
   };
 
@@ -311,8 +359,8 @@ export default function ManageClanPage() {
       await rejectClanApplication(clanId, appId, token);
       toast.success("Solicitud rechazada");
       await loadApplications();
-    } catch {
-      toast.danger("No se pudo rechazar la solicitud");
+    } catch (error: unknown) {
+      toast.danger(mapErrorMessage(error));
     }
   };
 
@@ -342,6 +390,16 @@ export default function ManageClanPage() {
           Gestiona la configuracion, miembros y solicitudes de tu clan.
         </p>
       </div>
+
+      {(clanLoadFailed || applicationsLoadFailed || gamesLoadFailed) && (
+        <Card className="border border-amber-500/30 bg-amber-500/10">
+          <Card.Content className="py-3">
+            <p className="text-xs text-amber-300 font-medium">
+              Algunas secciones no se cargaron completamente. Reintenta si faltan datos.
+            </p>
+          </Card.Content>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border)]">
@@ -639,7 +697,7 @@ export default function ManageClanPage() {
                           handleKick(member.user_id, member.username)
                         }
                       >
-                        Expulsar
+                        {confirmKickUserId === member.user_id ? "Confirmar" : "Expulsar"}
                       </Button>
                       <Button
                         type="button"
@@ -650,7 +708,7 @@ export default function ManageClanPage() {
                           handleTransfer(member.user_id, member.username)
                         }
                       >
-                        Transferir
+                        {confirmTransferUserId === member.user_id ? "Confirmar" : "Transferir"}
                       </Button>
                     </div>
                   )}
