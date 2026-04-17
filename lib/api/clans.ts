@@ -1,4 +1,5 @@
 import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
+import { ApiError } from "./errors";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 import type { Clan, ClanDetail, ClanApplication, ClanChallenge, CreateClanRequest, ClanChallengeRequest } from "@/lib/types/clan";
 
@@ -15,8 +16,14 @@ export async function getClan(clanId: string, token?: string) {
 export async function getMyClan(token?: string) {
     try {
         return await apiFetch<ApiResponse<{ clan: Clan }>>("/social/clans/mine", undefined, { cache: "no-store", token });
-    } catch {
-        return null;
+    } catch (error: unknown) {
+        if (
+            error instanceof ApiError &&
+            (error.status === 404 || error.code === "NOT_IN_CLAN" || error.code === "CLAN_NOT_FOUND")
+        ) {
+            return null;
+        }
+        throw error;
     }
 }
 

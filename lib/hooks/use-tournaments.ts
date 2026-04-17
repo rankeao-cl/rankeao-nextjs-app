@@ -30,10 +30,10 @@ export function useTournamentStandings(id: string) {
     });
 }
 
-export function useTournamentMatches(id: string, params?: Params) {
+export function useTournamentMatches(id: string) {
     return useQuery({
-        queryKey: ["tournaments", id, "matches", params],
-        queryFn: () => tournamentsApi.getTournamentMatches(id, params),
+        queryKey: ["tournaments", id, "matches"],
+        queryFn: () => tournamentsApi.getTournamentMatches(id),
         enabled: !!id,
     });
 }

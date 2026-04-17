@@ -19,6 +19,7 @@ import {
     getUserFollowers,
     getUserFollowing,
     getUserRatingHistory,
+    searchUsers,
     getUserWishlist,
     followUser,
     unfollowUser,
@@ -102,28 +103,30 @@ export default function PublicProfilePage({
                     return null;
                 };
 
-                const API = process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1";
-
                 let resolvedUsername = usernameParam;
                 try {
-                    const searchRes = await fetch(`${API}/social/users/search?q=${encodeURIComponent(usernameParam)}`);
-                    if (searchRes.ok) {
-                        const json = await searchRes.json();
-                        const users = json.users || json.data?.users || json.data || [];
-                        const match = (Array.isArray(users) ? users : []).find(
+                    const searchPayload = await searchUsers(
+                        { q: usernameParam, per_page: 20 },
+                        session?.accessToken,
+                    );
+                    const users = searchPayload?.data ?? searchPayload?.users ?? [];
+                    const match = (Array.isArray(users) ? users : []).find(
                             (u: { username?: string }) => u.username?.toLowerCase() === usernameParam.toLowerCase()
-                        );
-                        if (match?.username) {
-                            resolvedUsername = match.username;
-                        }
+                    );
+                    if (match?.username) {
+                        resolvedUsername = match.username;
                     }
-                } catch { /* search failed */ }
+                } catch (error: unknown) {
+                    console.warn("No se pudo resolver username canonico en busqueda de usuarios", error);
+                }
 
                 let profile: UserProfile | null = null;
                 try {
                     const raw = await getUserProfile(resolvedUsername);
                     profile = extractUser(raw);
-                } catch { /* profile fetch failed */ }
+                } catch (error: unknown) {
+                    console.warn("No se pudo cargar perfil de usuario", error);
+                }
 
                 if (!profile) {
                     setProfile(null);

@@ -5,9 +5,10 @@ import { Button } from "@heroui/react/button";
 import { Card } from "@heroui/react/card";
 import { Chip } from "@heroui/react/chip";
 import { Spinner } from "@heroui/react/spinner";
+import { toast } from "@heroui/react/toast";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useCheckout, usePayCheckout } from "@/lib/hooks/use-marketplace";
 import {
@@ -53,6 +54,9 @@ const PAYMENT_PROVIDERS = [
   { key: "WEBPAY", label: "Webpay" },
   { key: "MERCADOPAGO", label: "Mercado Pago" },
 ];
+
+const PAYMENT_START_ERROR = "No se pudo iniciar el pago. Intenta nuevamente.";
+const ORDER_CREATED_FALLBACK_MESSAGE = "Pedido creado. Revisa tus ordenes para continuar.";
 
 function formatCLP(amount: number | undefined): string {
   if (amount == null) return "$0";
@@ -100,6 +104,7 @@ function SectionCard({
 
 export default function CheckoutPage() {
   const params = useParams();
+  const router = useRouter();
   const checkoutId = params?.id as string;
   const { status: authStatus } = useAuth();
   const isAuth = authStatus === "authenticated";
@@ -112,11 +117,13 @@ export default function CheckoutPage() {
 
   const payMutation = usePayCheckout();
   const [payingProvider, setPayingProvider] = useState<string | null>(null);
+  const [payErrorMessage, setPayErrorMessage] = useState<string | null>(null);
 
   // ── Pay handler ──
 
   async function handlePay(provider: string) {
-    if (!checkoutId) return;
+    if (!checkoutId || payingProvider !== null) return;
+    setPayErrorMessage(null);
     setPayingProvider(provider);
     try {
       const result = await payMutation.mutateAsync({
@@ -126,9 +133,16 @@ export default function CheckoutPage() {
       const paymentUrl = result.payment_url;
       if (paymentUrl) {
         window.location.href = paymentUrl;
+        return;
       }
-    } catch {
-      // mutation error is handled by react-query
+      toast.success(ORDER_CREATED_FALLBACK_MESSAGE);
+      router.push("/marketplace/orders");
+    } catch (error: unknown) {
+      const message = error instanceof Error && error.message
+        ? error.message
+        : PAYMENT_START_ERROR;
+      setPayErrorMessage(message);
+      toast.danger(message);
     } finally {
       setPayingProvider(null);
     }
@@ -170,6 +184,8 @@ export default function CheckoutPage() {
   const status = checkout.status?.toUpperCase() ?? "PENDING_PAYMENT";
   const cfg = getStatusConfig(status);
   const isPendingPayment = status === "PENDING_PAYMENT";
+  const isTerminalStatus =
+    status === "FAILED" || status === "CANCELLED" || status === "EXPIRED";
   const isPaid =
     status === "PAID" ||
     status === "CONFIRMED" ||
@@ -250,7 +266,7 @@ export default function CheckoutPage() {
         )}
 
         {/* ── Failed / Cancelled Banner ── */}
-        {(status === "FAILED" || status === "CANCELLED" || status === "EXPIRED") && (
+        {isTerminalStatus && (
           <div
             className="glass-sm border border-[var(--border)] rounded-2xl p-4 flex items-center gap-3 mb-4 border-l-4"
             style={{ borderLeftColor: "var(--danger, #ef4444)" }}
@@ -265,7 +281,7 @@ export default function CheckoutPage() {
                     : "Error en el pago"}
               </p>
               <p className="text-xs text-[var(--muted)]">
-                Puedes intentar comprar nuevamente desde el marketplace.
+                Puedes crear una nueva compra o revisar tus ordenes.
               </p>
             </div>
           </div>
@@ -389,9 +405,9 @@ export default function CheckoutPage() {
                 </Button>
               ))}
             </div>
-            {payMutation.isError && (
+            {payErrorMessage && (
               <p className="text-xs text-red-500 mt-3">
-                Error al iniciar el pago. Intenta nuevamente.
+                {payErrorMessage}
               </p>
             )}
           </SectionCard>
@@ -414,10 +430,22 @@ export default function CheckoutPage() {
         )}
 
         {/* ── Failed / Cancelled Actions ── */}
-        {(status === "FAILED" || status === "CANCELLED" || status === "EXPIRED") && (
+        {isTerminalStatus && (
           <div className="flex flex-col gap-3 mt-2">
+            {checkout.listing_id && (
+              <Link href={`/marketplace/${checkout.listing_id}`} className="w-full">
+                <Button variant="primary" className="w-full">
+                  Comprar nuevamente
+                </Button>
+              </Link>
+            )}
+            <Link href="/marketplace/orders" className="w-full">
+              <Button variant="outline" className="w-full">
+                Ver mis ordenes
+              </Button>
+            </Link>
             <Link href="/marketplace" className="w-full">
-              <Button variant="primary" className="w-full">
+              <Button variant="tertiary" className="w-full">
                 Volver al marketplace
               </Button>
             </Link>

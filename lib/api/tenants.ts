@@ -1,5 +1,6 @@
 import { apiFetch, apiPost } from "./client";
-import type { TenantsResponse, TenantFilters, Tenant, TenantEvent, TenantReviewsResponse, CreateTenantReviewRequest, CreateTenantRequest, TenantStaffMembership, TenantMember } from "@/lib/types/tenant";
+import { ApiError } from "./errors";
+import type { TenantsResponse, TenantFilters, Tenant, TenantEvent, TenantReviewsResponse, CreateTenantReviewRequest, CreateTenantRequest, TenantStaffMembership } from "@/lib/types/tenant";
 import type { Params, ApiResponse, ApiMessage } from "@/lib/types/api";
 
 // ── Directory ──
@@ -68,9 +69,11 @@ export async function declineStaffInvitation(invitationId: string, token?: strin
 // ── Members (Community Features) ──
 
 /**
- * NOTE: /tenants/{slug}/members is not in the public OpenAPI spec.
- * This may be an internal/undocumented endpoint.
+ * The backend does not expose GET /tenants/{slug}/members.
+ * Keep this function only to fail explicitly if legacy code still calls it.
  */
 export async function getTenantMembers(slug: string, params?: Params) {
-    return apiFetch<ApiResponse<TenantMember[]>>(`/tenants/${encodeURIComponent(slug)}/members`, params, { revalidate: 30 });
+    void slug;
+    void params;
+    throw new ApiError("NOT_FOUND", "El backend no expone /tenants/{slug}/members", 404);
 }

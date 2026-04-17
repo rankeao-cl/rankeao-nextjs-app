@@ -8,18 +8,20 @@ interface Props {
 }
 
 export default function TournamentsTab({ tenantSlug }: Props) {
-    const { data, isLoading } = useTournaments({ q: tenantSlug, per_page: 20 });
+    const { data, isLoading } = useTournaments({ tenant_slug: tenantSlug, per_page: 20, sort: "upcoming" });
     const tournaments = data?.tournaments ?? [];
 
     const now = new Date();
     const upcoming = tournaments.filter((t) => {
-        if (t.status === "FINISHED" || t.status === "finished" || t.status === "CLOSED" || t.status === "cancelled") return false;
+        const status = t.status.toUpperCase();
+        if (["FINISHED", "CLOSED", "CANCELLED"].includes(status)) return false;
         if (t.starts_at && new Date(t.starts_at) >= now) return true;
-        if (t.status === "OPEN" || t.status === "upcoming" || t.status === "CHECK_IN" || t.status === "active" || t.status === "ROUND_IN_PROGRESS") return true;
+        if (["OPEN", "CHECK_IN", "STARTED", "ROUND_IN_PROGRESS", "ROUND_COMPLETE"].includes(status)) return true;
         return false;
     });
     const past = tournaments.filter((t) => {
-        return t.status === "FINISHED" || t.status === "finished" || t.status === "CLOSED" || t.status === "cancelled"
+        const status = t.status.toUpperCase();
+        return status === "FINISHED" || status === "CLOSED" || status === "CANCELLED"
             || (t.starts_at && new Date(t.starts_at) < now && !upcoming.includes(t));
     });
 

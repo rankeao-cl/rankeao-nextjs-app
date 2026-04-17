@@ -142,6 +142,8 @@ const ERROR_CODES: Record<string, string> = {
     REVIEW_ALREADY_EXISTS:       "Ya dejaste una reseña para esta orden",
     PAYMENT_METHOD_UNAVAILABLE:  "Metodo de pago no disponible",
     DELIVERY_METHOD_UNAVAILABLE: "Metodo de envio no disponible",
+    SHIPPING_ADDRESS_REQUIRED: "Debes completar la direccion de envio",
+    SHIPPING_COUNTRY_UNAVAILABLE: "Por ahora solo se permiten envios dentro de Chile (CL)",
     PRODUCT_UNAVAILABLE:         "Producto no disponible",
     INSUFFICIENT_STOCK:          "Stock insuficiente",
     DUPLICATE_SKU:               "Ya existe un producto con este SKU",

@@ -74,6 +74,7 @@ export default function BuyModal({ listing, open, onClose }: Props) {
           address_line_1: addressLine1,
           city,
           region,
+          country: "CL",
           phone,
         };
       }
@@ -97,7 +98,9 @@ export default function BuyModal({ listing, open, onClose }: Props) {
         type="button"
         aria-label="Cerrar compra"
         className="absolute inset-0 bg-black/50"
-        onClick={onClose}
+        onClick={() => {
+          if (!buy.isPending) onClose();
+        }}
       />
       <Card className="surface-card w-full max-w-md mx-4 rounded-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <Card.Content className="p-6 space-y-4">
@@ -169,8 +172,8 @@ export default function BuyModal({ listing, open, onClose }: Props) {
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button variant="tertiary" className="flex-1" onPress={onClose}>Cancelar</Button>
-            <Button variant="primary" className="flex-1 font-semibold" isPending={buy.isPending} onPress={handleBuy}>
+            <Button variant="tertiary" className="flex-1" isDisabled={buy.isPending} onPress={onClose}>Cancelar</Button>
+            <Button variant="primary" className="flex-1 font-semibold" isPending={buy.isPending} isDisabled={buy.isPending} onPress={handleBuy}>
               Confirmar compra
             </Button>
           </div>

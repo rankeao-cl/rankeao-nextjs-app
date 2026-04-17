@@ -296,7 +296,12 @@ function asCheckout(value: unknown): MarketplaceCheckout | null {
     const checkout: MarketplaceCheckout = { id: record.id };
 
     if (typeof record.listing_id === "string") checkout.listing_id = record.listing_id;
-    if (record.payment_method === "WEBPAY" || record.payment_method === "MERCADOPAGO" || record.payment_method === "TRANSFER") {
+    if (
+        record.payment_method === "WEBPAY"
+        || record.payment_method === "MERCADOPAGO"
+        || record.payment_method === "BANK_TRANSFER"
+        || record.payment_method === "TRANSFER"
+    ) {
         checkout.payment_method = record.payment_method;
     }
     if (record.delivery_method === "SHIPPING" || record.delivery_method === "PICKUP" || record.delivery_method === "IN_PERSON") {

@@ -181,7 +181,7 @@ export interface CreateOfferRequest {
 export interface MarketplaceCheckout {
     id: string;
     listing_id?: string;
-    payment_method?: "WEBPAY" | "MERCADOPAGO" | "TRANSFER";
+    payment_method?: "WEBPAY" | "MERCADOPAGO" | "BANK_TRANSFER" | "TRANSFER";
     delivery_method?: "SHIPPING" | "PICKUP" | "IN_PERSON";
     status?: string;
     total?: number;
@@ -216,6 +216,7 @@ export interface BuyShippingAddress {
     city: string;
     region: string;
     postal_code?: string;
+    country?: string;
     phone: string;
 }
 

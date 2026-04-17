@@ -65,8 +65,9 @@ function getUsernameFromToken(accessToken?: string): string | undefined {
 
 function getUserRole(tournament: TournamentDetail, username?: string): "organizer" | "judge" | "player" | "spectator" {
     if (!username) return "spectator";
-    if (tournament.organizer_name === username) return "organizer";
-    if (tournament.judges?.some((j: TournamentJudge) => j.username === username)) return "judge";
+    const normalized = username.toLowerCase();
+    if (tournament.organizer_name?.toLowerCase() === normalized) return "organizer";
+    if (tournament.judges?.some((j: TournamentJudge) => j.username?.toLowerCase() === normalized)) return "judge";
     if (tournament.my_registration) return "player";
     return "spectator";
 }
@@ -78,7 +79,10 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     const [tournament] = useState(initial);
     const [rounds, setRounds] = useState<Round[]>([]);
     const [standings, setStandings] = useState<Standing[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [roundsLoading, setRoundsLoading] = useState(false);
+    const [standingsLoading, setStandingsLoading] = useState(false);
+    const [roundsError, setRoundsError] = useState<string | null>(null);
+    const [standingsError, setStandingsError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
 
     const isAuthenticated = authStatus === "authenticated" && Boolean(session?.accessToken);
@@ -107,25 +111,33 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
     // ── Data fetching ──
 
     const loadRounds = useCallback(async () => {
-        setLoading(true);
+        setRoundsLoading(true);
+        setRoundsError(null);
         try {
             const res = await getTournamentRounds(tournament.id);
             const data = (res as { data?: Round[] | { rounds?: Round[] } }).data || res;
             const list = (data as { rounds?: Round[] }).rounds;
             setRounds(Array.isArray(list) ? list : Array.isArray(data) ? data as Round[] : []);
-        } catch { /* silent */ }
-        setLoading(false);
+        } catch (e: unknown) {
+            setRounds([]);
+            setRoundsError(mapErrorMessage(e));
+        }
+        setRoundsLoading(false);
     }, [tournament.id]);
 
     const loadStandings = useCallback(async () => {
-        setLoading(true);
+        setStandingsLoading(true);
+        setStandingsError(null);
         try {
             const res = await getTournamentStandings(tournament.id);
             const data = (res as { data?: Standing[] | { standings?: Standing[] }; standings?: Standing[] }).data || res;
             const list = (data as { standings?: Standing[] }).standings;
             setStandings(Array.isArray(list) ? list : Array.isArray(data) ? data as Standing[] : []);
-        } catch { /* silent */ }
-        setLoading(false);
+        } catch (e: unknown) {
+            setStandings([]);
+            setStandingsError(mapErrorMessage(e));
+        }
+        setStandingsLoading(false);
     }, [tournament.id]);
 
     // Auto-load on mount
@@ -345,7 +357,8 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                         <RoundsTab
                             tournament={tournament}
                             rounds={rounds}
-                            loading={loading}
+                            loading={roundsLoading}
+                            error={roundsError}
                             role={role}
                             currentUsername={currentUsername}
                             onRefresh={loadRounds}
@@ -353,7 +366,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                     </Tabs.Panel>
 
                     <Tabs.Panel id="bracket" className="pt-4">
-                        {loading ? (
+                        {roundsLoading ? (
                             <div className="p-8 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
                                 <p className="text-sm animate-pulse text-[var(--muted)]">Cargando bracket...</p>
                             </div>
@@ -363,7 +376,7 @@ export default function TournamentDetailClient({ tournament: initial }: { tourna
                     </Tabs.Panel>
 
                     <Tabs.Panel id="standings" className="pt-4">
-                        <StandingsTab standings={standings} loading={loading} />
+                        <StandingsTab standings={standings} loading={standingsLoading} error={standingsError} />
                     </Tabs.Panel>
                 </Tabs>
             </div>
@@ -522,12 +535,13 @@ function DetailRow({ label, value }: { label: string; value?: string }) {
 
 // ── Rounds Tab ──
 
-function RoundsTab({ tournament, rounds, loading, role, currentUsername }: {
-    tournament: Tournament; rounds: Round[]; loading: boolean; role: string; currentUsername?: string; onRefresh: () => void;
+function RoundsTab({ tournament, rounds, loading, error, role, currentUsername }: {
+    tournament: Tournament; rounds: Round[]; loading: boolean; error?: string | null; role: string; currentUsername?: string; onRefresh: () => void;
 }) {
     const [selectedRound, setSelectedRound] = useState<number | null>(null);
     const [matches, setMatches] = useState<Match[]>([]);
     const [matchesLoading, setMatchesLoading] = useState(false);
+    const [matchesError, setMatchesError] = useState<string | null>(null);
 
     useEffect(() => {
         if (rounds.length > 0 && selectedRound === null) {
@@ -539,19 +553,37 @@ function RoundsTab({ tournament, rounds, loading, role, currentUsername }: {
     useEffect(() => {
         if (selectedRound === null) return;
         setMatchesLoading(true);
+        setMatchesError(null);
         getRoundMatches(tournament.id, selectedRound)
             .then((m) => setMatches(m))
-            .catch(() => setMatches([]))
+            .catch((e: unknown) => {
+                setMatches([]);
+                setMatchesError(mapErrorMessage(e));
+            })
             .finally(() => setMatchesLoading(false));
     }, [tournament.id, selectedRound]);
 
     const refreshMatches = useCallback(() => {
         if (selectedRound === null) return;
-        getRoundMatches(tournament.id, selectedRound).then((m) => setMatches(m)).catch(() => setMatches([]));
+        setMatchesError(null);
+        getRoundMatches(tournament.id, selectedRound)
+            .then((m) => setMatches(m))
+            .catch((e: unknown) => {
+                setMatches([]);
+                setMatchesError(mapErrorMessage(e));
+            });
     }, [tournament.id, selectedRound]);
 
     if (loading) {
         return <div className="p-8 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]"><p className="text-sm animate-pulse text-[var(--muted)]">Cargando rondas...</p></div>;
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 text-center rounded-2xl border border-[var(--danger)]/40 bg-[var(--danger)]/5">
+                <p className="text-sm font-medium text-[var(--danger)]">{error}</p>
+            </div>
+        );
     }
 
     if (rounds.length === 0) {
@@ -592,6 +624,10 @@ function RoundsTab({ tournament, rounds, loading, role, currentUsername }: {
             {/* Matches */}
             {matchesLoading ? (
                 <div className="p-8 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]"><p className="text-sm animate-pulse text-[var(--muted)]">Cargando partidas...</p></div>
+            ) : matchesError ? (
+                <div className="p-8 text-center rounded-2xl border border-[var(--danger)]/40 bg-[var(--danger)]/5">
+                    <p className="text-sm font-medium text-[var(--danger)]">{matchesError}</p>
+                </div>
             ) : matches.length === 0 ? (
                 <div className="py-8 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]"><p className="text-sm text-[var(--muted)]">No hay partidas en esta ronda.</p></div>
             ) : (
@@ -756,9 +792,17 @@ function ScoreInput({ label, value, onChange }: { label: string; value: number; 
 
 // ── Standings Tab ──
 
-function StandingsTab({ standings, loading }: { standings: Standing[]; loading: boolean }) {
+function StandingsTab({ standings, loading, error }: { standings: Standing[]; loading: boolean; error?: string | null }) {
     if (loading) {
         return <div className="p-8 text-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]"><p className="text-sm animate-pulse text-[var(--muted)]">Cargando clasificación...</p></div>;
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 text-center rounded-2xl border border-[var(--danger)]/40 bg-[var(--danger)]/5">
+                <p className="text-sm font-medium text-[var(--danger)]">{error}</p>
+            </div>
+        );
     }
 
     if (standings.length === 0) {

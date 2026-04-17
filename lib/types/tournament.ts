@@ -161,6 +161,8 @@ export interface TournamentFilters {
     city?: string;
     country?: string;
     is_ranked?: boolean;
+    tenant_id?: string;
+    tenant_slug?: string;
     q?: string;
     sort?: "recent" | "upcoming" | "popular" | string;
     page?: number;

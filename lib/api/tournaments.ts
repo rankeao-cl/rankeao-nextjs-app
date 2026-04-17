@@ -34,6 +34,26 @@ function asBoolean(value: unknown): boolean | undefined {
     return typeof value === "boolean" ? value : undefined;
 }
 
+function normalizeTournamentSort(sort?: string): string | undefined {
+    switch (sort) {
+        case "upcoming":
+            return "starts_at_asc";
+        case "recent":
+            return "starts_at_desc";
+        case "popular":
+            return "current_players_desc";
+        default:
+            return sort;
+    }
+}
+
+function normalizeTournamentFilters(filters: TournamentFilters): Params {
+    return {
+        ...filters,
+        sort: normalizeTournamentSort(filters.sort),
+    } as Params;
+}
+
 function normalizeTournament(value: unknown): Tournament {
     const source = asRecord(value) ?? {};
     const result: Record<string, unknown> = { ...source };
@@ -150,7 +170,7 @@ export async function getTournaments(
 ): Promise<TournamentListResponse> {
     const res = await apiFetch<{ data?: TournamentListResponse } & TournamentListResponse>(
         "/tournaments",
-        filters as Params,
+        normalizeTournamentFilters(filters),
         { cache: "no-store" }
     );
     const data = res.data || res;
@@ -214,9 +234,8 @@ export async function getTournamentRounds(id: string) {
     return apiFetch<{ data?: Round[]; rounds?: Round[] }>(`/tournaments/${encodeURIComponent(id)}/rounds`, undefined, { revalidate: 15 });
 }
 
-/** @deprecated Use getRoundMatches() instead — there is no GET /tournaments/:id/matches endpoint. */
 export async function getTournamentMatches(tournamentId: string, params?: Params) {
-    return apiFetch<{ data?: Match[]; matches?: Match[] }>(`/tournaments/${encodeURIComponent(tournamentId)}/rounds/1/matches`, params, { revalidate: 30 });
+    return apiFetch<{ data?: Match[]; matches?: Match[] }>(`/tournaments/${encodeURIComponent(tournamentId)}/matches`, params, { cache: "no-store" });
 }
 
 export async function getRoundMatches(tournamentId: string, roundNumber: number) {

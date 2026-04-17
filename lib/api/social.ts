@@ -1,4 +1,5 @@
 import { apiFetch, apiPost, apiPatch, apiDelete } from "./client";
+import { ApiError } from "./errors";
 import type { Params, PaginationMeta, ApiResponse, ApiMessage } from "@/lib/types/api";
 import type {
     UserProfile, FriendRequest, Activity, Deck, CollectionItem, WishlistItem,
@@ -165,11 +166,43 @@ export async function getUserRatingHistory(username: string) {
 }
 
 /**
- * NOTE: /social/users/me is not in the public OpenAPI spec.
- * This may be an internal/undocumented endpoint. Keep for backward compatibility.
+ * Resolves current user profile via the supported /social/users/:username endpoint.
+ * The backend does not expose /social/users/me.
  */
+function extractUsernameFromToken(token: string): string | undefined {
+    const clean = token.startsWith("Bearer ") ? token.substring(7).trim() : token.trim();
+    const parts = clean.split(".");
+    if (parts.length !== 3) return undefined;
+
+    try {
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const json = typeof globalThis.atob === "function"
+            ? globalThis.atob(base64)
+            : Buffer.from(base64, "base64").toString("utf-8");
+        const payload = JSON.parse(json) as Record<string, unknown>;
+
+        const candidates = [payload.username, payload.usr, payload.name, payload.sub];
+        for (const candidate of candidates) {
+            if (typeof candidate === "string" && candidate.trim().length > 0) {
+                return candidate.trim();
+            }
+        }
+        return undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 export async function getProfile(token: string) {
-    return apiFetch<{ data?: UserProfile; user?: UserProfile }>("/social/users/me", undefined, { token, cache: "no-store" });
+    const username = extractUsernameFromToken(token);
+    if (!username) {
+        throw new ApiError("INVALID_TOKEN", "No se pudo resolver el usuario desde el token de sesion", 401);
+    }
+    return apiFetch<{ data?: UserProfile; user?: UserProfile }>(
+        `/social/users/${encodeURIComponent(username)}`,
+        undefined,
+        { token, cache: "no-store" },
+    );
 }
 
 export async function updateProfile(payload: {
