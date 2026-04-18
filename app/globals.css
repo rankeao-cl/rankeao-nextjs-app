@@ -651,6 +651,91 @@ button[data-variant="primary"]:active,
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
 }
 
+/* ── Story composer details (emojis collapsible) ── */
+
+.story-composer-details[open] .story-composer-details-caret {
+  transform: rotate(90deg);
+}
+
+/* ── Story composer mobile sheets ── */
+
+@keyframes mobileSheetIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Story viewer animations ── */
+
+@keyframes storyViewerEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes storyViewerBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes storyReactionFloat {
+  0% {
+    transform: translate(-50%, 0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -12px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--reaction-drift, 0px)), -160px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes storyShortcutsFade {
+  0%, 70% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes storyBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* ── Reduced motion override ── */
 
 @media (prefers-reduced-motion: reduce) {

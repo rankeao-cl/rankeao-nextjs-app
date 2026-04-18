@@ -101,7 +101,9 @@ export interface AutocompleteResult {
     card_name?: string;
     set_code?: string;
     collector_number?: string;
+    game_slug?: string;
     image_url?: string;
+    image_url_small?: string;
 }
 
 export interface PricePoint {

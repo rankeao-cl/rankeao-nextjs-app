@@ -201,6 +201,15 @@ export interface PostComment {
     replies?: PostComment[];
 }
 
+export interface StoryTextLayer {
+    text: string;
+    text_color: string;
+    font_weight: "normal" | "bold";
+    font_style: "normal" | "italic";
+    text_x: number;
+    text_y: number;
+}
+
 export interface Story {
     id: string;
     image_url?: string;
@@ -211,6 +220,7 @@ export interface Story {
     font_style?: "normal" | "italic";
     text_x?: number;
     text_y?: number;
+    text_layers?: StoryTextLayer[];
     created_at: string;
     expires_at: string;
     viewed?: boolean;
