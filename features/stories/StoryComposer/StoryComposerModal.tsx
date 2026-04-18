@@ -1,21 +1,12 @@
 "use client";
 
-import { type ChangeEvent, type CSSProperties, type PointerEvent as ReactPointerEvent, type RefObject, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import { type ChangeEvent, type RefObject, useState } from "react";
+import dynamic from "next/dynamic";
 import { useVisualViewportHeight } from "@/lib/hooks/use-visual-viewport-height";
-import type { CardStickerLayer } from "@/features/stories/types";
+import type { StickerLayer } from "@/features/stories/types";
 import CardStickerPicker from "./CardStickerPicker";
 import MentionsAutocomplete from "./MentionsAutocomplete";
-import {
-  STORY_CANVAS_HEIGHT,
-  STORY_CANVAS_WIDTH,
-  STORY_IMAGE_MAX_ZOOM,
-  STORY_IMAGE_MIN_ZOOM,
-  clampValue,
-  getStoryImageCoverScale,
-} from "@/features/stories/lib/story-image-transform";
 import type {
-  ComposerFontFamily,
   ComposerTextBackgroundMode,
   ComposerTextLayer,
   ComposerTextShape,
@@ -23,6 +14,19 @@ import type {
   StoryImageDimensions,
   StoryImageTransform,
 } from "@/features/stories/types";
+import type { KonvaStoryCanvasHandle } from "./konva/KonvaStoryCanvas";
+import {
+  COMPOSER_TEXT_MAX_FONT_SIZE,
+  COMPOSER_TEXT_MIN_FONT_SIZE,
+} from "@/features/stories/lib/text-layer-factory";
+import { getFontFamilyStack } from "@/features/stories/lib/compose-canvas";
+
+
+// Konva uses the browser Canvas API — skip SSR entirely.
+const KonvaStoryCanvas = dynamic(() => import("./konva/KonvaStoryCanvas"), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0" style={{ background: "#000" }} />,
+});
 
 type NamedColorOption = { name: string; value: string };
 
@@ -50,13 +54,19 @@ const STORY_TEXT_CONTAINER_COLORS: NamedColorOption[] = [
   { name: "Coral", value: "#BE5F6A" },
 ];
 
-const TEXT_STYLE_CYCLE: { mode: ComposerTextBackgroundMode; shape: ComposerTextShape }[] = [
-  { mode: "none", shape: "rounded" },
-  { mode: "fill", shape: "rounded" },
-  { mode: "outline", shape: "pill" },
+const TEXT_BG_MODES: { mode: ComposerTextBackgroundMode; label: string }[] = [
+  { mode: "none", label: "Sin fondo" },
+  { mode: "fill", label: "Lleno" },
+  { mode: "outline", label: "Outline" },
 ];
 
-const STICKER_OPTIONS = ["😀", "🔥", "⭐", "❤️", "🎯", "⚡"];
+const TEXT_SHAPES: { shape: ComposerTextShape; label: string }[] = [
+  { shape: "square", label: "Cuadrado" },
+  { shape: "rounded", label: "Redondeado" },
+  { shape: "pill", label: "Píldora" },
+];
+
+const EMOJI_OPTIONS = ["😀", "🔥", "⭐", "❤️", "🎯", "⚡"];
 
 type StoryComposerModalProps = {
   onClose: () => void;
@@ -67,7 +77,6 @@ type StoryComposerModalProps = {
   storyCameraInputRef: RefObject<HTMLInputElement | null>;
   storyCanvasRef: RefObject<HTMLCanvasElement | null>;
   storyVideoRef: RefObject<HTMLVideoElement | null>;
-  storyComposerPreviewRef: RefObject<HTMLDivElement | null>;
   onStoryFileSelected: (event: ChangeEvent<HTMLInputElement>) => void;
   cameraOpen: boolean;
   cameraLoading: boolean;
@@ -77,22 +86,18 @@ type StoryComposerModalProps = {
   storyImageFile: File | null;
   storyImageDimensions: StoryImageDimensions | null;
   storyImageTransform: StoryImageTransform;
+  setStoryImageTransform: (transform: StoryImageTransform) => void;
   resetStoryImageTransform: () => void;
-  onStoryMediaPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onStoryMediaPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onStoryMediaPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  draggingStoryMedia: boolean;
   storyBackgroundColor: string;
   setStoryBackgroundColor: (color: string) => void;
   storyTextLayers: ComposerTextLayer[];
-  storyTextSnapGuides: { vertical: boolean; horizontal: boolean };
   selectedStoryTextLayer: ComposerTextLayer | null;
-  draggingTextLayerId: string | null;
-  setSelectedStoryTextLayerId: (id: string) => void;
+  selectedTextLayerId: string | null;
+  selectedStickerId: string | null;
+  setSelectedStoryTextLayerId: (id: string | null) => void;
+  setSelectedStickerId: (id: string | null) => void;
+  patchTextLayer: (id: string, patch: Partial<ComposerTextLayer>) => void;
   updateSelectedTextLayer: (updater: (layer: ComposerTextLayer) => ComposerTextLayer) => void;
-  onStoryTextPointerDown: (layerID: string, event: ReactPointerEvent<HTMLDivElement>) => void;
-  onStoryTextPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onStoryTextPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
   addStoryTextLayer: () => void;
   removeSelectedStoryTextLayer: () => void;
   clearStoryImage: () => void;
@@ -105,12 +110,13 @@ type StoryComposerModalProps = {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  cardStickers: CardStickerLayer[];
-  draggingStickerId: string | null;
+  stickers: StickerLayer[];
   onAddCardSticker: (card: { cardId: string; name: string; imageUrl: string }) => void;
-  onUpdateCardSticker: (id: string, patch: Partial<Omit<CardStickerLayer, "id">>) => void;
-  onRemoveCardSticker: (id: string) => void;
-  onSetDraggingSticker: (id: string | null) => void;
+  onAddEmojiSticker: (emoji: string) => void;
+  onUpdateSticker: (id: string, patch: Partial<Omit<StickerLayer, "id" | "kind">>) => void;
+  onRemoveSticker: (id: string) => void;
+  onCommitHistory: () => void;
+  konvaCanvasRef: RefObject<KonvaStoryCanvasHandle | null>;
   isDraft?: boolean;
 };
 
@@ -138,18 +144,6 @@ function StickerLabelIcon() {
   );
 }
 
-function getPreviewFontFamily(fontFamily: ComposerFontFamily): string {
-  switch (fontFamily) {
-    case "poppins":
-      return "Poppins, Roboto, Inter, system-ui, -apple-system, sans-serif";
-    case "manrope":
-      return "Manrope, Roboto, Inter, system-ui, -apple-system, sans-serif";
-    case "inter":
-    default:
-      return "Roboto, Inter, system-ui, -apple-system, sans-serif";
-  }
-}
-
 export default function StoryComposerModal({
   onClose,
   publishingStory,
@@ -159,7 +153,6 @@ export default function StoryComposerModal({
   storyCameraInputRef,
   storyCanvasRef,
   storyVideoRef,
-  storyComposerPreviewRef,
   onStoryFileSelected,
   cameraOpen,
   cameraLoading,
@@ -169,21 +162,18 @@ export default function StoryComposerModal({
   storyImageFile,
   storyImageDimensions,
   storyImageTransform,
+  setStoryImageTransform,
   resetStoryImageTransform,
-  onStoryMediaPointerDown,
-  onStoryMediaPointerMove,
-  onStoryMediaPointerUp,
-  draggingStoryMedia,
   storyBackgroundColor,
   setStoryBackgroundColor,
   storyTextLayers,
-  storyTextSnapGuides,
   selectedStoryTextLayer,
-  draggingTextLayerId,
+  selectedTextLayerId,
+  selectedStickerId,
+  setSelectedStoryTextLayerId,
+  setSelectedStickerId,
+  patchTextLayer,
   updateSelectedTextLayer,
-  onStoryTextPointerDown,
-  onStoryTextPointerMove,
-  onStoryTextPointerUp,
   clearStoryImage,
   startCamera,
   stopCamera,
@@ -194,139 +184,21 @@ export default function StoryComposerModal({
   onRedo,
   canUndo,
   canRedo,
-  cardStickers,
-  draggingStickerId,
+  stickers,
   onAddCardSticker,
-  onUpdateCardSticker,
-  onRemoveCardSticker,
-  onSetDraggingSticker,
+  onAddEmojiSticker,
+  onUpdateSticker,
+  onRemoveSticker,
+  onCommitHistory,
   addStoryTextLayer,
   removeSelectedStoryTextLayer,
+  konvaCanvasRef,
   isDraft = false,
 }: StoryComposerModalProps) {
   const [activeTool, setActiveTool] = useState<ActiveTool>("text");
-  const [textFocusOpen, setTextFocusOpen] = useState(false);
   const [mobileBgSheetOpen, setMobileBgSheetOpen] = useState(false);
   const [mobileTextStyleSheetOpen, setMobileTextStyleSheetOpen] = useState(false);
   const visualViewportHeight = useVisualViewportHeight();
-  const focusedTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const resizeRef = useRef<{
-    pointerId: number;
-    initialDistance: number;
-    initialFontSize: number;
-  } | null>(null);
-
-  const onResizeHandlePointerDown = (layerFontSize: number) => (event: ReactPointerEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const layerEl = event.currentTarget.parentElement;
-    if (!layerEl) return;
-    const rect = layerEl.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = event.clientX - centerX;
-    const dy = event.clientY - centerY;
-    const initialDistance = Math.max(12, Math.hypot(dx, dy));
-    resizeRef.current = {
-      pointerId: event.pointerId,
-      initialDistance,
-      initialFontSize: layerFontSize,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const onResizeHandlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = resizeRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    event.stopPropagation();
-    const layerEl = event.currentTarget.parentElement;
-    if (!layerEl) return;
-    const rect = layerEl.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = event.clientX - centerX;
-    const dy = event.clientY - centerY;
-    const distance = Math.hypot(dx, dy);
-    const scale = distance / drag.initialDistance;
-    const nextFontSize = Math.max(18, Math.min(84, Math.round(drag.initialFontSize * scale)));
-    updateSelectedTextLayer((layer) => ({ ...layer, fontSize: nextFontSize }));
-  };
-
-  const onResizeHandlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = resizeRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    event.stopPropagation();
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    resizeRef.current = null;
-  };
-
-  const stickerDragRef = useRef<{
-    pointerId: number;
-    stickerId: string;
-    previewWidth: number;
-    previewHeight: number;
-    offsetPctX: number;
-    offsetPctY: number;
-  } | null>(null);
-
-  const onStickerPointerDown = (stickerId: string) => (event: ReactPointerEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const preview = storyComposerPreviewRef.current;
-    if (!preview) return;
-    const rect = preview.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-    const sticker = cardStickers.find((s) => s.id === stickerId);
-    if (!sticker) return;
-    const pointerPctX = ((event.clientX - rect.left) / rect.width) * 100;
-    const pointerPctY = ((event.clientY - rect.top) / rect.height) * 100;
-    stickerDragRef.current = {
-      pointerId: event.pointerId,
-      stickerId,
-      previewWidth: rect.width,
-      previewHeight: rect.height,
-      offsetPctX: sticker.x - pointerPctX,
-      offsetPctY: sticker.y - pointerPctY,
-    };
-    onSetDraggingSticker(stickerId);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const onStickerPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = stickerDragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    const preview = storyComposerPreviewRef.current;
-    if (!preview) return;
-    const rect = preview.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-    const pointerPctX = ((event.clientX - rect.left) / rect.width) * 100;
-    const pointerPctY = ((event.clientY - rect.top) / rect.height) * 100;
-    const nextX = Math.max(0, Math.min(100, pointerPctX + drag.offsetPctX));
-    const nextY = Math.max(0, Math.min(100, pointerPctY + drag.offsetPctY));
-    onUpdateCardSticker(drag.stickerId, {
-      x: Math.round(nextX * 10) / 10,
-      y: Math.round(nextY * 10) / 10,
-    });
-  };
-
-  const onStickerPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const drag = stickerDragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    stickerDragRef.current = null;
-    onSetDraggingSticker(null);
-  };
-
-  useEffect(() => {
-    if (textFocusOpen && focusedTextareaRef.current) {
-      focusedTextareaRef.current.focus();
-      focusedTextareaRef.current.select();
-    }
-  }, [textFocusOpen]);
 
   const neutralControlStyle = {
     borderColor: "var(--border)",
@@ -351,72 +223,58 @@ export default function StoryComposerModal({
         : cameraPermissionState === "denied"
           ? "Permitir camara"
           : "Solicitar permiso";
-  const canAdjustPhoto = storyMode === "photo" && Boolean(storyPreviewUrl) && !cameraOpen;
-  const activeStyleIndex = useMemo(() => {
-    const foundIndex = TEXT_STYLE_CYCLE.findIndex(
-      (style) =>
-        style.mode === selectedStoryTextLayer?.textBackgroundMode &&
-        style.shape === selectedStoryTextLayer?.textShape
-    );
-    return foundIndex >= 0 ? foundIndex : 0;
-  }, [selectedStoryTextLayer?.textBackgroundMode, selectedStoryTextLayer?.textShape]);
-  const currentTextStyle = TEXT_STYLE_CYCLE[activeStyleIndex];
-  const insertSticker = (sticker: string) => {
-    updateSelectedTextLayer((layer) => ({
-      ...layer,
-      text: `${layer.text}${sticker}`.slice(0, 120),
-      fontSize: Math.max(layer.fontSize, 34),
-      textAlign: "center",
-    }));
-  };
+  const currentBgMode: ComposerTextBackgroundMode = selectedStoryTextLayer?.textBackgroundMode ?? "none";
+  const currentShape: ComposerTextShape = selectedStoryTextLayer?.textShape ?? "rounded";
+  const currentTextStyle = { mode: currentBgMode, shape: currentShape };
   const selectedTextColor = selectedStoryTextLayer?.textColor ?? STORY_TEXT_COLORS[0].value;
   const selectedTextBackgroundColor = selectedStoryTextLayer?.textBackgroundColor ?? STORY_TEXT_CONTAINER_COLORS[0].value;
 
-  const previewImageStyle = useMemo<CSSProperties | null>(() => {
-    if (!storyPreviewUrl || !storyImageDimensions || storyMode !== "photo" || cameraOpen) return null;
-    const safeZoom = clampValue(storyImageTransform.zoom, STORY_IMAGE_MIN_ZOOM, STORY_IMAGE_MAX_ZOOM);
-    const baseScale = getStoryImageCoverScale(
-      storyImageDimensions.width,
-      storyImageDimensions.height,
-      STORY_CANVAS_WIDTH,
-      STORY_CANVAS_HEIGHT,
-      storyImageTransform.rotation
-    );
-    const drawWidth = storyImageDimensions.width * baseScale;
-    const drawHeight = storyImageDimensions.height * baseScale;
-    const widthRatio = drawWidth / STORY_CANVAS_WIDTH;
-    const heightRatio = drawHeight / STORY_CANVAS_HEIGHT;
-    const translateXPercent = widthRatio > 0 ? storyImageTransform.offsetX / widthRatio : 0;
-    const translateYPercent = heightRatio > 0 ? storyImageTransform.offsetY / heightRatio : 0;
-    return {
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      width: `${widthRatio * 100}%`,
-      height: `${heightRatio * 100}%`,
-      maxWidth: "none",
-      userSelect: "none",
-      pointerEvents: "none",
-      transformOrigin: "center center",
-      transform: `translate(-50%, -50%) translate(${translateXPercent}%, ${translateYPercent}%) rotate(${storyImageTransform.rotation}deg) scale(${safeZoom})`,
-    };
-  }, [cameraOpen, storyImageDimensions, storyImageTransform, storyMode, storyPreviewUrl]);
+  const canvasIsDraggable = storyTextLayers.length > 0 || stickers.length > 0 || Boolean(storyPreviewUrl);
+
+  const handleChangeText = (id: string, patch: Partial<ComposerTextLayer>) => {
+    patchTextLayer(id, patch);
+  };
+
+  const handleSelectTextFromCanvas = (id: string | null) => {
+    setSelectedStoryTextLayerId(id);
+  };
+
+  const handleSelectStickerFromCanvas = (id: string | null) => {
+    setSelectedStickerId(id);
+  };
 
   const previewNode = (
     <div
-      ref={storyComposerPreviewRef}
-      onPointerDown={onStoryMediaPointerDown}
-      onPointerMove={onStoryMediaPointerMove}
-      onPointerUp={onStoryMediaPointerUp}
-      onPointerCancel={onStoryMediaPointerUp}
       className="relative h-full w-full overflow-hidden lg:aspect-[9/16] lg:h-auto lg:max-h-[82vh] lg:rounded-2xl lg:border"
       style={{
         borderColor: "var(--border)",
         background: "var(--surface-solid)",
-        cursor: canAdjustPhoto ? (draggingStoryMedia ? "grabbing" : "grab") : "default",
-        touchAction: canAdjustPhoto ? "none" : "auto",
+        cursor: canvasIsDraggable ? "default" : "default",
       }}
     >
+      <KonvaStoryCanvas
+        ref={konvaCanvasRef}
+        mode={storyMode}
+        backgroundColor={storyBackgroundColor}
+        photoPreviewUrl={cameraOpen ? null : storyPreviewUrl}
+        photoDimensions={storyImageDimensions}
+        photoTransform={storyImageTransform}
+        textLayers={storyTextLayers}
+        stickers={stickers}
+        selectedId={selectedTextLayerId ?? selectedStickerId}
+        onSelectText={handleSelectTextFromCanvas}
+        onSelectSticker={handleSelectStickerFromCanvas}
+        onChangeText={handleChangeText}
+        onChangeSticker={onUpdateSticker}
+        onCommitHistory={onCommitHistory}
+        onPhotoTransformChange={setStoryImageTransform}
+        onRequestEditText={(id) => {
+          setSelectedStoryTextLayerId(id);
+          setActiveTool("text");
+          setMobileTextStyleSheetOpen(true);
+        }}
+      />
+
       <video
         ref={storyVideoRef}
         data-story-camera="true"
@@ -429,170 +287,17 @@ export default function StoryComposerModal({
         style={{ display: cameraOpen ? "block" : "none", background: "#000" }}
       />
 
-      {!cameraOpen &&
-        (storyMode === "text" ? (
-          <div className="absolute inset-0" style={{ background: storyBackgroundColor }} />
-        ) : storyPreviewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- blob: URL local con transforms custom, next/image no aplica
-          <img src={storyPreviewUrl} alt="Preview historia" style={previewImageStyle ?? undefined} draggable={false} />
-        ) : (
-          <div className="flex h-full items-center justify-center p-5 text-center" style={{ color: "var(--muted)" }}>
-            <div>
-              <p className="m-0 text-sm font-semibold">Selecciona una imagen</p>
-              <p className="mt-1 text-xs">Formato vertical recomendado</p>
-            </div>
+      {!cameraOpen && storyMode === "photo" && !storyPreviewUrl && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center p-5 text-center"
+          style={{ color: "var(--muted)" }}
+        >
+          <div>
+            <p className="m-0 text-sm font-semibold">Selecciona una imagen</p>
+            <p className="mt-1 text-xs">Formato vertical recomendado</p>
           </div>
-        ))}
-
-      {!cameraOpen && (
-        <div className="pointer-events-none absolute inset-0">
-          <div
-            className="absolute left-0 right-0 border-t border-dashed"
-            style={{ top: "12%", borderColor: "rgba(255,255,255,.16)" }}
-          />
-          <div
-            className="absolute left-0 right-0 border-t border-dashed"
-            style={{ bottom: "18%", borderColor: "rgba(255,255,255,.16)" }}
-          />
-          {storyTextSnapGuides.vertical && (
-            <div className="absolute bottom-0 top-0 border-l" style={{ left: "50%", borderColor: "rgba(255,255,255,.58)" }} />
-          )}
-          {storyTextSnapGuides.horizontal && (
-            <div className="absolute left-0 right-0 border-t" style={{ top: "50%", borderColor: "rgba(255,255,255,.58)" }} />
-          )}
         </div>
       )}
-
-      {(storyPreviewUrl || storyMode === "text") &&
-        !cameraOpen &&
-        storyTextLayers.map((layer, index) => {
-          const text = layer.text.trim();
-          if (!text) return null;
-          const selected = selectedStoryTextLayer?.id === layer.id;
-          const hasContainer = layer.textBackgroundMode !== "none";
-          const borderRadius = layer.textShape === "pill" ? 999 : layer.textShape === "rounded" ? 12 : 8;
-          return (
-            <div
-              key={layer.id}
-              onPointerDown={(event) => onStoryTextPointerDown(layer.id, event)}
-              onPointerMove={onStoryTextPointerMove}
-              onPointerUp={onStoryTextPointerUp}
-              onPointerCancel={onStoryTextPointerUp}
-              className="absolute touch-none"
-              style={{
-                left: `${layer.x}%`,
-                top: `${layer.y}%`,
-                transform: "translate(-50%, -50%)",
-                borderRadius,
-                padding: hasContainer ? "6px 12px" : 0,
-                border:
-                  layer.textBackgroundMode === "outline"
-                    ? `1.5px solid ${layer.textBackgroundColor}`
-                    : hasContainer
-                      ? selected
-                        ? "1px solid rgba(255,255,255,.65)"
-                        : "1px solid transparent"
-                      : selected
-                        ? "1px dashed rgba(255,255,255,.65)"
-                        : "1px dashed rgba(255,255,255,.32)",
-                background: layer.textBackgroundMode === "fill" ? layer.textBackgroundColor : "transparent",
-                boxShadow: hasContainer && selected ? "0 0 0 1px rgba(255,255,255,.7)" : "none",
-                cursor: draggingTextLayerId === layer.id ? "grabbing" : "grab",
-                zIndex: 2 + index,
-              }}
-            >
-              <span
-                style={{
-                  color: layer.textColor,
-                  fontSize: layer.fontSize,
-                  fontWeight: layer.fontWeight,
-                  fontStyle: layer.fontStyle,
-                  fontFamily: getPreviewFontFamily(layer.fontFamily),
-                  lineHeight: 1.2,
-                  display: "block",
-                  minWidth: 48,
-                  whiteSpace: "pre-wrap",
-                  textAlign: layer.textAlign,
-                  textShadow: hasContainer ? "0 1px 4px rgba(0,0,0,.28)" : "0 2px 8px rgba(0,0,0,.65)",
-                }}
-              >
-                {text}
-              </span>
-              {selected && (
-                <div
-                  role="slider"
-                  aria-label="Ajustar tamaño"
-                  aria-valuemin={18}
-                  aria-valuemax={84}
-                  aria-valuenow={layer.fontSize}
-                  tabIndex={0}
-                  onPointerDown={onResizeHandlePointerDown(layer.fontSize)}
-                  onPointerMove={onResizeHandlePointerMove}
-                  onPointerUp={onResizeHandlePointerUp}
-                  onPointerCancel={onResizeHandlePointerUp}
-                  className="absolute touch-none"
-                  style={{
-                    right: -10,
-                    bottom: -10,
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    background: "white",
-                    border: "1.5px solid rgba(0,0,0,.35)",
-                    boxShadow: "0 1px 3px rgba(0,0,0,.4)",
-                    cursor: "nwse-resize",
-                    zIndex: 10,
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
-
-      {!cameraOpen &&
-        cardStickers.map((sticker) => (
-          <div
-            key={sticker.id}
-            onPointerDown={onStickerPointerDown(sticker.id)}
-            onPointerMove={onStickerPointerMove}
-            onPointerUp={onStickerPointerUp}
-            onPointerCancel={onStickerPointerUp}
-            className="absolute touch-none"
-            style={{
-              left: `${sticker.x}%`,
-              top: `${sticker.y}%`,
-              transform: `translate(-50%, -50%) scale(${sticker.scale})`,
-              width: "32%",
-              aspectRatio: "3 / 4",
-              cursor: draggingStickerId === sticker.id ? "grabbing" : "grab",
-              boxShadow: "0 6px 18px rgba(0,0,0,.35)",
-              borderRadius: 12,
-              overflow: "hidden",
-              border: draggingStickerId === sticker.id ? "2px solid rgba(255,255,255,.65)" : "2px solid transparent",
-              zIndex: 20,
-            }}
-          >
-            <Image
-              src={sticker.imageUrl}
-              alt={sticker.name}
-              fill
-              sizes="160px"
-              className="pointer-events-none object-cover"
-            />
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onRemoveCardSticker(sticker.id);
-              }}
-              aria-label={`Quitar sticker ${sticker.name}`}
-              className="absolute right-1 top-1 h-6 w-6 rounded-full text-xs font-bold"
-              style={{ background: "rgba(0,0,0,.55)", color: "white", border: "none" }}
-            >
-              ×
-            </button>
-          </div>
-        ))}
 
       {storyPreviewUrl && !cameraOpen && storyMode === "photo" && (
         <button
@@ -622,11 +327,18 @@ export default function StoryComposerModal({
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Crear historia" className="fixed inset-0 z-[95]">
-      <button
-        type="button"
-        onClick={onClose}
+      <div
+        role="button"
+        tabIndex={-1}
         aria-label="Cerrar"
-        className="absolute inset-0 block border-0 p-0"
+        onClick={onClose}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onClose();
+          }
+        }}
+        className="absolute inset-0"
         style={{ background: "rgba(0,0,0,.7)", cursor: "pointer" }}
       />
       <div
@@ -760,13 +472,13 @@ export default function StoryComposerModal({
               </div>
             </div>
 
-            {/* FLOATING TOOLS — right edge, vertical (add text, stickers) */}
+            {/* FLOATING TOOLS — right edge, vertical (add text, stickers). */}
             <div className="pointer-events-auto absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-3">
               <button
                 type="button"
                 onClick={() => {
                   addStoryTextLayer();
-                  setTextFocusOpen(true);
+                  setMobileTextStyleSheetOpen(true);
                 }}
                 aria-label="Agregar texto"
                 className="flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-90"
@@ -829,6 +541,21 @@ export default function StoryComposerModal({
                   </span>
                 </button>
               )}
+              {selectedStickerId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedStickerId) onRemoveSticker(selectedStickerId);
+                  }}
+                  aria-label="Eliminar sticker"
+                  className="flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-90"
+                  style={{ background: "rgba(220,38,38,0.85)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* EMPTY STATE — photo mode, no image */}
@@ -875,7 +602,7 @@ export default function StoryComposerModal({
                 type="button"
                 onClick={() => {
                   addStoryTextLayer();
-                  setTextFocusOpen(true);
+                  setMobileTextStyleSheetOpen(true);
                 }}
                 className="pointer-events-auto absolute inset-x-6 top-1/2 -translate-y-1/2 py-2 text-[20px] font-bold text-white/80 transition-opacity active:opacity-60"
                 style={{ textShadow: "0 2px 6px rgba(0,0,0,0.4)" }}
@@ -1023,16 +750,16 @@ export default function StoryComposerModal({
                       Emojis
                     </p>
                     <div className="grid grid-cols-6 gap-2">
-                      {STICKER_OPTIONS.map((sticker) => (
+                      {EMOJI_OPTIONS.map((emoji) => (
                         <button
-                          key={`mobile-sticker-${sticker}`}
+                          key={`mobile-emoji-${emoji}`}
                           type="button"
-                          onClick={() => { insertSticker(sticker); setActiveTool("text"); }}
+                          onClick={() => { onAddEmojiSticker(emoji); setActiveTool("text"); }}
                           className="aspect-square rounded-xl border text-xl transition-transform active:scale-90"
                           style={neutralControlStyle}
-                          aria-label={`Sticker ${sticker}`}
+                          aria-label={`Emoji ${emoji}`}
                         >
-                          {sticker}
+                          {emoji}
                         </button>
                       ))}
                     </div>
@@ -1115,7 +842,7 @@ export default function StoryComposerModal({
                   <div className="h-1 w-10 rounded-full" style={{ background: "var(--border)" }} />
                 </div>
                 <div className="flex items-center justify-between px-4 pb-3">
-                  <h4 className="m-0 text-[15px] font-bold">Estilo del texto</h4>
+                  <h4 className="m-0 text-[15px] font-bold">Editar texto</h4>
                   <button
                     type="button"
                     onClick={() => setMobileTextStyleSheetOpen(false)}
@@ -1128,26 +855,103 @@ export default function StoryComposerModal({
                     </svg>
                   </button>
                 </div>
-                <div className="space-y-4 px-4 pb-4">
+                <div className="max-h-[72vh] space-y-4 overflow-y-auto px-4 pb-4">
+                  {selectedStoryTextLayer && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                        Texto
+                      </p>
+                      <MentionsAutocomplete
+                        value={selectedStoryTextLayer.text}
+                        onChange={(next) =>
+                          updateSelectedTextLayer((layer) => ({ ...layer, text: next }))
+                        }
+                        placeholder="Escribe el texto de tu historia..."
+                        rows={3}
+                        maxLength={120}
+                        textareaClassName="w-full resize-none rounded-xl border px-3 py-2.5 text-[14px] outline-none"
+                        textareaStyle={{
+                          borderColor: "var(--border)",
+                          background: "var(--surface)",
+                          color: selectedStoryTextLayer.textColor,
+                          fontWeight: selectedStoryTextLayer.fontWeight === "bold" ? 700 : 500,
+                          fontStyle: selectedStoryTextLayer.fontStyle,
+                          textAlign: selectedStoryTextLayer.textAlign,
+                        }}
+                      />
+                    </div>
+                  )}
+                  {selectedStoryTextLayer && (
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                          Tamaño
+                        </p>
+                        <span className="text-[11px] font-semibold tabular-nums" style={{ color: "var(--muted)" }}>
+                          {selectedStoryTextLayer.fontSize}px
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onCommitHistory();
+                            updateSelectedTextLayer((layer) => ({
+                              ...layer,
+                              fontSize: Math.max(COMPOSER_TEXT_MIN_FONT_SIZE, layer.fontSize - 4),
+                            }));
+                          }}
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-[16px] font-bold"
+                          style={neutralControlStyle}
+                          aria-label="Reducir tamaño"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="range"
+                          min={COMPOSER_TEXT_MIN_FONT_SIZE}
+                          max={COMPOSER_TEXT_MAX_FONT_SIZE}
+                          step={1}
+                          value={selectedStoryTextLayer.fontSize}
+                          onPointerDown={onCommitHistory}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            updateSelectedTextLayer((layer) => ({ ...layer, fontSize: next }));
+                          }}
+                          className="h-10 flex-1 cursor-pointer accent-[var(--accent)]"
+                          aria-label="Tamaño del texto"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onCommitHistory();
+                            updateSelectedTextLayer((layer) => ({
+                              ...layer,
+                              fontSize: Math.min(COMPOSER_TEXT_MAX_FONT_SIZE, layer.fontSize + 4),
+                            }));
+                          }}
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-[16px] font-bold"
+                          style={neutralControlStyle}
+                          aria-label="Aumentar tamaño"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
                       Fondo del texto
                     </p>
                     <div className="grid grid-cols-3 gap-2">
-                      {TEXT_STYLE_CYCLE.map((style, idx) => {
-                        const isActive = style.mode === currentTextStyle.mode && style.shape === currentTextStyle.shape;
-                        const labels = ["Sin fondo", "Lleno", "Outline"];
+                      {TEXT_BG_MODES.map(({ mode, label }) => {
+                        const isActive = currentBgMode === mode;
                         return (
                           <button
-                            key={`mobile-style-${idx}`}
+                            key={`mobile-bg-mode-${mode}`}
                             type="button"
-                            onClick={() =>
-                              updateSelectedTextLayer((layer) => ({
-                                ...layer,
-                                textBackgroundMode: style.mode,
-                                textShape: style.shape,
-                              }))
-                            }
+                            aria-pressed={isActive}
+                            onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textBackgroundMode: mode }))}
                             className="flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-[11px] font-semibold transition-transform active:scale-95"
                             style={{
                               borderColor: isActive ? "var(--accent)" : "var(--border)",
@@ -1159,51 +963,91 @@ export default function StoryComposerModal({
                               style={{
                                 width: 32,
                                 height: 22,
-                                borderRadius: style.shape === "pill" ? 999 : style.shape === "rounded" ? 6 : 4,
-                                background: style.mode === "fill" ? selectedTextBackgroundColor : "transparent",
+                                borderRadius: currentShape === "pill" ? 999 : currentShape === "rounded" ? 6 : 4,
+                                background: mode === "fill" ? selectedTextBackgroundColor : "transparent",
                                 border:
-                                  style.mode === "outline"
+                                  mode === "outline"
                                     ? `2px solid ${selectedTextBackgroundColor}`
-                                    : style.mode === "none"
+                                    : mode === "none"
                                       ? "1.5px dashed rgba(128,128,128,.5)"
                                       : "none",
                               }}
                             />
-                            {labels[idx]}
+                            {label}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                  {currentTextStyle.mode !== "none" && (
-                    <div>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
-                        Color de forma
-                      </p>
-                      <div className="grid grid-cols-5 place-items-center gap-3">
-                        {STORY_TEXT_CONTAINER_COLORS.map((option) => {
-                          const isActive = selectedTextBackgroundColor === option.value;
-                          return (
-                            <button
-                              key={`mobile-shape-${option.value}`}
-                              type="button"
-                              aria-label={option.name}
-                              aria-pressed={isActive}
-                              onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textBackgroundColor: option.value }))}
-                              className="rounded-full border-0 transition-transform active:scale-90"
-                              style={{
-                                width: 40,
-                                height: 40,
-                                background: option.value,
-                                boxShadow: isActive
-                                  ? "0 0 0 3px var(--background), 0 0 0 5px var(--accent)"
-                                  : "inset 0 0 0 1px rgba(0,0,0,.15)",
-                              }}
-                            />
-                          );
-                        })}
+                  {currentBgMode !== "none" && (
+                    <>
+                      <div>
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                          Forma
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {TEXT_SHAPES.map(({ shape, label }) => {
+                            const isActive = currentShape === shape;
+                            return (
+                              <button
+                                key={`mobile-shape-${shape}`}
+                                type="button"
+                                aria-pressed={isActive}
+                                onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textShape: shape }))}
+                                className="flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-[11px] font-semibold transition-transform active:scale-95"
+                                style={{
+                                  borderColor: isActive ? "var(--accent)" : "var(--border)",
+                                  background: isActive ? "var(--accent-subtle)" : "var(--surface-solid)",
+                                  color: isActive ? "var(--accent)" : "var(--foreground)",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    width: 32,
+                                    height: 22,
+                                    borderRadius: shape === "pill" ? 999 : shape === "rounded" ? 6 : 4,
+                                    background: currentBgMode === "fill" ? selectedTextBackgroundColor : "transparent",
+                                    border:
+                                      currentBgMode === "outline"
+                                        ? `2px solid ${selectedTextBackgroundColor}`
+                                        : "none",
+                                  }}
+                                />
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                      <div>
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                          Color de forma
+                        </p>
+                        <div className="grid grid-cols-5 place-items-center gap-3">
+                          {STORY_TEXT_CONTAINER_COLORS.map((option) => {
+                            const isActive = selectedTextBackgroundColor === option.value;
+                            return (
+                              <button
+                                key={`mobile-shape-color-${option.value}`}
+                                type="button"
+                                aria-label={option.name}
+                                aria-pressed={isActive}
+                                onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textBackgroundColor: option.value }))}
+                                className="rounded-full border-0 transition-transform active:scale-90"
+                                style={{
+                                  width: 40,
+                                  height: 40,
+                                  background: option.value,
+                                  boxShadow: isActive
+                                    ? "0 0 0 3px var(--background), 0 0 0 5px var(--accent)"
+                                    : "inset 0 0 0 1px rgba(0,0,0,.15)",
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -1223,7 +1067,7 @@ export default function StoryComposerModal({
               </h3>
               <div className="mt-0.5 flex items-center gap-2 text-[11px]" style={{ color: "var(--muted)" }}>
                 <span>
-                  {storyTextLayers.filter((layer) => layer.text.trim().length > 0).length} capas · {cardStickers.length} stickers
+                  {storyTextLayers.filter((layer) => layer.text.trim().length > 0).length} capas · {stickers.length} stickers
                 </span>
                 {isDraft && (
                   <span
@@ -1274,101 +1118,141 @@ export default function StoryComposerModal({
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-4">
               {activeTool === "text" && (
                 <div className="space-y-5">
-                  {/* Preview de capa */}
+                  {/* Inline editor — sidebar IS the editor */}
                   <div>
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
-                      Capa seleccionada
-                    </p>
-                    <div
-                      className="flex min-h-[84px] items-center justify-center rounded-xl border border-dashed px-4 py-5 text-center"
-                      style={{
-                        borderColor: "var(--border)",
-                        background: "linear-gradient(135deg, #1e293b, #0f172a)",
-                      }}
-                    >
-                      {selectedStoryTextLayer?.text?.trim() ? (
-                        <span
-                          className="inline-flex items-center justify-center"
-                          style={{
-                            color: selectedTextColor,
-                            background: currentTextStyle.mode === "fill" ? selectedTextBackgroundColor : "transparent",
-                            border:
-                              currentTextStyle.mode === "outline"
-                                ? `2px solid ${selectedTextBackgroundColor}`
-                                : "none",
-                            borderRadius: currentTextStyle.shape === "pill" ? 999 : currentTextStyle.shape === "rounded" ? 12 : 8,
-                            padding: currentTextStyle.mode !== "none" ? "6px 14px" : 0,
-                            fontWeight: 700,
-                            fontSize: 18,
-                            maxWidth: "100%",
-                            overflowWrap: "break-word",
-                            textShadow: currentTextStyle.mode === "none" ? "0 2px 6px rgba(0,0,0,.45)" : "none",
-                          }}
-                        >
-                          {selectedStoryTextLayer.text}
-                        </span>
-                      ) : (
-                        <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.55)" }}>
-                          Toca &quot;Editar&quot; para escribir
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                        Texto
+                      </p>
+                      {storyTextLayers.length > 1 && (
+                        <span className="text-[10px] font-semibold" style={{ color: "var(--muted)" }}>
+                          Capa {storyTextLayers.indexOf(selectedStoryTextLayer ?? storyTextLayers[0]) + 1}/{storyTextLayers.length}
                         </span>
                       )}
                     </div>
+                    {selectedStoryTextLayer ? (
+                      <MentionsAutocomplete
+                        value={selectedStoryTextLayer.text}
+                        onChange={(next) =>
+                          updateSelectedTextLayer((layer) => ({ ...layer, text: next }))
+                        }
+                        placeholder="Escribe el texto de tu historia..."
+                        rows={3}
+                        maxLength={120}
+                        textareaClassName="w-full resize-none rounded-xl border px-3 py-2.5 text-[14px] outline-none focus:ring-2"
+                        textareaStyle={{
+                          borderColor: "var(--border)",
+                          background: "var(--surface)",
+                          color: selectedStoryTextLayer.textColor,
+                          fontWeight: selectedStoryTextLayer.fontWeight === "bold" ? 700 : 500,
+                          fontStyle: selectedStoryTextLayer.fontStyle,
+                          fontFamily: getFontFamilyStack(selectedStoryTextLayer.fontFamily),
+                          textAlign: selectedStoryTextLayer.textAlign,
+                        }}
+                      />
+                    ) : (
+                      <p className="text-[12px]" style={{ color: "var(--muted)" }}>
+                        Agrega una capa de texto para empezar.
+                      </p>
+                    )}
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => setTextFocusOpen(true)}
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border text-[13px] font-semibold transition-colors"
-                        style={neutralControlStyle}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M3 21v-3l11-11 3 3L6 21H3zM14 7l3 3" />
-                        </svg>
-                        Editar
-                      </button>
-                      <button
-                        type="button"
                         onClick={addStoryTextLayer}
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border text-[13px] font-semibold transition-colors"
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border text-[12px] font-semibold"
                         style={neutralControlStyle}
                       >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                           <path d="M12 5v14M5 12h14" />
                         </svg>
                         Nueva capa
                       </button>
-                    </div>
-                    {storyTextLayers.length > 1 && selectedStoryTextLayer && (
                       <button
                         type="button"
                         onClick={removeSelectedStoryTextLayer}
-                        className="mt-2 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border text-[12px] font-semibold"
+                        disabled={storyTextLayers.length <= 1 || !selectedStoryTextLayer}
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                         style={{ borderColor: "var(--border)", background: "transparent", color: "var(--muted)" }}
                       >
                         Eliminar capa
                       </button>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Estilo */}
+                  {/* Tamaño */}
+                  {selectedStoryTextLayer && (
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                          Tamaño
+                        </p>
+                        <span className="text-[11px] font-semibold tabular-nums" style={{ color: "var(--muted)" }}>
+                          {selectedStoryTextLayer.fontSize}px
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onCommitHistory();
+                            updateSelectedTextLayer((layer) => ({
+                              ...layer,
+                              fontSize: Math.max(COMPOSER_TEXT_MIN_FONT_SIZE, layer.fontSize - 4),
+                            }));
+                          }}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-[14px] font-bold"
+                          style={neutralControlStyle}
+                          aria-label="Reducir tamaño"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="range"
+                          min={COMPOSER_TEXT_MIN_FONT_SIZE}
+                          max={COMPOSER_TEXT_MAX_FONT_SIZE}
+                          step={1}
+                          value={selectedStoryTextLayer.fontSize}
+                          onPointerDown={onCommitHistory}
+                          onChange={(event) => {
+                            const next = Number(event.target.value);
+                            updateSelectedTextLayer((layer) => ({ ...layer, fontSize: next }));
+                          }}
+                          className="h-9 flex-1 cursor-pointer accent-[var(--accent)]"
+                          aria-label="Tamaño del texto"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onCommitHistory();
+                            updateSelectedTextLayer((layer) => ({
+                              ...layer,
+                              fontSize: Math.min(COMPOSER_TEXT_MAX_FONT_SIZE, layer.fontSize + 4),
+                            }));
+                          }}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-[14px] font-bold"
+                          style={neutralControlStyle}
+                          aria-label="Aumentar tamaño"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fondo del texto */}
                   <div>
                     <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
-                      Estilo
+                      Fondo
                     </p>
                     <div className="grid grid-cols-3 gap-2">
-                      {TEXT_STYLE_CYCLE.map((style, idx) => {
-                        const isActive = style.mode === currentTextStyle.mode && style.shape === currentTextStyle.shape;
-                        const labels = ["Sin fondo", "Lleno", "Outline"];
+                      {TEXT_BG_MODES.map(({ mode, label }) => {
+                        const isActive = currentBgMode === mode;
                         return (
                           <button
-                            key={`style-${idx}`}
+                            key={`bg-mode-${mode}`}
                             type="button"
-                            onClick={() =>
-                              updateSelectedTextLayer((layer) => ({
-                                ...layer,
-                                textBackgroundMode: style.mode,
-                                textShape: style.shape,
-                              }))
-                            }
+                            aria-pressed={isActive}
+                            onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textBackgroundMode: mode }))}
                             className="flex flex-col items-center gap-1.5 rounded-xl border px-2 py-2.5 text-[11px] font-semibold transition-colors"
                             style={{
                               borderColor: isActive ? "var(--accent)" : "var(--border)",
@@ -1381,22 +1265,65 @@ export default function StoryComposerModal({
                               style={{
                                 width: 28,
                                 height: 20,
-                                borderRadius: style.shape === "pill" ? 999 : style.shape === "rounded" ? 6 : 4,
-                                background: style.mode === "fill" ? selectedTextBackgroundColor : "transparent",
+                                borderRadius: currentShape === "pill" ? 999 : currentShape === "rounded" ? 6 : 4,
+                                background: mode === "fill" ? selectedTextBackgroundColor : "transparent",
                                 border:
-                                  style.mode === "outline"
+                                  mode === "outline"
                                     ? `2px solid ${selectedTextBackgroundColor}`
-                                    : style.mode === "none"
+                                    : mode === "none"
                                       ? "1.5px dashed rgba(128,128,128,.5)"
                                       : "none",
                               }}
                             />
-                            {labels[idx]}
+                            {label}
                           </button>
                         );
                       })}
                     </div>
                   </div>
+
+                  {/* Forma */}
+                  {currentBgMode !== "none" && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+                        Forma
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {TEXT_SHAPES.map(({ shape, label }) => {
+                          const isActive = currentShape === shape;
+                          return (
+                            <button
+                              key={`shape-${shape}`}
+                              type="button"
+                              aria-pressed={isActive}
+                              onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textShape: shape }))}
+                              className="flex flex-col items-center gap-1.5 rounded-xl border px-2 py-2.5 text-[11px] font-semibold transition-colors"
+                              style={{
+                                borderColor: isActive ? "var(--accent)" : "var(--border)",
+                                background: isActive ? "var(--accent-subtle)" : "var(--surface-solid)",
+                                color: isActive ? "var(--accent)" : "var(--foreground)",
+                              }}
+                            >
+                              <span
+                                className="block"
+                                style={{
+                                  width: 28,
+                                  height: 20,
+                                  borderRadius: shape === "pill" ? 999 : shape === "rounded" ? 6 : 4,
+                                  background: currentBgMode === "fill" ? selectedTextBackgroundColor : "transparent",
+                                  border:
+                                    currentBgMode === "outline"
+                                      ? `2px solid ${selectedTextBackgroundColor}`
+                                      : "none",
+                                }}
+                              />
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Color de texto */}
                   <div>
@@ -1661,16 +1588,16 @@ export default function StoryComposerModal({
                       Emojis
                     </summary>
                     <div className="mt-2 grid grid-cols-6 gap-2">
-                      {STICKER_OPTIONS.map((sticker) => (
+                      {EMOJI_OPTIONS.map((emoji) => (
                         <button
-                          key={`desktop-sticker-${sticker}`}
+                          key={`desktop-emoji-${emoji}`}
                           type="button"
-                          onClick={() => insertSticker(sticker)}
+                          onClick={() => onAddEmojiSticker(emoji)}
                           className="aspect-square rounded-lg border text-lg"
                           style={neutralControlStyle}
-                          aria-label={`Sticker ${sticker}`}
+                          aria-label={`Emoji ${emoji}`}
                         >
-                          {sticker}
+                          {emoji}
                         </button>
                       ))}
                     </div>
@@ -1719,49 +1646,6 @@ export default function StoryComposerModal({
           </main>
         </div>
 
-        {textFocusOpen && (
-          <div
-            className="absolute left-0 right-0 top-0 z-[110] flex items-center justify-center p-4"
-            style={{
-              height: visualViewportHeight ? `${visualViewportHeight}px` : "100dvh",
-              background: "rgba(0,0,0,.72)",
-            }}
-          >
-            <div className="w-full max-w-[540px] rounded-xl border p-4" style={{ borderColor: "var(--border)", background: "var(--surface-solid)" }}>
-              <MentionsAutocomplete
-                ref={focusedTextareaRef}
-                value={selectedStoryTextLayer?.text ?? ""}
-                onChange={(next) => updateSelectedTextLayer((layer) => ({ ...layer, text: next, fontSize: 40 }))}
-                placeholder="Escribe aquí..."
-                rows={3}
-                maxLength={120}
-                textareaClassName="w-full resize-none rounded-xl border px-4 py-3 text-center text-3xl font-semibold outline-none"
-                textareaStyle={{ ...neutralControlStyle, color: selectedTextColor }}
-              />
-              <div className="mt-4 flex items-center justify-center gap-3">
-                {STORY_TEXT_COLORS.map((option) => (
-                  <button
-                    key={`focus-text-${option.value}`}
-                    type="button"
-                    title={option.name}
-                    aria-label={`Color ${option.name}`}
-                    onClick={() => updateSelectedTextLayer((layer) => ({ ...layer, textColor: option.value }))}
-                    className="h-12 w-12 rounded-full border-2"
-                    style={{
-                      background: option.value,
-                      borderColor: selectedTextColor === option.value ? "#FFFFFF" : "rgba(255,255,255,.45)",
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button type="button" onClick={() => setTextFocusOpen(false)} className="h-11 rounded-xl border px-5 text-sm font-semibold" style={neutralControlStyle}>
-                  Listo
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

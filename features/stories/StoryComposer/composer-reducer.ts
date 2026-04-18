@@ -1,6 +1,6 @@
 import type {
-  CardStickerLayer,
   ComposerTextLayer,
+  StickerLayer,
   StoryComposerMode,
   StoryImageDimensions,
   StoryImageTransform,
@@ -51,8 +51,9 @@ export type ComposerState = {
   previewUrl: string | null;
   backgroundColor: string;
   textLayers: ComposerTextLayer[];
-  cardStickers: CardStickerLayer[];
+  stickers: StickerLayer[];
   selectedTextLayerId: string | null;
+  selectedStickerId: string | null;
   draggingTextLayerId: string | null;
   draggingStickerId: string | null;
   draggingMedia: boolean;
@@ -63,15 +64,16 @@ export type ComposerState = {
 export function createInitialComposerState(): ComposerState {
   const initialLayer = createComposerTextLayer();
   return {
-    mode: "photo",
+    mode: "text",
     imageFile: null,
     imageDimensions: null,
     imageTransform: DEFAULT_STORY_IMAGE_TRANSFORM,
     previewUrl: null,
     backgroundColor: DEFAULT_BACKGROUND_COLOR,
     textLayers: [initialLayer],
-    cardStickers: [],
+    stickers: [],
     selectedTextLayerId: initialLayer.id,
+    selectedStickerId: null,
     draggingTextLayerId: null,
     draggingStickerId: null,
     draggingMedia: false,
@@ -93,11 +95,12 @@ export type ComposerAction =
   | { type: "SET_TEXT_LAYERS"; layers: ComposerTextLayer[] }
   | { type: "REMOVE_TEXT_LAYER"; id: string; fallbackId: string | null }
   | { type: "SELECT_TEXT_LAYER"; id: string | null }
+  | { type: "SELECT_STICKER"; id: string | null }
   | { type: "SET_DRAGGING_TEXT_LAYER"; id: string | null }
   | { type: "SET_DRAGGING_STICKER"; id: string | null }
-  | { type: "ADD_CARD_STICKER"; sticker: CardStickerLayer }
-  | { type: "UPDATE_CARD_STICKER"; id: string; patch: Partial<Omit<CardStickerLayer, "id">> }
-  | { type: "REMOVE_CARD_STICKER"; id: string }
+  | { type: "ADD_STICKER"; sticker: StickerLayer }
+  | { type: "UPDATE_STICKER"; id: string; patch: Partial<Omit<StickerLayer, "id" | "kind">> }
+  | { type: "REMOVE_STICKER"; id: string }
   | { type: "SET_DRAGGING_MEDIA"; dragging: boolean }
   | { type: "SET_PUBLISHING"; publishing: boolean }
   | { type: "SET_TEXT_SNAP_GUIDES"; guides: { vertical: boolean; horizontal: boolean } }
@@ -167,22 +170,37 @@ export function composerReducer(state: ComposerState, action: ComposerAction): C
       };
     }
     case "SELECT_TEXT_LAYER":
-      return { ...state, selectedTextLayerId: action.id };
+      return {
+        ...state,
+        selectedTextLayerId: action.id,
+        selectedStickerId: action.id ? null : state.selectedStickerId,
+      };
+    case "SELECT_STICKER":
+      return {
+        ...state,
+        selectedStickerId: action.id,
+        selectedTextLayerId: action.id ? null : state.selectedTextLayerId,
+      };
     case "SET_DRAGGING_TEXT_LAYER":
       return { ...state, draggingTextLayerId: action.id };
     case "SET_DRAGGING_STICKER":
       return { ...state, draggingStickerId: action.id };
-    case "ADD_CARD_STICKER":
-      return { ...state, cardStickers: [...state.cardStickers, action.sticker] };
-    case "UPDATE_CARD_STICKER":
+    case "ADD_STICKER":
       return {
         ...state,
-        cardStickers: state.cardStickers.map((sticker) =>
-          sticker.id === action.id ? { ...sticker, ...action.patch } : sticker
+        stickers: [...state.stickers, action.sticker],
+        selectedStickerId: action.sticker.id,
+        selectedTextLayerId: null,
+      };
+    case "UPDATE_STICKER":
+      return {
+        ...state,
+        stickers: state.stickers.map((sticker) =>
+          sticker.id === action.id ? ({ ...sticker, ...action.patch } as StickerLayer) : sticker
         ),
       };
-    case "REMOVE_CARD_STICKER":
-      return { ...state, cardStickers: state.cardStickers.filter((sticker) => sticker.id !== action.id) };
+    case "REMOVE_STICKER":
+      return { ...state, stickers: state.stickers.filter((sticker) => sticker.id !== action.id) };
     case "SET_DRAGGING_MEDIA":
       return { ...state, draggingMedia: action.dragging };
     case "SET_PUBLISHING":

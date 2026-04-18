@@ -5,7 +5,11 @@ import {
   type ComposerState,
 } from "./composer-reducer";
 
-export type HistoryAction = ComposerAction | { type: "UNDO" } | { type: "REDO" };
+export type HistoryAction =
+  | ComposerAction
+  | { type: "UNDO" }
+  | { type: "REDO" }
+  | { type: "COMMIT" };
 
 export type ComposerHistoryState = {
   past: ComposerState[];
@@ -15,8 +19,9 @@ export type ComposerHistoryState = {
 
 const MAX_HISTORY = 50;
 
-// Actions that should update present but NOT push a history snapshot.
-// These are either transient UI state or continuous/high-frequency updates.
+// Transient / high-frequency actions that update `present` without creating a
+// history snapshot. Drag operations dispatch a COMMIT before they start to
+// record the pre-drag state; everything in between is throwaway.
 const NON_SNAPSHOTTABLE: ReadonlySet<ComposerAction["type"]> = new Set<ComposerAction["type"]>([
   "SET_DRAGGING_TEXT_LAYER",
   "SET_DRAGGING_STICKER",
@@ -26,6 +31,9 @@ const NON_SNAPSHOTTABLE: ReadonlySet<ComposerAction["type"]> = new Set<ComposerA
   "SET_IMAGE_TRANSFORM",
   "SET_IMAGE_DIMENSIONS",
   "SELECT_TEXT_LAYER",
+  "SELECT_STICKER",
+  "SET_TEXT_LAYERS",
+  "UPDATE_STICKER",
 ]);
 
 export function createInitialHistoryState(): ComposerHistoryState {
@@ -57,6 +65,18 @@ export function composerHistoryReducer(
       past: [...state.past, state.present],
       present: next,
       future: rest,
+    };
+  }
+
+  if (action.type === "COMMIT") {
+    const last = state.past[state.past.length - 1];
+    if (last === state.present) return state;
+    const nextPast = [...state.past, state.present];
+    if (nextPast.length > MAX_HISTORY) nextPast.shift();
+    return {
+      past: nextPast,
+      present: state.present,
+      future: [],
     };
   }
 

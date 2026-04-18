@@ -1,5 +1,12 @@
 import type { ComposerTextLayer } from "@/features/stories/types";
 
+export const COMPOSER_TEXT_DEFAULT_FONT_SIZE = 40;
+export const COMPOSER_TEXT_MIN_FONT_SIZE = 18;
+// Effectively no upper bound — the preview canvas is only 1920 tall, so the
+// visual cap is self-enforcing. High number keeps the slider usable while
+// letting pinch/Transformer scale to whatever the user wants.
+export const COMPOSER_TEXT_MAX_FONT_SIZE = 500;
+
 export function createComposerTextLayer(partial?: Partial<ComposerTextLayer>): ComposerTextLayer {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -10,11 +17,12 @@ export function createComposerTextLayer(partial?: Partial<ComposerTextLayer>): C
     textShape: partial?.textShape ?? "rounded",
     fontWeight: partial?.fontWeight ?? "normal",
     fontStyle: partial?.fontStyle ?? "normal",
-    fontSize: partial?.fontSize ?? 34,
+    fontSize: partial?.fontSize ?? COMPOSER_TEXT_DEFAULT_FONT_SIZE,
     textAlign: partial?.textAlign ?? "center",
     fontFamily: partial?.fontFamily ?? "inter",
     x: partial?.x ?? 50,
     y: partial?.y ?? 75,
+    rotation: partial?.rotation ?? 0,
   };
 }
 

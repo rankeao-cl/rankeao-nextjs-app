@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useReducer, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useMemo, useReducer } from "react";
 import type {
   CardStickerLayer,
+  EmojiStickerLayer,
   ComposerTextLayer,
+  StickerLayer,
   StoryComposerMode,
   StoryImageDimensions,
   StoryImageTransform,
@@ -14,24 +16,9 @@ import {
   createInitialHistoryState,
 } from "@/features/stories/StoryComposer/composer-history";
 
-const STORY_TEXT_SNAP_TARGET = 50;
-const STORY_TEXT_SNAP_DISTANCE = 3;
-
 export function useStoryComposer() {
   const [history, dispatch] = useReducer(composerHistoryReducer, undefined, createInitialHistoryState);
   const state = history.present;
-
-  const previewRef = useRef<HTMLDivElement | null>(null);
-  const mediaDragRef = useRef<
-    | {
-        pointerId: number;
-        startX: number;
-        startY: number;
-        originOffsetX: number;
-        originOffsetY: number;
-      }
-    | null
-  >(null);
 
   const selectedTextLayer = useMemo<ComposerTextLayer | null>(() => {
     if (state.textLayers.length === 0) return null;
@@ -40,6 +27,11 @@ export function useStoryComposer() {
       state.textLayers.find((layer) => layer.id === state.selectedTextLayerId) ?? state.textLayers[0]
     );
   }, [state.textLayers, state.selectedTextLayerId]);
+
+  const selectedSticker = useMemo<StickerLayer | null>(() => {
+    if (!state.selectedStickerId) return null;
+    return state.stickers.find((s) => s.id === state.selectedStickerId) ?? null;
+  }, [state.stickers, state.selectedStickerId]);
 
   const setMode = useCallback((mode: StoryComposerMode) => {
     dispatch({ type: "SET_MODE", mode });
@@ -54,20 +46,12 @@ export function useStoryComposer() {
   }, []);
 
   const clearImage = useCallback(() => {
-    mediaDragRef.current = null;
     dispatch({ type: "CLEAR_IMAGE" });
   }, []);
 
   const setImageTransform = useCallback((transform: StoryImageTransform) => {
     dispatch({ type: "SET_IMAGE_TRANSFORM", transform });
   }, []);
-
-  const updateImageTransform = useCallback(
-    (updater: (prev: StoryImageTransform) => StoryImageTransform) => {
-      dispatch({ type: "SET_IMAGE_TRANSFORM", transform: updater(state.imageTransform) });
-    },
-    [state.imageTransform]
-  );
 
   const resetImageTransform = useCallback(() => {
     dispatch({ type: "RESET_IMAGE_TRANSFORM" });
@@ -85,6 +69,15 @@ export function useStoryComposer() {
   const replaceTextLayer = useCallback((id: string, layer: ComposerTextLayer) => {
     dispatch({ type: "REPLACE_TEXT_LAYER", id, layer });
   }, []);
+
+  const patchTextLayer = useCallback(
+    (id: string, patch: Partial<ComposerTextLayer>) => {
+      const current = state.textLayers.find((l) => l.id === id);
+      if (!current) return;
+      dispatch({ type: "REPLACE_TEXT_LAYER", id, layer: { ...current, ...patch } });
+    },
+    [state.textLayers]
+  );
 
   const updateSelectedTextLayer = useCallback(
     (updater: (layer: ComposerTextLayer) => ComposerTextLayer) => {
@@ -110,137 +103,60 @@ export function useStoryComposer() {
     dispatch({ type: "SELECT_TEXT_LAYER", id });
   }, []);
 
+  const selectStickerLayer = useCallback((id: string | null) => {
+    dispatch({ type: "SELECT_STICKER", id });
+  }, []);
+
   const setPublishing = useCallback((publishing: boolean) => {
     dispatch({ type: "SET_PUBLISHING", publishing });
   }, []);
 
   const reset = useCallback(() => {
-    mediaDragRef.current = null;
     dispatch({ type: "RESET" });
   }, []);
 
-  const onMediaPointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>, guards: { cameraOpen: boolean }) => {
-      if (state.mode !== "photo" || guards.cameraOpen || !state.imageFile || !state.previewUrl) return;
-      if (state.draggingTextLayerId) return;
-      event.preventDefault();
-      dispatch({ type: "SET_DRAGGING_MEDIA", dragging: true });
-      mediaDragRef.current = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        originOffsetX: state.imageTransform.offsetX,
-        originOffsetY: state.imageTransform.offsetY,
-      };
-      event.currentTarget.setPointerCapture(event.pointerId);
-    },
-    [state.mode, state.imageFile, state.previewUrl, state.draggingTextLayerId, state.imageTransform.offsetX, state.imageTransform.offsetY]
-  );
-
-  const onMediaPointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      const dragging = mediaDragRef.current;
-      if (!dragging || dragging.pointerId !== event.pointerId) return;
-      const rect = event.currentTarget.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      const deltaXPercent = ((event.clientX - dragging.startX) / rect.width) * 100;
-      const deltaYPercent = ((event.clientY - dragging.startY) / rect.height) * 100;
-      dispatch({
-        type: "SET_IMAGE_TRANSFORM",
-        transform: {
-          zoom: state.imageTransform.zoom,
-          rotation: state.imageTransform.rotation,
-          offsetX: dragging.originOffsetX + deltaXPercent,
-          offsetY: dragging.originOffsetY + deltaYPercent,
-        },
-      });
-    },
-    [state.imageTransform.zoom, state.imageTransform.rotation]
-  );
-
-  const onMediaPointerUp = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    mediaDragRef.current = null;
-    dispatch({ type: "SET_DRAGGING_MEDIA", dragging: false });
+  const commitHistory = useCallback(() => {
+    dispatch({ type: "COMMIT" });
   }, []);
 
-  const updateTextPositionFromPointer = useCallback((layerId: string, clientX: number, clientY: number) => {
-    const preview = previewRef.current;
-    if (!preview) return;
-    const rect = preview.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-    const xRaw = ((clientX - rect.left) / rect.width) * 100;
-    const yRaw = ((clientY - rect.top) / rect.height) * 100;
-    const xClamped = Math.max(0, Math.min(100, xRaw));
-    const yClamped = Math.max(0, Math.min(100, yRaw));
-    const snapVertical = Math.abs(xClamped - STORY_TEXT_SNAP_TARGET) <= STORY_TEXT_SNAP_DISTANCE;
-    const snapHorizontal = Math.abs(yClamped - STORY_TEXT_SNAP_TARGET) <= STORY_TEXT_SNAP_DISTANCE;
-    const x = snapVertical ? STORY_TEXT_SNAP_TARGET : xClamped;
-    const y = snapHorizontal ? STORY_TEXT_SNAP_TARGET : yClamped;
-
-    dispatch({ type: "SET_TEXT_SNAP_GUIDES", guides: { vertical: snapVertical, horizontal: snapHorizontal } });
-    dispatch({
-      type: "SET_TEXT_LAYERS",
-      layers: state.textLayers.map((layer) =>
-        layer.id === layerId
-          ? { ...layer, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 }
-          : layer
-      ),
-    });
-  }, [state.textLayers]);
-
-  const onTextPointerDown = useCallback(
-    (layerId: string, event: ReactPointerEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dispatch({ type: "SELECT_TEXT_LAYER", id: layerId });
-      dispatch({ type: "SET_DRAGGING_TEXT_LAYER", id: layerId });
-      event.currentTarget.setPointerCapture(event.pointerId);
-      updateTextPositionFromPointer(layerId, event.clientX, event.clientY);
-    },
-    [updateTextPositionFromPointer]
-  );
-
-  const onTextPointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (!state.draggingTextLayerId) return;
-      updateTextPositionFromPointer(state.draggingTextLayerId, event.clientX, event.clientY);
-    },
-    [state.draggingTextLayerId, updateTextPositionFromPointer]
-  );
-
-  const onTextPointerUp = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    dispatch({ type: "SET_DRAGGING_TEXT_LAYER", id: null });
-    dispatch({ type: "SET_TEXT_SNAP_GUIDES", guides: { vertical: false, horizontal: false } });
-  }, []);
-
-  const addCardSticker = useCallback((sticker: Omit<CardStickerLayer, "id" | "x" | "y" | "scale">) => {
+  const addCardSticker = useCallback((sticker: Omit<CardStickerLayer, "id" | "kind" | "x" | "y" | "scale" | "rotation">) => {
     const full: CardStickerLayer = {
       id: `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      kind: "card",
       x: 50,
       y: 50,
       scale: 1,
+      rotation: 0,
       ...sticker,
     };
-    dispatch({ type: "ADD_CARD_STICKER", sticker: full });
+    dispatch({ type: "ADD_STICKER", sticker: full });
   }, []);
 
-  const updateCardSticker = useCallback((id: string, patch: Partial<Omit<CardStickerLayer, "id">>) => {
-    dispatch({ type: "UPDATE_CARD_STICKER", id, patch });
+  const addEmojiSticker = useCallback((emoji: string) => {
+    const full: EmojiStickerLayer = {
+      id: `sticker-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      kind: "emoji",
+      emoji,
+      x: 50,
+      y: 50,
+      scale: 1,
+      rotation: 0,
+    };
+    dispatch({ type: "ADD_STICKER", sticker: full });
   }, []);
 
-  const removeCardSticker = useCallback((id: string) => {
-    dispatch({ type: "REMOVE_CARD_STICKER", id });
+  const updateSticker = useCallback((id: string, patch: Partial<Omit<StickerLayer, "id" | "kind">>) => {
+    dispatch({ type: "UPDATE_STICKER", id, patch });
   }, []);
 
-  const setDraggingSticker = useCallback((id: string | null) => {
-    dispatch({ type: "SET_DRAGGING_STICKER", id });
+  const removeSticker = useCallback((id: string) => {
+    dispatch({ type: "REMOVE_STICKER", id });
   }, []);
+
+  const removeSelectedSticker = useCallback(() => {
+    if (!state.selectedStickerId) return;
+    dispatch({ type: "REMOVE_STICKER", id: state.selectedStickerId });
+  }, [state.selectedStickerId]);
 
   const undo = useCallback(() => {
     dispatch({ type: "UNDO" });
@@ -256,35 +172,32 @@ export function useStoryComposer() {
   return {
     state,
     selectedTextLayer,
-    previewRef,
+    selectedSticker,
     setMode,
     setImage,
     setImageDimensions,
     clearImage,
     setImageTransform,
-    updateImageTransform,
     resetImageTransform,
     setBackgroundColor,
     addTextLayer,
     replaceTextLayer,
+    patchTextLayer,
     updateSelectedTextLayer,
     removeSelectedTextLayer,
     selectTextLayer,
+    selectStickerLayer,
     setPublishing,
     reset,
+    commitHistory,
     addCardSticker,
-    updateCardSticker,
-    removeCardSticker,
-    setDraggingSticker,
+    addEmojiSticker,
+    updateSticker,
+    removeSticker,
+    removeSelectedSticker,
     undo,
     redo,
     canUndo,
     canRedo,
-    onMediaPointerDown,
-    onMediaPointerMove,
-    onMediaPointerUp,
-    onTextPointerDown,
-    onTextPointerMove,
-    onTextPointerUp,
   };
 }

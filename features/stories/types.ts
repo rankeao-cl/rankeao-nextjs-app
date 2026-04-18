@@ -21,6 +21,7 @@ export type ComposerTextLayer = {
   fontFamily: ComposerFontFamily;
   x: number;
   y: number;
+  rotation: number;
 };
 
 export type StoryImageTransform = {
@@ -35,15 +36,27 @@ export type StoryImageDimensions = {
   height: number;
 };
 
-export type CardStickerLayer = {
+type StickerLayerBase = {
   id: string;
-  cardId: string;
-  name: string;
-  imageUrl: string;
   x: number; // percent 0-100
   y: number; // percent 0-100
   scale: number; // 0.5 - 2
+  rotation: number; // degrees
 };
+
+export type CardStickerLayer = StickerLayerBase & {
+  kind: "card";
+  cardId: string;
+  name: string;
+  imageUrl: string;
+};
+
+export type EmojiStickerLayer = StickerLayerBase & {
+  kind: "emoji";
+  emoji: string;
+};
+
+export type StickerLayer = CardStickerLayer | EmojiStickerLayer;
 
 export type StoryItem = {
   id: string;

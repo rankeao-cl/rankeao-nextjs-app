@@ -1,8 +1,8 @@
 import type {
-  CardStickerLayer,
   ComposerFontFamily,
   ComposerTextBackgroundMode,
   ComposerTextShape,
+  StickerLayer,
   StoryComposerMode,
   StoryImageTransform,
 } from "@/features/stories/types";
@@ -38,7 +38,7 @@ export type ComposeStoryImageInput = {
   imageFile: File | null;
   imageTransform: StoryImageTransform;
   layers: ComposedLayerInput[];
-  cardStickers?: CardStickerLayer[];
+  stickers?: StickerLayer[];
 };
 
 async function loadCrossOriginImage(url: string): Promise<HTMLImageElement> {
@@ -88,7 +88,7 @@ export function getFontFamilyStack(fontFamily: ComposerFontFamily): string {
 }
 
 export async function composeStoryImage(input: ComposeStoryImageInput): Promise<File> {
-  const { mode, backgroundColor, imageFile, imageTransform, layers, cardStickers = [] } = input;
+  const { mode, backgroundColor, imageFile, imageTransform, layers, stickers = [] } = input;
   const width = STORY_CANVAS_WIDTH;
   const height = STORY_CANVAS_HEIGHT;
   const canvas = document.createElement("canvas");
@@ -139,9 +139,9 @@ export async function composeStoryImage(input: ComposeStoryImageInput): Promise<
   }
 
   for (const layer of layers) {
-    const lines = layer.text.split("\n").map((line) => line.trim()).filter(Boolean);
-    if (lines.length === 0) continue;
-    const fontSize = Math.max(18, Math.min(84, Math.round(layer.font_size || 34)));
+    if (!layer.text.trim()) continue;
+    const lines = layer.text.split("\n");
+    const fontSize = Math.max(18, Math.min(500, Math.round(layer.font_size || 40)));
     const lineHeight = Math.round(fontSize * 1.18);
     const maxTextWidth = Math.round(width * 0.9);
     context.textAlign = layer.text_align;
@@ -193,16 +193,31 @@ export async function composeStoryImage(input: ComposeStoryImageInput): Promise<
     });
   }
 
-  // Draw card stickers on top.
+  // Draw stickers on top (cards rendered as images, emojis as glyphs).
   const STICKER_BASE_WIDTH = Math.round(width * 0.32);
-  for (const sticker of cardStickers) {
+  const EMOJI_BASE_SIZE = Math.round(width * 0.18);
+  for (const sticker of stickers) {
+    const safeScale = Math.max(0.4, Math.min(2.5, sticker.scale));
+    const cx = (sticker.x / 100) * width;
+    const cy = (sticker.y / 100) * height;
+    if (sticker.kind === "emoji") {
+      const size = EMOJI_BASE_SIZE * safeScale;
+      context.save();
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.font = `${size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif`;
+      context.shadowColor = "rgba(0,0,0,.45)";
+      context.shadowBlur = 14;
+      context.shadowOffsetY = 4;
+      context.fillText(sticker.emoji, cx, cy);
+      context.restore();
+      continue;
+    }
     try {
       const img = await loadCrossOriginImage(sticker.imageUrl);
       const aspectRatio = img.naturalHeight / Math.max(1, img.naturalWidth);
-      const w = STICKER_BASE_WIDTH * Math.max(0.4, Math.min(2.5, sticker.scale));
+      const w = STICKER_BASE_WIDTH * safeScale;
       const h = w * aspectRatio;
-      const cx = (sticker.x / 100) * width;
-      const cy = (sticker.y / 100) * height;
       context.save();
       context.shadowColor = "rgba(0,0,0,.45)";
       context.shadowBlur = 18;

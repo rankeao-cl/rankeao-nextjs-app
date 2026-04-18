@@ -33,6 +33,14 @@ export async function createStory(payload: {
     font_style?: "normal" | "italic";
     text_x?: number;
     text_y?: number;
+    text_layers?: Array<{
+        text: string;
+        text_color?: string;
+        font_weight?: "normal" | "bold";
+        font_style?: "normal" | "italic";
+        text_x?: number;
+        text_y?: number;
+    }>;
 }, token?: string) {
     return apiPost<ApiResponse<{ story: Story }>>("/social/stories", payload, { token });
 }

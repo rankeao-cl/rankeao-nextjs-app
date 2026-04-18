@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type ChangeEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, type ChangeEvent } from "react";
 import { toast } from "@heroui/react/toast";
 import { uploadImage } from "@/lib/api/images";
 import StoryComposerModal from "@/features/stories/StoryComposer/StoryComposerModal";
-import { composeStoryImage } from "@/features/stories/lib/compose-canvas";
-import { readImageDimensions } from "@/features/stories/lib/text-layer-factory";
+import { COMPOSER_TEXT_DEFAULT_FONT_SIZE, readImageDimensions } from "@/features/stories/lib/text-layer-factory";
 import { useStoryComposer } from "@/features/stories/hooks/use-story-composer";
 import { useStoryCamera } from "@/features/stories/hooks/use-story-camera";
 import { useCreateStory } from "@/features/stories/hooks/use-create-story";
+import type { KonvaStoryCanvasHandle } from "@/features/stories/StoryComposer/konva/KonvaStoryCanvas";
 import type { StoryDraft } from "@/lib/stores/story-draft-store";
 
 type StoryComposerProps = {
@@ -28,6 +28,7 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const objectUrlsRef = useRef<Set<string>>(new Set());
+  const konvaCanvasRef = useRef<KonvaStoryCanvasHandle | null>(null);
 
   const createTrackedURL = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
@@ -64,12 +65,12 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
         composer.replaceTextLayer(existing.id, {
           ...existing,
           text: initialDraft.caption,
-          fontSize: 40,
+          fontSize: COMPOSER_TEXT_DEFAULT_FONT_SIZE,
           y: 30,
         });
         composer.selectTextLayer(existing.id);
       } else {
-        composer.addTextLayer({ text: initialDraft.caption, fontSize: 40, y: 30 });
+        composer.addTextLayer({ text: initialDraft.caption, fontSize: COMPOSER_TEXT_DEFAULT_FONT_SIZE, y: 30 });
       }
     }
     if (initialDraft.backgroundColor) {
@@ -102,6 +103,16 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
         onClose();
         return;
       }
+      const target = event.target as HTMLElement | null;
+      const inText =
+        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      if ((event.key === "Delete" || event.key === "Backspace") && !inText) {
+        if (composer.state.selectedStickerId) {
+          event.preventDefault();
+          composer.removeSelectedSticker();
+          return;
+        }
+      }
       const meta = event.ctrlKey || event.metaKey;
       if (!meta) return;
       const key = event.key.toLowerCase();
@@ -125,14 +136,20 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
 
     previouslyFocusedRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
+    const isVisible = (el: HTMLElement) => {
+      if (el === document.activeElement) return true;
+      if (el.hidden) return false;
+      if (el.getClientRects().length === 0) return false;
+      const style = window.getComputedStyle(el);
+      return style.visibility !== "hidden" && style.display !== "none";
+    };
     const getFocusables = () =>
       Array.from(
         node.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
         )
-      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      ).filter(isVisible);
 
-    // Focus first interactive element on open (next tick so DOM is ready).
     const rafId = window.requestAnimationFrame(() => {
       const list = getFocusables();
       list[0]?.focus();
@@ -204,38 +221,18 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
     composer.setImage(result.file, url, { width: result.width, height: result.height });
   }, [camera, composer, createTrackedURL, revokeTrackedURL]);
 
-  const onMediaPointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => composer.onMediaPointerDown(event, { cameraOpen: camera.open }),
-    [composer, camera.open]
-  );
-
   const publishStory = useCallback(async () => {
     if (composer.state.publishing) return;
     if (!accessToken) {
       toast.danger("Debes iniciar sesion para publicar historias");
       return;
     }
-    const preparedLayers = composer.state.textLayers
-      .map((layer) => ({
-        text: layer.text.trim(),
-        text_color: layer.textColor,
-        text_background_mode: layer.textBackgroundMode,
-        text_background_color: layer.textBackgroundColor,
-        text_shape: layer.textShape,
-        font_weight: layer.fontWeight,
-        font_style: layer.fontStyle,
-        font_size: layer.fontSize,
-        text_align: layer.textAlign,
-        font_family: layer.fontFamily,
-        text_x: layer.x,
-        text_y: layer.y,
-      }))
-      .filter((layer) => layer.text.length > 0);
-    const primaryLayer = preparedLayers[0];
+    const nonEmptyLayers = composer.state.textLayers.filter((l) => l.text.trim().length > 0);
+    const primaryLayer = nonEmptyLayers[0];
     const shouldUseTextOnly = composer.state.mode === "text";
 
-    if (!composer.state.imageFile && preparedLayers.length === 0) {
-      toast.danger("Agrega una imagen o texto para publicar la historia");
+    if (!composer.state.imageFile && nonEmptyLayers.length === 0 && composer.state.stickers.length === 0) {
+      toast.danger("Agrega una imagen, texto o sticker para publicar la historia");
       return;
     }
     if (!shouldUseTextOnly && !composer.state.imageFile) {
@@ -243,32 +240,78 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
       return;
     }
 
+    const canvasHandle = konvaCanvasRef.current;
+    if (!canvasHandle) {
+      toast.danger("El editor no está listo, intenta de nuevo");
+      return;
+    }
+
     composer.setPublishing(true);
+    // Deselect so the transformer handles don't get baked into the export.
+    composer.selectTextLayer(null);
+    composer.selectStickerLayer(null);
+    // Wait a frame so React flushes deselection into Konva.
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+
+    // 1) RENDER
+    let blob: Blob | null = null;
     try {
-      const composedStoryImage = await composeStoryImage({
-        mode: composer.state.mode,
-        backgroundColor: composer.state.backgroundColor,
-        imageFile: composer.state.imageFile,
-        imageTransform: composer.state.imageTransform,
-        layers: preparedLayers,
-        cardStickers: composer.state.cardStickers,
-      });
-      const uploaded = await uploadImage(composedStoryImage, "user_cover", accessToken);
+      blob = await canvasHandle.exportBlob();
+    } catch (error: unknown) {
+      console.error("[publishStory] export failed", error);
+      if (error instanceof Error && /tainted/i.test(error.message)) {
+        toast.danger("No se pudo exportar la historia (imagen con restricciones CORS)");
+      } else {
+        toast.danger("No se pudo preparar la historia, intenta de nuevo");
+      }
+      composer.setPublishing(false);
+      return;
+    }
+    if (!blob) {
+      toast.danger("No se pudo preparar la historia, intenta de nuevo");
+      composer.setPublishing(false);
+      return;
+    }
+
+    // 2) UPLOAD
+    const file = new File([blob], `story-${Date.now()}.jpg`, { type: "image/jpeg" });
+    let uploadedUrl: string;
+    try {
+      const uploaded = await uploadImage(file, "user_cover", accessToken);
+      uploadedUrl = uploaded.public_url;
+    } catch (error: unknown) {
+      console.error("[publishStory] upload failed", error);
+      const isNetwork = error instanceof TypeError && /fetch/i.test(error.message);
+      toast.danger(isNetwork ? "Sin conexión, revisa tu red" : "No se pudo subir la historia");
+      composer.setPublishing(false);
+      return;
+    }
+
+    // 3) PERSIST METADATA
+    try {
+      const apiTextLayers = nonEmptyLayers.map((layer) => ({
+        text: layer.text.trim(),
+        text_color: layer.textColor,
+        font_weight: layer.fontWeight,
+        font_style: layer.fontStyle,
+        text_x: Math.round(layer.x),
+        text_y: Math.round(layer.y),
+      }));
       await createStoryMutation.mutateAsync({
-        image_url: uploaded.public_url,
-        caption: primaryLayer?.text,
+        image_url: uploadedUrl,
+        caption: primaryLayer?.text.trim(),
         background_color: shouldUseTextOnly ? composer.state.backgroundColor : undefined,
+        text_layers: apiTextLayers.length > 0 ? apiTextLayers : undefined,
       });
       toast.success("Historia publicada");
       handleClose();
     } catch (error: unknown) {
-      console.error("No se pudo publicar la historia", error);
+      console.error("[publishStory] persist failed", error);
       toast.danger("No se pudo publicar la historia");
       composer.setPublishing(false);
     }
   }, [accessToken, composer, createStoryMutation, handleClose]);
 
-  // Revoke preview URL if the component unmounts mid-publish.
   useEffect(() => {
     if (!composer.state.publishing) return;
     const url = composer.state.previewUrl;
@@ -284,61 +327,57 @@ export default function StoryComposer({ isOpen, onClose, accessToken, initialDra
 
   return (
     <div ref={modalRef}>
-    <StoryComposerModal
-      onClose={handleClose}
-      publishingStory={composer.state.publishing}
-      storyMode={composer.state.mode}
-      setStoryMode={composer.setMode}
-      storyFileInputRef={fileInputRef}
-      storyCameraInputRef={cameraInputRef}
-      storyCanvasRef={camera.canvasRef}
-      storyVideoRef={camera.videoRef}
-      storyComposerPreviewRef={composer.previewRef}
-      onStoryFileSelected={onFileSelected}
-      cameraOpen={camera.open}
-      cameraLoading={camera.loading}
-      cameraPermissionState={camera.permissionState}
-      capturingPhoto={camera.capturing}
-      storyPreviewUrl={composer.state.previewUrl}
-      storyImageFile={composer.state.imageFile}
-      storyImageDimensions={composer.state.imageDimensions}
-      storyImageTransform={composer.state.imageTransform}
-      resetStoryImageTransform={composer.resetImageTransform}
-      onStoryMediaPointerDown={onMediaPointerDown}
-      onStoryMediaPointerMove={composer.onMediaPointerMove}
-      onStoryMediaPointerUp={composer.onMediaPointerUp}
-      draggingStoryMedia={composer.state.draggingMedia}
-      storyBackgroundColor={composer.state.backgroundColor}
-      setStoryBackgroundColor={composer.setBackgroundColor}
-      storyTextLayers={composer.state.textLayers}
-      storyTextSnapGuides={composer.state.textSnapGuides}
-      selectedStoryTextLayer={composer.selectedTextLayer}
-      draggingTextLayerId={composer.state.draggingTextLayerId}
-      setSelectedStoryTextLayerId={composer.selectTextLayer}
-      updateSelectedTextLayer={composer.updateSelectedTextLayer}
-      onStoryTextPointerDown={composer.onTextPointerDown}
-      onStoryTextPointerMove={composer.onTextPointerMove}
-      onStoryTextPointerUp={composer.onTextPointerUp}
-      addStoryTextLayer={() => composer.addTextLayer()}
-      removeSelectedStoryTextLayer={composer.removeSelectedTextLayer}
-      clearStoryImage={onClearImage}
-      startCamera={camera.start}
-      stopCamera={camera.stop}
-      capturePhoto={onCapturePhoto}
-      publishStory={publishStory}
-      hasStoryText={composer.state.textLayers.some((layer) => layer.text.trim().length > 0)}
-      onUndo={composer.undo}
-      onRedo={composer.redo}
-      canUndo={composer.canUndo}
-      canRedo={composer.canRedo}
-      cardStickers={composer.state.cardStickers}
-      draggingStickerId={composer.state.draggingStickerId}
-      onAddCardSticker={composer.addCardSticker}
-      onUpdateCardSticker={composer.updateCardSticker}
-      onRemoveCardSticker={composer.removeCardSticker}
-      onSetDraggingSticker={composer.setDraggingSticker}
-      isDraft={Boolean(initialDraft)}
-    />
+      <StoryComposerModal
+        onClose={handleClose}
+        publishingStory={composer.state.publishing}
+        storyMode={composer.state.mode}
+        setStoryMode={composer.setMode}
+        storyFileInputRef={fileInputRef}
+        storyCameraInputRef={cameraInputRef}
+        storyCanvasRef={camera.canvasRef}
+        storyVideoRef={camera.videoRef}
+        onStoryFileSelected={onFileSelected}
+        cameraOpen={camera.open}
+        cameraLoading={camera.loading}
+        cameraPermissionState={camera.permissionState}
+        capturingPhoto={camera.capturing}
+        storyPreviewUrl={composer.state.previewUrl}
+        storyImageFile={composer.state.imageFile}
+        storyImageDimensions={composer.state.imageDimensions}
+        storyImageTransform={composer.state.imageTransform}
+        setStoryImageTransform={composer.setImageTransform}
+        resetStoryImageTransform={composer.resetImageTransform}
+        storyBackgroundColor={composer.state.backgroundColor}
+        setStoryBackgroundColor={composer.setBackgroundColor}
+        storyTextLayers={composer.state.textLayers}
+        selectedStoryTextLayer={composer.selectedTextLayer}
+        selectedTextLayerId={composer.state.selectedTextLayerId}
+        selectedStickerId={composer.state.selectedStickerId}
+        setSelectedStoryTextLayerId={composer.selectTextLayer}
+        setSelectedStickerId={composer.selectStickerLayer}
+        patchTextLayer={composer.patchTextLayer}
+        updateSelectedTextLayer={composer.updateSelectedTextLayer}
+        addStoryTextLayer={() => composer.addTextLayer()}
+        removeSelectedStoryTextLayer={composer.removeSelectedTextLayer}
+        clearStoryImage={onClearImage}
+        startCamera={camera.start}
+        stopCamera={camera.stop}
+        capturePhoto={onCapturePhoto}
+        publishStory={publishStory}
+        hasStoryText={composer.state.textLayers.some((layer) => layer.text.trim().length > 0)}
+        onUndo={composer.undo}
+        onRedo={composer.redo}
+        canUndo={composer.canUndo}
+        canRedo={composer.canRedo}
+        stickers={composer.state.stickers}
+        onAddCardSticker={composer.addCardSticker}
+        onAddEmojiSticker={composer.addEmojiSticker}
+        onUpdateSticker={composer.updateSticker}
+        onRemoveSticker={composer.removeSticker}
+        onCommitHistory={composer.commitHistory}
+        konvaCanvasRef={konvaCanvasRef}
+        isDraft={Boolean(initialDraft)}
+      />
     </div>
   );
 }

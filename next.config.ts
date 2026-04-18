@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true,
   },
+  // Konva's react-konva is imported via next/dynamic with ssr:false, so the
+  // optional Node-side `canvas` dep never evaluates on the server. Empty
+  // turbopack config is enough to silence the "webpack vs turbopack" warning.
+  turbopack: {},
   async headers() {
     return [
       {
