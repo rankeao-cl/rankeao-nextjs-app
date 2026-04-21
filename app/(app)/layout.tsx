@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Navbar from "@/components/layout/Navbar";
 import AppShell from "@/components/layout/AppShell";
 import NavigationProgress from "@/components/layout/NavigationProgress";
+import DiscordOnboardingToast from "@/components/settings/DiscordOnboardingToast";
 
 export default function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -9,6 +10,7 @@ export default function AppLayout({ children }: Readonly<{ children: React.React
       <Suspense fallback={null}><NavigationProgress /></Suspense>
       <Navbar />
       <AppShell>{children}</AppShell>
+      <DiscordOnboardingToast />
     </>
   );
 }

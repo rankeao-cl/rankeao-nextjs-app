@@ -1,8 +1,8 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeSlash, Envelope, Lock } from "@gravity-ui/icons";
 import { Button } from "@heroui/react/button";
 import { Input } from "@heroui/react/input";
@@ -10,16 +10,34 @@ import { motion } from "framer-motion";
 
 import { useAuth } from "@/lib/hooks/use-auth";
 import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
+import IconDiscord from "@/components/icons/IconDiscord";
 import LoginBackground from "./LoginBackground";
+
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1").replace(/\/api\/v1\/?$/, "");
+
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  cancelled: "Cancelaste el inicio de sesión con Discord.",
+  no_email: "Discord no compartió tu email. Intentá de nuevo aceptando los permisos.",
+  invalid_state: "La sesión expiró. Intentá de nuevo.",
+  unavailable: "Discord OAuth no está disponible temporalmente.",
+  already_linked: "Esa cuenta de Discord ya está vinculada a otro usuario de Rankeao.",
+};
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, status } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+
+  const oauthErrorMessage = useMemo(() => {
+    const code = searchParams?.get("oauth_error");
+    if (!code) return null;
+    return OAUTH_ERROR_MESSAGES[code] ?? "No se pudo iniciar sesión con Discord. Intentá de nuevo.";
+  }, [searchParams]);
 
   useEffect(() => {
     if (status === "authenticated") router.replace("/");
@@ -117,6 +135,30 @@ export default function LoginForm() {
                 {isSubmitting ? "Entrando..." : "Iniciar sesión"}
               </Button>
             </form>
+
+            {/* OAuth divider */}
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="px-2 bg-[var(--bg-solid,transparent)] text-white/50">o continúa con</span>
+              </div>
+            </div>
+
+            {oauthErrorMessage && (
+              <div role="alert" className="w-full px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                <p className="text-sm text-red-500">{oauthErrorMessage}</p>
+              </div>
+            )}
+
+            <a
+              href={`${API_ORIGIN}/api/v1/auth/oauth/discord/start?returnTo=/`}
+              className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white font-semibold transition-colors"
+            >
+              <IconDiscord size={20} />
+              Continuar con Discord
+            </a>
           </div>
 
           {/* Footer */}

@@ -10,7 +10,10 @@ import { Input } from "@heroui/react/input";
 
 import { useAuth } from "@/lib/hooks/use-auth";
 import { RankeaoLogo } from "@/components/icons/RankeaoLogo";
+import IconDiscord from "@/components/icons/IconDiscord";
 import { useTheme } from "next-themes";
+
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "https://api.rankeao.cl/api/v1").replace(/\/api\/v1\/?$/, "");
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -142,6 +145,24 @@ export default function RegisterForm() {
               {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
             </Button>
           </Form>
+
+          {/* OAuth divider */}
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[var(--border)]" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-2 bg-[var(--background)] text-[var(--muted)]">o continúa con</span>
+            </div>
+          </div>
+
+          <a
+            href={`${API_ORIGIN}/api/v1/auth/oauth/discord/start?returnTo=/`}
+            className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white font-semibold transition-colors"
+          >
+            <IconDiscord size={20} />
+            Continuar con Discord
+          </a>
 
           <p className="text-center text-[11px] text-[var(--muted)] leading-relaxed">
             Al registrarte aceptas los{" "}
