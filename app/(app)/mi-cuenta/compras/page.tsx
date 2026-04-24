@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import OrdersClient from "@/app/(app)/marketplace/orders/OrdersClient";
+import ComprasClient from "./ComprasClient";
 
 export const metadata: Metadata = {
     title: "Mis compras",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ComprasPage() {
-    return <OrdersClient />;
+    return <ComprasClient />;
 }
