@@ -17,6 +17,7 @@ import {
     Dice1,
     CreditCard,
     Tag,
+    Gift,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useUIStore } from "@/lib/stores/ui-store";
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
     { href: "/", label: "Feed", icon: House },
     { href: "/matches", label: "Partidas", icon: Dice1, authRequired: true },
     { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
+    { href: "/promociones", label: "Promociones", icon: Gift },
     { href: "/torneos", label: "Torneos", icon: Cup },
     { href: "/comunidades", label: "Comunidades", icon: Persons },
     { href: "/ranking", label: "Ranking", icon: ChartColumn },
