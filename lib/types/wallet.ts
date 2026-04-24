@@ -54,8 +54,62 @@ export interface TransactionsResponse {
     transactions: WalletTransaction[];
 }
 
+// ── Payouts ──
+
+export type PayoutStatus =
+    | "REQUESTED"
+    | "PENDING_REVIEW"
+    | "APPROVED"
+    | "PROCESSING"
+    | "COMPLETED"
+    | "FAILED"
+    | "CANCELLED"
+    | "REJECTED";
+
+export interface WalletPayout {
+    id: string;
+    user_id?: string | number;
+    amount: string;
+    currency: string;
+    status: PayoutStatus;
+    bank_details?: string;
+    rejection_reason?: string | null;
+    created_at: string;
+    resolved_at?: string | null;
+    updated_at?: string;
+}
+
 export interface PayoutsResponse {
-    payouts: unknown[];
+    payouts: WalletPayout[];
+}
+
+// ── Deposits ──
+
+export type PaymentProviderCode = "flow" | "webpay" | "mercadopago";
+
+export interface CreateDepositRequest {
+    provider_code: PaymentProviderCode;
+    amount: string;
+    currency: string;
+    idempotence_key: string;
+}
+
+export interface CreateDepositResponse {
+    deposit_id: string;
+    redirect_url?: string;
+}
+
+// ── Payout request ──
+
+export interface CreatePayoutRequest {
+    amount: string;
+    currency: string;
+    bank_details: string;
+    idempotence_key: string;
+}
+
+export interface CreatePayoutResponse {
+    payout: WalletPayout;
 }
 
 export interface TransactionsParams {

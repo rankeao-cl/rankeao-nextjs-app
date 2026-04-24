@@ -1,9 +1,14 @@
 "use client";
 
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as walletApi from "@/lib/api/wallet";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import type { TransactionsParams, TransactionsResponse } from "@/lib/types/wallet";
+import type {
+    TransactionsParams,
+    TransactionsResponse,
+    CreateDepositRequest,
+    CreatePayoutRequest,
+} from "@/lib/types/wallet";
 
 // ── Balance ──
 // Polls every 30s while the page/tab is focused, matching the reference b1tcore UX.
@@ -62,5 +67,24 @@ export function usePayouts() {
         queryKey: ["wallet", "payouts"],
         queryFn: () => walletApi.getPayouts(),
         enabled: isAuthenticated,
+    });
+}
+
+// ── Mutations ──
+
+export function useCreateDeposit() {
+    return useMutation({
+        mutationFn: (body: CreateDepositRequest) => walletApi.createDeposit(body),
+    });
+}
+
+export function useCreatePayout() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (body: CreatePayoutRequest) => walletApi.createPayout(body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["wallet", "payouts"] });
+            queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+        },
     });
 }

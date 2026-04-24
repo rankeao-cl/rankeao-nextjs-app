@@ -1,10 +1,14 @@
-import { apiFetch } from "./client";
+import { apiFetch, apiPost } from "./client";
 import type { ApiResponse } from "@/lib/types/api";
 import type {
     BalanceResponse,
     TransactionsResponse,
     PayoutsResponse,
     TransactionsParams,
+    CreateDepositRequest,
+    CreateDepositResponse,
+    CreatePayoutRequest,
+    CreatePayoutResponse,
 } from "@/lib/types/wallet";
 
 // ── Balance ──
@@ -51,4 +55,35 @@ export async function getPayouts(token?: string): Promise<PayoutsResponse> {
     });
     const data = res?.data ?? res;
     return { payouts: Array.isArray(data?.payouts) ? data.payouts : [] };
+}
+
+// ── Mutations ──
+
+export async function createDeposit(
+    body: CreateDepositRequest,
+    token?: string,
+): Promise<CreateDepositResponse> {
+    const res = await apiPost<ApiResponse<CreateDepositResponse>>(
+        "/payments/deposits",
+        body,
+        { token },
+    );
+    const data = res?.data ?? (res as unknown as CreateDepositResponse);
+    return {
+        deposit_id: data?.deposit_id ?? "",
+        redirect_url: data?.redirect_url,
+    };
+}
+
+export async function createPayout(
+    body: CreatePayoutRequest,
+    token?: string,
+): Promise<CreatePayoutResponse> {
+    const res = await apiPost<ApiResponse<CreatePayoutResponse>>(
+        "/wallet/payouts",
+        body,
+        { token },
+    );
+    const data = res?.data ?? (res as unknown as CreatePayoutResponse);
+    return { payout: data?.payout as CreatePayoutResponse["payout"] };
 }

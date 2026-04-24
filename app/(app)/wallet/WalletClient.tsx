@@ -6,15 +6,27 @@ import { Button } from "@heroui/react/button";
 
 import PageHero from "@/components/ui/PageHero";
 import { AuthGuard } from "@/components/ui/AuthGuard/AuthGuard";
-import { useBalance, useInfiniteTransactions } from "@/lib/hooks/use-wallet";
-import { groupByCurrency, labelForKind } from "@/features/wallet/shared";
+import {
+    useBalance,
+    useInfiniteTransactions,
+    usePayouts,
+} from "@/lib/hooks/use-wallet";
+import { useIsSeller } from "@/lib/hooks/use-is-seller";
+import { BUYER_WALLET_ENABLED } from "@/lib/flags";
+import {
+    groupByCurrency,
+    labelForKind,
+    labelForPayoutStatus,
+    tonalStyleForPayoutStatus,
+} from "@/features/wallet/shared";
 import {
     formatCurrency,
     formatSignedCurrency,
     isCreditTx,
     timeAgo,
 } from "@/lib/utils/format";
-import type { WalletTransaction } from "@/lib/types/wallet";
+import { useUIStore } from "@/lib/stores/ui-store";
+import type { WalletTransaction, WalletPayout } from "@/lib/types/wallet";
 
 // ── Balance cards ──
 
@@ -147,10 +159,180 @@ function TxDesktopRow({ tx }: { tx: WalletTransaction }) {
     );
 }
 
+// ── Payout row ──
+
+function PayoutRow({ payout }: { payout: WalletPayout }) {
+    const currency = payout.currency || "CLP";
+    const tone = tonalStyleForPayoutStatus(payout.status);
+    const createdAt = payout.created_at
+        ? new Date(payout.created_at).toLocaleDateString("es-CL", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+          })
+        : "—";
+    const resolvedAt = payout.resolved_at
+        ? new Date(payout.resolved_at).toLocaleDateString("es-CL", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+          })
+        : null;
+
+    return (
+        <div
+            className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3 border-b"
+            style={{ borderColor: "var(--border)" }}
+        >
+            <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-foreground m-0">
+                    Retiro · {createdAt}
+                </p>
+                {payout.rejection_reason && (
+                    <p
+                        className="text-[11px] m-0 truncate"
+                        style={{ color: "#b53000" }}
+                        title={payout.rejection_reason}
+                    >
+                        Motivo: {payout.rejection_reason}
+                    </p>
+                )}
+                {!payout.rejection_reason && resolvedAt && (
+                    <p className="text-[11px] m-0" style={{ color: "var(--muted)" }}>
+                        Resuelto: {resolvedAt}
+                    </p>
+                )}
+            </div>
+            <p
+                className="text-[13px] font-bold tabular-nums m-0 text-right"
+                style={{ color: "var(--foreground)" }}
+            >
+                {formatCurrency(payout.amount, currency)}
+            </p>
+            <span
+                className="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+                style={{ backgroundColor: tone.bg, color: tone.color }}
+            >
+                {labelForPayoutStatus(payout.status)}
+            </span>
+            <span aria-hidden="true" className="hidden md:inline-block w-4" />
+        </div>
+    );
+}
+
+// ── Payouts tab ──
+
+function PayoutsPanel() {
+    const { data, isLoading } = usePayouts();
+    const payouts = data?.payouts ?? [];
+
+    return (
+        <div className="mx-4 lg:mx-6 mb-10">
+            <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                    backgroundColor: "var(--surface-solid)",
+                    border: "1px solid var(--border)",
+                }}
+            >
+                <div
+                    className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-5 py-3 text-[11px] font-bold uppercase tracking-wider"
+                    style={{
+                        color: "var(--muted)",
+                        borderBottom: "1px solid var(--border)",
+                    }}
+                >
+                    <span>Solicitud</span>
+                    <span className="text-right">Monto</span>
+                    <span className="text-right">Estado</span>
+                    <span aria-hidden="true" className="hidden md:inline-block w-4" />
+                </div>
+
+                {isLoading && payouts.length === 0 ? (
+                    <div>
+                        {[...Array(3)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-4 px-5 py-3 animate-pulse border-b"
+                                style={{ borderColor: "var(--border)" }}
+                            >
+                                <div
+                                    className="h-3 w-2/5 rounded"
+                                    style={{ backgroundColor: "var(--surface)" }}
+                                />
+                                <div
+                                    className="h-3 w-20 rounded"
+                                    style={{ backgroundColor: "var(--surface)" }}
+                                />
+                                <div
+                                    className="h-3 w-16 rounded"
+                                    style={{ backgroundColor: "var(--surface)" }}
+                                />
+                                <span className="hidden md:inline-block w-4" />
+                            </div>
+                        ))}
+                    </div>
+                ) : payouts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                        <div
+                            className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                            style={{ backgroundColor: "var(--surface)" }}
+                        >
+                            <ArrowUpFromSquare
+                                style={{
+                                    width: 26,
+                                    height: 26,
+                                    color: "var(--muted)",
+                                    opacity: 0.4,
+                                }}
+                            />
+                        </div>
+                        <p className="text-sm font-semibold m-0" style={{ color: "var(--foreground)" }}>
+                            Aún no tienes solicitudes de retiro
+                        </p>
+                        <p className="text-xs mt-1 mb-0" style={{ color: "var(--muted)" }}>
+                            Cuando solicites un retiro aparecerá aquí con su estado.
+                        </p>
+                    </div>
+                ) : (
+                    <div>
+                        {payouts.map((p) => (
+                            <PayoutRow key={p.id} payout={p} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ── Main wallet page (behind AuthGuard) ──
+
+type WalletTab = "transactions" | "payouts";
 
 function WalletContent() {
     const [kindFilter, setKindFilter] = useState<string>("ALL");
+    const [rawActiveTab, setActiveTab] = useState<WalletTab>("transactions");
+    const openDeposit = useUIStore((s) => s.openDepositModal);
+    const openPayout = useUIStore((s) => s.openPayoutModal);
+    const { isSeller } = useIsSeller();
+
+    const showDepositCTA = BUYER_WALLET_ENABLED;
+    const showPayoutCTA = isSeller;
+    const tabs = useMemo(() => {
+        const base: Array<{ key: WalletTab; label: string }> = [
+            { key: "transactions", label: "Transacciones" },
+        ];
+        if (isSeller) base.push({ key: "payouts", label: "Retiros" });
+        return base;
+    }, [isSeller]);
+
+    // Si el user no es seller pero el estado local quedó en "payouts",
+    // forzamos la tab visible a "transactions" — sin tocar setState en
+    // un effect (para evitar cascading renders).
+    const activeTab: WalletTab =
+        rawActiveTab === "payouts" && !isSeller ? "transactions" : rawActiveTab;
+
     const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
         useInfiniteTransactions(20);
 
@@ -179,33 +361,121 @@ function WalletContent() {
                 title="Mi wallet"
                 subtitle="Tu saldo disponible y el historial de movimientos en Rankeao."
                 action={
-                    <div className="hidden md:flex flex-col gap-2 min-w-[140px]" title="Próximamente">
-                        <Button
-                            size="sm"
-                            variant="primary"
-                            isDisabled
-                            className="font-bold"
-                            aria-label="Recargar saldo (próximamente)"
-                        >
-                            <Plus className="size-3.5 mr-1.5" />
-                            Recargar
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="tertiary"
-                            isDisabled
-                            className="font-bold"
-                            aria-label="Retirar saldo (próximamente)"
-                        >
-                            <ArrowUpFromSquare className="size-3.5 mr-1.5" />
-                            Retirar
-                        </Button>
-                    </div>
+                    showDepositCTA || showPayoutCTA ? (
+                        <div className="hidden md:flex flex-col gap-2 min-w-[140px]">
+                            {showDepositCTA && (
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    className="font-bold"
+                                    aria-label="Recargar saldo"
+                                    onPress={openDeposit}
+                                >
+                                    <Plus className="size-3.5 mr-1.5" />
+                                    Recargar
+                                </Button>
+                            )}
+                            {showPayoutCTA && (
+                                <Button
+                                    size="sm"
+                                    variant="tertiary"
+                                    className="font-bold"
+                                    aria-label="Retirar saldo"
+                                    onPress={openPayout}
+                                >
+                                    <ArrowUpFromSquare className="size-3.5 mr-1.5" />
+                                    Retirar
+                                </Button>
+                            )}
+                        </div>
+                    ) : undefined
                 }
             />
 
             <BalanceCards />
 
+            {/* Tabs — sólo se renderiza la barra si hay más de una tab (ej: seller) */}
+            {tabs.length > 1 && (
+                <div
+                    role="tablist"
+                    aria-label="Secciones de wallet"
+                    className="mx-4 lg:mx-6 mb-3 flex gap-2"
+                >
+                    {tabs.map((tab) => {
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                role="tab"
+                                type="button"
+                                aria-selected={isActive}
+                                onClick={() => setActiveTab(tab.key)}
+                                className="px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer transition-colors"
+                                style={{
+                                    backgroundColor: isActive ? "var(--foreground)" : "var(--surface-solid)",
+                                    color: isActive ? "var(--background)" : "var(--muted)",
+                                    border: isActive ? "1px solid transparent" : "1px solid var(--border)",
+                                }}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+
+            {activeTab === "payouts" && isSeller && <PayoutsPanel />}
+            {activeTab === "transactions" && <TransactionsPanel
+                allTxs={allTxs}
+                filtered={filtered}
+                kindFilter={kindFilter}
+                setKindFilter={setKindFilter}
+                availableKinds={availableKinds}
+                isLoading={isLoading}
+                emptyFirstLoad={emptyFirstLoad}
+                hasNextPage={!!hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                fetchNextPage={fetchNextPage}
+                openDeposit={openDeposit}
+                showDepositCTA={showDepositCTA}
+            />}
+        </div>
+    );
+}
+
+// ── Transactions panel (extracted so Tabs can switch cleanly) ──
+
+interface TransactionsPanelProps {
+    allTxs: WalletTransaction[];
+    filtered: WalletTransaction[];
+    kindFilter: string;
+    setKindFilter: (k: string) => void;
+    availableKinds: string[];
+    isLoading: boolean;
+    emptyFirstLoad: boolean;
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
+    openDeposit: () => void;
+    showDepositCTA: boolean;
+}
+
+function TransactionsPanel({
+    allTxs,
+    filtered,
+    kindFilter,
+    setKindFilter,
+    availableKinds,
+    isLoading,
+    emptyFirstLoad,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    openDeposit,
+    showDepositCTA,
+}: TransactionsPanelProps) {
+    return (
+        <>
             {/* Filter chips */}
             {availableKinds.length > 1 && (
                 <div className="mx-4 lg:mx-6 mb-3 flex flex-wrap gap-2">
@@ -295,14 +565,16 @@ function WalletContent() {
                             <p className="text-xs mt-1 mb-4" style={{ color: "var(--muted)" }}>
                                 Cuando recibas o gastes saldo aparecerá aquí.
                             </p>
-                            <Button
-                                size="sm"
-                                variant="primary"
-                                isDisabled
-                                aria-label="Recargar saldo (próximamente)"
-                            >
-                                Recargar saldo (próximamente)
-                            </Button>
+                            {showDepositCTA && (
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    aria-label="Recargar saldo"
+                                    onPress={openDeposit}
+                                >
+                                    Recargar saldo
+                                </Button>
+                            )}
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
@@ -338,7 +610,7 @@ function WalletContent() {
                     </div>
                 )}
             </div>
-        </div>
+        </>
     );
 }
 

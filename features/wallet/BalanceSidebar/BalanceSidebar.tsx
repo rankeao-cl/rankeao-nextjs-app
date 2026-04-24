@@ -13,7 +13,9 @@ import {
 } from "@gravity-ui/icons";
 
 import { useBalance, useTransactions } from "@/lib/hooks/use-wallet";
+import { useIsSeller } from "@/lib/hooks/use-is-seller";
 import { useUIStore } from "@/lib/stores/ui-store";
+import { BUYER_WALLET_ENABLED } from "@/lib/flags";
 import { pickAvailableCLP, labelForKind } from "@/features/wallet/shared";
 import {
     formatCurrency,
@@ -59,10 +61,17 @@ function TransactionRow({ tx }: { tx: WalletTransaction }) {
 export default function BalanceSidebar() {
     const isOpen = useUIStore((s) => s.balanceSidebarOpen);
     const onClose = useUIStore((s) => s.closeBalanceSidebar);
+    const openDeposit = useUIStore((s) => s.openDepositModal);
+    const openPayout = useUIStore((s) => s.openPayoutModal);
     const panelRef = useRef<HTMLDivElement>(null);
 
     const { data: balanceData, isLoading: balanceLoading } = useBalance();
     const { data: txData, isLoading: txLoading } = useTransactions({ limit: 4 });
+    const { isSeller } = useIsSeller();
+    const showDeposit = BUYER_WALLET_ENABLED;
+    const showPayout = isSeller;
+    const showActions = showDeposit || showPayout;
+    const showHint = !showDeposit && !showPayout;
 
     const clp = useMemo(() => pickAvailableCLP(balanceData?.accounts), [balanceData]);
     const currency = clp?.currency ?? "CLP";
@@ -199,29 +208,65 @@ export default function BalanceSidebar() {
                         </div>
                     </div>
 
-                    {/* Quick actions — disabled until deposit/withdraw endpoints land */}
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                        <button
-                            type="button"
-                            disabled
-                            className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-surface-solid text-muted opacity-60 cursor-not-allowed"
-                            aria-label="Recargar saldo (próximamente)"
-                            title="Próximamente"
+                    {/* Quick actions — se muestran según flag (buyer wallet) y perfil de seller */}
+                    {showActions && (
+                        <div
+                            className={`grid gap-2 mt-3 ${
+                                showDeposit && showPayout ? "grid-cols-2" : "grid-cols-1"
+                            }`}
                         >
-                            <Plus className="size-3.5" />
-                            Recargar
-                        </button>
-                        <button
-                            type="button"
-                            disabled
-                            className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-surface-solid text-muted opacity-60 cursor-not-allowed"
-                            aria-label="Retirar saldo (próximamente)"
-                            title="Próximamente"
+                            {showDeposit && (
+                                <button
+                                    type="button"
+                                    onClick={openDeposit}
+                                    className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-accent text-white cursor-pointer transition-opacity hover:opacity-90"
+                                    aria-label="Recargar saldo"
+                                >
+                                    <Plus className="size-3.5" />
+                                    Recargar
+                                </button>
+                            )}
+                            {showPayout && (
+                                <button
+                                    type="button"
+                                    onClick={openPayout}
+                                    className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold cursor-pointer transition-colors hover:bg-foreground/5"
+                                    style={{
+                                        backgroundColor: "var(--surface-solid)",
+                                        border: "1px solid var(--border)",
+                                        color: "var(--foreground)",
+                                    }}
+                                    aria-label="Retirar saldo"
+                                >
+                                    <ArrowUpFromSquare className="size-3.5" />
+                                    Retirar
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Hint para usuarios que no son sellers y no tienen buyer wallet */}
+                    {showHint && (
+                        <div
+                            className="mt-3 rounded-xl px-3 py-2.5 text-[11px] leading-relaxed"
+                            style={{
+                                backgroundColor: "var(--surface-solid)",
+                                border: "1px solid var(--border)",
+                                color: "var(--muted)",
+                            }}
                         >
-                            <ArrowUpFromSquare className="size-3.5" />
-                            Retirar
-                        </button>
-                    </div>
+                            Tus compras se cobran directo al pagar. Si vendés cartas,{" "}
+                            <Link
+                                href="/marketplace/seller-setup"
+                                onClick={onClose}
+                                className="font-semibold underline"
+                                style={{ color: "var(--accent)" }}
+                            >
+                                activá tu perfil de vendedor
+                            </Link>{" "}
+                            para retirar tus ganancias.
+                        </div>
+                    )}
                 </div>
 
                 {/* Recent movements */}
