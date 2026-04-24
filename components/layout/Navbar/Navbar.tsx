@@ -35,6 +35,8 @@ import { getUserProfile } from "@/lib/api/social";
 import type { UserProfile } from "@/lib/types/social";
 
 const NotificationSidebar = dynamic(() => import("@/components/layout/NotificationSidebar"), { ssr: false });
+const BalanceDisplay = dynamic(() => import("@/features/wallet/BalanceDisplay"), { ssr: false });
+const BalanceSidebar = dynamic(() => import("@/features/wallet/BalanceSidebar"), { ssr: false });
 
 const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/duels/session"];
 
@@ -54,6 +56,7 @@ export default function Navbar() {
   const notifSidebarOpen = useUIStore((s) => s.notificationSidebarOpen);
   const openNotifSidebar = useUIStore((s) => s.openNotificationSidebar);
   const closeNotifSidebar = useUIStore((s) => s.closeNotificationSidebar);
+  const balanceSidebarOpen = useUIStore((s) => s.balanceSidebarOpen);
   const unreadCount = useUIStore((s) => s.notificationUnreadCount);
   const setUnreadCount = useUIStore((s) => s.setNotificationUnreadCount);
   const userAvatarUrl = useAuthStore((s) => s.avatarUrl);
@@ -157,6 +160,9 @@ export default function Navbar() {
                   <Magnifier className="size-4 text-muted" />
                 </button>
 
+                {/* Wallet balance (mobile) */}
+                {isAuthenticated && <BalanceDisplay variant="mobile" />}
+
                 {/* Bell */}
                 {isAuthenticated && (
                   <button
@@ -214,6 +220,9 @@ export default function Navbar() {
 
                 {isAuthenticated ? (
                   <>
+                    {/* Wallet balance (desktop) */}
+                    <BalanceDisplay variant="desktop" />
+
                     {/* Notifications — opens sidebar */}
                     <button
                       onClick={() => openNotifSidebar()}
@@ -378,6 +387,8 @@ export default function Navbar() {
         accessToken={session?.accessToken}
         onUnreadCountChange={setUnreadCount}
       />
+
+      {isAuthenticated && balanceSidebarOpen && <BalanceSidebar />}
     </header>
   );
 }
