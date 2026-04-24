@@ -62,3 +62,62 @@ export function sanitizeHref(url: string | undefined | null): string | null {
     } catch { /* invalid URL */ }
     return null;
 }
+
+// ── Currency / wallet helpers ──
+
+/**
+ * Formats a monetary value into an es-CL currency string.
+ * Accepts either string (backend NUMERIC, preferred) or number.
+ * CLP renders without decimals; every other currency uses 2 decimals.
+ */
+export function formatCurrency(amount: string | number, currency = "CLP"): string {
+    const n = typeof amount === "string" ? parseFloat(amount) : amount;
+    const safe = Number.isFinite(n) ? n : 0;
+    return new Intl.NumberFormat("es-CL", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: currency === "CLP" ? 0 : 2,
+        maximumFractionDigits: currency === "CLP" ? 0 : 2,
+    }).format(safe);
+}
+
+/**
+ * Same as formatCurrency, but preserves the sign explicitly as "+…" or "−…".
+ * Useful for transaction rows where direction matters visually.
+ */
+export function formatSignedCurrency(amount: string | number, currency = "CLP"): string {
+    const n = typeof amount === "string" ? parseFloat(amount) : amount;
+    const safe = Number.isFinite(n) ? n : 0;
+    const abs = Math.abs(safe);
+    const formatted = formatCurrency(abs, currency);
+    if (safe > 0) return `+${formatted}`;
+    if (safe < 0) return `−${formatted}`;
+    return formatted;
+}
+
+/** Compact relative time (Spanish). Short form for dense UIs (sidebars/tables). */
+export function formatRelativeTime(iso: string): string {
+    if (!iso) return "";
+    const diff = Date.now() - new Date(iso).getTime();
+    const min = Math.floor(diff / 60_000);
+    if (min < 1) return "ahora";
+    if (min < 60) return `${min}m`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h`;
+    const days = Math.floor(hr / 24);
+    if (days < 7) return `${days}d`;
+    return new Date(iso).toLocaleDateString("es-CL");
+}
+
+/** True when a wallet transaction kind represents a credit (money in). */
+export function isCreditTx(kind: string): boolean {
+    return [
+        "DEPOSIT",
+        "SALE_PROCEEDS",
+        "AUCTION_RELEASE",
+        "RAFFLE_PRIZE",
+        "REFERRAL_REWARD",
+        "TIP",
+        "REFUND",
+    ].includes(kind);
+}

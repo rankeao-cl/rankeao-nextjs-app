@@ -20,6 +20,9 @@ interface UIState {
   closeNotificationSidebar: () => void;
   notificationUnreadCount: number;
   setNotificationUnreadCount: (n: number) => void;
+  balanceSidebarOpen: boolean;
+  openBalanceSidebar: () => void;
+  closeBalanceSidebar: () => void;
 }
 
 export const useUIStore = create<UIState>()((set) => ({
@@ -40,4 +43,7 @@ export const useUIStore = create<UIState>()((set) => ({
   closeNotificationSidebar: () => set({ notificationSidebarOpen: false }),
   notificationUnreadCount: 0,
   setNotificationUnreadCount: (n) => set({ notificationUnreadCount: n }),
+  balanceSidebarOpen: false,
+  openBalanceSidebar: () => set({ balanceSidebarOpen: true }),
+  closeBalanceSidebar: () => set({ balanceSidebarOpen: false }),
 }));
