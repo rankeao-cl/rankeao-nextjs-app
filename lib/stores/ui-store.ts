@@ -23,6 +23,12 @@ interface UIState {
   balanceSidebarOpen: boolean;
   openBalanceSidebar: () => void;
   closeBalanceSidebar: () => void;
+  depositModalOpen: boolean;
+  openDepositModal: () => void;
+  closeDepositModal: () => void;
+  payoutModalOpen: boolean;
+  openPayoutModal: () => void;
+  closePayoutModal: () => void;
 }
 
 export const useUIStore = create<UIState>()((set) => ({
@@ -46,4 +52,10 @@ export const useUIStore = create<UIState>()((set) => ({
   balanceSidebarOpen: false,
   openBalanceSidebar: () => set({ balanceSidebarOpen: true }),
   closeBalanceSidebar: () => set({ balanceSidebarOpen: false }),
+  depositModalOpen: false,
+  openDepositModal: () => set({ depositModalOpen: true, balanceSidebarOpen: false }),
+  closeDepositModal: () => set({ depositModalOpen: false }),
+  payoutModalOpen: false,
+  openPayoutModal: () => set({ payoutModalOpen: true, balanceSidebarOpen: false }),
+  closePayoutModal: () => set({ payoutModalOpen: false }),
 }));

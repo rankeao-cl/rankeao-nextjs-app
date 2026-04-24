@@ -59,6 +59,8 @@ function TransactionRow({ tx }: { tx: WalletTransaction }) {
 export default function BalanceSidebar() {
     const isOpen = useUIStore((s) => s.balanceSidebarOpen);
     const onClose = useUIStore((s) => s.closeBalanceSidebar);
+    const openDeposit = useUIStore((s) => s.openDepositModal);
+    const openPayout = useUIStore((s) => s.openPayoutModal);
     const panelRef = useRef<HTMLDivElement>(null);
 
     const { data: balanceData, isLoading: balanceLoading } = useBalance();
@@ -199,24 +201,27 @@ export default function BalanceSidebar() {
                         </div>
                     </div>
 
-                    {/* Quick actions — disabled until deposit/withdraw endpoints land */}
+                    {/* Quick actions */}
                     <div className="grid grid-cols-2 gap-2 mt-3">
                         <button
                             type="button"
-                            disabled
-                            className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-surface-solid text-muted opacity-60 cursor-not-allowed"
-                            aria-label="Recargar saldo (próximamente)"
-                            title="Próximamente"
+                            onClick={openDeposit}
+                            className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-accent text-white cursor-pointer transition-opacity hover:opacity-90"
+                            aria-label="Recargar saldo"
                         >
                             <Plus className="size-3.5" />
                             Recargar
                         </button>
                         <button
                             type="button"
-                            disabled
-                            className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold bg-surface-solid text-muted opacity-60 cursor-not-allowed"
-                            aria-label="Retirar saldo (próximamente)"
-                            title="Próximamente"
+                            onClick={openPayout}
+                            className="h-10 rounded-xl flex items-center justify-center gap-1.5 text-[12px] font-semibold cursor-pointer transition-colors hover:bg-foreground/5"
+                            style={{
+                                backgroundColor: "var(--surface-solid)",
+                                border: "1px solid var(--border)",
+                                color: "var(--foreground)",
+                            }}
+                            aria-label="Retirar saldo"
                         >
                             <ArrowUpFromSquare className="size-3.5" />
                             Retirar

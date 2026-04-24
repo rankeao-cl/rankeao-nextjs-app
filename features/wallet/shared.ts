@@ -1,4 +1,9 @@
-import type { WalletAccount, WalletTxKind } from "@/lib/types/wallet";
+import type {
+    WalletAccount,
+    WalletTxKind,
+    PayoutStatus,
+    PaymentProviderCode,
+} from "@/lib/types/wallet";
 
 // ── Spanish labels per transaction kind ──
 
@@ -40,6 +45,77 @@ export interface CurrencyGroup {
     available: string;
     holds: string;
     total: string;
+}
+
+// ── Payout status labels (ES) ──
+
+export const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = {
+    REQUESTED: "Solicitado",
+    PENDING_REVIEW: "En revisión",
+    APPROVED: "Aprobado",
+    PROCESSING: "Procesando",
+    COMPLETED: "Completado",
+    FAILED: "Fallido",
+    CANCELLED: "Cancelado",
+    REJECTED: "Rechazado",
+};
+
+/** HeroUI-like color tokens for status chips. */
+export type StatusTone =
+    | "default"
+    | "warning"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "danger";
+
+export const PAYOUT_STATUS_TONE: Record<PayoutStatus, StatusTone> = {
+    REQUESTED: "default",
+    PENDING_REVIEW: "warning",
+    APPROVED: "primary",
+    PROCESSING: "secondary",
+    COMPLETED: "success",
+    FAILED: "danger",
+    CANCELLED: "default",
+    REJECTED: "danger",
+};
+
+export function labelForPayoutStatus(status: string): string {
+    return (PAYOUT_STATUS_LABELS as Record<string, string>)[status] ?? status;
+}
+
+export function tonalStyleForPayoutStatus(status: string): {
+    bg: string;
+    color: string;
+} {
+    const tone = (PAYOUT_STATUS_TONE as Record<string, StatusTone>)[status] ?? "default";
+    switch (tone) {
+        case "warning":
+            return { bg: "rgba(245,158,11,0.15)", color: "#b45309" };
+        case "primary":
+            return { bg: "rgba(99,102,241,0.15)", color: "#4338ca" };
+        case "secondary":
+            return { bg: "rgba(139,92,246,0.15)", color: "#6d28d9" };
+        case "success":
+            return { bg: "rgba(0,178,75,0.15)", color: "#00733c" };
+        case "danger":
+            return { bg: "rgba(246,61,0,0.15)", color: "#b53000" };
+        case "default":
+        default:
+            return { bg: "var(--surface)", color: "var(--muted)" };
+    }
+}
+
+// ── Payment providers ──
+
+export const PAYMENT_PROVIDER_LABELS: Record<PaymentProviderCode, string> = {
+    flow: "Flow",
+    webpay: "Webpay",
+    mercadopago: "Mercado Pago",
+};
+
+export function labelForProvider(code: string): string {
+    return (PAYMENT_PROVIDER_LABELS as Record<string, string>)[code] ?? code;
 }
 
 export function groupByCurrency(accounts: WalletAccount[] | undefined): CurrencyGroup[] {
