@@ -11,6 +11,8 @@ import {
     useInfiniteTransactions,
     usePayouts,
 } from "@/lib/hooks/use-wallet";
+import { useIsSeller } from "@/lib/hooks/use-is-seller";
+import { BUYER_WALLET_ENABLED } from "@/lib/flags";
 import {
     groupByCurrency,
     labelForKind,
@@ -310,9 +312,26 @@ type WalletTab = "transactions" | "payouts";
 
 function WalletContent() {
     const [kindFilter, setKindFilter] = useState<string>("ALL");
-    const [activeTab, setActiveTab] = useState<WalletTab>("transactions");
+    const [rawActiveTab, setActiveTab] = useState<WalletTab>("transactions");
     const openDeposit = useUIStore((s) => s.openDepositModal);
     const openPayout = useUIStore((s) => s.openPayoutModal);
+    const { isSeller } = useIsSeller();
+
+    const showDepositCTA = BUYER_WALLET_ENABLED;
+    const showPayoutCTA = isSeller;
+    const tabs = useMemo(() => {
+        const base: Array<{ key: WalletTab; label: string }> = [
+            { key: "transactions", label: "Transacciones" },
+        ];
+        if (isSeller) base.push({ key: "payouts", label: "Retiros" });
+        return base;
+    }, [isSeller]);
+
+    // Si el user no es seller pero el estado local quedó en "payouts",
+    // forzamos la tab visible a "transactions" — sin tocar setState en
+    // un effect (para evitar cascading renders).
+    const activeTab: WalletTab =
+        rawActiveTab === "payouts" && !isSeller ? "transactions" : rawActiveTab;
 
     const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
         useInfiniteTransactions(20);
@@ -342,65 +361,70 @@ function WalletContent() {
                 title="Mi wallet"
                 subtitle="Tu saldo disponible y el historial de movimientos en Rankeao."
                 action={
-                    <div className="hidden md:flex flex-col gap-2 min-w-[140px]">
-                        <Button
-                            size="sm"
-                            variant="primary"
-                            className="font-bold"
-                            aria-label="Recargar saldo"
-                            onPress={openDeposit}
-                        >
-                            <Plus className="size-3.5 mr-1.5" />
-                            Recargar
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="tertiary"
-                            className="font-bold"
-                            aria-label="Retirar saldo"
-                            onPress={openPayout}
-                        >
-                            <ArrowUpFromSquare className="size-3.5 mr-1.5" />
-                            Retirar
-                        </Button>
-                    </div>
+                    showDepositCTA || showPayoutCTA ? (
+                        <div className="hidden md:flex flex-col gap-2 min-w-[140px]">
+                            {showDepositCTA && (
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    className="font-bold"
+                                    aria-label="Recargar saldo"
+                                    onPress={openDeposit}
+                                >
+                                    <Plus className="size-3.5 mr-1.5" />
+                                    Recargar
+                                </Button>
+                            )}
+                            {showPayoutCTA && (
+                                <Button
+                                    size="sm"
+                                    variant="tertiary"
+                                    className="font-bold"
+                                    aria-label="Retirar saldo"
+                                    onPress={openPayout}
+                                >
+                                    <ArrowUpFromSquare className="size-3.5 mr-1.5" />
+                                    Retirar
+                                </Button>
+                            )}
+                        </div>
+                    ) : undefined
                 }
             />
 
             <BalanceCards />
 
-            {/* Tabs */}
-            <div
-                role="tablist"
-                aria-label="Secciones de wallet"
-                className="mx-4 lg:mx-6 mb-3 flex gap-2"
-            >
-                {([
-                    { key: "transactions", label: "Transacciones" },
-                    { key: "payouts", label: "Retiros" },
-                ] as const).map((tab) => {
-                    const isActive = activeTab === tab.key;
-                    return (
-                        <button
-                            key={tab.key}
-                            role="tab"
-                            type="button"
-                            aria-selected={isActive}
-                            onClick={() => setActiveTab(tab.key)}
-                            className="px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer transition-colors"
-                            style={{
-                                backgroundColor: isActive ? "var(--foreground)" : "var(--surface-solid)",
-                                color: isActive ? "var(--background)" : "var(--muted)",
-                                border: isActive ? "1px solid transparent" : "1px solid var(--border)",
-                            }}
-                        >
-                            {tab.label}
-                        </button>
-                    );
-                })}
-            </div>
+            {/* Tabs — sólo se renderiza la barra si hay más de una tab (ej: seller) */}
+            {tabs.length > 1 && (
+                <div
+                    role="tablist"
+                    aria-label="Secciones de wallet"
+                    className="mx-4 lg:mx-6 mb-3 flex gap-2"
+                >
+                    {tabs.map((tab) => {
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                role="tab"
+                                type="button"
+                                aria-selected={isActive}
+                                onClick={() => setActiveTab(tab.key)}
+                                className="px-4 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap cursor-pointer transition-colors"
+                                style={{
+                                    backgroundColor: isActive ? "var(--foreground)" : "var(--surface-solid)",
+                                    color: isActive ? "var(--background)" : "var(--muted)",
+                                    border: isActive ? "1px solid transparent" : "1px solid var(--border)",
+                                }}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
 
-            {activeTab === "payouts" && <PayoutsPanel />}
+            {activeTab === "payouts" && isSeller && <PayoutsPanel />}
             {activeTab === "transactions" && <TransactionsPanel
                 allTxs={allTxs}
                 filtered={filtered}
@@ -413,6 +437,7 @@ function WalletContent() {
                 isFetchingNextPage={isFetchingNextPage}
                 fetchNextPage={fetchNextPage}
                 openDeposit={openDeposit}
+                showDepositCTA={showDepositCTA}
             />}
         </div>
     );
@@ -432,6 +457,7 @@ interface TransactionsPanelProps {
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
     openDeposit: () => void;
+    showDepositCTA: boolean;
 }
 
 function TransactionsPanel({
@@ -446,6 +472,7 @@ function TransactionsPanel({
     isFetchingNextPage,
     fetchNextPage,
     openDeposit,
+    showDepositCTA,
 }: TransactionsPanelProps) {
     return (
         <>
@@ -538,14 +565,16 @@ function TransactionsPanel({
                             <p className="text-xs mt-1 mb-4" style={{ color: "var(--muted)" }}>
                                 Cuando recibas o gastes saldo aparecerá aquí.
                             </p>
-                            <Button
-                                size="sm"
-                                variant="primary"
-                                aria-label="Recargar saldo"
-                                onPress={openDeposit}
-                            >
-                                Recargar saldo
-                            </Button>
+                            {showDepositCTA && (
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    aria-label="Recargar saldo"
+                                    onPress={openDeposit}
+                                >
+                                    Recargar saldo
+                                </Button>
+                            )}
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 px-6 text-center">

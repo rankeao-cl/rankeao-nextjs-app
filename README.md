@@ -149,3 +149,11 @@ Archivos clave:
 - `src/app/login/LoginForm.tsx`
 - `src/app/register/RegisterForm.tsx`
 - `src/components/Navbar.tsx`
+
+## 8. Feature Flags
+
+Definidos en `lib/flags.ts`. Se leen desde `NEXT_PUBLIC_*` en build time.
+
+- `NEXT_PUBLIC_BUYER_WALLET_ENABLED` (default: `"false"`)
+  - `true` → muestra el `DepositModal` y el boton "Recargar" en la sidebar/pagina de wallet.
+  - `false` (actual) → el wallet de compradores queda oculto. Las compras se cobran directo via Transbank al pagar en el marketplace. El wallet pasa a ser usado solo para payouts de sellers (detectado via `useIsSeller`, que consulta `GET /marketplace/seller/me`).
