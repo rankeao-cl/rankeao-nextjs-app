@@ -9,6 +9,7 @@ import {
     CreditCard,
     Person,
     ChevronDown,
+    Gift,
 } from "@gravity-ui/icons";
 
 interface AccountNavItem {
@@ -20,6 +21,7 @@ interface AccountNavItem {
 const ACCOUNT_NAV: AccountNavItem[] = [
     { href: "/mi-cuenta/compras", label: "Mis compras", icon: ShoppingCart },
     { href: "/mi-cuenta/ventas", label: "Mis ventas", icon: Tag },
+    { href: "/mi-cuenta/chapitas", label: "Mis chapitas", icon: Gift },
     { href: "/mi-cuenta/billetera", label: "Mi billetera", icon: CreditCard },
     { href: "/mi-cuenta/perfil", label: "Mi perfil", icon: Person },
 ];
