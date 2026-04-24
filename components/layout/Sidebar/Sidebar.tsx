@@ -15,6 +15,8 @@ import {
     Plus,
     SquareDashed,
     Dice1,
+    CreditCard,
+    Tag,
 } from "@gravity-ui/icons";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useUIStore } from "@/lib/stores/ui-store";
@@ -34,6 +36,13 @@ const navItems: NavItem[] = [
     { href: "/torneos", label: "Torneos", icon: Cup },
     { href: "/comunidades", label: "Comunidades", icon: Persons },
     { href: "/ranking", label: "Ranking", icon: ChartColumn },
+];
+
+// Items de "Mi cuenta" — solo visibles para usuarios autenticados.
+const accountItems: NavItem[] = [
+    { href: "/mi-cuenta/compras", label: "Mis compras", icon: ShoppingCart, authRequired: true },
+    { href: "/mi-cuenta/ventas", label: "Mis ventas", icon: Tag, authRequired: true },
+    { href: "/mi-cuenta/billetera", label: "Billetera", icon: CreditCard, authRequired: true },
 ];
 
 export default function Sidebar() {
@@ -77,6 +86,7 @@ export default function Sidebar() {
     }, [createOpen]);
 
     const visibleItems = navItems.filter(item => !item.authRequired || isAuth);
+    const visibleAccountItems = accountItems.filter(item => !item.authRequired || isAuth);
 
     return (
         <aside
@@ -168,6 +178,30 @@ export default function Sidebar() {
                             </Link>
                         );
                     })}
+
+                    {visibleAccountItems.length > 0 && (
+                        <>
+                            <div className="my-2 mx-3 border-t border-border" aria-hidden="true" />
+                            {visibleAccountItems.map((item) => {
+                                const Icon = item.icon;
+                                const active = isActive(item.href);
+
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold w-full overflow-hidden transition-colors ${active ? "text-foreground bg-surface-solid" : "text-muted hover:text-foreground"}`}
+                                        aria-label={item.label}
+                                    >
+                                        <span className="relative shrink-0">
+                                            <Icon className="size-[22px]" />
+                                        </span>
+                                        <span className="truncate">{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </>
+                    )}
 
                 </div>
             </nav>
