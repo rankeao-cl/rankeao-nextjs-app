@@ -1,12 +1,5 @@
-import type { Metadata } from "next";
-import WalletClient from "./WalletClient";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-    title: "Mi wallet",
-    description: "Saldo disponible, reservas y movimientos de tu wallet en Rankeao.",
-    robots: { index: false, follow: false },
-};
-
-export default function WalletPage() {
-    return <WalletClient />;
+export default function WalletAlias() {
+    redirect("/mi-cuenta/billetera");
 }
